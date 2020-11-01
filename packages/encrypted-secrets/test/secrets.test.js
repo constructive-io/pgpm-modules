@@ -1,12 +1,12 @@
 import { getConnections } from './utils';
 
-let db, dbs, conn, teardown;
+let db, dbs, teardown;
 const objs = {
   tables: {}
 };
 
 beforeAll(async () => {
-  ({ db, conn, teardown } = await getConnections());
+  ({ db, teardown } = await getConnections());
   dbs = db.helper('yourschema');
 });
 
@@ -28,7 +28,21 @@ afterEach(async () => {
 });
 
 it('a test here', async () => {
-  await db.any('INSERT INTO myschema.mytable DEFAULT VALUES');
-  const res = await db.any('SELECT * FROM myschema.mytable');
+  await db.any(`
+  insert into secrets_schema.secrets_table
+( secrets_owned_field,
+  name,
+  secrets_value_field,
+  secrets_enc_field
+) values
+(
+'dc474833-318a-41f5-9239-ee563ab657a6',
+'my-secret-name',
+'my-secret',
+'pgp'
+)
+;
+  `);
+  const res = await db.any('SELECT * FROM secrets_schema.secrets_table');
   console.log(res);
 });
