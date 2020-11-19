@@ -1,16 +1,16 @@
 {
-  "_from": "@launchql/ext-default-roles@",
-  "_id": "@launchql/ext-default-roles@0.0.6",
+  "_from": "@launchql/ext-types@",
+  "_id": "@launchql/ext-types@0.0.6",
   "_inBundle": false,
-  "_integrity": "sha512-/9f5EZ40iQcyjrRc55UuDesaezEOsellKmLLNEydZJpKGbxGkoAwSnxFXlNUeHUC7CQnL+QpmjM7GjAak/kLRQ==",
-  "_location": "/@launchql/ext-default-roles",
+  "_integrity": "sha512-l/sShTwHzVworlxgSVEn9n5Flrr7teJcSz27c5/ZesIHIyue5+YGQMHuQk8LKhwtKzCwPyoNzz2E29Epn4LhQQ==",
+  "_location": "/@launchql/ext-types",
   "_phantomChildren": {},
   "_requested": {
     "type": "tag",
     "registry": true,
-    "raw": "@launchql/ext-default-roles@",
-    "name": "@launchql/ext-default-roles",
-    "escapedName": "@launchql%2fext-default-roles",
+    "raw": "@launchql/ext-types@",
+    "name": "@launchql/ext-types",
+    "escapedName": "@launchql%2fext-types",
     "scope": "@launchql",
     "rawSpec": "",
     "saveSpec": null,
@@ -20,17 +20,17 @@
     "#USER",
     "/"
   ],
-  "_resolved": "https://registry.npmjs.org/@launchql/ext-default-roles/-/ext-default-roles-0.0.6.tgz",
-  "_shasum": "2b1c2adafe9fa2b867b1ff1fd0a33bc78adcfca5",
-  "_spec": "@launchql/ext-default-roles@",
-  "_where": "/private/var/folders/kn/177lldss4n9fwn0gh5q5wfn00000gn/T/zx8i7ey886knefv35dtsni",
+  "_resolved": "https://registry.npmjs.org/@launchql/ext-types/-/ext-types-0.0.6.tgz",
+  "_shasum": "f3292bb543cf0c995f9333565d733807f302214c",
+  "_spec": "@launchql/ext-types@",
+  "_where": "/private/var/folders/kn/177lldss4n9fwn0gh5q5wfn00000gn/T/v4q3m2ti9deg72ncicyb7",
   "author": {
     "name": "Dan Lynch",
     "email": "pyramation@gmail.com"
   },
   "bundleDependencies": false,
   "deprecated": false,
-  "description": "default roles",
+  "description": "types",
   "devDependencies": {
     "@babel/cli": "7.10.4",
     "@babel/core": "7.10.4",
@@ -56,7 +56,7 @@
     "regenerator-runtime": "^0.13.2"
   },
   "gitHead": "70f3a75dd69eaa230d241b432a1002aa59f32133",
-  "name": "@launchql/ext-default-roles",
+  "name": "@launchql/ext-types",
   "publishConfig": {
     "access": "public"
   },

@@ -1,0 +1,6 @@
+%syntax-version=1.0.0
+%project=launchql-ext-services
+%uri=launchql-ext-services
+  
+schemas/services_public/schema 2020-11-19T00:23:20Z Dan Lynch <dlynch@Dans-MBP-3> # add schemas/services_public/schema
+schemas/services_public/tables/services/table [schemas/services_public/schema] 2020-11-19T00:23:34Z Dan Lynch <dlynch@Dans-MBP-3> # add schemas/services_public/tables/services/table

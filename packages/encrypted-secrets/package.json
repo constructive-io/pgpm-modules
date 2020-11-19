@@ -1,5 +1,5 @@
 {
-  "name": "@launchql/ext-encrypted-secrets",
+  "name": "@pyramation/launchql-ext-encrypted-secrets",
   "version": "0.0.1",
   "description": "encrypted-secrets",
   "author": "Web, Inc. <pyramation@gmail.com>",
@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "FAST_TEST=1 launchql-templatedb && jest",
-    "test:watch": "FAST_TEST=1 jest --watch"
+    "test:watch": "FAST_TEST=1 jest --watch",
+    "prepare": "lql package"
   },
   "devDependencies": {
     "@babel/cli": "7.10.4",
