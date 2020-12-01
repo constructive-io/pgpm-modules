@@ -4,5 +4,5 @@
 -- requires: schemas/meta_public/schema
 
 BEGIN;
-COMMENT ON CONSTRAINT apps_owner_id_fkey ON "meta_public".apps IS E'@omit manyToMany';
+COMMENT ON CONSTRAINT apps_site_id_fkey ON "meta_public".apps IS E'@omit manyToMany';
 COMMIT;

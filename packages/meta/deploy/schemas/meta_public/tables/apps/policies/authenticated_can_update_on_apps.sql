@@ -6,5 +6,5 @@
 -- requires: schemas/meta_public/tables/apps/policies/enable_row_level_security
 
 BEGIN;
-CREATE POLICY authenticated_can_update_on_apps ON "meta_public".apps FOR UPDATE TO authenticated USING ( owner_id = "meta_public".get_current_user_id() OR owner_id = ANY( "meta_public".get_current_group_ids() ) );
+CREATE POLICY authenticated_can_update_on_apps ON "meta_public".apps FOR UPDATE TO authenticated USING ( (SELECT p.owner_id = ANY( "meta_public".get_current_group_ids() ) FROM "meta_public".sites AS p WHERE p.id = site_id) );
 COMMIT;

@@ -2486,29 +2486,29 @@ CREATE TRIGGER tg_timestamps
  FOR EACH ROW
  EXECUTE PROCEDURE meta_private. tg_timestamps (  );
 
-ALTER TABLE meta_public.apps ADD COLUMN  owner_id uuid;
+ALTER TABLE meta_public.apps ADD COLUMN  site_id uuid;
 
-ALTER TABLE meta_public.apps ALTER COLUMN owner_id SET NOT NULL;
+ALTER TABLE meta_public.apps ALTER COLUMN site_id SET NOT NULL;
 
-ALTER TABLE meta_public.apps ADD CONSTRAINT apps_owner_id_fkey FOREIGN KEY ( owner_id ) REFERENCES meta_public.users ( id );
+ALTER TABLE meta_public.apps ADD CONSTRAINT apps_site_id_fkey FOREIGN KEY ( site_id ) REFERENCES meta_public.sites ( id );
 
-COMMENT ON CONSTRAINT apps_owner_id_fkey ON meta_public.apps IS E'@omit manyToMany';
+COMMENT ON CONSTRAINT apps_site_id_fkey ON meta_public.apps IS E'@omit manyToMany';
 
-CREATE INDEX apps_owner_id_idx ON meta_public.apps ( owner_id );
+CREATE INDEX apps_site_id_idx ON meta_public.apps ( site_id );
 
-ALTER TABLE meta_public.apps ADD CONSTRAINT apps_name_owner_id_key UNIQUE ( name, owner_id );
+ALTER TABLE meta_public.apps ADD CONSTRAINT apps_site_id_key UNIQUE ( site_id );
 
-COMMENT ON CONSTRAINT apps_name_owner_id_key ON meta_public.apps IS NULL;
+COMMENT ON CONSTRAINT apps_site_id_key ON meta_public.apps IS NULL;
 
 ALTER TABLE meta_public.apps ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY authenticated_can_select_on_apps ON meta_public.apps FOR SELECT TO authenticated USING ( owner_id = meta_public.get_current_user_id() OR owner_id = ANY (meta_public.get_current_group_ids()) );
+CREATE POLICY authenticated_can_select_on_apps ON meta_public.apps FOR SELECT TO authenticated USING ( (SELECT p.owner_id = ANY (meta_public.get_current_group_ids()) FROM meta_public.sites AS p WHERE p.id = site_id) );
 
-CREATE POLICY authenticated_can_insert_on_apps ON meta_public.apps FOR INSERT TO authenticated WITH CHECK ( owner_id = meta_public.get_current_user_id() OR owner_id = ANY (meta_public.get_current_group_ids()) );
+CREATE POLICY authenticated_can_insert_on_apps ON meta_public.apps FOR INSERT TO authenticated WITH CHECK ( (SELECT p.owner_id = ANY (meta_public.get_current_group_ids()) FROM meta_public.sites AS p WHERE p.id = site_id) );
 
-CREATE POLICY authenticated_can_update_on_apps ON meta_public.apps FOR UPDATE TO authenticated USING ( owner_id = meta_public.get_current_user_id() OR owner_id = ANY (meta_public.get_current_group_ids()) );
+CREATE POLICY authenticated_can_update_on_apps ON meta_public.apps FOR UPDATE TO authenticated USING ( (SELECT p.owner_id = ANY (meta_public.get_current_group_ids()) FROM meta_public.sites AS p WHERE p.id = site_id) );
 
-CREATE POLICY authenticated_can_delete_on_apps ON meta_public.apps FOR DELETE TO authenticated USING ( owner_id = meta_public.get_current_user_id() OR owner_id = ANY (meta_public.get_current_group_ids()) );
+CREATE POLICY authenticated_can_delete_on_apps ON meta_public.apps FOR DELETE TO authenticated USING ( (SELECT p.owner_id = ANY (meta_public.get_current_group_ids()) FROM meta_public.sites AS p WHERE p.id = site_id) );
 
 GRANT SELECT ON TABLE meta_public.apps TO authenticated;
 

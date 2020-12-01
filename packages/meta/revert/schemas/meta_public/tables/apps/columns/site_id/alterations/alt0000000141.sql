@@ -1,4 +1,4 @@
--- Revert: schemas/meta_public/tables/apps/columns/site_id/alterations/alt0000000144 from pg
+-- Revert: schemas/meta_public/tables/apps/columns/site_id/alterations/alt0000000141 from pg
 
 BEGIN;
 

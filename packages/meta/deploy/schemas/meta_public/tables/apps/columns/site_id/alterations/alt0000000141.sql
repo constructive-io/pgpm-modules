@@ -1,4 +1,4 @@
--- Deploy: schemas/meta_public/tables/apps/columns/site_id/alterations/alt0000000144 to pg
+-- Deploy: schemas/meta_public/tables/apps/columns/site_id/alterations/alt0000000141 to pg
 -- made with <3 @ launchql.com
 
 -- requires: schemas/meta_public/schema

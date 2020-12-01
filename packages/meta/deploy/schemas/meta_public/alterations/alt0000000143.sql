@@ -4,5 +4,5 @@
 -- requires: schemas/meta_public/schema
 
 BEGIN;
-COMMENT ON CONSTRAINT apps_name_owner_id_key ON "meta_public".apps IS NULL;
+COMMENT ON CONSTRAINT apps_site_id_key ON "meta_public".apps IS NULL;
 COMMIT;
