@@ -1,6 +1,6 @@
 {
   "name": "@pyramation/launchql-ext-rls",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "rls",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "publishConfig": {
@@ -29,7 +29,7 @@
     "jest": "26.1.0",
     "prettier": "2.0.5",
     "regenerator-runtime": "^0.13.2"
-  }, 
+  },
   "dependencies": {
     "@launchql/ext-jobs": "0.1.0"
   }

@@ -1,6 +1,6 @@
 {
   "name": "@pyramation/launchql-ext-services",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "services",
   "author": "Web, Inc. <pyramation@gmail.com>",
   "publishConfig": {
