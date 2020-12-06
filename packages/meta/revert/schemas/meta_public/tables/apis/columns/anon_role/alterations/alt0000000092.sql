@@ -4,8 +4,7 @@ BEGIN;
 
 
 ALTER TABLE "meta_public".apis 
-    ALTER COLUMN anon_role DROP NOT NULL;
-
+    ALTER COLUMN anon_role DROP DEFAULT;
 
 COMMIT;  
 

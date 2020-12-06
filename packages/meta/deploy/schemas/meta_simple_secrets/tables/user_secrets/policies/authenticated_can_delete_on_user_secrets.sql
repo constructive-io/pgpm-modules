@@ -6,5 +6,5 @@
 -- requires: schemas/meta_simple_secrets/tables/user_secrets/policies/enable_row_level_security
 
 BEGIN;
-CREATE POLICY authenticated_can_delete_on_user_secrets ON "meta_simple_secrets".user_secrets FOR DELETE TO authenticated USING ( user_id = "meta_public".get_current_user_id() );
+CREATE POLICY authenticated_can_delete_on_user_secrets ON "meta_simple_secrets".user_secrets FOR DELETE TO authenticated USING ( owner_id = "meta_public".get_current_user_id() );
 COMMIT;

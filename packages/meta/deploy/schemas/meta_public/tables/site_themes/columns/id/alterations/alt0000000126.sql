@@ -8,5 +8,5 @@
 BEGIN;
 
 ALTER TABLE "meta_public".site_themes 
-    ALTER COLUMN id SET NOT NULL;
+    ALTER COLUMN id SET DEFAULT "meta_private".uuid_generate_v4();
 COMMIT;

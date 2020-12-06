@@ -4,5 +4,5 @@
 -- requires: schemas/meta_public/schema
 
 BEGIN;
-COMMENT ON CONSTRAINT organization_settings_organization_id_fkey ON "meta_public".organization_settings IS E'@omit manyToMany';
+COMMENT ON CONSTRAINT organization_settings_address_id_fkey ON "meta_public".organization_settings IS E'@omit manyToMany';
 COMMIT;

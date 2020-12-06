@@ -10,12 +10,12 @@ RETURNS TRIGGER
 AS $CODEZ$
 BEGIN
    
-IF (NEW.enc = 'crypt') THEN
+IF (NEW.algo = 'crypt') THEN
     NEW.value = crypt(NEW.value::text, gen_salt('bf'));
-ELSIF (NEW.enc = 'pgp') THEN
-    NEW.value = pgp_sym_encrypt(encode(NEW.value::bytea, 'hex'), NEW.user_id::text, 'compress-algo=1, cipher-algo=aes256');
+ELSIF (NEW.algo = 'pgp') THEN
+    NEW.value = pgp_sym_encrypt(encode(NEW.value::bytea, 'hex'), NEW.owner_id::text, 'compress-algo=1, cipher-algo=aes256');
 ELSE
-    NEW.enc = 'none';
+    NEW.algo = 'none';
 END IF;
 RETURN NEW;
 END;

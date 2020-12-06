@@ -8,5 +8,5 @@
 BEGIN;
 
 ALTER TABLE "meta_public".apis 
-    ALTER COLUMN role_name SET NOT NULL;
+    ALTER COLUMN role_name SET DEFAULT 'authenticated';
 COMMIT;

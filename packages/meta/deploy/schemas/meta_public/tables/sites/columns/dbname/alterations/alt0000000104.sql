@@ -8,5 +8,5 @@
 BEGIN;
 
 ALTER TABLE "meta_public".sites 
-    ALTER COLUMN dbname SET NOT NULL;
+    ALTER COLUMN dbname SET DEFAULT current_database();
 COMMIT;

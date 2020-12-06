@@ -4,8 +4,7 @@ BEGIN;
 
 
 ALTER TABLE "meta_private".api_tokens 
-    ALTER COLUMN access_token_expires_at DROP NOT NULL;
-
+    ALTER COLUMN access_token_expires_at DROP DEFAULT;
 
 COMMIT;  
 

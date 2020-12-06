@@ -29,7 +29,7 @@ BEGIN
   IF ( NOT FOUND ) THEN
     RETURN FALSE;
   END IF;
-  v_user_id = v_email.user_id;
+  v_user_id = v_email.owner_id;
   verification_email_sent_at = "meta_simple_secrets".get(v_user_id, 'verification_email_sent_at');
   IF (verification_email_sent_at IS NOT NULL AND 
     verification_email_sent_at + v_verification_expires_interval < NOW() 

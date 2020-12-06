@@ -1,6 +1,6 @@
 -- Revert: schemas/meta_public/alterations/alt0000000142 from pg
 
 BEGIN;
-COMMENT ON CONSTRAINT apps_site_id_fkey ON "meta_public".apps IS NULL;
+COMMENT ON CONSTRAINT apps_site_id_key ON "meta_public".apps IS NULL;
 COMMIT;  
 

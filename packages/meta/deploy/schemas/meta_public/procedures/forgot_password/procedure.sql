@@ -24,7 +24,7 @@ BEGIN
     IF (NOT FOUND) THEN
         RETURN;
     END IF;
-    v_user_id = v_email.user_id;
+    v_user_id = v_email.owner_id;
     password_reset_email_sent_at = "meta_simple_secrets".get(v_user_id, 'password_reset_email_sent_at');
     IF (
         password_reset_email_sent_at IS NOT NULL AND
@@ -37,7 +37,7 @@ BEGIN
         (v_user_id, 'reset_password_token', v_reset_token, 'crypt');
     PERFORM "meta_simple_secrets".set(v_user_id, 'password_reset_email_sent_at', (NOW())::text);
     PERFORM
-        "meta_jobs".add_job ('user__forgot_password',
+        app_jobs.add_job ('user__forgot_password',
             json_build_object('user_id', v_user_id, 'email', v_email.email::text, 'token', v_reset_token));
     RETURN;
 END;

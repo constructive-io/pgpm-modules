@@ -1,6 +1,0 @@
--- Verify: schemas/meta_public/tables/phone_numbers/columns/owner_id/alterations/alt0000000064 on pg
-
-BEGIN;
-
-COMMIT;  
-

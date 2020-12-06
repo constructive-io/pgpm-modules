@@ -4,8 +4,7 @@ BEGIN;
 
 
 ALTER TABLE "meta_public".site_themes 
-    ALTER COLUMN id DROP NOT NULL;
-
+    ALTER COLUMN id DROP DEFAULT;
 
 COMMIT;  
 

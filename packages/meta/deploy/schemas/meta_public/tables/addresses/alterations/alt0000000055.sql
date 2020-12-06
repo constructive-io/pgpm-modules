@@ -5,5 +5,5 @@
 -- requires: schemas/meta_public/tables/addresses/table
 
 BEGIN;
-ALTER TABLE "meta_public".addresses ADD CONSTRAINT addresses_postcode_chk CHECK (character_length(postcode) <= 24);
+ALTER TABLE "meta_public".addresses ADD CONSTRAINT addresses_other_chk CHECK (character_length(other) <= 120);
 COMMIT;

@@ -4,8 +4,7 @@ BEGIN;
 
 
 ALTER TABLE "meta_encrypted_secrets".user_encrypted_secrets 
-    ALTER COLUMN id DROP NOT NULL;
-
+    ALTER COLUMN id DROP DEFAULT;
 
 COMMIT;  
 

@@ -4,8 +4,7 @@ BEGIN;
 
 
 ALTER TABLE "meta_public".api_modules 
-    ALTER COLUMN id DROP NOT NULL;
-
+    ALTER COLUMN id DROP DEFAULT;
 
 COMMIT;  
 

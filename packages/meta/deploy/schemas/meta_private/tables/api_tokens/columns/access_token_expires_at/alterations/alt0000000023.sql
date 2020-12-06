@@ -8,5 +8,5 @@
 BEGIN;
 
 ALTER TABLE "meta_private".api_tokens 
-    ALTER COLUMN access_token_expires_at SET NOT NULL;
+    ALTER COLUMN access_token_expires_at SET DEFAULT (NOW() + interval '30 days');
 COMMIT;

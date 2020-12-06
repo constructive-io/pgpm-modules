@@ -6,5 +6,5 @@
 -- requires: schemas/meta_public/tables/emails/policies/enable_row_level_security
 
 BEGIN;
-CREATE POLICY authenticated_can_update_on_emails ON "meta_public".emails FOR UPDATE TO authenticated USING ( user_id = "meta_public".get_current_user_id() );
+CREATE POLICY authenticated_can_update_on_emails ON "meta_public".emails FOR UPDATE TO authenticated USING ( owner_id = "meta_public".get_current_user_id() );
 COMMIT;

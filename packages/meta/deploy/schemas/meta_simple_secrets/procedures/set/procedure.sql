@@ -14,10 +14,10 @@ CREATE FUNCTION "meta_simple_secrets".set (
   RETURNS void
   AS $$
     INSERT INTO "meta_simple_secrets".user_secrets 
-        (user_id, name, value)
+        (owner_id, name, value)
     VALUES
         (set.v_owner_id, set.v_secret_name, set.v_value::text)
-    ON CONFLICT (user_id, name)
+    ON CONFLICT (owner_id, name)
     DO UPDATE 
     SET value = EXCLUDED.value;
 $$

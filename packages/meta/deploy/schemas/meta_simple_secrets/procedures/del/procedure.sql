@@ -14,7 +14,7 @@ CREATE FUNCTION "meta_simple_secrets".del (
   AS $$
     DELETE FROM "meta_simple_secrets".user_secrets s 
         WHERE
-        s.user_id = del.owner_id
+        s.owner_id = del.owner_id
         AND s.name = secret_name;
 $$
 LANGUAGE 'sql'
@@ -27,7 +27,7 @@ CREATE FUNCTION "meta_simple_secrets".del (
   AS $$
     DELETE FROM "meta_simple_secrets".user_secrets s 
         WHERE
-        s.user_id = del.owner_id
+        s.owner_id = del.owner_id
         AND s.name = ANY (secret_names);
 $$
 LANGUAGE 'sql'

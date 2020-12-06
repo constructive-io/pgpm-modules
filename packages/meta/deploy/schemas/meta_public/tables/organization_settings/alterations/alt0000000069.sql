@@ -5,5 +5,5 @@
 -- requires: schemas/meta_public/tables/organization_settings/table
 
 BEGIN;
-ALTER TABLE "meta_public".organization_settings ADD CONSTRAINT organization_settings_legal_name_chk CHECK (character_length(legal_name) <= 255);
+ALTER TABLE "meta_public".organization_settings ADD CONSTRAINT organization_settings_dba_chk CHECK (character_length(dba) <= 255);
 COMMIT;

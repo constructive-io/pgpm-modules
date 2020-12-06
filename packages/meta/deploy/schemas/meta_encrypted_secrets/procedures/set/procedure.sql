@@ -3,29 +3,29 @@
 
 -- requires: schemas/meta_encrypted_secrets/schema
 -- requires: schemas/meta_encrypted_secrets/tables/user_encrypted_secrets/table
--- requires: schemas/meta_encrypted_secrets/tables/user_encrypted_secrets/columns/enc/column
+-- requires: schemas/meta_encrypted_secrets/tables/user_encrypted_secrets/columns/algo/column
 -- requires: schemas/meta_encrypted_secrets/tables/user_encrypted_secrets/columns/value/column
--- requires: schemas/meta_encrypted_secrets/tables/user_encrypted_secrets/columns/user_id/column
+-- requires: schemas/meta_encrypted_secrets/tables/user_encrypted_secrets/columns/owner_id/column
 
 BEGIN;
 
 CREATE FUNCTION "meta_encrypted_secrets".set (
-  v_user_id uuid,
+  v_owner_id uuid,
   secret_name text,
   secret_value text,
-  field_encoding text = 'pgp'
+  v_algo text = 'pgp'
 )
   RETURNS boolean
   AS $$
 BEGIN
-  INSERT INTO "meta_encrypted_secrets".user_encrypted_secrets (user_id, name, value, enc)
-    VALUES (v_user_id, set.secret_name, set.secret_value::bytea, set.field_encoding)
-    ON CONFLICT (user_id, name)
+  INSERT INTO "meta_encrypted_secrets".user_encrypted_secrets (owner_id, name, value, algo)
+    VALUES (v_owner_id, set.secret_name, set.secret_value::bytea, set.v_algo)
+    ON CONFLICT (owner_id, name)
     DO
     UPDATE
     SET
       value = set.secret_value::bytea,
-      enc = EXCLUDED.enc;
+      algo = EXCLUDED.algo;
   RETURN TRUE;
 END
 $$

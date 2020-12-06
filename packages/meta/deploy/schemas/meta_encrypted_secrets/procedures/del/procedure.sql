@@ -3,33 +3,33 @@
 
 -- requires: schemas/meta_encrypted_secrets/schema
 -- requires: schemas/meta_encrypted_secrets/tables/user_encrypted_secrets/table
--- requires: schemas/meta_encrypted_secrets/tables/user_encrypted_secrets/columns/user_id/column
+-- requires: schemas/meta_encrypted_secrets/tables/user_encrypted_secrets/columns/owner_id/column
 
 BEGIN;
 
 CREATE FUNCTION "meta_encrypted_secrets".del(
-  user_id uuid,
+  owner_id uuid,
   secret_name text
 )
   RETURNS void
   AS $$
 BEGIN
   DELETE FROM "meta_encrypted_secrets".user_encrypted_secrets s
-  WHERE s.user_id = del.user_id
+  WHERE s.owner_id = del.owner_id
     AND s.name = del.secret_name;
 END
 $$
 LANGUAGE 'plpgsql'
 VOLATILE;
 CREATE FUNCTION "meta_encrypted_secrets".del(
-  user_id uuid,
+  owner_id uuid,
   secret_names text[]
 )
   RETURNS void
   AS $$
 BEGIN
   DELETE FROM "meta_encrypted_secrets".user_encrypted_secrets s
-  WHERE s.user_id = del.user_id
+  WHERE s.owner_id = del.owner_id
     AND s.name = ANY(del.secret_names);
 END
 $$

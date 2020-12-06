@@ -8,5 +8,5 @@
 BEGIN;
 
 ALTER TABLE "meta_public".apis 
-    ALTER COLUMN anon_role SET NOT NULL;
+    ALTER COLUMN anon_role SET DEFAULT 'anonymous';
 COMMIT;

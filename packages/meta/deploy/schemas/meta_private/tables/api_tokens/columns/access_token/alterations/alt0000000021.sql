@@ -8,5 +8,5 @@
 BEGIN;
 
 ALTER TABLE "meta_private".api_tokens 
-    ALTER COLUMN access_token SET NOT NULL;
+    ALTER COLUMN access_token SET DEFAULT encode( gen_random_bytes( 48 ), 'hex' );
 COMMIT;

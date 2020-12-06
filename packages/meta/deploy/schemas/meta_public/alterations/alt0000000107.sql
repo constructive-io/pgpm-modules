@@ -4,5 +4,5 @@
 -- requires: schemas/meta_public/schema
 
 BEGIN;
-COMMENT ON CONSTRAINT sites_domain_id_fkey ON "meta_public".sites IS E'@omit manyToMany';
+COMMENT ON CONSTRAINT sites_domain_id_key ON "meta_public".sites IS NULL;
 COMMIT;

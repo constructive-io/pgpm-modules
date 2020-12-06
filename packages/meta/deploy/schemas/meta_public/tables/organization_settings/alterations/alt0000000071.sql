@@ -5,5 +5,5 @@
 -- requires: schemas/meta_public/tables/organization_settings/table
 
 BEGIN;
-ALTER TABLE "meta_public".organization_settings ADD CONSTRAINT organization_settings_industry_chk CHECK (character_length(industry) <= 255);
+ALTER TABLE "meta_public".organization_settings ADD CONSTRAINT organization_settings_description_chk CHECK (character_length(description) <= 1024);
 COMMIT;

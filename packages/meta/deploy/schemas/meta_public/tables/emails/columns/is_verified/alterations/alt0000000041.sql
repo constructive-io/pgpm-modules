@@ -8,5 +8,5 @@
 BEGIN;
 
 ALTER TABLE "meta_public".emails 
-    ALTER COLUMN is_verified SET NOT NULL;
+    ALTER COLUMN is_verified SET DEFAULT false;
 COMMIT;

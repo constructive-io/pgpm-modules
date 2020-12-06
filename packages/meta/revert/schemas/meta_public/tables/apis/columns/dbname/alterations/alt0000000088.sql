@@ -4,8 +4,7 @@ BEGIN;
 
 
 ALTER TABLE "meta_public".apis 
-    ALTER COLUMN dbname DROP NOT NULL;
-
+    ALTER COLUMN dbname DROP DEFAULT;
 
 COMMIT;  
 

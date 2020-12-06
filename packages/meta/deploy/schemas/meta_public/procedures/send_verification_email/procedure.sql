@@ -25,17 +25,17 @@ BEGIN
   END IF;
   verification_token_name = v_email.email::text || '_verification_token';
   IF ( v_email.is_verified IS TRUE ) THEN
-    PERFORM "meta_simple_secrets".del(v_email.user_id, ARRAY[
+    PERFORM "meta_simple_secrets".del(v_email.owner_id, ARRAY[
         'verification_email_sent_at',
         'verification_email_attempts',
         'first_failed_verification_email_attempt'
     ]);
-    PERFORM "meta_encrypted_secrets".del(v_email.user_id, ARRAY[
+    PERFORM "meta_encrypted_secrets".del(v_email.owner_id, ARRAY[
         verification_token_name
     ]);
     RETURN FALSE;
   END IF;
-  v_user_id = v_email.user_id;
+  v_user_id = v_email.owner_id;
   verification_email_sent_at = "meta_simple_secrets".get(v_user_id, 'verification_email_sent_at');
     IF (
       verification_email_sent_at IS NOT NULL AND
@@ -59,7 +59,7 @@ BEGIN
   PERFORM "meta_encrypted_secrets".set
     (v_user_id, verification_token_name, v_verification_token, 'pgp');
   PERFORM
-      "meta_jobs".add_job ('user_emails__send_verification',
+      app_jobs.add_job ('user_emails__send_verification',
         json_build_object(
           'email_id', v_email.id,
           'email', email,

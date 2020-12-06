@@ -5,5 +5,5 @@
 -- requires: schemas/meta_public/tables/sites/table
 
 BEGIN;
-ALTER TABLE "meta_public".sites ADD CONSTRAINT sites_title_chk CHECK (character_length(title) <= 120);
+ALTER TABLE "meta_public".sites ADD CONSTRAINT sites_description_chk CHECK (character_length(description) <= 120);
 COMMIT;

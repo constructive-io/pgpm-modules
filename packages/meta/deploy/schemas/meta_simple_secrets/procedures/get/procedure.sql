@@ -17,7 +17,7 @@ DECLARE
     val text;
 BEGIN
     SELECT value FROM "meta_simple_secrets".user_secrets t 
-        WHERE t.user_id = get.v_owner_id
+        WHERE t.owner_id = get.v_owner_id
         AND t.name = get.v_secret_name
     INTO val;
     IF (NOT FOUND OR val IS NULL) THEN

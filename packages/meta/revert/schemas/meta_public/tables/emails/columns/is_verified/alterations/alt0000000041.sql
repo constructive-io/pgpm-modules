@@ -4,8 +4,7 @@ BEGIN;
 
 
 ALTER TABLE "meta_public".emails 
-    ALTER COLUMN is_verified DROP NOT NULL;
-
+    ALTER COLUMN is_verified DROP DEFAULT;
 
 COMMIT;  
 

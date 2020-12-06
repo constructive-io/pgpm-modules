@@ -9,6 +9,7 @@
 BEGIN;
 
 CREATE FUNCTION "meta_public".set_password (
+  current_password text,
   new_password text
 )
   RETURNS boolean
@@ -16,8 +17,13 @@ CREATE FUNCTION "meta_public".set_password (
 DECLARE
   v_user "meta_public".users;
   v_user_secret "meta_simple_secrets".user_secrets;
+  password_exists boolean;
 BEGIN
-  IF (new_password IS NULL OR character_length(new_password) <= 7) THEN 
+  IF (new_password IS NULL) THEN 
+    RAISE EXCEPTION 'PASSWORD_LEN';
+  END IF;
+  new_password = trim(new_password);
+  IF (character_length(new_password) <= 7 OR character_length(new_password) >= 64) THEN 
     RAISE EXCEPTION 'PASSWORD_LEN';
   END IF;
   SELECT
@@ -29,26 +35,24 @@ BEGIN
   IF (NOT FOUND) THEN
     RETURN FALSE;
   END IF;
+  SELECT EXISTS (
+    SELECT 1
+      FROM "meta_encrypted_secrets".user_encrypted_secrets
+      WHERE owner_id=v_user.id
+        AND name='password_hash'
+  )
+  INTO password_exists;
+  IF (password_exists IS TRUE) THEN 
+    IF ("meta_encrypted_secrets".verify(
+        v_user.id,
+        'password_hash',
+        current_password
+    ) IS FALSE) THEN 
+      RAISE EXCEPTION 'INCORRECT_PASSWORD';
+    END IF;
+  END IF;
   PERFORM "meta_encrypted_secrets".set
     (v_user.id, 'password_hash', new_password, 'crypt');
-  DELETE FROM "meta_simple_secrets".user_secrets s 
-    WHERE
-    s.user_id = v_user.id
-    AND s.name IN
-      (
-        'password_attempts',
-        'first_failed_password_attempt',
-        'reset_password_token_generated',
-        'reset_password_attempts',
-        'first_failed_reset_password_attempt'
-      );
-  DELETE FROM "meta_encrypted_secrets".user_encrypted_secrets s 
-    WHERE
-    s.user_id = v_user.id
-    AND s.name IN
-      (
-        'reset_password_token'
-      );
       
   RETURN TRUE;
 END;

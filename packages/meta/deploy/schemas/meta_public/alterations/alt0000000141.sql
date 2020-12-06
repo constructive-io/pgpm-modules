@@ -1,0 +1,8 @@
+-- Deploy: schemas/meta_public/alterations/alt0000000141 to pg
+-- made with <3 @ launchql.com
+
+-- requires: schemas/meta_public/schema
+
+BEGIN;
+COMMENT ON CONSTRAINT apps_site_id_fkey ON "meta_public".apps IS E'@omit manyToMany';
+COMMIT;

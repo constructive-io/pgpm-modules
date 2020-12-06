@@ -33,15 +33,8 @@ BEGIN
   IF (NOT FOUND) THEN
     RETURN NULL;
   END IF;
-  SELECT value FROM "meta_simple_secrets".user_secrets t 
-    WHERE t.user_id = v_email.user_id
-    AND t.name = 'first_failed_password_attempt'
-  INTO first_failed_password_attempt;
-  
-  SELECT value FROM "meta_simple_secrets".user_secrets t 
-    WHERE t.user_id = v_email.user_id
-    AND t.name = 'password_attempts'
-  INTO password_attempts;
+  first_failed_password_attempt = "meta_simple_secrets".get(v_email.owner_id, 'first_failed_password_attempt');
+  password_attempts = "meta_simple_secrets".get(v_email.owner_id, 'password_attempts');
   IF (
     first_failed_password_attempt IS NOT NULL
       AND
@@ -51,13 +44,13 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'ACCOUNT_LOCKED_EXCEED_ATTEMPTS';
   END IF;
-  IF ("meta_encrypted_secrets".verify(v_email.user_id, 'password_hash', PASSWORD)) THEN
-    DELETE FROM "meta_simple_secrets".user_secrets s 
-      WHERE
-      s.user_id = v_email.user_id
-      AND s.name IN ('password_attempts', 'first_failed_password_attempt');
+  IF ("meta_encrypted_secrets".verify(v_email.owner_id, 'password_hash', PASSWORD)) THEN
+    PERFORM "meta_simple_secrets".del(v_email.owner_id,
+    ARRAY[
+      'password_attempts', 'first_failed_password_attempt'
+    ]);
     INSERT INTO "meta_private".api_tokens (user_id)
-      VALUES (v_email.user_id)
+      VALUES (v_email.owner_id)
     RETURNING
       * INTO v_token;
     RETURN v_token;
@@ -75,14 +68,8 @@ BEGIN
     ELSE 
       password_attempts = password_attempts + 1;
     END IF;
-    INSERT INTO "meta_simple_secrets".user_secrets 
-      (user_id, name, value)
-    VALUES
-      (v_email.user_id, 'password_attempts', password_attempts),
-      (v_email.user_id, 'first_failed_password_attempt', first_failed_password_attempt)
-    ON CONFLICT (user_id, name)
-    DO UPDATE 
-    SET value = EXCLUDED.value;
+    PERFORM "meta_simple_secrets".set(v_email.owner_id, 'password_attempts', password_attempts);
+    PERFORM "meta_simple_secrets".set(v_email.owner_id, 'first_failed_password_attempt', first_failed_password_attempt);
     RETURN NULL;
   END IF;
 END;

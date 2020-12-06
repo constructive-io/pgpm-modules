@@ -35,7 +35,7 @@ BEGIN
       DEFAULT VALUES
     RETURNING
       * INTO v_user;
-    INSERT INTO "meta_public".emails (user_id, email)
+    INSERT INTO "meta_public".emails (owner_id, email)
       VALUES (v_user.id, trim(register.email))
     RETURNING
       * INTO v_email;

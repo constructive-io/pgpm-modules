@@ -8,5 +8,5 @@
 BEGIN;
 
 ALTER TABLE "meta_simple_secrets".user_secrets 
-    ALTER COLUMN id SET NOT NULL;
+    ALTER COLUMN id SET DEFAULT "meta_private".uuid_generate_v4();
 COMMIT;

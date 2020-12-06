@@ -52,13 +52,10 @@ BEGIN
                 'first_failed_reset_password_attempt'                
             ]
         );
-        DELETE FROM "meta_encrypted_secrets".user_encrypted_secrets s 
-            WHERE
-            s.user_id = v_user.id
-            AND s.name IN
-            (
-                'reset_password_token'
-            );
+        PERFORM "meta_encrypted_secrets".del(
+            v_user.id,
+            'reset_password_token'
+        );
         RETURN TRUE;
     ELSE
         IF (
