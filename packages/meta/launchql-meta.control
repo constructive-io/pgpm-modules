@@ -1,6 +1,6 @@
 # launchql-meta extension
 comment = 'launchql-meta extension'
-default_version = '0.1.6'
+default_version = '0.1.7'
 module_pathname = '$libdir/launchql-meta'
 requires = 'citext,pgcrypto,plpgsql,uuid-ossp,launchql-ext-types,launchql-ext-jobs'
 relocatable = false
