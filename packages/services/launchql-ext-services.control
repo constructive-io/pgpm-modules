@@ -1,6 +1,6 @@
 # launchql-ext-services extension
 comment = 'launchql-ext-services extension'
-default_version = '0.1.19'
+default_version = '0.1.20'
 module_pathname = '$libdir/launchql-ext-services'
 requires = 'plpgsql,uuid-ossp,launchql-ext-types,launchql-ext-default-roles'
 relocatable = false

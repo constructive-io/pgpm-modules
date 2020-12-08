@@ -1,7 +1,11 @@
 \echo Use "CREATE EXTENSION db_meta" to load this file. \quit
 CREATE SCHEMA collections_private;
 
+GRANT USAGE ON SCHEMA collections_private TO authenticated;
+
 CREATE SCHEMA collections_public;
+
+GRANT USAGE ON SCHEMA collections_public TO authenticated;
 
 CREATE TABLE collections_public.database (
  	id uuid PRIMARY KEY DEFAULT ( uuid_generate_v4() ),

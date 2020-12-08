@@ -78,13 +78,14 @@ it('register domain', async () => {
   objs.domains.base = obj;
 });
 
-const registerApi = async ({ domain, schemas, anon_role, role_name }) => {
+const registerApi = async ({ domain, name, schemas, anon_role, role_name }) => {
   const obj = await meta.public.insertOne(
     'apis',
     {
       database_id,
       domain_id: domain.id,
       schemas,
+      name,
       anon_role,
       role_name
     },
@@ -101,12 +102,14 @@ const registerApi = async ({ domain, schemas, anon_role, role_name }) => {
 it('register apis', async () => {
   await registerApi({
     domain: objs.domains.api,
+    name: 'public',
     schemas: ['a'],
     anon_role: 'anonymous',
     role_name: 'authenticated'
   });
   await registerApi({
     domain: objs.domains.admin,
+    name: 'admin',
     schemas: ['b', 'soon link this with a fkey'],
     anon_role: 'administrator',
     role_name: 'administrator'
