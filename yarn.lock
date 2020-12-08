@@ -1474,6 +1474,18 @@
     semver "^5.5.1"
     shelljs "^0.8.2"
 
+"@launchql/ext-default-roles@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.npmjs.org/@launchql/ext-default-roles/-/ext-default-roles-0.1.0.tgz#dd14214b004218476d37a431b1c4b2d698be894c"
+  integrity sha512-xoaU1b/uxsmc9lTkkyFbu5dzwr2yzfav/HtqMEX67cECp0YXXI9Qq6q8H7//L53mYMTtKiBkdSdL05JyFCcEjg==
+
+"@launchql/ext-jobs@0.1.0":
+  version "0.1.0"
+  resolved "https://registry.npmjs.org/@launchql/ext-jobs/-/ext-jobs-0.1.0.tgz#be427c36d4bc7b6da1afff3082e9eafc1545f632"
+  integrity sha512-MXuVaF2RBVMiFbU8lnBT2nSQr3UimJ/yr4DuKrlA1eJDNdyc55JoF4aMhGKUGG+Q+K1lYFxATaJ6ri+0YhHw2g==
+  dependencies:
+    "@launchql/ext-default-roles" "^0.1.0"
+
 "@launchql/graphile-settings@^0.1.24":
   version "0.1.24"
   resolved "https://registry.npmjs.org/@launchql/graphile-settings/-/graphile-settings-0.1.24.tgz#29369b0ac6d6522f80027b2c3e6f06862cd824e9"
