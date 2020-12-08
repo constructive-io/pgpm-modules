@@ -5,4 +5,6 @@ BEGIN;
 
 CREATE SCHEMA meta_private;
 
+GRANT USAGE ON SCHEMA meta_private TO authenticated;
+
 COMMIT;

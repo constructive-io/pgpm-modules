@@ -287,7 +287,8 @@ CREATE TABLE meta_public.apis (
 	schemas text[] NOT NULL,
 	dbname text NOT NULL DEFAULT ( current_database() ),
 	role_name text NOT NULL DEFAULT ( 'authenticated' ),
-	anon_role text NOT NULL DEFAULT ( 'anonymous' ) 
+	anon_role text NOT NULL DEFAULT ( 'anonymous' ),
+	UNIQUE ( domain_id ) 
 );
 
 ALTER TABLE meta_public.apis ADD CONSTRAINT apis_domain_id_fkey FOREIGN KEY ( domain_id ) REFERENCES meta_public.domains ( id );
