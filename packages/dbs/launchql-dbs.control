@@ -1,8 +1,0 @@
-# launchql-dbs extension
-comment = 'launchql-dbs extension'
-default_version = '0.0.1'
-module_pathname = '$libdir/launchql-dbs'
-requires = 'plpgsql,launchql-ext-types,uuid-ossp,launchql-inflection'
-relocatable = false
-superuser = false
-  
