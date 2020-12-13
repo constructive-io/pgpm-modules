@@ -1,0 +1,6 @@
+-- Revert: schemas/collections_public/tables/trigger_function/policies/authenticated_can_delete_on_trigger_function from pg
+
+BEGIN;
+DROP POLICY authenticated_can_delete_on_trigger_function ON collections_public.trigger_function;
+COMMIT;  
+

@@ -1,0 +1,8 @@
+# rls extension
+comment = 'rls extension'
+default_version = '0.0.1'
+module_pathname = '$libdir/rls'
+requires = 'plpgsql,uuid-ossp,citext,pgcrypto,btree_gist,postgis,hstore,launchql-inflection,launchql-ext-types,launchql-ext-default-roles'
+relocatable = false
+superuser = false
+  

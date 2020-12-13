@@ -1,0 +1,6 @@
+-- Verify: schemas/collections_public/tables/schema/table on pg
+
+BEGIN;
+
+COMMIT;  
+

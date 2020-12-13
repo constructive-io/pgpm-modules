@@ -1,0 +1,6 @@
+-- Revert: schemas/collections_public/tables/index/table from pg
+
+BEGIN;
+
+COMMIT;  
+

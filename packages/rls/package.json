@@ -1,11 +1,9 @@
 {
-  "name": "@pyramation/launchql-ext-rls",
-  "version": "0.0.15",
+  "name": "rls",
+  "version": "0.0.1",
   "description": "rls",
   "author": "Dan Lynch <pyramation@gmail.com>",
-  "publishConfig": {
-    "access": "restricted"
-  },
+  "private": true,
   "scripts": {
     "test": "FAST_TEST=1 launchql-templatedb && jest",
     "test:watch": "FAST_TEST=1 jest --watch",
@@ -21,16 +19,19 @@
     "@babel/preset-env": "7.10.4",
     "@babel/runtime": "^7.4.2",
     "@launchql/db-testing": "latest",
+    "@launchql/graphql-testing": "latest",
     "babel-eslint": "10.1.0",
     "babel-jest": "26.1.0",
+    "babel-plugin-import-graphql": "2.7.0",
+    "babel-plugin-macros": "2.8.0",
     "eslint": "^7.3.1",
     "eslint-config-prettier": "^6.10.0",
     "eslint-plugin-prettier": "^3.1.2",
+    "graphql-tag": "2.10.3",
+    "graphql": "^14.0.2",
     "jest": "26.1.0",
     "prettier": "2.0.5",
     "regenerator-runtime": "^0.13.2"
   },
-  "dependencies": {
-    "@launchql/ext-jobs": "0.1.0"
-  }
+  "dependencies": {}
 }

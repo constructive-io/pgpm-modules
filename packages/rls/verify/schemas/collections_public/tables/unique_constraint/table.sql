@@ -1,0 +1,6 @@
+-- Verify: schemas/collections_public/tables/unique_constraint/table on pg
+
+BEGIN;
+
+COMMIT;  
+

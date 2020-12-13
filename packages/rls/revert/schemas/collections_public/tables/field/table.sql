@@ -1,0 +1,6 @@
+-- Revert: schemas/collections_public/tables/field/table from pg
+
+BEGIN;
+
+COMMIT;  
+
