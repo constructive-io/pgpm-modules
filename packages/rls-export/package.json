@@ -1,6 +1,6 @@
 {
   "name": "@pyramation/launchql-ext-rls",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "rls",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "publishConfig": {
