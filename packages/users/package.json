@@ -1,6 +1,6 @@
 {
   "name": "@pyramation/launchql-ext-users",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "users",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "publishConfig": {
