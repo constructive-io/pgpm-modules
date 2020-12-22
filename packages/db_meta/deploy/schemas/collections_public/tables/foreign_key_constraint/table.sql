@@ -8,8 +8,8 @@ BEGIN;
 
 CREATE TABLE collections_public.foreign_key_constraint (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
-    database_id uuid NOT NULL REFERENCES collections_public.database (id) ON DELETE CASCADE,
-    table_id uuid NOT NULL REFERENCES collections_public.table (id) ON DELETE CASCADE,
+    database_id uuid NOT NULL,
+    table_id uuid NOT NULL,
     name text,
     description text,
     smart_tags jsonb,
@@ -19,11 +19,21 @@ CREATE TABLE collections_public.foreign_key_constraint (
     ref_field_ids uuid[] NOT NULL,
     delete_action char(1) DEFAULT 'a',
     update_action char(1) DEFAULT 'a',
+
+    -- 
+
+    CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE,
+    CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
+
     UNIQUE(database_id, name),
     CHECK (field_ids <> '{}'),
     CHECK (ref_field_ids <> '{}')
 );
 
+COMMENT ON CONSTRAINT table_fkey ON collections_public.foreign_key_constraint IS E'@omit manyToMany';
+COMMENT ON CONSTRAINT db_fkey ON collections_public.foreign_key_constraint IS E'@omit manyToMany';
+
+CREATE INDEX foreign_key_constraint_table_id_idx ON collections_public.foreign_key_constraint ( table_id );
 CREATE INDEX foreign_key_constraint_database_id_idx ON collections_public.foreign_key_constraint ( database_id );
 
 COMMIT;

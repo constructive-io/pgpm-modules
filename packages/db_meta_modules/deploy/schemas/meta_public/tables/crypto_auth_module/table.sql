@@ -23,11 +23,11 @@ CREATE TABLE meta_public.crypto_auth_module (
     sign_in_with_challenge text NOT NULL DEFAULT 'sign_in_with_challenge',
 
     --
-    CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id),
-    CONSTRAINT secrets_table_fkey FOREIGN KEY (secrets_table_id) REFERENCES collections_public.table (id),
-    CONSTRAINT users_table_fkey FOREIGN KEY (users_table_id) REFERENCES collections_public.table (id),
-    CONSTRAINT tokens_table_fkey FOREIGN KEY (tokens_table_id) REFERENCES collections_public.table (id),
-    CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES collections_public.schema (id)
+    CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE,
+    CONSTRAINT secrets_table_fkey FOREIGN KEY (secrets_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT users_table_fkey FOREIGN KEY (users_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT tokens_table_fkey FOREIGN KEY (tokens_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES collections_public.schema (id) ON DELETE CASCADE
 );
 
 COMMENT ON CONSTRAINT db_fkey ON meta_public.crypto_auth_module IS E'@omit manyToMany';

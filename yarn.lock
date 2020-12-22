@@ -1432,6 +1432,11 @@
   resolved "https://registry.npmjs.org/@launchql/db-template/-/db-template-1.0.0.tgz#ae4934327e6880feff7ef70c2b1b44563c2ece54"
   integrity sha512-tf4S4h9PfQpHiXYutyTOz5lCSlLv+Qa15y3hJI2GnK1bTxllX5T5axqOvczxc3/NqWHZYWWQ143nhHe5ATkhYQ==
 
+"@launchql/db-template@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.npmjs.org/@launchql/db-template/-/db-template-1.0.2.tgz#79280f9720c35f9711907b5536afa53095ffe7e3"
+  integrity sha512-1FDpaEbedeSpkxK5vqOYsS4gbISPznVs2ftCHK3OcXYsgCWvgrgg6S5qjVRt3LQWhZ/7F/Mw7CusEEvZMVX0HA==
+
 "@launchql/db-testing@^1.0.4", "@launchql/db-testing@latest":
   version "1.0.4"
   resolved "https://registry.npmjs.org/@launchql/db-testing/-/db-testing-1.0.4.tgz#0275f79da4f519c13a8be6fd1acb5b2b902f1bf0"
@@ -1445,6 +1450,19 @@
     streamify-string "1.0.1"
     uuid "8.3.1"
 
+"@launchql/db-testing@^1.2.4":
+  version "1.2.4"
+  resolved "https://registry.npmjs.org/@launchql/db-testing/-/db-testing-1.2.4.tgz#b0fa9469a12047a81ea3577ab110f7dd8d14cb60"
+  integrity sha512-fI90qoL7dEAPb6yBjRXMLasirpNkYK0B9YK/K2/hzVpZtQCndg1ZoN944Rq85LATByt2fKoM3lu68xLwrFB/1A==
+  dependencies:
+    "@babel/runtime" "^7.12.1"
+    "@launchql/db-utils" "^1.2.1"
+    envalid "6.0.2"
+    pg "8.4.2"
+    pg-promise "10.7.1"
+    streamify-string "1.0.1"
+    uuid "8.3.1"
+
 "@launchql/db-transform@^0.3.3":
   version "0.3.3"
   resolved "https://registry.npmjs.org/@launchql/db-transform/-/db-transform-0.3.3.tgz#c2ab87e15aaa32c6457fc28b3a71148b595bbdd4"
@@ -1452,6 +1470,14 @@
   dependencies:
     "@babel/runtime" "^7.12.1"
     pgsql-parser "1.1.1"
+
+"@launchql/db-transform@^0.3.5":
+  version "0.3.5"
+  resolved "https://registry.npmjs.org/@launchql/db-transform/-/db-transform-0.3.5.tgz#2e311b42e6a3baa1e499931c53dcc62c6d4b7166"
+  integrity sha512-RBW0VGuaUqsxX38nagCccl/My36J6ujV1viL/Qvy8laLKvKrl9jTCMjRIdvX8qYWK/V8DCfuayj3RiGhZSEi9A==
+  dependencies:
+    "@babel/runtime" "^7.12.1"
+    pgsql-parser "1.2.2"
 
 "@launchql/db-utils@^1.0.4":
   version "1.0.4"
@@ -1470,6 +1496,27 @@
     parse-package-name "0.1.0"
     pg "^8.4.2"
     pgsql-parser "1.1.1"
+    rimraf "^3.0.2"
+    semver "^5.5.1"
+    shelljs "^0.8.2"
+
+"@launchql/db-utils@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.npmjs.org/@launchql/db-utils/-/db-utils-1.2.1.tgz#c1a7cfa031b8b8cc2d1ba58518f2859bf33a2097"
+  integrity sha512-aYWMFUwj32zaggu1FA1rQknqqIKJvtCl89W7hGgj2b7ZWQZf5oyKgVimLs8k8gTPjIP5WDZ1Ccb7FAfCXt9aFQ==
+  dependencies:
+    "@babel/runtime" "^7.12.1"
+    "@launchql/db-env" "^0.1.4"
+    "@launchql/db-template" "^1.0.2"
+    "@launchql/db-transform" "^0.3.5"
+    envalid "6.0.2"
+    fuzzy "0.1.3"
+    glob "7.1.6"
+    mkdirp "^1.0.4"
+    node-walkup "^1.1.1"
+    parse-package-name "0.1.0"
+    pg "^8.4.2"
+    pgsql-parser "1.2.2"
     rimraf "^3.0.2"
     semver "^5.5.1"
     shelljs "^0.8.2"
@@ -8319,6 +8366,16 @@ pgsql-deparser@^1.1.1:
     lodash "4.17.20"
     pgsql-enums "^1.0.2"
 
+pgsql-deparser@^1.2.2:
+  version "1.2.3"
+  resolved "https://registry.npmjs.org/pgsql-deparser/-/pgsql-deparser-1.2.3.tgz#b426f7cc25e273690ff030701e833fcfed10ef50"
+  integrity sha512-0EBrmPqevIkS+zlV4eqa8Pjds5LXFXGKzRJUG8Ca0kI097fxOBcJWiY4qIwWNjmJMpixqu2K6aBW6Di6rxFhiQ==
+  dependencies:
+    "@babel/runtime" "^7.11.2"
+    dotty "0.1.0"
+    lodash "4.17.20"
+    pgsql-enums "^1.0.2"
+
 pgsql-enums@^1.0.2:
   version "1.0.2"
   resolved "https://registry.npmjs.org/pgsql-enums/-/pgsql-enums-1.0.2.tgz#353a817e97fd1c1e0544aa8e89d141f0cb43c6df"
@@ -8335,6 +8392,17 @@ pgsql-parser@1.1.1:
     "@pgql/parse" "1.2.6"
     minimist "^1.2.5"
     pgsql-deparser "^1.1.1"
+    pgsql-enums "^1.0.2"
+
+pgsql-parser@1.2.2:
+  version "1.2.2"
+  resolved "https://registry.npmjs.org/pgsql-parser/-/pgsql-parser-1.2.2.tgz#6d7282ec278daac5ce87504fb54133a6513c0fad"
+  integrity sha512-l5wXf2qxe1uRq/D7LXoAY65Eg5WaGPv1aVgm9rY8Dfaq0BRA0jURtMwZ3l/YUntQ0SqXIJfHwiK7R7ArkDKnng==
+  dependencies:
+    "@babel/runtime" "^7.11.2"
+    "@pgql/parse" "1.2.6"
+    minimist "^1.2.5"
+    pgsql-deparser "^1.2.2"
     pgsql-enums "^1.0.2"
 
 picomatch@^2.0.4, picomatch@^2.0.5, picomatch@^2.2.1:

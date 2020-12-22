@@ -28,13 +28,13 @@ CREATE TABLE meta_public.user_auth_module (
 
     -- UNIQUE(api_id),
 
-    CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id),
-    CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES collections_public.schema (id),
-    CONSTRAINT email_table_fkey FOREIGN KEY (emails_table_id) REFERENCES collections_public.table (id),
-    CONSTRAINT users_table_fkey FOREIGN KEY (users_table_id) REFERENCES collections_public.table (id),
-    CONSTRAINT secrets_table_fkey FOREIGN KEY (secrets_table_id) REFERENCES collections_public.table (id),
-    CONSTRAINT encrypted_table_fkey FOREIGN KEY (encrypted_table_id) REFERENCES collections_public.table (id),
-    CONSTRAINT tokens_table_fkey FOREIGN KEY (tokens_table_id) REFERENCES collections_public.table (id)
+    CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE,
+    CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES collections_public.schema (id) ON DELETE CASCADE,
+    CONSTRAINT email_table_fkey FOREIGN KEY (emails_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT users_table_fkey FOREIGN KEY (users_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT secrets_table_fkey FOREIGN KEY (secrets_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT encrypted_table_fkey FOREIGN KEY (encrypted_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT tokens_table_fkey FOREIGN KEY (tokens_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE
 );
 
 COMMENT ON CONSTRAINT schema_fkey ON meta_public.user_auth_module IS E'@omit manyToMany';

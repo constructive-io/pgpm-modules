@@ -29,9 +29,9 @@ beforeAll(async () => {
 
 afterAll(async () => {
   try {
-    // await db.rollback('db');
+    await db.rollback('db');
     await db.commit();
-    // await teardown();
+    await teardown();
   } catch (e) {
     console.log(e);
   }
@@ -201,4 +201,25 @@ it('register modules', async () => {
       verify_email: 'verify_email'
     }
   });
+});
+
+it('goes like this', async () => {
+  const schema = await collections.public.insertOne('schema', {
+    database_id,
+    schema_name: 'brand-public',
+    name: 'public'
+  });
+
+  const publicAssoc = await meta.public.insertOne('api_schemata', {
+    database_id,
+    schema_id: schema.id,
+    api_id: objs.apis.api.id
+  });
+  const adminAssoc = await meta.public.insertOne('api_schemata', {
+    database_id,
+    schema_id: schema.id,
+    api_id: objs.apis.admin.id
+  });
+  snap(publicAssoc);
+  snap(adminAssoc);
 });

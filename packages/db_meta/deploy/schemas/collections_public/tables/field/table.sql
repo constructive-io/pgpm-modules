@@ -25,8 +25,8 @@ BEGIN;
 
 CREATE TABLE collections_public.field (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
-  database_id uuid NOT NULL REFERENCES collections_public.database (id) ON DELETE CASCADE,
-  table_id uuid NOT NULL REFERENCES collections_public.table (id) ON DELETE CASCADE,
+  database_id uuid NOT NULL,
+  table_id uuid NOT NULL,
   
   name text NOT NULL,
   description text,
@@ -51,9 +51,17 @@ CREATE TABLE collections_public.field (
   min float default null,
   max float default null,
 
+  --
+  CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE,
+  CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
+
   UNIQUE (table_id, name)
 );
 
+COMMENT ON CONSTRAINT table_fkey ON collections_public.field IS E'@omit manyToMany';
+COMMENT ON CONSTRAINT db_fkey ON collections_public.field IS E'@omit manyToMany';
+
+CREATE INDEX field_table_id_idx ON collections_public.field ( table_id );
 CREATE INDEX field_database_id_idx ON collections_public.field ( database_id );
 
 COMMIT;

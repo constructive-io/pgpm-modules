@@ -7,7 +7,7 @@ BEGIN;
 
 CREATE TABLE collections_public.procedure (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
-  database_id uuid NOT NULL REFERENCES collections_public.database (id) ON DELETE CASCADE,
+  database_id uuid NOT NULL,
   name text NOT NULL,
 
   -- MAYBE MAKE A SPECIAL RLS functions for policy making...
@@ -19,9 +19,13 @@ CREATE TABLE collections_public.procedure (
 
   lang_name text,
   definition text,
+  --
+  CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE,
+
   UNIQUE (database_id, name)
 );
 
+COMMENT ON CONSTRAINT db_fkey ON collections_public.procedure IS E'@omit manyToMany';
 CREATE INDEX procedure_database_id_idx ON collections_public.procedure ( database_id );
 
 COMMIT;

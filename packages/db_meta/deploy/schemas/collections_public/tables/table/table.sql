@@ -6,8 +6,8 @@
 BEGIN;
 CREATE TABLE collections_public.table (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
-  database_id uuid NOT NULL REFERENCES collections_public.database (id) ON DELETE CASCADE,
-  schema_id uuid NOT NULL REFERENCES collections_public.schema (id) ON DELETE CASCADE,
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL,
   
   name text NOT NULL,
   description text,
@@ -19,6 +19,10 @@ CREATE TABLE collections_public.table (
   plural_name text,
   singular_name text,
 
+  -- 
+
+  CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE,
+  CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES collections_public.schema (id) ON DELETE CASCADE,
   
   UNIQUE (database_id, name)
 );
@@ -26,6 +30,10 @@ CREATE TABLE collections_public.table (
 ALTER TABLE collections_public.table ADD COLUMN
     inherits_id uuid NULL REFERENCES collections_public.table(id);
 
+COMMENT ON CONSTRAINT schema_fkey ON collections_public.table IS E'@omit manyToMany';
+COMMENT ON CONSTRAINT db_fkey ON collections_public.table IS E'@omit manyToMany';
+
+CREATE INDEX table_schema_id_idx ON collections_public.table ( schema_id );
 CREATE INDEX table_database_id_idx ON collections_public.table ( database_id );
 
 COMMIT;

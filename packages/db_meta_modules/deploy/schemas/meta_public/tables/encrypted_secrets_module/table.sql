@@ -14,9 +14,9 @@ CREATE TABLE meta_public.encrypted_secrets_module (
     table_name text NOT NULL DEFAULT 'encrypted_secrets',
     -- 
     
-    CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id),
-    CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES collections_public.schema (id),
-    CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES collections_public.table (id)
+    CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE,
+    CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES collections_public.schema (id) ON DELETE CASCADE,
+    CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE
 );
 
 COMMENT ON CONSTRAINT schema_fkey ON meta_public.encrypted_secrets_module IS E'@omit manyToMany';

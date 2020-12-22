@@ -13,9 +13,9 @@ CREATE TABLE meta_public.user_status_module (
   private_schema_id uuid,
   --
   
-  CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id),
-  CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES collections_public.schema (id),
-  CONSTRAINT pschema_fkey FOREIGN KEY (private_schema_id) REFERENCES collections_public.schema (id)
+  CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE,
+  CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES collections_public.schema (id) ON DELETE CASCADE,
+  CONSTRAINT pschema_fkey FOREIGN KEY (private_schema_id) REFERENCES collections_public.schema (id) ON DELETE CASCADE
 );
 
 COMMENT ON CONSTRAINT db_fkey ON meta_public.user_status_module IS E'@omit manyToMany';

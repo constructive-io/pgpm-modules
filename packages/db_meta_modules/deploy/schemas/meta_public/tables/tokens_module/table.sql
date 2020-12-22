@@ -17,10 +17,10 @@ CREATE TABLE meta_public.tokens_module (
     tokens_table text NOT NULL DEFAULT 'api_tokens',
     --
 
-    CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id),
-    CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES collections_public.schema (id),
-    CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES collections_public.table (id),
-    CONSTRAINT owned_table_fkey FOREIGN KEY (owned_table_id) REFERENCES collections_public.table (id)
+    CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE,
+    CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES collections_public.schema (id) ON DELETE CASCADE,
+    CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT owned_table_fkey FOREIGN KEY (owned_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE
 );
 
 COMMENT ON CONSTRAINT schema_fkey ON meta_public.tokens_module IS E'@omit manyToMany';

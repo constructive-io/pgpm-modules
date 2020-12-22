@@ -12,8 +12,8 @@ CREATE TABLE meta_public.uuid_module (
     uuid_function text NOT NULL DEFAULT 'uuid_generate_v4',
     uuid_seed text NOT NULL,
     --
-    CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES collections_public.schema (id),
-    CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id)
+    CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES collections_public.schema (id) ON DELETE CASCADE,
+    CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE
 );
 
 COMMENT ON CONSTRAINT db_fkey ON meta_public.uuid_module IS E'@omit manyToMany';
