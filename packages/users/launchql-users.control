@@ -1,6 +1,6 @@
 # launchql-users extension
 comment = 'launchql-users extension'
-default_version = '0.0.8'
+default_version = '0.0.9'
 module_pathname = '$libdir/launchql-users'
 requires = 'plpgsql,uuid-ossp,citext,pgcrypto,btree_gist,postgis,hstore,launchql-ext-jobs,launchql-ext-types'
 relocatable = false

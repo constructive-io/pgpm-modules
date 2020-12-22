@@ -11,7 +11,6 @@ CREATE TABLE meta_public.apis (
     database_id uuid NOT NULL REFERENCES collections_public.database (id) ON DELETE CASCADE,
     name text NOT NULL,
     domain_id uuid NOT NULL,
-    schemas text[] NOT NULL,
     dbname text NOT NULL DEFAULT current_database(),
     role_name text NOT NULL DEFAULT 'authenticated',
     anon_role text NOT NULL DEFAULT 'anonymous',

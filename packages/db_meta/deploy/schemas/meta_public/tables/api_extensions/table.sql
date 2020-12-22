@@ -10,9 +10,11 @@
 
 BEGIN;
 
+-- NOTE: not directly mapping to extensions on purpose, to make it simple for api usage
+
 CREATE TABLE meta_public.api_extensions (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
-    name text NOT NULL,
+    schema_name text,
     database_id uuid NOT NULL,
     api_id uuid NOT NULL,
 
@@ -21,8 +23,7 @@ CREATE TABLE meta_public.api_extensions (
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE,
     CONSTRAINT api_fkey FOREIGN KEY (api_id) REFERENCES meta_public.apis (id) ON DELETE CASCADE,
 
-    UNIQUE (name, api_id)
-
+    UNIQUE (schema_name, api_id)
 );
 
 -- WE DO WANT m2m!
