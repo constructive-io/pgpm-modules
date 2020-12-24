@@ -8,14 +8,14 @@ CREATE TABLE meta_public.invites_module (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
     database_id uuid NOT NULL,
     
-    schema_id uuid,
-    private_schema_id uuid,
+    schema_id uuid NOT NULL DEFAULT uuid_nil(),
+    private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
 
-    emails_table_id uuid,
-    users_table_id uuid,
+    emails_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    users_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
-    invites_table_id uuid,
-    claimed_invites_table_id uuid,
+    invites_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    claimed_invites_table_id uuid NOT NULL DEFAULT uuid_nil(),
     
     invites_table_name text NOT NULL DEFAULT 'invites',
     claimed_invites_table_name text NOT NULL DEFAULT 'claimed_invites',

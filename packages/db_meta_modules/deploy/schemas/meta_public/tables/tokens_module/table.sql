@@ -9,9 +9,9 @@ CREATE TABLE meta_public.tokens_module (
     database_id uuid NOT NULL,
 
     --
-    schema_id uuid,
-    table_id uuid,
-    owned_table_id uuid,
+    schema_id uuid NOT NULL DEFAULT uuid_nil(),
+    table_id uuid NOT NULL DEFAULT uuid_nil(),
+    owned_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     tokens_default_expiration interval NOT NULL DEFAULT '3 days'::interval,
     tokens_table text NOT NULL DEFAULT 'api_tokens',

@@ -9,8 +9,8 @@ CREATE TABLE meta_public.user_status_module (
   database_id uuid NOT NULL,
 
   --
-  schema_id uuid,
-  private_schema_id uuid,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
   --
   
   CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE,

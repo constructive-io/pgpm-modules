@@ -8,11 +8,11 @@ CREATE TABLE meta_public.crypto_auth_module (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
     database_id uuid NOT NULL,
     
-    schema_id uuid,
+    schema_id uuid NOT NULL DEFAULT uuid_nil(),
 
-    users_table_id uuid,
-    tokens_table_id uuid,
-    secrets_table_id uuid,
+    users_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    tokens_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    secrets_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     user_field text NOT NULL,
 

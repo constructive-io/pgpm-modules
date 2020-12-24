@@ -28,7 +28,7 @@ const mapValues = (objs, fn) =>
 
 export const pruneIds = (row) =>
   mapValues(row, (v, k) =>
-    (k === 'id' || k.endsWith('_id')) &&
+    (k === 'id' || k.endsWith('_id') || k.endsWith('Id')) &&
     (typeof v === 'string' || typeof v === 'number')
       ? idReplacement(v)
       : v

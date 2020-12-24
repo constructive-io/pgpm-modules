@@ -9,8 +9,8 @@ CREATE TABLE meta_public.encrypted_secrets_module (
     database_id uuid NOT NULL,
 
     --
-    schema_id uuid,
-    table_id uuid,
+    schema_id uuid NOT NULL DEFAULT uuid_nil(),
+    table_id uuid NOT NULL DEFAULT uuid_nil(),
     table_name text NOT NULL DEFAULT 'encrypted_secrets',
     -- 
     

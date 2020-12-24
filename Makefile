@@ -11,4 +11,7 @@ ssh:
 install:
 	docker exec internal-utils-postgres /sql-bin/install.sh
 
-  
+meta:
+	@cd packages/db_meta && lql plan && lql package 
+	@cd packages/db_meta_modules && lql plan && lql package 
+	$(MAKE) install

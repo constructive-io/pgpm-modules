@@ -8,12 +8,12 @@ CREATE TABLE meta_public.user_auth_module (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
     database_id uuid NOT NULL,
 
-    schema_id uuid,
-    emails_table_id uuid,
-    users_table_id uuid,
-    secrets_table_id uuid,
-    encrypted_table_id uuid,
-    tokens_table_id uuid,
+    schema_id uuid NOT NULL DEFAULT uuid_nil(),
+    emails_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    users_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    secrets_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    encrypted_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    tokens_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- api_id uuid NOT NULL REFERENCES meta_public.apis (id),
 
@@ -42,14 +42,14 @@ COMMENT ON CONSTRAINT db_fkey ON meta_public.user_auth_module IS E'@omit manyToM
 CREATE INDEX user_auth_module_database_id_idx ON meta_public.user_auth_module ( database_id );
 
 COMMENT ON CONSTRAINT email_table_fkey
-     ON meta_public.user_auth_module IS E'@omit manyToMany';
+     ON meta_public.user_auth_module IS E'@omit';
 COMMENT ON CONSTRAINT users_table_fkey
-     ON meta_public.user_auth_module IS E'@omit manyToMany';
+     ON meta_public.user_auth_module IS E'@omit';
 COMMENT ON CONSTRAINT secrets_table_fkey
-     ON meta_public.user_auth_module IS E'@omit manyToMany';
+     ON meta_public.user_auth_module IS E'@omit';
 COMMENT ON CONSTRAINT encrypted_table_fkey
-     ON meta_public.user_auth_module IS E'@omit manyToMany';
+     ON meta_public.user_auth_module IS E'@omit';
 COMMENT ON CONSTRAINT tokens_table_fkey
-     ON meta_public.user_auth_module IS E'@omit manyToMany';
+     ON meta_public.user_auth_module IS E'@omit';
 
 COMMIT;

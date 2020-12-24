@@ -418,34 +418,19 @@ GRANT USAGE ON SCHEMA meta_public TO authenticated;
 ALTER DEFAULT PRIVILEGES IN SCHEMA meta_public 
  GRANT SELECT ON TABLES  TO administrator;
 
-CREATE TABLE meta_public.domains (
- 	id uuid PRIMARY KEY DEFAULT ( uuid_generate_v4() ),
-	database_id uuid NOT NULL REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
-	subdomain hostname,
-	domain hostname,
-	UNIQUE ( subdomain, domain ) 
-);
-
-CREATE INDEX domains_database_id_idx ON meta_public.domains ( database_id );
-
 CREATE TABLE meta_public.apis (
  	id uuid PRIMARY KEY DEFAULT ( uuid_generate_v4() ),
-	database_id uuid NOT NULL REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
+	database_id uuid NOT NULL,
 	name text NOT NULL,
-	domain_id uuid NOT NULL,
 	dbname text NOT NULL DEFAULT ( current_database() ),
 	role_name text NOT NULL DEFAULT ( 'authenticated' ),
 	anon_role text NOT NULL DEFAULT ( 'anonymous' ),
 	is_public boolean NOT NULL DEFAULT ( TRUE ),
-	UNIQUE ( database_id, name ),
-	UNIQUE ( domain_id ) 
+	CONSTRAINT db_fkey FOREIGN KEY ( database_id ) REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
+	UNIQUE ( database_id, name ) 
 );
 
-ALTER TABLE meta_public.apis ADD CONSTRAINT apis_domain_id_fkey FOREIGN KEY ( domain_id ) REFERENCES meta_public.domains ( id );
-
-COMMENT ON CONSTRAINT apis_domain_id_fkey ON meta_public.apis IS E'@omit manyToMany';
-
-CREATE INDEX apis_domain_id_idx ON meta_public.apis ( domain_id );
+COMMENT ON CONSTRAINT db_fkey ON meta_public.apis IS E'@omit manyToMany';
 
 CREATE INDEX apis_database_id_idx ON meta_public.apis ( database_id );
 
@@ -465,10 +450,11 @@ CREATE INDEX api_extension_api_id_idx ON meta_public.api_extensions ( api_id );
 
 CREATE TABLE meta_public.api_modules (
  	id uuid PRIMARY KEY DEFAULT ( uuid_generate_v4() ),
-	database_id uuid NOT NULL REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
+	database_id uuid NOT NULL,
 	api_id uuid NOT NULL,
 	name text NOT NULL,
-	data json NOT NULL 
+	data json NOT NULL,
+	CONSTRAINT db_fkey FOREIGN KEY ( database_id ) REFERENCES collections_public.database ( id ) ON DELETE CASCADE 
 );
 
 ALTER TABLE meta_public.api_modules ADD CONSTRAINT api_modules_api_id_fkey FOREIGN KEY ( api_id ) REFERENCES meta_public.apis ( id );
@@ -476,6 +462,8 @@ ALTER TABLE meta_public.api_modules ADD CONSTRAINT api_modules_api_id_fkey FOREI
 COMMENT ON CONSTRAINT api_modules_api_id_fkey ON meta_public.api_modules IS E'@omit manyToMany';
 
 CREATE INDEX api_modules_api_id_idx ON meta_public.api_modules ( api_id );
+
+COMMENT ON CONSTRAINT db_fkey ON meta_public.api_modules IS E'@omit manyToMany';
 
 CREATE INDEX api_modules_database_id_idx ON meta_public.api_modules ( database_id );
 
@@ -500,8 +488,7 @@ CREATE INDEX api_schemata_api_id_idx ON meta_public.api_schemata ( api_id );
 
 CREATE TABLE meta_public.sites (
  	id uuid PRIMARY KEY DEFAULT ( uuid_generate_v4() ),
-	database_id uuid NOT NULL REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
-	domain_id uuid NOT NULL,
+	database_id uuid NOT NULL,
 	title text,
 	description text,
 	og_image image,
@@ -509,22 +496,18 @@ CREATE TABLE meta_public.sites (
 	apple_touch_icon image,
 	logo image,
 	dbname text NOT NULL DEFAULT ( current_database() ),
-	CHECK ( character_length(title) <= 120 ),
-	CHECK ( character_length(description) <= 120 ),
-	UNIQUE ( domain_id ) 
+	CONSTRAINT db_fkey FOREIGN KEY ( database_id ) REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
+	CONSTRAINT max_title CHECK ( character_length(title) <= 120 ),
+	CONSTRAINT max_descr CHECK ( character_length(description) <= 120 ) 
 );
 
-ALTER TABLE meta_public.sites ADD CONSTRAINT sites_domain_id_fkey FOREIGN KEY ( domain_id ) REFERENCES meta_public.domains ( id );
-
-COMMENT ON CONSTRAINT sites_domain_id_fkey ON meta_public.sites IS E'@omit manyToMany';
-
-CREATE INDEX sites_domain_id_idx ON meta_public.sites ( domain_id );
+COMMENT ON CONSTRAINT db_fkey ON meta_public.sites IS E'@omit manyToMany';
 
 CREATE INDEX sites_database_id_idx ON meta_public.sites ( database_id );
 
 CREATE TABLE meta_public.apps (
  	id uuid PRIMARY KEY DEFAULT ( uuid_generate_v4() ),
-	database_id uuid NOT NULL REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
+	database_id uuid NOT NULL,
 	site_id uuid NOT NULL,
 	name text,
 	app_image image,
@@ -532,6 +515,7 @@ CREATE TABLE meta_public.apps (
 	app_store_id text,
 	app_id_prefix text,
 	play_store_link url,
+	CONSTRAINT db_fkey FOREIGN KEY ( database_id ) REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
 	UNIQUE ( site_id ) 
 );
 
@@ -541,15 +525,44 @@ COMMENT ON CONSTRAINT apps_site_id_fkey ON meta_public.apps IS E'@omit manyToMan
 
 CREATE INDEX apps_site_id_idx ON meta_public.apps ( site_id );
 
+COMMENT ON CONSTRAINT db_fkey ON meta_public.apps IS E'@omit manyToMany';
+
 CREATE INDEX apps_database_id_idx ON meta_public.apps ( database_id );
+
+CREATE TABLE meta_public.domains (
+ 	id uuid PRIMARY KEY DEFAULT ( uuid_generate_v4() ),
+	database_id uuid NOT NULL,
+	api_id uuid,
+	site_id uuid,
+	subdomain hostname,
+	domain hostname,
+	CONSTRAINT db_fkey FOREIGN KEY ( database_id ) REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
+	CONSTRAINT api_fkey FOREIGN KEY ( api_id ) REFERENCES meta_public.apis ( id ) ON DELETE CASCADE,
+	CONSTRAINT site_fkey FOREIGN KEY ( site_id ) REFERENCES meta_public.sites ( id ) ON DELETE CASCADE,
+	CONSTRAINT one_route_chk CHECK ( (api_id IS NULL AND site_id IS NULL) OR (api_id IS NULL AND site_id IS NOT NULL) OR (api_id IS NOT NULL AND site_id IS NULL) ),
+	UNIQUE ( subdomain, domain ) 
+);
+
+COMMENT ON CONSTRAINT db_fkey ON meta_public.domains IS E'@omit manyToMany';
+
+CREATE INDEX domains_database_id_idx ON meta_public.domains ( database_id );
+
+COMMENT ON CONSTRAINT api_fkey ON meta_public.domains IS E'@omit manyToMany';
+
+CREATE INDEX domains_api_id_idx ON meta_public.domains ( api_id );
+
+COMMENT ON CONSTRAINT site_fkey ON meta_public.domains IS E'@omit manyToMany';
+
+CREATE INDEX domains_site_id_idx ON meta_public.domains ( site_id );
 
 CREATE TABLE meta_public.site_metadata (
  	id uuid PRIMARY KEY DEFAULT ( uuid_generate_v4() ),
-	database_id uuid NOT NULL REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
+	database_id uuid NOT NULL,
 	site_id uuid NOT NULL,
 	title text,
 	description text,
 	og_image image,
+	CONSTRAINT db_fkey FOREIGN KEY ( database_id ) REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
 	CHECK ( character_length(title) <= 120 ),
 	CHECK ( character_length(description) <= 120 ) 
 );
@@ -560,14 +573,17 @@ COMMENT ON CONSTRAINT site_metadata_site_id_fkey ON meta_public.site_metadata IS
 
 CREATE INDEX site_metadata_site_id_idx ON meta_public.site_metadata ( site_id );
 
+COMMENT ON CONSTRAINT db_fkey ON meta_public.site_metadata IS E'@omit manyToMany';
+
 CREATE INDEX site_metadata_database_id_idx ON meta_public.site_metadata ( database_id );
 
 CREATE TABLE meta_public.site_modules (
  	id uuid PRIMARY KEY DEFAULT ( uuid_generate_v4() ),
-	database_id uuid NOT NULL REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
+	database_id uuid NOT NULL,
 	site_id uuid NOT NULL,
 	name text NOT NULL,
-	data json NOT NULL 
+	data json NOT NULL,
+	CONSTRAINT db_fkey FOREIGN KEY ( database_id ) REFERENCES collections_public.database ( id ) ON DELETE CASCADE 
 );
 
 ALTER TABLE meta_public.site_modules ADD CONSTRAINT site_modules_site_id_fkey FOREIGN KEY ( site_id ) REFERENCES meta_public.sites ( id );
@@ -576,13 +592,16 @@ COMMENT ON CONSTRAINT site_modules_site_id_fkey ON meta_public.site_modules IS E
 
 CREATE INDEX site_modules_site_id_idx ON meta_public.site_modules ( site_id );
 
+COMMENT ON CONSTRAINT db_fkey ON meta_public.site_modules IS E'@omit manyToMany';
+
 CREATE INDEX site_modules_database_id_idx ON meta_public.site_modules ( database_id );
 
 CREATE TABLE meta_public.site_themes (
  	id uuid PRIMARY KEY DEFAULT ( uuid_generate_v4() ),
-	database_id uuid NOT NULL REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
+	database_id uuid NOT NULL,
 	site_id uuid NOT NULL,
-	theme jsonb NOT NULL 
+	theme jsonb NOT NULL,
+	CONSTRAINT db_fkey FOREIGN KEY ( database_id ) REFERENCES collections_public.database ( id ) ON DELETE CASCADE 
 );
 
 ALTER TABLE meta_public.site_themes ADD CONSTRAINT site_themes_site_id_fkey FOREIGN KEY ( site_id ) REFERENCES meta_public.sites ( id );
@@ -590,5 +609,7 @@ ALTER TABLE meta_public.site_themes ADD CONSTRAINT site_themes_site_id_fkey FORE
 COMMENT ON CONSTRAINT site_themes_site_id_fkey ON meta_public.site_themes IS E'@omit manyToMany';
 
 CREATE INDEX site_themes_site_id_idx ON meta_public.site_themes ( site_id );
+
+COMMENT ON CONSTRAINT db_fkey ON meta_public.site_themes IS E'@omit manyToMany';
 
 CREATE INDEX site_themes_database_id_idx ON meta_public.site_themes ( database_id );
