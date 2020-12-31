@@ -32,8 +32,14 @@ COMMENT ON CONSTRAINT schema_fkey ON meta_public.crypto_auth_module IS E'@omit m
 CREATE INDEX crypto_auth_module_database_id_idx ON meta_public.crypto_auth_module ( database_id );
 
 CREATE TABLE meta_public.default_ids_module (
- 	id uuid PRIMARY KEY DEFAULT ( uuid_generate_v4() ) 
+ 	id uuid PRIMARY KEY DEFAULT ( uuid_generate_v4() ),
+	database_id uuid NOT NULL,
+	CONSTRAINT db_fkey FOREIGN KEY ( database_id ) REFERENCES collections_public.database ( id ) ON DELETE CASCADE 
 );
+
+COMMENT ON CONSTRAINT db_fkey ON meta_public.default_ids_module IS E'@omit manyToMany';
+
+CREATE INDEX default_ids_module_database_id_idx ON meta_public.default_ids_module ( database_id );
 
 CREATE TABLE meta_public.emails_module (
  	id uuid PRIMARY KEY DEFAULT ( uuid_generate_v4() ),
@@ -41,7 +47,7 @@ CREATE TABLE meta_public.emails_module (
 	schema_id uuid NOT NULL DEFAULT ( uuid_nil() ),
 	table_id uuid NOT NULL DEFAULT ( uuid_nil() ),
 	emails_table text,
-	multiple_emails boolean DEFAULT ( FALSE ),
+	multiple_emails boolean DEFAULT ( TRUE ),
 	CONSTRAINT db_fkey FOREIGN KEY ( database_id ) REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
 	CONSTRAINT table_fkey FOREIGN KEY ( table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT schema_fkey FOREIGN KEY ( schema_id ) REFERENCES collections_public.schema ( id ) ON DELETE CASCADE 

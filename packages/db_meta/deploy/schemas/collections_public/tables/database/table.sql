@@ -11,6 +11,7 @@ CREATE TABLE collections_public.database (
   schema_name text,
   private_schema_name text,
   name text,
+  hash uuid,
   unique(schema_hash),
   unique(schema_name),
   unique(private_schema_name)
