@@ -213,6 +213,8 @@ CREATE TABLE meta_public.user_auth_module (
 	forgot_password_function text NOT NULL DEFAULT ( 'forgot_password' ),
 	send_verification_email_function text NOT NULL DEFAULT ( 'send_verification_email' ),
 	verify_email_function text NOT NULL DEFAULT ( 'verify_email' ),
+	send_account_deletion_email_function text NOT NULL DEFAULT ( 'send_account_deletion_email' ),
+	delete_account_function text NOT NULL DEFAULT ( 'confirm_delete_account' ),
 	sign_in_one_time_token_function text NOT NULL DEFAULT ( 'login_one_time_token' ),
 	one_time_token_function text NOT NULL DEFAULT ( 'one_time_token' ),
 	extend_token_expires text NOT NULL DEFAULT ( 'extend_token_expires' ),

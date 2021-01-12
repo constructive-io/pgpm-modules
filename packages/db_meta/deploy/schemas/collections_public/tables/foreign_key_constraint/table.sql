@@ -17,7 +17,7 @@ CREATE TABLE collections_public.foreign_key_constraint (
     field_ids uuid[] NOT NULL,
     ref_table_id uuid NOT NULL REFERENCES collections_public.table (id) ON DELETE CASCADE,
     ref_field_ids uuid[] NOT NULL,
-    delete_action char(1) DEFAULT 'a',
+    delete_action char(1) DEFAULT 'c', -- postgres default is 'a'
     update_action char(1) DEFAULT 'a',
 
     -- 
