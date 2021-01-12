@@ -1,5 +1,5 @@
 EXTENSION = launchql-ext-encrypted-secrets-table
-DATA = sql/launchql-ext-encrypted-secrets-table--0.0.54.sql
+DATA = sql/launchql-ext-encrypted-secrets-table--0.0.55.sql
 
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)

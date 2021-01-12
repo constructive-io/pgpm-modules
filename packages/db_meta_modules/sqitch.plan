@@ -19,3 +19,4 @@ schemas/meta_public/tables/user_status_module/table [schemas/meta_public/schema]
 schemas/meta_public/tables/users_module/table [schemas/meta_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/meta_public/tables/users_module/table
 schemas/meta_public/tables/uuid_module/table [schemas/meta_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/meta_public/tables/uuid_module/table
 schemas/meta_public/tables/phone_numbers_module/table [schemas/meta_public/schema] 2021-01-12T06:23:00Z Dan Lynch <dlynch@Dans-MBP-3> # add schemas/meta_public/tables/phone_numbers_module/table
+schemas/meta_public/tables/crypto_addresses_module/table [schemas/meta_public/schema] 2021-01-12T09:10:55Z Dan Lynch <dlynch@Dans-MBP-3> # add schemas/meta_public/tables/crypto_addresses_module/table
