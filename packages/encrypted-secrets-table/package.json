@@ -1,6 +1,6 @@
 {
   "name": "@pyramation/launchql-ext-encrypted-secrets-table",
-  "version": "0.0.64",
+  "version": "0.0.65",
   "description": "encrypted-secrets-table",
   "author": "Web, Inc. <pyramation@gmail.com>",
   "publishConfig": {
