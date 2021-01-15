@@ -21,3 +21,4 @@ schemas/meta_public/tables/uuid_module/table [schemas/meta_public/schema] 2017-0
 schemas/meta_public/tables/phone_numbers_module/table [schemas/meta_public/schema] 2021-01-12T06:23:00Z Dan Lynch <dlynch@Dans-MBP-3> # add schemas/meta_public/tables/phone_numbers_module/table
 schemas/meta_public/tables/crypto_addresses_module/table [schemas/meta_public/schema] 2021-01-12T09:10:55Z Dan Lynch <dlynch@Dans-MBP-3> # add schemas/meta_public/tables/crypto_addresses_module/table
 schemas/meta_public/tables/connected_accounts_module/table [schemas/meta_public/schema] 2021-01-12T11:20:53Z Dan Lynch <dlynch@Dans-MBP-3> # add schemas/meta_public/tables/connected_accounts_module/table
+schemas/meta_public/tables/field_module/table [schemas/meta_public/schema] 2021-01-15T03:50:45Z Dan Lynch <dlynch@Dans-MBP-3> # add schemas/meta_public/tables/field_module/table
