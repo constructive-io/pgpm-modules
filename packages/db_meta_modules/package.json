@@ -1,6 +1,6 @@
 {
   "name": "@pyramation/launchql-meta-modules",
-  "version": "0.2.25",
+  "version": "0.2.26",
   "description": "meta-modules",
   "author": "Web, Inc. <pyramation@gmail.com>",
   "publishConfig": {
@@ -32,6 +32,6 @@
   },
   "dependencies": {
     "@launchql/ext-types": "^0.1.19",
-    "@pyramation/launchql-meta-schema": "^0.2.25"
+    "@pyramation/launchql-meta-schema": "^0.2.26"
   }
 }
