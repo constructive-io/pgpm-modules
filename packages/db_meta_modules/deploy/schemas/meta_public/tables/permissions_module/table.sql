@@ -19,6 +19,7 @@ CREATE TABLE meta_public.permissions_module (
     default_table_name text NOT NULL DEFAULT 'default_permissions',
     -- 
      
+    bitlen int NOT NULL DEFAULT 24,
     membership_type int NOT NULL,
     -- if this is NOT NULL, then we add entity_id 
     -- e.g. limits to the app itself are considered global owned by app and no explicit owner
