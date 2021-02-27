@@ -25,6 +25,15 @@ CREATE TABLE meta_public.user_status_module (
   level_requirements_table_id uuid NOT NULL DEFAULT uuid_nil(),
   level_requirements_table_name text NOT NULL DEFAULT 'level_requirements',
 
+  user_completed_step text NOT NULL DEFAULT 'user_completed_step',
+  user_incompleted_step text NOT NULL DEFAULT 'user_incompleted_step',
+  tg_achievement text NOT NULL DEFAULT 'tg_achievement',
+  tg_achievement_toggle text NOT NULL DEFAULT 'tg_achievement_toggle',
+  tg_achievement_toggle_boolean text NOT NULL DEFAULT 'tg_achievement_toggle_boolean',
+  tg_achievement_boolean text NOT NULL DEFAULT 'tg_achievement_boolean',
+  upsert_achievement text NOT NULL DEFAULT 'upsert_achievement',
+  tg_update_achievements text NOT NULL DEFAULT 'tg_update_achievements',
+
   membership_type int NOT NULL,
   -- if this is NOT NULL, then we add entity_id 
   -- e.g. limits to the app itself are considered global owned by app and no explicit owner
