@@ -180,6 +180,8 @@ CREATE TABLE meta_public.invites_module (
 	invites_table_name text NOT NULL DEFAULT ( 'invites' ),
 	claimed_invites_table_name text NOT NULL DEFAULT ( 'claimed_invites' ),
 	submit_invite_code_function text NOT NULL DEFAULT ( 'submit_invite_code' ),
+	membership_type int NOT NULL,
+	owner_table_id uuid NULL,
 	CONSTRAINT db_fkey FOREIGN KEY ( database_id ) REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
 	CONSTRAINT invites_table_fkey FOREIGN KEY ( invites_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT emails_table_fkey FOREIGN KEY ( emails_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
