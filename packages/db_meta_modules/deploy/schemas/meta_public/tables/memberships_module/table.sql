@@ -23,6 +23,7 @@ CREATE TABLE meta_public.memberships_module (
     default_limits_table_id uuid NOT NULL DEFAULT uuid_nil(),
     permissions_table_id uuid NOT NULL DEFAULT uuid_nil(),
     default_permissions_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    acl_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     membership_type int NOT NULL,
     -- if this is NOT NULL, then we add entity_id 
@@ -37,6 +38,7 @@ CREATE TABLE meta_public.memberships_module (
 
     CONSTRAINT members_table_fkey FOREIGN KEY (members_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
     CONSTRAINT grants_table_fkey FOREIGN KEY (grants_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT acl_table_fkey FOREIGN KEY (acl_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
 
     CONSTRAINT actor_table_fkey FOREIGN KEY (actor_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
     CONSTRAINT limits_table_fkey FOREIGN KEY (limits_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
@@ -55,6 +57,9 @@ COMMENT ON CONSTRAINT members_table_fkey
      ON meta_public.memberships_module IS E'@omit manyToMany';
 
 COMMENT ON CONSTRAINT grants_table_fkey
+     ON meta_public.memberships_module IS E'@omit manyToMany';
+
+COMMENT ON CONSTRAINT acl_table_fkey
      ON meta_public.memberships_module IS E'@omit manyToMany';
 
 COMMENT ON CONSTRAINT actor_table_fkey
