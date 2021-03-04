@@ -14,6 +14,7 @@ schemas/meta_public/tables/encrypted_secrets_module/table [schemas/meta_public/s
 schemas/meta_public/tables/field_module/table [schemas/meta_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/meta_public/tables/field_module/table
 schemas/meta_public/tables/invites_module/table [schemas/meta_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/meta_public/tables/invites_module/table
 schemas/meta_public/tables/limits_module/table [schemas/meta_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/meta_public/tables/limits_module/table
+schemas/meta_public/tables/membership_types_module/table [schemas/meta_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/meta_public/tables/membership_types_module/table
 schemas/meta_public/tables/memberships_module/table [schemas/meta_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/meta_public/tables/memberships_module/table
 schemas/meta_public/tables/permissions_module/table [schemas/meta_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/meta_public/tables/permissions_module/table
 schemas/meta_public/tables/phone_numbers_module/table [schemas/meta_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/meta_public/tables/phone_numbers_module/table
@@ -25,5 +26,3 @@ schemas/meta_public/tables/user_auth_module/table [schemas/meta_public/schema] 2
 schemas/meta_public/tables/user_status_module/table [schemas/meta_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/meta_public/tables/user_status_module/table
 schemas/meta_public/tables/users_module/table [schemas/meta_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/meta_public/tables/users_module/table
 schemas/meta_public/tables/uuid_module/table [schemas/meta_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/meta_public/tables/uuid_module/table
-schemas/meta_public/tables/membership_types_module/table [schemas/meta_public/schema] 2021-02-16T07:08:34Z Dan Lynch <dlynch@Dans-MacBook-Pro-3.local> # add schemas/meta_public/tables/membership_types_module/table
-schemas/meta_public/tables/security_policy_permission_module/table [schemas/meta_public/schema] 2021-03-03T03:11:46Z Dan Lynch <dlynch@Dans-MBP-3> # add schemas/meta_public/tables/security_policy_permission_module/table
