@@ -31,8 +31,8 @@
     "regenerator-runtime": "^0.13.2"
   },
   "dependencies": {
-    "@launchql/ext-jobs": "^0.2.20",
-    "@launchql/ext-types": "^0.1.21",
-    "@launchql/inflection": "^0.1.21"
+    "@launchql/ext-jobs": "^0.2.21",
+    "@launchql/ext-types": "^0.1.22",
+    "@launchql/inflection": "^0.1.22"
   }
 }

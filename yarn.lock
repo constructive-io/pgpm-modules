@@ -1521,30 +1521,30 @@
     semver "^5.5.1"
     shelljs "^0.8.2"
 
-"@launchql/ext-default-roles@^0.1.20":
-  version "0.1.20"
-  resolved "https://registry.npmjs.org/@launchql/ext-default-roles/-/ext-default-roles-0.1.20.tgz#386f79b5cf6fdb2a138b76f5990c8150e67c3efe"
-  integrity sha512-3XEGWtaGRVHl0AM9jNSV7VGPp/PweFnuQ7AM6mCj32TSAFa9eklzTAl/ZyuK1ZIcyUZM3sWbH1Aoghgq6zbI5w==
+"@launchql/ext-default-roles@^0.1.22":
+  version "0.1.22"
+  resolved "https://registry.npmjs.org/@launchql/ext-default-roles/-/ext-default-roles-0.1.22.tgz#7b0b84201b182019fe9bd5daa719534935dad940"
+  integrity sha512-Lj3M6UyUhpug7VbuNI+Az6CNGG1ivADbbMDtECPMmpSwOST8FCDhkYymx0/fMe9SPKvLwBi1DbUbO6Rf/A3S6Q==
 
-"@launchql/ext-jobs@^0.2.18":
-  version "0.2.19"
-  resolved "https://registry.npmjs.org/@launchql/ext-jobs/-/ext-jobs-0.2.19.tgz#4a442e0d51d0a7178d5ddf23fadb1d4e503233c3"
-  integrity sha512-Meoj3rtJ+Ve9465ooc1KbvfdFGKIH6WWNZq0sNl5nxGpC+eFSEHuF0WrEWTReBI+JKOSGNrb7NLcz6L3WcAnEQ==
+"@launchql/ext-jobs@^0.2.21":
+  version "0.2.21"
+  resolved "https://registry.npmjs.org/@launchql/ext-jobs/-/ext-jobs-0.2.21.tgz#6b30f6334a2b1e4139cf8c416a342bf05b251eb0"
+  integrity sha512-d5DAI7zRbB8yVVDhurmUeREUnxXPKfT2hEv3Bhye4r3b58Zvw4lhKYED74W5vpA2x5aIXd+bUzOjXzAu/b1nJg==
   dependencies:
-    "@launchql/ext-default-roles" "^0.1.20"
-    "@launchql/ext-jwt-claims" "^0.1.17"
+    "@launchql/ext-default-roles" "^0.1.22"
+    "@launchql/ext-jwt-claims" "^0.1.19"
 
-"@launchql/ext-jwt-claims@^0.1.17":
-  version "0.1.17"
-  resolved "https://registry.npmjs.org/@launchql/ext-jwt-claims/-/ext-jwt-claims-0.1.17.tgz#a6f9b850ff4d7a6545ffbb5fff29d911ac7b5350"
-  integrity sha512-T7Y65MnON6XqXFykUK6pGbFTfiXBjVdmq1KDeOfZqbG/DVqza5varNvD9whIeII7sameS7dEcq7u5IYlVXxQSA==
+"@launchql/ext-jwt-claims@^0.1.19":
+  version "0.1.19"
+  resolved "https://registry.npmjs.org/@launchql/ext-jwt-claims/-/ext-jwt-claims-0.1.19.tgz#da348587b01bc0c520f212123d0e849d7cbe1e04"
+  integrity sha512-inyUQLynqQr8t5wLwfzr5uSE0CR7u6ziRlK61pHybKEQPfewW5BExM8EyTP0pUPApoOHeN3+aGcO9g9V70wdbQ==
   dependencies:
-    "@launchql/ext-types" "^0.1.20"
+    "@launchql/ext-types" "^0.1.22"
 
-"@launchql/ext-types@^0.1.19", "@launchql/ext-types@^0.1.20":
-  version "0.1.20"
-  resolved "https://registry.npmjs.org/@launchql/ext-types/-/ext-types-0.1.20.tgz#3399f41608654ad9c7b673fd2d4afd2aa249f38a"
-  integrity sha512-Od15OpCaPkNK+STAnmJRe6XRkH5z0qdf4e0ACQDpjz7e6jNMHgEJ314K65X6SawrSm1b8rORJ7q5Tw8TTCDnWw==
+"@launchql/ext-types@^0.1.22":
+  version "0.1.22"
+  resolved "https://registry.npmjs.org/@launchql/ext-types/-/ext-types-0.1.22.tgz#b03fed66ecf9fb6843e2a5374b82bef68933f977"
+  integrity sha512-pKGPRA74VNP0S+lQm1zYJCrXum6u5NbsyzbeFh9YimVttXKA9h0NEc2pXULMTbbC2O5VG5D6CDOuP13GqUsHng==
 
 "@launchql/graphile-query@0.0.3":
   version "0.0.3"
@@ -1603,10 +1603,10 @@
     mock-req "0.2.0"
     postgraphile "4.9.2"
 
-"@launchql/inflection@^0.1.19":
-  version "0.1.20"
-  resolved "https://registry.npmjs.org/@launchql/inflection/-/inflection-0.1.20.tgz#611b148bae3d4cae32fbcc79c781f1df5f18fa47"
-  integrity sha512-QoOYilj92oOvgFBHpwQuuaLiRrEVOVSGZCb8ByedZSkZOM0HBSkdXr3wb9aw+sKhkkn6X7qTaa8azN4lZPfQJg==
+"@launchql/inflection@^0.1.22":
+  version "0.1.22"
+  resolved "https://registry.npmjs.org/@launchql/inflection/-/inflection-0.1.22.tgz#fea90a381181f651f490adbd2f9cc335fb6bb512"
+  integrity sha512-KfoKaGSBwV7uKuPyq7RKPXZ6DO2yHyaCLh6O25EpXSian3fdvS1JcquISFjt/NocW4GzDKvxvwIL0yeoqCieNA==
 
 "@launchql/server-utils@^0.1.5":
   version "0.1.5"

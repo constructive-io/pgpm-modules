@@ -12,6 +12,7 @@ CREATE TABLE collections_public.index (
   table_id uuid NOT NULL,
   name text NOT NULL,
   field_ids uuid[],
+  include_field_ids uuid[],
   --
 
   CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE,
