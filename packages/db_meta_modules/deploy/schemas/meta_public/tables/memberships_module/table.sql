@@ -28,8 +28,7 @@ CREATE TABLE meta_public.memberships_module (
     membership_type int NOT NULL,
     -- if this is NOT NULL, then we add entity_id 
     -- e.g. memberships to the app itself are considered global owned by app and no explicit owner
-    owner_table_id uuid NULL,
-
+    entity_table_id uuid NULL,
     --
 
     actor_mask_check text NOT NULL DEFAULT '',
