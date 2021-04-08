@@ -47,6 +47,7 @@ CREATE TABLE meta_public.memberships_module (
     CONSTRAINT grants_table_fkey FOREIGN KEY (grants_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
     CONSTRAINT acl_table_fkey FOREIGN KEY (acl_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
 
+    CONSTRAINT entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
     CONSTRAINT actor_table_fkey FOREIGN KEY (actor_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
     CONSTRAINT limits_table_fkey FOREIGN KEY (limits_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
     CONSTRAINT default_limits_table_fkey FOREIGN KEY (default_limits_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,

@@ -23,7 +23,7 @@ CREATE TABLE meta_public.permissions_module (
     membership_type int NOT NULL,
     -- if this is NOT NULL, then we add entity_id 
     -- e.g. limits to the app itself are considered global owned by app and no explicit owner
-    owner_table_id uuid NULL,
+    entity_table_id uuid NULL,
 
     -- required tables    
     actor_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -42,6 +42,7 @@ CREATE TABLE meta_public.permissions_module (
     CONSTRAINT private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES collections_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
     CONSTRAINT default_table_fkey FOREIGN KEY (default_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
     CONSTRAINT actor_table_fkey FOREIGN KEY (actor_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE
 );
 

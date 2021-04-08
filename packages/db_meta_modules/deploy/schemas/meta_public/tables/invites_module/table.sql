@@ -24,13 +24,14 @@ CREATE TABLE meta_public.invites_module (
     membership_type int NOT NULL,
     -- if this is NOT NULL, then we add entity_id 
     -- e.g. limits to the app itself are considered global owned by app and no explicit owner
-    owner_table_id uuid NULL,
+    entity_table_id uuid NULL,
 
     --
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE,
     CONSTRAINT invites_table_fkey FOREIGN KEY (invites_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
     CONSTRAINT emails_table_fkey FOREIGN KEY (emails_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
     CONSTRAINT users_table_fkey FOREIGN KEY (users_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
     CONSTRAINT claimed_invites_table_fkey FOREIGN KEY (claimed_invites_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
     CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES collections_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT pschema_fkey FOREIGN KEY (private_schema_id) REFERENCES collections_public.schema (id) ON DELETE CASCADE

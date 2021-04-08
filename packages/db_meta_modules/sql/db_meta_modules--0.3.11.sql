@@ -282,7 +282,7 @@ CREATE TABLE meta_public.memberships_module (
 	default_permissions_table_id uuid NOT NULL DEFAULT ( uuid_nil() ),
 	acl_table_id uuid NOT NULL DEFAULT ( uuid_nil() ),
 	membership_type int NOT NULL,
-	owner_table_id uuid NULL,
+	entity_table_id uuid NULL,
 	actor_mask_check text NOT NULL DEFAULT ( '' ),
 	actor_perm_check text NOT NULL DEFAULT ( '' ),
 	entity_ids_by_mask text NULL,
