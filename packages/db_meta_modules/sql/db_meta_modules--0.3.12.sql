@@ -181,11 +181,12 @@ CREATE TABLE meta_public.invites_module (
 	claimed_invites_table_name text NOT NULL DEFAULT ( 'claimed_invites' ),
 	submit_invite_code_function text NOT NULL DEFAULT ( 'submit_invite_code' ),
 	membership_type int NOT NULL,
-	owner_table_id uuid NULL,
+	entity_table_id uuid NULL,
 	CONSTRAINT db_fkey FOREIGN KEY ( database_id ) REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
 	CONSTRAINT invites_table_fkey FOREIGN KEY ( invites_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT emails_table_fkey FOREIGN KEY ( emails_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT users_table_fkey FOREIGN KEY ( users_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
+	CONSTRAINT entity_table_fkey FOREIGN KEY ( entity_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT claimed_invites_table_fkey FOREIGN KEY ( claimed_invites_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT schema_fkey FOREIGN KEY ( schema_id ) REFERENCES collections_public.schema ( id ) ON DELETE CASCADE,
 	CONSTRAINT pschema_fkey FOREIGN KEY ( private_schema_id ) REFERENCES collections_public.schema ( id ) ON DELETE CASCADE 
@@ -223,13 +224,14 @@ CREATE TABLE meta_public.limits_module (
 	default_table_id uuid NOT NULL DEFAULT ( uuid_nil() ),
 	default_table_name text NOT NULL DEFAULT ( 'default_limits' ),
 	membership_type int NOT NULL,
-	owner_table_id uuid NULL,
+	entity_table_id uuid NULL,
 	actor_table_id uuid NOT NULL DEFAULT ( uuid_nil() ),
 	CONSTRAINT db_fkey FOREIGN KEY ( database_id ) REFERENCES collections_public.database ( id ) ON DELETE CASCADE,
 	CONSTRAINT schema_fkey FOREIGN KEY ( schema_id ) REFERENCES collections_public.schema ( id ) ON DELETE CASCADE,
 	CONSTRAINT private_schema_fkey FOREIGN KEY ( private_schema_id ) REFERENCES collections_public.schema ( id ) ON DELETE CASCADE,
 	CONSTRAINT table_fkey FOREIGN KEY ( table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT default_table_fkey FOREIGN KEY ( default_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
+	CONSTRAINT entity_table_fkey FOREIGN KEY ( entity_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT actor_table_fkey FOREIGN KEY ( actor_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE 
 );
 
@@ -294,6 +296,7 @@ CREATE TABLE meta_public.memberships_module (
 	CONSTRAINT members_table_fkey FOREIGN KEY ( members_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT grants_table_fkey FOREIGN KEY ( grants_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT acl_table_fkey FOREIGN KEY ( acl_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
+	CONSTRAINT entity_table_fkey FOREIGN KEY ( entity_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT actor_table_fkey FOREIGN KEY ( actor_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT limits_table_fkey FOREIGN KEY ( limits_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT default_limits_table_fkey FOREIGN KEY ( default_limits_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
@@ -336,7 +339,7 @@ CREATE TABLE meta_public.permissions_module (
 	default_table_name text NOT NULL DEFAULT ( 'default_permissions' ),
 	bitlen int NOT NULL DEFAULT ( 24 ),
 	membership_type int NOT NULL,
-	owner_table_id uuid NULL,
+	entity_table_id uuid NULL,
 	actor_table_id uuid NOT NULL DEFAULT ( uuid_nil() ),
 	get_padded_mask text NOT NULL DEFAULT ( '' ),
 	get_mask text NOT NULL DEFAULT ( '' ),
@@ -347,6 +350,7 @@ CREATE TABLE meta_public.permissions_module (
 	CONSTRAINT private_schema_fkey FOREIGN KEY ( private_schema_id ) REFERENCES collections_public.schema ( id ) ON DELETE CASCADE,
 	CONSTRAINT table_fkey FOREIGN KEY ( table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT default_table_fkey FOREIGN KEY ( default_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
+	CONSTRAINT entity_table_fkey FOREIGN KEY ( entity_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT actor_table_fkey FOREIGN KEY ( actor_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE 
 );
 
