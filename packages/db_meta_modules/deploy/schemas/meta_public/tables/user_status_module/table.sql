@@ -36,6 +36,8 @@ CREATE TABLE meta_public.user_status_module (
   steps_required text NOT NULL DEFAULT '',
   level_achieved text NOT NULL DEFAULT '',
 
+  prefix text NULL,
+
   membership_type int NOT NULL,
   -- if this is NOT NULL, then we add entity_id 
   -- e.g. limits to the app itself are considered global owned by app and no explicit owner

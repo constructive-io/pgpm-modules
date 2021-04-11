@@ -21,6 +21,8 @@ CREATE TABLE meta_public.invites_module (
     claimed_invites_table_name text NOT NULL DEFAULT '',
     submit_invite_code_function text NOT NULL DEFAULT '',
 
+    prefix text NULL,
+
     membership_type int NOT NULL,
     -- if this is NOT NULL, then we add entity_id 
     -- e.g. limits to the app itself are considered global owned by app and no explicit owner
