@@ -17,9 +17,9 @@ CREATE TABLE meta_public.invites_module (
     invites_table_id uuid NOT NULL DEFAULT uuid_nil(),
     claimed_invites_table_id uuid NOT NULL DEFAULT uuid_nil(),
     
-    invites_table_name text NOT NULL DEFAULT 'invites',
-    claimed_invites_table_name text NOT NULL DEFAULT 'claimed_invites',
-    submit_invite_code_function text NOT NULL DEFAULT 'submit_invite_code',
+    invites_table_name text NOT NULL DEFAULT '',
+    claimed_invites_table_name text NOT NULL DEFAULT '',
+    submit_invite_code_function text NOT NULL DEFAULT '',
 
     membership_type int NOT NULL,
     -- if this is NOT NULL, then we add entity_id 

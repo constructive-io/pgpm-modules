@@ -14,16 +14,16 @@ CREATE TABLE meta_public.user_status_module (
   --
   
   steps_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  steps_table_name text NOT NULL DEFAULT 'steps',
+  steps_table_name text NOT NULL DEFAULT '',
 
   achievements_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  achievements_table_name text NOT NULL DEFAULT 'achievements',
+  achievements_table_name text NOT NULL DEFAULT '',
 
   levels_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  levels_table_name text NOT NULL DEFAULT 'levels',
+  levels_table_name text NOT NULL DEFAULT '',
 
   level_requirements_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  level_requirements_table_name text NOT NULL DEFAULT 'level_requirements',
+  level_requirements_table_name text NOT NULL DEFAULT '',
 
   completed_step text NOT NULL DEFAULT '',
   incompleted_step text NOT NULL DEFAULT '',
