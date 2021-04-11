@@ -31,7 +31,7 @@
     "regenerator-runtime": "^0.13.2"
   },
   "dependencies": {
-    "@launchql/ext-types": "^0.1.28",
+    "@launchql/ext-types": "^0.1.29",
     "@pyramation/launchql-meta-schema": "^0.5.1"
   }
 }
