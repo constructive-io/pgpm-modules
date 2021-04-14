@@ -3,31 +3,27 @@ CREATE SCHEMA collections_private;
 
 GRANT USAGE ON SCHEMA collections_private TO authenticated;
 
-GRANT USAGE ON SCHEMA collections_private TO administrator;
+ALTER DEFAULT PRIVILEGES IN SCHEMA collections_private 
+ GRANT ALL ON TABLES  TO authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA collections_private 
- GRANT ALL ON TABLES  TO administrator;
+ GRANT ALL ON SEQUENCES  TO authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA collections_private 
- GRANT ALL ON SEQUENCES  TO administrator;
-
-ALTER DEFAULT PRIVILEGES IN SCHEMA collections_private 
- GRANT ALL ON FUNCTIONS  TO administrator;
+ GRANT ALL ON FUNCTIONS  TO authenticated;
 
 CREATE SCHEMA collections_public;
 
 GRANT USAGE ON SCHEMA collections_public TO authenticated;
 
-GRANT USAGE ON SCHEMA collections_public TO administrator;
+ALTER DEFAULT PRIVILEGES IN SCHEMA collections_public 
+ GRANT ALL ON TABLES  TO authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA collections_public 
- GRANT ALL ON TABLES  TO administrator;
+ GRANT ALL ON SEQUENCES  TO authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA collections_public 
- GRANT ALL ON SEQUENCES  TO administrator;
-
-ALTER DEFAULT PRIVILEGES IN SCHEMA collections_public 
- GRANT ALL ON FUNCTIONS  TO administrator;
+ GRANT ALL ON FUNCTIONS  TO authenticated;
 
 CREATE TABLE collections_public.database (
  	id uuid PRIMARY KEY DEFAULT ( uuid_generate_v4() ),

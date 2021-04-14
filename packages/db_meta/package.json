@@ -31,16 +31,16 @@
     "regenerator-runtime": "^0.13.2"
   },
   "dependencies": {
-    "@launchql/ext-default-roles": "^0.2.0",
-    "@launchql/ext-defaults": "^0.2.0",
-    "@launchql/ext-jobs": "^0.3.0",
-    "@launchql/ext-jwt-claims": "^0.2.0",
-    "@launchql/ext-stamps": "^0.2.0",
-    "@launchql/ext-types": "^0.2.0",
-    "@launchql/ext-uuid": "^0.2.0",
-    "@launchql/ext-verify": "^0.2.0",
-    "@launchql/inflection": "^0.2.0",
-    "@launchql/totp": "^0.2.0",
-    "@launchql/utils": "^0.2.0"
+    "@launchql/ext-default-roles": "^0.2.1",
+    "@launchql/ext-defaults": "^0.2.1",
+    "@launchql/ext-jobs": "^0.3.1",
+    "@launchql/ext-jwt-claims": "^0.2.1",
+    "@launchql/ext-stamps": "^0.2.1",
+    "@launchql/ext-types": "^0.2.1",
+    "@launchql/ext-uuid": "^0.2.1",
+    "@launchql/ext-verify": "^0.2.1",
+    "@launchql/inflection": "^0.2.1",
+    "@launchql/totp": "^0.2.1",
+    "@launchql/utils": "^0.2.1"
   }
 }
