@@ -20,7 +20,7 @@ CREATE TABLE meta_public.rls_module (
     authenticate text NOT NULL DEFAULT 'authenticate',
     authenticate_strict text NOT NULL DEFAULT 'authenticate_strict',
     "current_role" text NOT NULL DEFAULT 'current_user',
-    current_role_id text NOT NULL DEFAULT 'current_user_id'
+    current_role_id text NOT NULL DEFAULT 'current_user_id',
 
     --
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE,
