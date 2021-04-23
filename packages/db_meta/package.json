@@ -1,6 +1,6 @@
 {
   "name": "@pyramation/launchql-meta-schema",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "db meta",
   "author": "Web, Inc. <pyramation@gmail.com>",
   "publishConfig": {
@@ -37,9 +37,9 @@
     "@launchql/ext-jwt-claims": "^0.4.2",
     "@launchql/ext-stamps": "^0.4.2",
     "@launchql/ext-types": "^0.4.2",
-    "@launchql/geo-types": "^0.4.2",
     "@launchql/ext-uuid": "^0.4.2",
     "@launchql/ext-verify": "^0.4.2",
+    "@launchql/geo-types": "^0.4.2",
     "@launchql/inflection": "^0.4.2",
     "@launchql/totp": "^0.4.2",
     "@launchql/utils": "^0.4.2"
