@@ -11,7 +11,7 @@ CREATE TABLE meta_public.sites (
   title text,
   description text,
   og_image image,
-  favicon upload,
+  favicon attachment,
   apple_touch_icon image,
   logo image,
   
