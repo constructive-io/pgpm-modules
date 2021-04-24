@@ -26,3 +26,4 @@ schemas/meta_public/tables/tokens_module/table [schemas/meta_public/schema] 2017
 schemas/meta_public/tables/user_auth_module/table [schemas/meta_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/meta_public/tables/user_auth_module/table
 schemas/meta_public/tables/users_module/table [schemas/meta_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/meta_public/tables/users_module/table
 schemas/meta_public/tables/uuid_module/table [schemas/meta_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/meta_public/tables/uuid_module/table
+schemas/meta_public/tables/denormalized_fields_tables/table [schemas/meta_public/schema] 2021-04-24T10:21:57Z Dan Lynch <dlynch@Dans-MBP-3> # add schemas/meta_public/tables/denormalized_fields_tables/table
