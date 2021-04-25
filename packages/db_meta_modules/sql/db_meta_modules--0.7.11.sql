@@ -375,6 +375,7 @@ CREATE TABLE meta_public.memberships_module (
 	acl_table_id uuid NOT NULL DEFAULT ( uuid_nil() ),
 	admin_grants_table_id uuid NOT NULL DEFAULT ( uuid_nil() ),
 	admin_grants_table_name text NOT NULL DEFAULT ( '' ),
+	grant_admin_function text NOT NULL,
 	membership_type int NOT NULL,
 	entity_table_id uuid NULL,
 	entity_table_owner_id uuid NULL,
