@@ -34,6 +34,8 @@ CREATE TABLE meta_public.memberships_module (
     admin_grants_table_id uuid NOT NULL DEFAULT uuid_nil(),
     admin_grants_table_name text NOT NULL DEFAULT '',
 
+    grant_admin_function text NOT NULL,
+
     membership_type int NOT NULL,
 
     -- if this is NOT NULL, then we add entity_id 
