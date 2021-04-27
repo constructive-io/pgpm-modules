@@ -19,6 +19,9 @@ CREATE TABLE collections_public.table (
   
   is_system boolean DEFAULT FALSE, -- TODO DEPRECATE
   use_rls boolean NOT NULL DEFAULT FALSE,
+  
+  timestamps boolean NOT NULL DEFAULT FALSE,
+  peoplestamps boolean NOT NULL DEFAULT FALSE,
 
   plural_name text,
   singular_name text,

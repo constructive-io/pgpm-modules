@@ -591,7 +591,7 @@ CREATE TABLE meta_public.user_auth_module (
 	encrypted_table_id uuid NOT NULL DEFAULT ( uuid_nil() ),
 	tokens_table_id uuid NOT NULL DEFAULT ( uuid_nil() ),
 	audits_table_id uuid NOT NULL DEFAULT ( uuid_nil() ),
-	audits_table_name text NOT NULL DEFAULT ( '' ),
+	audits_table_name text NOT NULL DEFAULT ( 'audit_logs' ),
 	sign_in_function text NOT NULL DEFAULT ( 'login' ),
 	sign_up_function text NOT NULL DEFAULT ( 'register' ),
 	sign_out_function text NOT NULL DEFAULT ( 'logout' ),
