@@ -16,7 +16,7 @@ CREATE TABLE meta_public.user_auth_module (
     tokens_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     audits_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    audits_table_name text NOT NULL DEFAULT '',
+    audits_table_name text NOT NULL DEFAULT 'audit_logs',
 
     -- api_id uuid NOT NULL REFERENCES meta_public.apis (id),
 
