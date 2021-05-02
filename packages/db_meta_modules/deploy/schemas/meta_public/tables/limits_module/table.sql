@@ -14,11 +14,8 @@ CREATE TABLE meta_public.limits_module (
     table_id uuid NOT NULL DEFAULT uuid_nil(),
     table_name text NOT NULL DEFAULT '',
 
-    log_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    log_table_name text NOT NULL DEFAULT '',
-
-    conditions_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    conditions_table_name text NOT NULL DEFAULT '',
+    default_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    default_table_name text NOT NULL DEFAULT '',
     -- 
 
     limit_increment_function text NOT NULL DEFAULT '',
@@ -42,7 +39,7 @@ CREATE TABLE meta_public.limits_module (
     CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES collections_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES collections_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT conditions_table_fkey FOREIGN KEY (conditions_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT default_table_fkey FOREIGN KEY (default_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
     CONSTRAINT entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,
     CONSTRAINT actor_table_fkey FOREIGN KEY (actor_table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE
 
@@ -57,7 +54,7 @@ CREATE INDEX limits_module_database_id_idx ON meta_public.limits_module ( databa
 COMMENT ON CONSTRAINT table_fkey
      ON meta_public.limits_module IS E'@omit manyToMany';
 
-COMMENT ON CONSTRAINT conditions_table_fkey
+COMMENT ON CONSTRAINT default_table_fkey
      ON meta_public.limits_module IS E'@omit manyToMany';
 
 COMMENT ON CONSTRAINT actor_table_fkey

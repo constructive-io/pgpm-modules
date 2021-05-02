@@ -300,14 +300,16 @@ CREATE TABLE meta_public.limits_module (
 	private_schema_id uuid NOT NULL DEFAULT ( uuid_nil() ),
 	table_id uuid NOT NULL DEFAULT ( uuid_nil() ),
 	table_name text NOT NULL DEFAULT ( '' ),
+	log_table_id uuid NOT NULL DEFAULT ( uuid_nil() ),
+	log_table_name text NOT NULL DEFAULT ( '' ),
+	conditions_table_id uuid NOT NULL DEFAULT ( uuid_nil() ),
+	conditions_table_name text NOT NULL DEFAULT ( '' ),
 	limit_increment_function text NOT NULL DEFAULT ( '' ),
 	limit_decrement_function text NOT NULL DEFAULT ( '' ),
 	limit_increment_trigger text NOT NULL DEFAULT ( '' ),
 	limit_decrement_trigger text NOT NULL DEFAULT ( '' ),
 	limit_update_trigger text NOT NULL DEFAULT ( '' ),
 	limit_check_function text NOT NULL DEFAULT ( '' ),
-	default_table_id uuid NOT NULL DEFAULT ( uuid_nil() ),
-	default_table_name text NOT NULL DEFAULT ( '' ),
 	prefix text NULL,
 	membership_type int NOT NULL,
 	entity_table_id uuid NULL,
@@ -316,7 +318,7 @@ CREATE TABLE meta_public.limits_module (
 	CONSTRAINT schema_fkey FOREIGN KEY ( schema_id ) REFERENCES collections_public.schema ( id ) ON DELETE CASCADE,
 	CONSTRAINT private_schema_fkey FOREIGN KEY ( private_schema_id ) REFERENCES collections_public.schema ( id ) ON DELETE CASCADE,
 	CONSTRAINT table_fkey FOREIGN KEY ( table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
-	CONSTRAINT default_table_fkey FOREIGN KEY ( default_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
+	CONSTRAINT conditions_table_fkey FOREIGN KEY ( conditions_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT entity_table_fkey FOREIGN KEY ( entity_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE,
 	CONSTRAINT actor_table_fkey FOREIGN KEY ( actor_table_id ) REFERENCES collections_public."table" ( id ) ON DELETE CASCADE 
 );
@@ -331,7 +333,7 @@ CREATE INDEX limits_module_database_id_idx ON meta_public.limits_module ( databa
 
 COMMENT ON CONSTRAINT table_fkey ON meta_public.limits_module IS E'@omit manyToMany';
 
-COMMENT ON CONSTRAINT default_table_fkey ON meta_public.limits_module IS E'@omit manyToMany';
+COMMENT ON CONSTRAINT conditions_table_fkey ON meta_public.limits_module IS E'@omit manyToMany';
 
 COMMENT ON CONSTRAINT actor_table_fkey ON meta_public.limits_module IS E'@omit manyToMany';
 
@@ -600,6 +602,8 @@ CREATE TABLE meta_public.user_auth_module (
 	forgot_password_function text NOT NULL DEFAULT ( 'forgot_password' ),
 	send_verification_email_function text NOT NULL DEFAULT ( 'send_verification_email' ),
 	verify_email_function text NOT NULL DEFAULT ( 'verify_email' ),
+	verify_password_function text NOT NULL DEFAULT ( 'verify_password' ),
+	check_password_function text NOT NULL DEFAULT ( 'check_password' ),
 	send_account_deletion_email_function text NOT NULL DEFAULT ( 'send_account_deletion_email' ),
 	delete_account_function text NOT NULL DEFAULT ( 'confirm_delete_account' ),
 	sign_in_one_time_token_function text NOT NULL DEFAULT ( 'login_one_time_token' ),
