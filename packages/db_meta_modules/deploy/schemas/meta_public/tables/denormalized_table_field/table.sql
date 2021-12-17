@@ -21,7 +21,7 @@ CREATE TABLE meta_public.denormalized_table_field (
     update_defaults bool NOT NULL DEFAULT TRUE, 
 
     func_name text NULL,
-    func_order text NULL,
+    func_order int NOT NULL DEFAULT 0,
 
     --
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE,
