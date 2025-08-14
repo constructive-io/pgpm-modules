@@ -15,6 +15,12 @@ Progress
 
 - [x] @launchql/ext-uuid -> packages/data-types/ext-uuid
 
+- [x] @launchql/ext-defaults -> packages/utils/defaults
+- [x] @launchql/utils -> packages/utils/utils
+- [x] @launchql/inflection -> packages/data-types/inflection
+- [x] @launchql/measurements -> packages/metrics/measurements
+- [x] @launchql/ext-stamps -> packages/data-types/stamps
+
 Details
 - ext-verify source: source/utils/packages/verify
 - ext-types source: source/utils/packages/types
