@@ -1,5 +1,11 @@
 
 
+SQL assets restored and publishing
+- Renamed sqitch.plan to launchql.plan across packages while preserving any existing launchql.plan files.
+- Ensured SQL assets (deploy/, verify/, revert/, sql/, *.control, sqitch.conf, launchql.plan) are included in published dist by updating package copy scripts.
+- Added repository script "migrate:sql" to move SQL assets into packages and rename sqitch.plan to launchql.plan.
+
+
 
 
 # Migration Map (Legacy -> New Single Workspace)
