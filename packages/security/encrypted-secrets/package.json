@@ -1,0 +1,28 @@
+{
+  "name": "encrypted-secrets",
+  "version": "0.1.0",
+  "description": "Encrypted secrets helpers",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "module": "./esm/index.js",
+  "publishConfig": {
+    "access": "public",
+    "directory": "dist"
+  },
+  "scripts": {
+    "copy": "cpy ../../../LICENSE README.md package.json dist --flat",
+    "clean": "rimraf dist",
+    "prepare": "npm run build",
+    "build": "npm run clean; tsc; tsc -p tsconfig.esm.json; npm run copy",
+    "test": "jest --passWithNoTests --testPathIgnorePatterns=/dist/",
+    "test:watch": "jest --watch --testPathIgnorePatterns=/dist/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/launchql/extensions"
+  },
+  "homepage": "https://github.com/launchql/extensions",
+  "bugs": {
+    "url": "https://github.com/launchql/extensions/issues"
+  }
+}
