@@ -20,6 +20,12 @@ Progress
 - [x] @launchql/inflection -> packages/data-types/inflection
 - [x] @launchql/measurements -> packages/metrics/measurements
 - [x] @launchql/ext-stamps -> packages/data-types/stamps
+- [x] @launchql/base32 -> packages/data-types/base32
+- [x] @launchql/geotypes -> packages/geo/geotypes
+- [x] @launchql/achievements -> packages/metrics/achievements
+- [x] @launchql/faker -> packages/utils/faker
+- [x] @launchql/totp -> packages/utils/totp
+
 
 Details
 - ext-verify source: source/utils/packages/verify
