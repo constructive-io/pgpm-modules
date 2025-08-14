@@ -51,8 +51,16 @@ jobs:
           PGPASSWORD: postgres
         run: |
           psql -h localhost -U postgres -d testdb -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+          psql -h localhost -U postgres -d testdb -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+          psql -h localhost -U postgres -d testdb -c "CREATE EXTENSION IF NOT EXISTS citext;"
+          psql -h localhost -U postgres -d testdb -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
           psql -h localhost -U postgres -d testdb -c "CREATE SCHEMA IF NOT EXISTS myschema;"
           psql -h localhost -U postgres -d testdb -c "CREATE SCHEMA IF NOT EXISTS myschema_public;"
+          psql -h localhost -U postgres -d testdb -c "CREATE SCHEMA IF NOT EXISTS meta_public;"
+          psql -h localhost -U postgres -d testdb -c "CREATE SCHEMA IF NOT EXISTS meta_private;"
+          psql -h localhost -U postgres -d testdb -c "CREATE SCHEMA IF NOT EXISTS collections_public;"
+          psql -h localhost -U postgres -d testdb -c "CREATE SCHEMA IF NOT EXISTS collections_private;"
+          psql -h localhost -U postgres -d testdb -c "CREATE SCHEMA IF NOT EXISTS app_jobs;"
 
       - name: Build
         run: pnpm -r build

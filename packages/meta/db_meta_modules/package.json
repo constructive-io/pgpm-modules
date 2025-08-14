@@ -14,8 +14,8 @@
     "clean": "rimraf dist",
     "prepare": "npm run build",
     "build": "npm run clean; tsc; tsc -p tsconfig.esm.json; npm run copy",
-    "test": "jest --config ../../../jest.config.js --passWithNoTests --testPathIgnorePatterns=/dist/",
-    "test:watch": "jest --config ../../../jest.config.js --watch --testPathIgnorePatterns=/dist/"
+    "test": "jest --config ./jest.config.js --passWithNoTests --testPathIgnorePatterns=/dist/",
+    "test:watch": "jest --config ./jest.config.js --watch --testPathIgnorePatterns=/dist/"
   },
   "repository": {
     "type": "git",
