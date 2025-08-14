@@ -1,8 +1,0 @@
-# launchql-ext-jobs-queue extension
-comment = 'launchql-ext-jobs-queue extension'
-default_version = '0.4.5'
-module_pathname = '$libdir/launchql-ext-jobs-queue'
-requires = 'plpgsql,uuid-ossp,pgcrypto,launchql-ext-default-roles'
-relocatable = false
-superuser = false
-  

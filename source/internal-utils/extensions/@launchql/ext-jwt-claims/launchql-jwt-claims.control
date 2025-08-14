@@ -1,8 +1,0 @@
-# launchql-jwt-claims extension
-comment = 'launchql-jwt-claims extension'
-default_version = '0.1.11'
-module_pathname = '$libdir/launchql-jwt-claims'
-requires = 'plpgsql,uuid-ossp'
-relocatable = false
-superuser = false
-  

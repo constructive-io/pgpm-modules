@@ -1,7 +1,0 @@
-%syntax-version=1.0.0
-%project=launchql-extension-default-roles
-%uri=launchql-extension-default-roles
-  
-roles/anonymous/role [launchql-extension-verify:procedures/verify_view launchql-extension-defaults:defaults/public] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add roles/anonymous/role
-roles/authenticated/role 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add roles/authenticated/role
-roles/administrator/role [roles/anonymous/role roles/authenticated/role] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add roles/administrator/role

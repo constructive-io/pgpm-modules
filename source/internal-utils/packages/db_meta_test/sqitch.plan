@@ -1,5 +1,0 @@
-%syntax-version=1.0.0
-%project=launchql-db_meta_test
-%uri=launchql-db_meta_test
-  
-procedures/test 2020-12-24T01:58:27Z Dan Lynch <dlynch@Dans-MBP-3> # add procedures/test

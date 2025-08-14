@@ -1,8 +1,0 @@
-# types extension
-comment = 'types extension'
-default_version = '0.0.1'
-module_pathname = '$libdir/types'
-requires = 'plpgsql,uuid-ossp,citext'
-relocatable = false
-superuser = false
-  

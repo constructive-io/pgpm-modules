@@ -1,7 +1,0 @@
-# launchql-extension-defaults extension
-comment = 'default roles'
-default_version = '0.0.1'
-module_pathname = '$libdir/launchql-extension-defaults'
-requires = 'plpgsql'
-relocatable = false
-superuser = false
