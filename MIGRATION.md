@@ -1,3 +1,41 @@
+# Migration Notes Update
+
+## Local development prerequisites
+- Use Node 20 or 18. We recommend Node 20 for parity with CI.
+  - If using nvm: `nvm install 20 && nvm use 20` (also see .nvmrc at repo root)
+
+## DB-backed tests (local)
+The CI uses a Postgres/PostGIS service and prepares extensions/schemas. Locally, mirror this setup:
+- Ensure Postgres is running and accessible
+- Create extensions and schemas as needed by packages:
+  - Extensions: postgis, pgcrypto, citext, uuid-ossp
+  - Schemas: myschema, myschema_public, meta_public, meta_private, collections_public, collections_private, app_jobs
+- Export env (adjust host/port as needed):
+```
+export PGHOST=localhost
+export PGPORT=5432
+export PGUSER=postgres
+export PGPASSWORD=postgres
+export PGDATABASE=testdb
+export DATABASE_URL=postgres://postgres:postgres@localhost:5432/testdb
+```
+
+## Per-package Jest scoping
+Each package contains a local `jest.config.js`. Running tests within a package only runs that package’s tests:
+- Example: `pnpm --filter @launchql/ext-uuid test`
+- All packages: `pnpm -r test`
+
+## Historical tests
+All historical tests from legacy workspaces were restored and converted to TypeScript under `packages/*/**/__tests__`. No `.test.js` or `.spec.js` files remain, and no placeholder tests were left in place.
+
+## SQL assets
+For each SQL-backed extension/package:
+- `sqitch.plan` files were renamed to `launchql.plan` while preserving any existing `launchql.plan`
+- `deploy/`, `verify/`, `revert/` directories were restored
+- Package copy scripts include these assets in `dist/`
+
+## CI note
+GitHub Actions is configured to run on Node 20 with a PostGIS service and prepared schemas/extensions. If CI is temporarily blocked (e.g., billing), you can validate locally using the steps above and re-run CI once unblocked.
 Tests migration
 - Restored historical tests from legacy workspaces (source/internal-utils, source/pg-utils, source/utils) into packages/* by category.
 - Converted all JavaScript tests to TypeScript (*.test.ts) and placed under __tests__.
@@ -90,3 +128,32 @@ Notes
 - Prefer @launchql/ext-* scoped names for extensions.
 - Normalize package.json scripts, metadata, and internal deps (workspace:^).
 - Use dual TS outputs (CJS + ESM) mirroring example packages.
+## Quick commands
+
+Setup Node and install deps:
+```
+nvm use 20
+pnpm install
+```
+
+Build all packages:
+```
+pnpm -r build
+```
+
+Run tests for a single package (scoped to that package only):
+```
+pnpm --filter @launchql/ext-uuid test
+pnpm --filter @launchql/ext-types test
+pnpm --filter @launchql/measurements test
+```
+
+Run tests for all packages (requires Postgres env vars set as above):
+```
+pnpm -r test
+```
+
+Optional: start a local Postgres with PostGIS using Docker
+```
+docker run --name launchql-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=testdb -p 5432:5432 -d postgis/postgis:15-3.4
+```
