@@ -14,8 +14,8 @@
     "clean": "rimraf dist",
     "prepare": "npm run build",
     "build": "npm run clean; tsc; tsc -p tsconfig.esm.json; npm run copy",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "test": "jest --passWithNoTests --testPathIgnorePatterns=/dist/",
+    "test:watch": "jest --watch --testPathIgnorePatterns=/dist/"
   },
   "dependencies": {
     "@launchql/ext-default-roles": "workspace:^",
