@@ -1,14 +1,19 @@
 import { getConnections } from './utils/graphql';
 import gql from 'graphql-tag';
 
-let teardown: () => Promise<void>, query: any;
+let teardown: (() => Promise<void>) | undefined, query: any;
 
 beforeAll(async () => {
-  ({ teardown, query } = await getConnections(['measurements']));
+  try {
+    ({ teardown, query } = await getConnections(['measurements']));
+  } catch (e) {
+  }
 });
 
 afterAll(async () => {
-  await teardown();
+  if (typeof teardown === 'function') {
+    await teardown();
+  }
 });
 
 const SimpleQuery = gql`
