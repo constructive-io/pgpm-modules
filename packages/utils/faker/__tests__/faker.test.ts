@@ -1,8 +1,8 @@
-import { getConnections, PgTestClient } from 'pgsql-test';
+import { getConnections } from 'pgsql-test';
 
-let db: PgTestClient;
-let pg: PgTestClient;
-let teardown: () => Promise<void>;
+let db: any;
+let pg: any;
+let teardown: any;
 
 const objs = {
   tables: {}

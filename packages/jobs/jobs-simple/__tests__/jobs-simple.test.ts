@@ -1,9 +1,9 @@
-import { getConnections, PgTestClient } from 'pgsql-test';
+import { getConnections } from 'pgsql-test';
 
-let db: PgTestClient;
-let pg: PgTestClient;
-let teardown: () => Promise<void>;
-const objs: Record<string, any> = {};
+let db: any;
+let pg: any;
+let teardown: any;
+const objs: Record<string, any> = {}
 
 describe('scheduled jobs', () => {
   beforeAll(async () => {

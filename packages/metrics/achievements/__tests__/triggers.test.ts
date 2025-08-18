@@ -1,10 +1,9 @@
 import { getConnections } from 'pgsql-test';
-import type { PgTestClient } from 'pgsql-test';
 import { snapshot } from 'graphile-test';
 
-let db: PgTestClient | undefined;
-let pg: PgTestClient | undefined;
-let teardown: (() => Promise<void>) | undefined;
+let db: any;
+let pg: any;
+let teardown: any;
 
 const user_id = 'b9d22af1-62c7-43a5-b8c4-50630bbd4962';
 
