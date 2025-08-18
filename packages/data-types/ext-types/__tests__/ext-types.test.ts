@@ -1,4 +1,4 @@
-import { getConnections } from '@launchql/db-testing';
+import { getConnections } from 'pgsql-test';
 
 let teardown: () => Promise<void>;
 let db: any;

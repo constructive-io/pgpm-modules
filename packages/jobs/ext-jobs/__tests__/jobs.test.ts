@@ -1,16 +1,27 @@
 import { getConnections } from 'pgsql-test';
-import type { PgTestClient } from 'pgsql-test';
 
-let db: PgTestClient;
-let pg: PgTestClient;
+let db: any;
+let pg: any;
 let teardown: () => Promise<void>;
 
-const database_id = '5b720132-17d5-424d-9bcb-ee7b17c13d43';
 const objs: Record<string, any> = {};
 
 describe('scheduled jobs', () => {
   beforeAll(async () => {
     ({ db, pg, teardown } = await getConnections());
+    const [{ u }] = await db.any('select current_user as u');
+    await pg.any(`grant usage on schema app_jobs to "${u}"`);
+    await pg.any(`grant all privileges on all tables in schema app_jobs to "${u}"`);
+    await pg.any(`grant usage, select on all sequences in schema app_jobs to "${u}"`);
+  });
+
+
+  beforeEach(async () => {
+    await db.beforeEach();
+  });
+
+  afterEach(async () => {
+    await db.afterEach();
   });
 
   afterAll(async () => {
@@ -18,12 +29,11 @@ describe('scheduled jobs', () => {
   });
 
   it('schedule jobs by cron', async () => {
-    const result = await pg.one(
-      `INSERT INTO app_jobs.scheduled_jobs (database_id, task_identifier, schedule_info)
-       VALUES ($1, $2, $3)
+    const result = await db.one(
+      `INSERT INTO app_jobs.scheduled_jobs (task_identifier, schedule_info)
+       VALUES ($1, $2)
        RETURNING *`,
       [
-        database_id,
         'my_job',
         {
           hour: Array.from({ length: 23 }, (_: unknown, i: number) => i),
@@ -39,12 +49,11 @@ describe('scheduled jobs', () => {
     const start = new Date(Date.now() + 10000);
     const end = new Date(start.getTime() + 180000);
 
-    const result = await pg.one(
-      `INSERT INTO app_jobs.scheduled_jobs (database_id, task_identifier, payload, schedule_info)
-       VALUES ($1, $2, $3, $4)
+    const result = await db.one(
+      `INSERT INTO app_jobs.scheduled_jobs (task_identifier, payload, schedule_info)
+       VALUES ($1, $2, $3)
        RETURNING *`,
       [
-        database_id,
         'my_job',
         { just: 'run it' },
         { start, end, rule: '*/1 * * * *' }
@@ -54,7 +63,7 @@ describe('scheduled jobs', () => {
   });
 
   it('schedule jobs', async () => {
-    const [result] = await pg.any(
+    const [result] = await db.any(
       `SELECT * FROM app_jobs.run_scheduled_job($1)`,
       [objs.scheduled2.id]
     );
@@ -67,19 +76,17 @@ describe('scheduled jobs', () => {
     const start = new Date(Date.now() + 10000);
     const end = new Date(start.getTime() + 180000);
 
-    const [result] = await pg.any(
+    const [result] = await db.any(
       `SELECT * FROM app_jobs.add_scheduled_job(
-        db_id := $1::uuid,
-        identifier := $2::text,
-        payload := $3::json,
-        schedule_info := $4::json,
-        job_key := $5::text,
-        queue_name := $6::text,
-        max_attempts := $7::integer,
-        priority := $8::integer
+        identifier := $1::text,
+        payload := $2::json,
+        schedule_info := $3::json,
+        job_key := $4::text,
+        queue_name := $5::text,
+        max_attempts := $6::integer,
+        priority := $7::integer
       )`,
       [
-        database_id,
         'my_job',
         { just: 'run it' },
         { start, end, rule: '*/1 * * * *' },
@@ -101,19 +108,17 @@ describe('scheduled jobs', () => {
       ...obj
     } = result;
 
-    const [result2] = await pg.any(
+    const [result2] = await db.any(
       `SELECT * FROM app_jobs.add_scheduled_job(
-        db_id := $1,
-        identifier := $2,
-        payload := $3,
-        schedule_info := $4,
-        job_key := $5,
-        queue_name := $6,
-        max_attempts := $7,
-        priority := $8
+        identifier := $1,
+        payload := $2,
+        schedule_info := $3,
+        job_key := $4,
+        queue_name := $5,
+        max_attempts := $6,
+        priority := $7
       )`,
       [
-        database_id,
         'my_job',
         { just: 'run it' },
         { start, end, rule: '*/1 * * * *' },

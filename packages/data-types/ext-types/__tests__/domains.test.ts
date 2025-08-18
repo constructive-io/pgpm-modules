@@ -76,6 +76,14 @@ CREATE TABLE customers (
   `);
 });
 
+beforeEach(async () => {
+  await db.beforeEach();
+});
+
+afterEach(async () => {
+  await db.afterEach();
+});
+
 afterAll(async () => {
   try {
     await teardown();

@@ -1,4 +1,5 @@
-import { getConnections, wrapConn } from './utils';
+import { getConnections } from 'pgsql-test';
+import { wrapConn } from './utils';
 
 let db: any, pg: any, teardown: () => Promise<void>, app: any;
 const objs: Record<string, any> = {};
@@ -11,6 +12,14 @@ describe('scheduled jobs', () => {
     await pg.any(`grant all privileges on all tables in schema app_jobs to "${u}"`);
     await pg.any(`grant usage, select on all sequences in schema app_jobs to "${u}"`);
     app = wrapConn(db, 'app_jobs');
+  });
+
+  beforeEach(async () => {
+    await db.beforeEach();
+  });
+
+  afterEach(async () => {
+    await db.afterEach();
   });
 
   afterAll(async () => {

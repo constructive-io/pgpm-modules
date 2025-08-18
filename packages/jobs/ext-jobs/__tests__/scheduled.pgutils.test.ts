@@ -12,7 +12,15 @@ describe('scheduled jobs', () => {
     await pg.any(`grant usage, select on all sequences in schema app_jobs to "${u}"`);
     app = wrapConn(db, 'app_jobs');
   });
-
+ 
+  beforeEach(async () => {
+    await db.beforeEach();
+  });
+ 
+  afterEach(async () => {
+    await db.afterEach();
+  });
+ 
   afterAll(async () => {
     await teardown();
   });
