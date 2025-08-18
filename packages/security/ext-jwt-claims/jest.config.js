@@ -4,7 +4,7 @@ module.exports = {
   roots: ['<rootDir>/__tests__'],
   testMatch: ['<rootDir>/__tests__/**/*.test.ts', '<rootDir>/?(*.)+(spec|test).ts'],
   testPathIgnorePatterns: ['/dist/'],
-  modulePathIgnorePatterns: ['/dist/'],
+  modulePathIgnorePatterns: ['<rootDir>/dist/'],
   watchPathIgnorePatterns: ['/dist/'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'json'],
   transform: {
