@@ -10,7 +10,7 @@
     "directory": "dist"
   },
   "scripts": {
-    "copy": "cpy ../../../LICENSE README.md package.json dist --flat && cpy \"schemas/**\" \"sql/**\" \"*.control\" \"launchql.plan\" \"sqitch.conf\" dist --parents --cwd . && sh -c 'for d in deploy verify revert; do if [ -d \"$d\" ]; then cp -a \"$d\" dist/; fi; done'",
+    "copy": "cpy ../../../LICENSE README.md package.json dist --flat && cpy \"schemas/**\" \"sql/**\" \"*.control\" \"launchql.plan\" dist --parents --cwd . && sh -c 'for d in deploy verify revert; do if [ -d \"$d\" ]; then cp -a \"$d\" dist/; fi; done'",
     "clean": "rimraf dist",
     "prepare": "npm run build",
     "build": "npm run clean; tsc; tsc -p tsconfig.esm.json; npm run copy",

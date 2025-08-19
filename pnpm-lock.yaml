@@ -90,7 +90,7 @@ importers:
   packages/geo/geotypes:
     publishDirectory: dist
 
-  packages/jobs/ext-jobs:
+  packages/jobs/database-jobs:
     dependencies:
       '@launchql/ext-default-roles':
         specifier: workspace:^
@@ -100,7 +100,14 @@ importers:
         version: link:../../security/ext-jwt-claims/dist
     publishDirectory: dist
 
-  packages/jobs/jobs-simple:
+  packages/jobs/jobs:
+    dependencies:
+      '@launchql/ext-default-roles':
+        specifier: workspace:^
+        version: link:../../security/ext-default-roles/dist
+      '@launchql/ext-jwt-claims':
+        specifier: workspace:^
+        version: link:../../security/ext-jwt-claims/dist
     publishDirectory: dist
 
   packages/meta/db_meta:
@@ -116,26 +123,6 @@ importers:
     publishDirectory: dist
 
   packages/metrics/measurements:
-    publishDirectory: dist
-
-  packages/my-first:
-    publishDirectory: dist
-
-  packages/my-second:
-    dependencies:
-      '@pagebond/my-first':
-        specifier: workspace:^
-        version: link:../my-first/dist
-    publishDirectory: dist
-
-  packages/my-third:
-    dependencies:
-      '@pagebond/my-first':
-        specifier: workspace:^
-        version: link:../my-first/dist
-      '@pagebond/my-second':
-        specifier: workspace:^
-        version: link:../my-second/dist
     publishDirectory: dist
 
   packages/security/encrypted-secrets:
