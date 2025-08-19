@@ -75,16 +75,16 @@ importers:
   packages/data-types/base32:
     publishDirectory: dist
 
-  packages/data-types/ext-types:
-    publishDirectory: dist
-
-  packages/data-types/ext-uuid:
-    publishDirectory: dist
-
   packages/data-types/inflection:
     publishDirectory: dist
 
   packages/data-types/stamps:
+    publishDirectory: dist
+
+  packages/data-types/types:
+    publishDirectory: dist
+
+  packages/data-types/uuid:
     publishDirectory: dist
 
   packages/geo/geotypes:
@@ -92,22 +92,22 @@ importers:
 
   packages/jobs/database-jobs:
     dependencies:
-      '@launchql/ext-default-roles':
+      '@launchql/default-roles':
         specifier: workspace:^
-        version: link:../../security/ext-default-roles/dist
-      '@launchql/ext-jwt-claims':
+        version: link:../../security/default-roles/dist
+      '@launchql/jwt-claims':
         specifier: workspace:^
-        version: link:../../security/ext-jwt-claims/dist
+        version: link:../../security/jwt-claims/dist
     publishDirectory: dist
 
   packages/jobs/jobs:
     dependencies:
-      '@launchql/ext-default-roles':
+      '@launchql/default-roles':
         specifier: workspace:^
-        version: link:../../security/ext-default-roles/dist
-      '@launchql/ext-jwt-claims':
+        version: link:../../security/default-roles/dist
+      '@launchql/jwt-claims':
         specifier: workspace:^
-        version: link:../../security/ext-jwt-claims/dist
+        version: link:../../security/jwt-claims/dist
     publishDirectory: dist
 
   packages/meta/db_meta:
@@ -125,32 +125,32 @@ importers:
   packages/metrics/measurements:
     publishDirectory: dist
 
+  packages/security/default-roles:
+    publishDirectory: dist
+
+  packages/security/defaults:
+    publishDirectory: dist
+
   packages/security/encrypted-secrets:
     publishDirectory: dist
 
   packages/security/encrypted-secrets-table:
     publishDirectory: dist
 
-  packages/security/ext-default-roles:
-    publishDirectory: dist
-
-  packages/security/ext-jwt-claims:
+  packages/security/jwt-claims:
     dependencies:
-      '@launchql/ext-types':
+      '@launchql/types':
         specifier: workspace:^
-        version: link:../../data-types/ext-types/dist
+        version: link:../../data-types/types/dist
     publishDirectory: dist
 
-  packages/security/ext-verify:
+  packages/security/totp:
     publishDirectory: dist
 
-  packages/utils/defaults:
+  packages/security/verify:
     publishDirectory: dist
 
   packages/utils/faker:
-    publishDirectory: dist
-
-  packages/utils/totp:
     publishDirectory: dist
 
   packages/utils/utils:

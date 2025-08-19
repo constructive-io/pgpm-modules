@@ -2,7 +2,7 @@
 comment = 'launchql-ext-jobs extension'
 default_version = '0.1.0'
 module_pathname = '$libdir/launchql-ext-jobs'
-requires = 'plpgsql,uuid-ossp,pgcrypto,launchql-ext-default-roles'
+requires = 'plpgsql,uuid-ossp,pgcrypto,launchql-default-roles'
 relocatable = false
 superuser = false
   

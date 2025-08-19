@@ -1,8 +1,8 @@
 %syntax-version=1.0.0
-%project=launchql-ext-jobs
-%uri=launchql-ext-jobs
+%project=launchql-jobs
+%uri=launchql-jobs
   
-schemas/app_jobs/schema [launchql-ext-default-roles:@0.0.5] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/app_jobs/schema
+schemas/app_jobs/schema [launchql-default-roles:@0.0.5] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/app_jobs/schema
 schemas/app_jobs/helpers/json_build_object_apply [schemas/app_jobs/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/app_jobs/helpers/json_build_object_apply
 schemas/app_jobs/tables/jobs/table [schemas/app_jobs/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/app_jobs/tables/jobs/table
 schemas/app_jobs/tables/job_queues/table [schemas/app_jobs/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/app_jobs/tables/job_queues/table

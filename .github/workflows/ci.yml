@@ -87,8 +87,8 @@ jobs:
       matrix:
         package:
           - data-types/base32
-          - data-types/ext-types
-          - data-types/ext-uuid
+          - data-types/types
+          - data-types/uuid
           - data-types/inflection
           - data-types/stamps
           - geo/geotypes
@@ -101,12 +101,12 @@ jobs:
           - metrics/measurements
           - security/encrypted-secrets
           - security/encrypted-secrets-table
-          - security/ext-default-roles
-          - security/ext-jwt-claims
-          - security/ext-verify
-          - utils/defaults
+          - security/default-roles
+          - security/jwt-claims
+          - security/verify
+          - security/defaults
           - utils/faker
-          - utils/totp
+          - security/totp
           - utils/utils
 
     env:
