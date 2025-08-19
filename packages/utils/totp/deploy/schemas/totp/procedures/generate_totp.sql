@@ -92,6 +92,26 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE;
 
+CREATE FUNCTION totp.timing_safe_equals(a text, b text)
+RETURNS boolean
+AS $$
+DECLARE
+  la int := length(a);
+  lb int := length(b);
+  i int;
+  diff int := la # lb;
+  ca int;
+  cb int;
+BEGIN
+  FOR i IN 1..GREATEST(la, lb) LOOP
+    ca := CASE WHEN i <= la THEN get_byte(convert_to(substr(a, i, 1), 'UTF8'), 0) ELSE 0 END;
+    cb := CASE WHEN i <= lb THEN get_byte(convert_to(substr(b, i, 1), 'UTF8'), 0) ELSE 0 END;
+    diff := diff | (ca # cb);
+  END LOOP;
+  RETURN diff = 0;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
 CREATE FUNCTION totp.verify (
   secret text,
   check_totp text,
@@ -104,14 +124,18 @@ CREATE FUNCTION totp.verify (
 )
   RETURNS boolean
   AS $$
-  SELECT totp.generate (
-    secret,
-    period,
-    digits,
-    time_from,
-    hash,
-    encoding,
-    clock_offset) = check_totp;
+  SELECT totp.timing_safe_equals(
+    totp.generate(
+      secret,
+      period,
+      digits,
+      time_from,
+      hash,
+      encoding,
+      clock_offset
+    ),
+    check_totp
+  );
 $$
 LANGUAGE 'sql';
 

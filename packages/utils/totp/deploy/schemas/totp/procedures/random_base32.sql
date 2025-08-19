@@ -8,9 +8,13 @@ CREATE FUNCTION totp.random_base32 (_length int DEFAULT 20)
   LANGUAGE sql
   AS $$
   SELECT
-    string_agg(('{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,2,3,4,5,6,7}'::text[])[ceil(random() * 32)], '')
-  FROM
-    generate_series(1, _length);
+    string_agg(
+      ('{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,2,3,4,5,6,7}'::text[])
+      [ (get_byte(b, i) % 32) + 1 ],
+      ''
+    )
+  FROM (SELECT gen_random_bytes(_length) AS b) t,
+       LATERAL generate_series(0, _length - 1) g(i);
 $$;
 
 CREATE FUNCTION totp.generate_secret(hash TEXT DEFAULT 'sha1') RETURNS BYTEA AS $$
