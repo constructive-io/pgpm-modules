@@ -1,13 +1,12 @@
 import { getConnections, PgTestClient } from 'pgsql-test';
 
-let db: PgTestClient;
 let pg: PgTestClient;
 let teardown:  () => Promise<void>;
 const objs: Record<string, any> = {}
 
 describe('scheduled jobs', () => {
   beforeAll(async () => {
-    ({ db, pg, teardown } = await getConnections());
+    ({ pg, teardown } = await getConnections());
   });
 
   afterAll(async () => {
