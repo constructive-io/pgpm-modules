@@ -15,8 +15,8 @@
     "test:watch": "jest --config ./jest.config.js --watch"
   },
   "dependencies": {
-    "@launchql/ext-default-roles": "workspace:^",
-    "@launchql/ext-jwt-claims": "workspace:^"
+    "@launchql/default-roles": "workspace:^",
+    "@launchql/jwt-claims": "workspace:^"
   },
   "repository": {
     "type": "git",
