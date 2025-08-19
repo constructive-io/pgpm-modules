@@ -93,27 +93,40 @@ END;
 $$ LANGUAGE plpgsql STABLE;
 
 -- Mitigate timing attacks by using constant-time comparison.
+-- Mitigates timing attacks by avoiding early-exit and content-dependent work; compares full byte sequences in a length-oblivious loop.
+-- Context: HN discussion on TOTP '=' comparison timing leaks: https://news.ycombinator.com/item?id=26260667
+
 -- Context: https://news.ycombinator.com/item?id=26260667
 
-CREATE FUNCTION totp.timing_safe_equals(a text, b text)
+CREATE FUNCTION totp.timing_safe_equals(a bytea, b bytea)
 RETURNS boolean
 AS $$
 DECLARE
   la int := length(a);
   lb int := length(b);
+  maxlen int := GREATEST(la, lb);
   i int;
   diff int := la # lb;
   ca int;
   cb int;
 BEGIN
-  FOR i IN 1..GREATEST(la, lb) LOOP
-    ca := CASE WHEN i <= la THEN get_byte(convert_to(substr(a, i, 1), 'UTF8'), 0) ELSE 0 END;
-    cb := CASE WHEN i <= lb THEN get_byte(convert_to(substr(b, i, 1), 'UTF8'), 0) ELSE 0 END;
+  FOR i IN 0..(maxlen - 1) LOOP
+    ca := CASE WHEN i < la THEN get_byte(a, i) ELSE 0 END;
+    cb := CASE WHEN i < lb THEN get_byte(b, i) ELSE 0 END;
     diff := diff | (ca # cb);
   END LOOP;
   RETURN diff = 0;
 END;
-$$ LANGUAGE plpgsql IMMUTABLE;
+$$ LANGUAGE plpgsql IMMUTABLE STRICT;
+
+CREATE FUNCTION totp.timing_safe_equals(a text, b text)
+RETURNS boolean
+AS $$
+-- Verify uses timing-safe equality to avoid leaking mismatch position via timing; do not use direct '=' here.
+-- See HN discussion for background: https://news.ycombinator.com/item?id=26260667
+
+  SELECT totp.timing_safe_equals(convert_to(a, 'UTF8'), convert_to(b, 'UTF8'));
+$$ LANGUAGE sql IMMUTABLE STRICT;
 
 CREATE FUNCTION totp.verify (
   secret text,

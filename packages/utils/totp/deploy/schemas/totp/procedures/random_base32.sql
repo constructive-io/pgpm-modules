@@ -1,3 +1,5 @@
+-- Uses pgcrypto's gen_random_bytes for cryptographically secure randomness; random() is not suitable for secrets. Preserves RFC 4648 base32 alphabet output.
+
 -- Deploy schemas/totp/procedures/random_base32 to pg
 -- requires: schemas/totp/schema
 
