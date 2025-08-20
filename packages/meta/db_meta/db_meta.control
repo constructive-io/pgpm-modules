@@ -2,7 +2,7 @@
 comment = 'db_meta extension'
 default_version = '0.1.0'
 module_pathname = '$libdir/db_meta'
-requires = 'citext,hstore,launchql-inflection,launchql-database-jobs,launchql-types,pgcrypto,plpgsql,postgis,uuid-ossp'
+requires = 'citext,hstore,launchql-inflection,launchql-database-jobs,launchql-types,pgcrypto,plpgsql,postgis,uuid-ossp,launchql-verify'
 relocatable = false
 superuser = false
   

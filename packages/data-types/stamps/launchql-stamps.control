@@ -2,7 +2,7 @@
 comment = 'launchql-stamps extension'
 default_version = '0.4.6'
 module_pathname = '$libdir/launchql-stamps'
-requires = 'plpgsql,launchql-jwt-claims'
+requires = 'plpgsql,launchql-jwt-claims,launchql-verify'
 relocatable = false
 superuser = false
   

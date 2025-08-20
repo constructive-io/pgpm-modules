@@ -2,7 +2,7 @@
 comment = 'launchql-faker extension'
 default_version = '0.4.6'
 module_pathname = '$libdir/launchql-faker'
-requires = 'citext,pgcrypto,plpgsql,uuid-ossp,launchql-types'
+requires = 'citext,pgcrypto,plpgsql,uuid-ossp,launchql-types,launchql-verify'
 relocatable = false
 superuser = false
   

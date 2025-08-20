@@ -2,7 +2,7 @@
 comment = 'launchql-achievements extension'
 default_version = '0.4.6'
 module_pathname = '$libdir/launchql-achievements'
-requires = 'plpgsql,uuid-ossp,launchql-jwt-claims'
+requires = 'plpgsql,uuid-ossp,launchql-jwt-claims,launchql-verify'
 relocatable = false
 superuser = false
   
