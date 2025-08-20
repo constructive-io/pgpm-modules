@@ -1,5 +1,5 @@
 {
-  "name": "@pgql/achievements",
+  "name": "@lql-pg/achievements",
   "version": "0.4.6",
   "description": "achievements",
   "publishConfig": {
@@ -9,6 +9,10 @@
     "bundle": "lql package",
     "test": "jest --config ./jest.config.js",
     "test:watch": "jest --config ./jest.config.js --watch"
+  },
+  "dependencies": {
+    "@lql-pg/jwt-claims": "workspace:*",
+    "@lql-pg/verify": "workspace:*"
   },
   "devDependencies": {
     "@launchql/cli": "^4.8.0"

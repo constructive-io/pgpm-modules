@@ -1,5 +1,5 @@
 {
-  "name": "db_meta_test",
+  "name": "@lql-pg/meta-db-test",
   "version": "0.1.0",
   "description": "Database metadata test helpers",
   "publishConfig": {
@@ -9,6 +9,11 @@
     "bundle": "lql package",
     "test": "jest --config ./jest.config.js",
     "test:watch": "jest --config ./jest.config.js --watch"
+  },
+  "dependencies": {
+    "@lql-pg/meta-db-modules": "workspace:*",
+    "@lql-pg/meta-db": "workspace:*",
+    "@lql-pg/verify": "workspace:*"
   },
   "devDependencies": {
     "@launchql/cli": "^4.8.0"

@@ -1,5 +1,5 @@
 {
-  "name": "@pgql/database-jobs",
+  "name": "@lql-pg/database-jobs",
   "version": "0.4.6",
   "description": "jobs",
   "publishConfig": {
@@ -14,8 +14,8 @@
     "@launchql/cli": "^4.8.0"
   },
   "dependencies": {
-    "@pgql/default-roles": "workspace:^",
-    "@pgql/jwt-claims": "workspace:^"
+    "@lql-pg/default-roles": "workspace:*",
+    "@lql-pg/verify": "workspace:*"
   },
   "repository": {
     "type": "git",

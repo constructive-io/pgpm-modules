@@ -1,5 +1,5 @@
 {
-  "name": "encrypted-secrets",
+  "name": "@lql-pg/encrypted-secrets",
   "version": "0.1.0",
   "description": "Encrypted secrets helpers",
   "publishConfig": {
@@ -9,6 +9,11 @@
     "bundle": "lql package",
     "test": "jest --config ./jest.config.js",
     "test:watch": "jest --config ./jest.config.js --watch"
+  },
+  "dependencies": {
+    "@lql-pg/encrypted-secrets-table": "workspace:*",
+    "@lql-pg/default-roles": "workspace:*",
+    "@lql-pg/verify": "workspace:*"
   },
   "devDependencies": {
     "@launchql/cli": "^4.8.0"

@@ -1,5 +1,5 @@
 {
-  "name": "@pgql/utils",
+  "name": "@lql-pg/utils",
   "version": "0.4.6",
   "description": "utils",
   "publishConfig": {
@@ -9,6 +9,9 @@
     "bundle": "lql package",
     "test": "jest --config ./jest.config.js",
     "test:watch": "jest --config ./jest.config.js --watch"
+  },
+  "dependencies": {
+    "@lql-pg/verify": "workspace:*"
   },
   "devDependencies": {
     "@launchql/cli": "^4.8.0"

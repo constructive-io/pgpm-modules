@@ -1,5 +1,5 @@
 {
-  "name": "@pgql/jwt-claims",
+  "name": "@lql-pg/jwt-claims",
   "version": "0.4.6",
   "description": "jwt claims",
   "publishConfig": {
@@ -14,7 +14,8 @@
     "@launchql/cli": "^4.8.0"
   },
   "dependencies": {
-    "@pgql/types": "workspace:^"
+    "@lql-pg/types": "workspace:*",
+    "@lql-pg/verify": "workspace:*"
   },
   "repository": {
     "type": "git",

@@ -1,5 +1,5 @@
 {
-  "name": "@pgql/jobs",
+  "name": "@lql-pg/jobs",
   "version": "0.4.6",
   "description": "jobs",
   "publishConfig": {
@@ -11,8 +11,8 @@
     "test:watch": "jest --config ./jest.config.js --watch"
   },
   "dependencies": {
-    "@pgql/default-roles": "workspace:^",
-    "@pgql/jwt-claims": "workspace:^"
+    "@lql-pg/default-roles": "workspace:*",
+    "@lql-pg/verify": "workspace:*"
   },
   "devDependencies": {
     "@launchql/cli": "^4.8.0"

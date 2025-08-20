@@ -1,5 +1,5 @@
 {
-  "name": "@pgql/totp",
+  "name": "@lql-pg/totp",
   "version": "0.4.6",
   "description": "TOTP utilities",
   "publishConfig": {
@@ -9,6 +9,10 @@
     "bundle": "lql package",
     "test": "jest --config ./jest.config.js",
     "test:watch": "jest --config ./jest.config.js --watch"
+  },
+  "dependencies": {
+    "@lql-pg/base32": "workspace:*",
+    "@lql-pg/verify": "workspace:*"
   },
   "devDependencies": {
     "@launchql/cli": "^4.8.0"

@@ -1,5 +1,5 @@
 {
-  "name": "@pgql/faker",
+  "name": "@lql-pg/faker",
   "version": "0.4.6",
   "description": "faker helpers",
   "publishConfig": {
@@ -9,6 +9,10 @@
     "bundle": "lql package",
     "test": "jest --config ./jest.config.js",
     "test:watch": "jest --config ./jest.config.js --watch"
+  },
+  "dependencies": {
+    "@lql-pg/types": "workspace:*",
+    "@lql-pg/verify": "workspace:*"
   },
   "devDependencies": {
     "@launchql/cli": "^4.8.0"
