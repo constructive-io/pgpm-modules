@@ -19,6 +19,7 @@
     "packages/*"
   ],
   "scripts": {
+    "bundle": "pnpm -r bundle",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test"
   },

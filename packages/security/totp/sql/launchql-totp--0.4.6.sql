@@ -1,7 +1,7 @@
 \echo Use "CREATE EXTENSION launchql-totp" to load this file. \quit
 CREATE SCHEMA totp;
 
-CREATE FUNCTION totp.urlencode ( in_str text ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION totp.urlencode(in_str text) RETURNS text AS $EOFCODE$
 DECLARE
   _i int4;
   _temp varchar;
@@ -32,7 +32,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STRICT IMMUTABLE;
 
-CREATE FUNCTION totp.pad_secret ( input bytea, len int ) RETURNS bytea AS $EOFCODE$
+CREATE FUNCTION totp.pad_secret(input bytea, len int) RETURNS bytea AS $EOFCODE$
 DECLARE 
   output bytea;
   orig_length int = octet_length(input);
@@ -52,7 +52,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION totp.base32_to_hex ( input text ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION totp.base32_to_hex(input text) RETURNS text AS $EOFCODE$
 DECLARE 
   output text[];
   decoded text = base32.decode(input);
@@ -73,7 +73,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION totp.hotp ( key bytea, c int, digits int DEFAULT 6, hash text DEFAULT 'sha1' ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION totp.hotp(key bytea, c int, digits int DEFAULT 6, hash text DEFAULT 'sha1') RETURNS text AS $EOFCODE$
 DECLARE
     c BYTEA := '\x' || LPAD(TO_HEX(c), 16, '0');
     mac BYTEA := HMAC(c, key, hash);
@@ -84,7 +84,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION totp.generate ( secret text, period int DEFAULT 30, digits int DEFAULT 6, time_from timestamptz DEFAULT now(), hash text DEFAULT 'sha1', encoding text DEFAULT 'base32', clock_offset int DEFAULT 0 ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION totp.generate(secret text, period int DEFAULT 30, digits int DEFAULT 6, time_from timestamptz DEFAULT now(), hash text DEFAULT 'sha1', encoding text DEFAULT 'base32', clock_offset int DEFAULT 0) RETURNS text AS $EOFCODE$
 DECLARE
     c int := FLOOR(EXTRACT(EPOCH FROM time_from) / period)::int + clock_offset;
     key bytea;
@@ -100,30 +100,64 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION totp.verify ( secret text, check_totp text, period int DEFAULT 30, digits int DEFAULT 6, time_from timestamptz DEFAULT now(), hash text DEFAULT 'sha1', encoding text DEFAULT 'base32', clock_offset int DEFAULT 0 ) RETURNS boolean AS $EOFCODE$
-  SELECT totp.generate (
-    secret,
-    period,
-    digits,
-    time_from,
-    hash,
-    encoding,
-    clock_offset) = check_totp;
+CREATE FUNCTION totp.timing_safe_equals(a bytea, b bytea) RETURNS boolean AS $EOFCODE$
+DECLARE
+  la int := length(a);
+  lb int := length(b);
+  maxlen int := GREATEST(la, lb);
+  i int;
+  diff int := la # lb;
+  ca int;
+  cb int;
+BEGIN
+  FOR i IN 0..(maxlen - 1) LOOP
+    ca := CASE WHEN i < la THEN get_byte(a, i) ELSE 0 END;
+    cb := CASE WHEN i < lb THEN get_byte(b, i) ELSE 0 END;
+    diff := diff | (ca # cb);
+  END LOOP;
+  RETURN diff = 0;
+END;
+$EOFCODE$ LANGUAGE plpgsql IMMUTABLE STRICT;
+
+CREATE FUNCTION totp.timing_safe_equals(a text, b text) RETURNS boolean AS $EOFCODE$
+-- Verify uses timing-safe equality to avoid leaking mismatch position via timing; do not use direct '=' here.
+-- See HN discussion for background: https://news.ycombinator.com/item?id=26260667
+
+  SELECT totp.timing_safe_equals(convert_to(a, 'UTF8'), convert_to(b, 'UTF8'));
+$EOFCODE$ LANGUAGE sql IMMUTABLE STRICT;
+
+CREATE FUNCTION totp.verify(secret text, check_totp text, period int DEFAULT 30, digits int DEFAULT 6, time_from timestamptz DEFAULT now(), hash text DEFAULT 'sha1', encoding text DEFAULT 'base32', clock_offset int DEFAULT 0) RETURNS boolean AS $EOFCODE$
+  SELECT totp.timing_safe_equals(
+    totp.generate(
+      secret,
+      period,
+      digits,
+      time_from,
+      hash,
+      encoding,
+      clock_offset
+    ),
+    check_totp
+  );
 $EOFCODE$ LANGUAGE sql;
 
-CREATE FUNCTION totp.url ( email text, totp_secret text, totp_interval int, totp_issuer text ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION totp.url(email text, totp_secret text, totp_interval int, totp_issuer text) RETURNS text AS $EOFCODE$
   SELECT
     concat('otpauth://totp/', totp.urlencode (email), '?secret=', totp.urlencode (totp_secret), '&period=', totp.urlencode (totp_interval::text), '&issuer=', totp.urlencode (totp_issuer));
 $EOFCODE$ LANGUAGE sql STRICT IMMUTABLE;
 
-CREATE FUNCTION totp.random_base32 ( _length int DEFAULT 20 ) RETURNS text LANGUAGE sql AS $EOFCODE$
+CREATE FUNCTION totp.random_base32(_length int DEFAULT 20) RETURNS text LANGUAGE sql AS $EOFCODE$
   SELECT
-    string_agg(('{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,2,3,4,5,6,7}'::text[])[ceil(random() * 32)], '')
-  FROM
-    generate_series(1, _length);
+    string_agg(
+      ('{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,2,3,4,5,6,7}'::text[])
+      [ (get_byte(b, i) % 32) + 1 ],
+      ''
+    )
+  FROM (SELECT gen_random_bytes(_length) AS b) t,
+       LATERAL generate_series(0, _length - 1) g(i);
 $EOFCODE$;
 
-CREATE FUNCTION totp.generate_secret ( hash text DEFAULT 'sha1' ) RETURNS bytea AS $EOFCODE$
+CREATE FUNCTION totp.generate_secret(hash text DEFAULT 'sha1') RETURNS bytea AS $EOFCODE$
 BEGIN
     -- See https://tools.ietf.org/html/rfc4868#section-2.1.2
     -- The optimal key length for HMAC is the block size of the algorithm

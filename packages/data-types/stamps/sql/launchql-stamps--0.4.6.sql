@@ -3,10 +3,10 @@ CREATE SCHEMA stamps;
 
 GRANT USAGE ON SCHEMA stamps TO authenticated, anonymous;
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA stamps 
- GRANT EXECUTE ON FUNCTIONS  TO authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA stamps
+  GRANT EXECUTE ON FUNCTIONS TO authenticated;
 
-CREATE FUNCTION stamps.peoplestamps (  ) RETURNS trigger AS $EOFCODE$
+CREATE FUNCTION stamps.peoplestamps() RETURNS trigger AS $EOFCODE$
 BEGIN
     IF TG_OP = 'INSERT' THEN
       NEW.created_by = jwt_public.current_user_id();
@@ -19,7 +19,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql;
 
-CREATE FUNCTION stamps.timestamps (  ) RETURNS trigger AS $EOFCODE$
+CREATE FUNCTION stamps.timestamps() RETURNS trigger AS $EOFCODE$
 BEGIN
     IF TG_OP = 'INSERT' THEN
       NEW.created_at = NOW();

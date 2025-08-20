@@ -1,7 +1,7 @@
 \echo Use "CREATE EXTENSION launchql-base32" to load this file. \quit
 CREATE SCHEMA base32;
 
-CREATE FUNCTION base32.binary_to_int ( input text ) RETURNS int AS $EOFCODE$
+CREATE FUNCTION base32.binary_to_int(input text) RETURNS int AS $EOFCODE$
 DECLARE
   i int;
   buf text;
@@ -12,7 +12,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION base32.to_ascii ( input text ) RETURNS int[] AS $EOFCODE$
+CREATE FUNCTION base32.to_ascii(input text) RETURNS int[] AS $EOFCODE$
 DECLARE
   i int;
   output int[];
@@ -24,7 +24,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION base32.to_binary ( input int ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION base32.to_binary(input int) RETURNS text AS $EOFCODE$
 DECLARE
   i int = 1;
   j int = 0;
@@ -39,7 +39,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION base32.to_binary ( input int[] ) RETURNS text[] AS $EOFCODE$
+CREATE FUNCTION base32.to_binary(input int[]) RETURNS text[] AS $EOFCODE$
 DECLARE
   i int;
   output text[];
@@ -51,7 +51,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION base32.to_groups ( input text[] ) RETURNS text[] AS $EOFCODE$
+CREATE FUNCTION base32.to_groups(input text[]) RETURNS text[] AS $EOFCODE$
 DECLARE
   i int;
   output text[];
@@ -67,12 +67,12 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION base32.string_nchars (  text,  int ) RETURNS text[] AS $EOFCODE$
+CREATE FUNCTION base32.string_nchars(text, int) RETURNS text[] AS $EOFCODE$
 SELECT ARRAY(SELECT substring($1 from n for $2)
   FROM generate_series(1, length($1), $2) n);
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
 
-CREATE FUNCTION base32.to_chunks ( input text[] ) RETURNS text[] AS $EOFCODE$
+CREATE FUNCTION base32.to_chunks(input text[]) RETURNS text[] AS $EOFCODE$
 DECLARE
   i int;
   output text[];
@@ -83,7 +83,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION base32.fill_chunks ( input text[] ) RETURNS text[] AS $EOFCODE$
+CREATE FUNCTION base32.fill_chunks(input text[]) RETURNS text[] AS $EOFCODE$
 DECLARE
   i int;
   output text[];
@@ -101,7 +101,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION base32.to_decimal ( input text[] ) RETURNS text[] AS $EOFCODE$
+CREATE FUNCTION base32.to_decimal(input text[]) RETURNS text[] AS $EOFCODE$
 DECLARE
   i int;
   output text[];
@@ -122,7 +122,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION base32.base32_alphabet ( input int ) RETURNS char(1) AS $EOFCODE$
+CREATE FUNCTION base32.base32_alphabet(input int) RETURNS char(1) AS $EOFCODE$
 DECLARE
   alphabet text[] = ARRAY[
     'A', 'B', 'C', 'D', 'E', 'F',
@@ -137,7 +137,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION base32.to_base32 ( input text[] ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION base32.to_base32(input text[]) RETURNS text AS $EOFCODE$
 DECLARE
   i int;
   output text[];
@@ -158,7 +158,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION base32.encode ( input text ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION base32.encode(input text) RETURNS text AS $EOFCODE$
 BEGIN
   IF (character_length(input) = 0) THEN 
     RETURN '';
@@ -183,7 +183,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION base32.base32_alphabet_to_decimal ( input text ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION base32.base32_alphabet_to_decimal(input text) RETURNS text AS $EOFCODE$
 DECLARE
   alphabet text = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
   alpha int;
@@ -196,7 +196,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION base32.base32_to_decimal ( input text ) RETURNS text[] AS $EOFCODE$
+CREATE FUNCTION base32.base32_to_decimal(input text) RETURNS text[] AS $EOFCODE$
 DECLARE
   i int;
   output text[];
@@ -209,7 +209,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION base32.decimal_to_chunks ( input text[] ) RETURNS text[] AS $EOFCODE$
+CREATE FUNCTION base32.decimal_to_chunks(input text[]) RETURNS text[] AS $EOFCODE$
 DECLARE
   i int;
   part text;
@@ -227,7 +227,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION base32.base32_alphabet_to_decimal_int ( input text ) RETURNS int AS $EOFCODE$
+CREATE FUNCTION base32.base32_alphabet_to_decimal_int(input text) RETURNS int AS $EOFCODE$
 DECLARE
   alphabet text = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
   alpha int;
@@ -237,7 +237,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION base32.zero_fill ( a int, b int ) RETURNS bigint AS $EOFCODE$
+CREATE FUNCTION base32.zero_fill(a int, b int) RETURNS bigint AS $EOFCODE$
 DECLARE
   bin text;
   m int;
@@ -269,7 +269,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION base32.valid ( input text ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION base32.valid(input text) RETURNS boolean AS $EOFCODE$
 BEGIN 
   IF (upper(input) ~* '^[A-Z2-7]+=*$') THEN 
     RETURN true;
@@ -278,7 +278,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION base32.decode ( input text ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION base32.decode(input text) RETURNS text AS $EOFCODE$
 DECLARE
   i int;
   arr int[];

@@ -1,5 +1,5 @@
 \echo Use "CREATE EXTENSION launchql-verify" to load this file. \quit
-CREATE FUNCTION get_entity_from_str ( qualified_name text ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION get_entity_from_str(qualified_name text) RETURNS text AS $EOFCODE$
 DECLARE
     parts text[];
 BEGIN
@@ -13,7 +13,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STRICT;
 
-CREATE FUNCTION get_schema_from_str ( qualified_name text ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION get_schema_from_str(qualified_name text) RETURNS text AS $EOFCODE$
 DECLARE
     parts text[];
 BEGIN
@@ -27,7 +27,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STRICT;
 
-CREATE FUNCTION list_indexes ( _table text, _index text ) RETURNS TABLE ( schema_name text, table_name text, index_name text ) AS $EOFCODE$
+CREATE FUNCTION list_indexes(_table text, _index text) RETURNS TABLE ( schema_name text, table_name text, index_name text ) AS $EOFCODE$
 SELECT
     n.nspname::text AS schema_name,
     t.relname::text AS table_name,
@@ -46,7 +46,7 @@ WHERE
     AND t.relname = get_entity_from_str(_table);
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
 
-CREATE FUNCTION list_memberships ( _user text ) RETURNS TABLE ( rolname text ) AS $EOFCODE$ WITH RECURSIVE cte AS (
+CREATE FUNCTION list_memberships(_user text) RETURNS TABLE ( rolname text ) AS $EOFCODE$ WITH RECURSIVE cte AS (
     SELECT
         oid
     FROM
@@ -69,7 +69,7 @@ WHERE
     pg_roles.oid = c.oid;
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
 
-CREATE FUNCTION verify_constraint ( _table text, _name text ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION verify_constraint(_table text, _name text) RETURNS boolean AS $EOFCODE$
 BEGIN
     IF EXISTS (
         SELECT
@@ -88,7 +88,7 @@ END IF;
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION verify_domain ( _type text ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION verify_domain(_type text) RETURNS boolean AS $EOFCODE$
 BEGIN
     IF EXISTS (
         SELECT
@@ -109,7 +109,7 @@ END IF;
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION verify_extension ( _extname text ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION verify_extension(_extname text) RETURNS boolean AS $EOFCODE$
 BEGIN
     IF EXISTS (
         SELECT
@@ -126,7 +126,7 @@ END IF;
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION verify_function ( _name text, _user text DEFAULT NULL ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION verify_function(_name text, _user text DEFAULT NULL) RETURNS boolean AS $EOFCODE$
 DECLARE
   check_user text;
 BEGIN
@@ -152,7 +152,7 @@ END IF;
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION verify_index ( _table text, _index text ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION verify_index(_table text, _index text) RETURNS boolean AS $EOFCODE$
 BEGIN
     IF EXISTS (
         SELECT
@@ -165,7 +165,7 @@ END IF;
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION verify_membership ( _user text, _role text ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION verify_membership(_user text, _role text) RETURNS boolean AS $EOFCODE$
 BEGIN
     IF EXISTS (
         SELECT
@@ -182,7 +182,7 @@ END IF;
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION verify_policy ( _policy text, _table text ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION verify_policy(_policy text, _table text) RETURNS boolean AS $EOFCODE$
 BEGIN
     IF EXISTS (
         SELECT
@@ -204,7 +204,7 @@ END IF;
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION verify_role ( _user text ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION verify_role(_user text) RETURNS boolean AS $EOFCODE$
 BEGIN
     IF EXISTS (
         SELECT
@@ -221,7 +221,7 @@ END IF;
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION verify_schema ( _schema text ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION verify_schema(_schema text) RETURNS boolean AS $EOFCODE$
 BEGIN
     IF EXISTS (
         SELECT
@@ -238,7 +238,7 @@ END IF;
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION verify_security ( _table text ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION verify_security(_table text) RETURNS boolean AS $EOFCODE$
 BEGIN
     IF EXISTS (
         SELECT
@@ -260,7 +260,7 @@ END IF;
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION verify_table_grant ( _table text, _privilege text, _role text ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION verify_table_grant(_table text, _privilege text, _role text) RETURNS boolean AS $EOFCODE$
 BEGIN
     IF EXISTS (
         SELECT
@@ -281,7 +281,7 @@ END IF;
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION verify_table ( _table text ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION verify_table(_table text) RETURNS boolean AS $EOFCODE$
 BEGIN
     IF EXISTS (
         SELECT
@@ -299,7 +299,7 @@ END IF;
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION verify_trigger ( _trigger text ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION verify_trigger(_trigger text) RETURNS boolean AS $EOFCODE$
 BEGIN
     IF EXISTS (
         SELECT
@@ -319,7 +319,7 @@ END IF;
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION verify_type ( _type text ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION verify_type(_type text) RETURNS boolean AS $EOFCODE$
 BEGIN
     IF EXISTS (
         SELECT
@@ -339,7 +339,7 @@ END IF;
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION verify_view ( _view text ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION verify_view(_view text) RETURNS boolean AS $EOFCODE$
 BEGIN
     IF EXISTS (
         SELECT

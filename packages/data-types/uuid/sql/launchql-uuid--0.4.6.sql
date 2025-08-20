@@ -3,10 +3,10 @@ CREATE SCHEMA uuids;
 
 GRANT USAGE ON SCHEMA uuids TO PUBLIC;
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA uuids 
- GRANT EXECUTE ON FUNCTIONS  TO PUBLIC;
+ALTER DEFAULT PRIVILEGES IN SCHEMA uuids
+  GRANT EXECUTE ON FUNCTIONS TO PUBLIC;
 
-CREATE FUNCTION uuids.pseudo_order_seed_uuid ( seed text ) RETURNS uuid AS $EOFCODE$
+CREATE FUNCTION uuids.pseudo_order_seed_uuid(seed text) RETURNS uuid AS $EOFCODE$
 DECLARE
     new_uuid char(36);
     md5_str char(32);
@@ -33,9 +33,9 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-COMMENT ON FUNCTION uuids.pseudo_order_seed_uuid IS E'Pseudo Ordered UUID with a seed. Good for multi-tenant scenarios, other wise use non-seed.';
+COMMENT ON FUNCTION uuids.pseudo_order_seed_uuid IS 'Pseudo Ordered UUID with a seed. Good for multi-tenant scenarios, other wise use non-seed.';
 
-CREATE FUNCTION uuids.pseudo_order_uuid (  ) RETURNS uuid AS $EOFCODE$
+CREATE FUNCTION uuids.pseudo_order_uuid() RETURNS uuid AS $EOFCODE$
 DECLARE
     new_uuid char(36);
     md5_str char(32);
@@ -50,9 +50,9 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-COMMENT ON FUNCTION uuids.pseudo_order_seed_uuid IS E'Pseudo Ordered UUID';
+COMMENT ON FUNCTION uuids.pseudo_order_seed_uuid IS 'Pseudo Ordered UUID';
 
-CREATE FUNCTION uuids.trigger_set_uuid_related_field (  ) RETURNS trigger AS $EOFCODE$
+CREATE FUNCTION uuids.trigger_set_uuid_related_field() RETURNS trigger AS $EOFCODE$
 DECLARE
     _seed_column text := to_json(NEW) ->> TG_ARGV[1];
 BEGIN
@@ -64,7 +64,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-CREATE FUNCTION uuids.trigger_set_uuid_seed (  ) RETURNS trigger AS $EOFCODE$
+CREATE FUNCTION uuids.trigger_set_uuid_seed() RETURNS trigger AS $EOFCODE$
 BEGIN
     NEW := NEW #= (TG_ARGV[0] || '=>' || uuids.pseudo_order_seed_uuid(TG_ARGV[1]))::hstore;
     RETURN NEW;

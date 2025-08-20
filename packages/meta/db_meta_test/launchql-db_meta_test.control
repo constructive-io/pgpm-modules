@@ -1,6 +1,6 @@
 # launchql-db_meta_test extension
 comment = 'launchql-db_meta_test extension'
-default_version = '0.0.1'
+default_version = '0.1.0'
 module_pathname = '$libdir/launchql-db_meta_test'
 requires = 'plpgsql,db_meta_modules,db_meta'
 relocatable = false
