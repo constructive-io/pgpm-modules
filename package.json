@@ -19,8 +19,9 @@
     "packages/*"
   ],
   "scripts": {
-    "clean": "pnpm -r clean",
     "build": "pnpm -r build",
+    "bundle": "pnpm -r bundle",
+    "clean": "pnpm -r clean",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test"
   },

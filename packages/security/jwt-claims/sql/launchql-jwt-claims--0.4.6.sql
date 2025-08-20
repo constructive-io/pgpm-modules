@@ -3,17 +3,17 @@ CREATE SCHEMA jwt_public;
 
 GRANT USAGE ON SCHEMA jwt_public TO authenticated, anonymous;
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA jwt_public 
- GRANT EXECUTE ON FUNCTIONS  TO authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA jwt_public
+  GRANT EXECUTE ON FUNCTIONS TO authenticated;
 
 CREATE SCHEMA jwt_private;
 
 GRANT USAGE ON SCHEMA jwt_private TO authenticated, anonymous;
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA jwt_private 
- GRANT EXECUTE ON FUNCTIONS  TO authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA jwt_private
+  GRANT EXECUTE ON FUNCTIONS TO authenticated;
 
-CREATE FUNCTION jwt_public.current_user_id (  ) RETURNS uuid AS $EOFCODE$
+CREATE FUNCTION jwt_public.current_user_id() RETURNS uuid AS $EOFCODE$
 DECLARE
   v_identifier_id uuid;
 BEGIN
@@ -33,7 +33,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION jwt_public.current_ip_address (  ) RETURNS inet AS $EOFCODE$
+CREATE FUNCTION jwt_public.current_ip_address() RETURNS inet AS $EOFCODE$
 DECLARE
   v_ip_addr inet;
 BEGIN
@@ -53,7 +53,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION jwt_public.current_user_agent (  ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION jwt_public.current_user_agent() RETURNS text AS $EOFCODE$
 DECLARE
   v_uagent text;
 BEGIN
@@ -73,7 +73,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION jwt_private.current_database_id (  ) RETURNS uuid AS $EOFCODE$
+CREATE FUNCTION jwt_private.current_database_id() RETURNS uuid AS $EOFCODE$
 DECLARE
   v_identifier_id uuid;
 BEGIN
@@ -93,7 +93,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION jwt_public.current_group_ids (  ) RETURNS uuid[] AS $EOFCODE$
+CREATE FUNCTION jwt_public.current_group_ids() RETURNS uuid[] AS $EOFCODE$
 DECLARE
   v_identifier_ids uuid[];
 BEGIN

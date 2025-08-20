@@ -1,6 +1,6 @@
 \echo Use "CREATE EXTENSION launchql-default-roles" to load this file. \quit
-DO $$
-  BEGIN
+DO $EOFCODE$
+BEGIN
     IF NOT EXISTS (
         SELECT
             1
@@ -15,10 +15,11 @@ DO $$
     ALTER USER anonymous WITH NOLOGIN;
     ALTER USER anonymous WITH NOBYPASSRLS;
 END IF;
-END $$;
+END
+$EOFCODE$;
 
-DO $$
-  BEGIN
+DO $EOFCODE$
+BEGIN
     IF NOT EXISTS (
         SELECT
             1
@@ -33,10 +34,11 @@ DO $$
     ALTER USER authenticated WITH NOLOGIN;
     ALTER USER authenticated WITH NOBYPASSRLS;
 END IF;
-END $$;
+END
+$EOFCODE$;
 
-DO $$
-  BEGIN
+DO $EOFCODE$
+BEGIN
     IF NOT EXISTS (
         SELECT
             1
@@ -53,4 +55,5 @@ DO $$
     GRANT anonymous TO administrator;
     GRANT authenticated TO administrator;
 END IF;
-END $$;
+END
+$EOFCODE$;

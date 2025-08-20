@@ -1,6 +1,6 @@
 # launchql-defaults extension
 comment = 'launchql-defaults extension'
-default_version = '0.4.5'
+default_version = '0.4.6'
 module_pathname = '$libdir/launchql-defaults'
 requires = 'plpgsql'
 relocatable = false

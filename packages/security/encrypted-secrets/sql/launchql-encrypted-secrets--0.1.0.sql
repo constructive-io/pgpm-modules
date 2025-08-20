@@ -1,12 +1,12 @@
 \echo Use "CREATE EXTENSION launchql-encrypted-secrets" to load this file. \quit
 CREATE SCHEMA encrypted_secrets;
 
-CREATE FUNCTION encrypted_secrets.encrypt_field_bytea_to_text ( secret_value bytea ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION encrypted_secrets.encrypt_field_bytea_to_text(secret_value bytea) RETURNS text AS $EOFCODE$
   SELECT
     convert_from(encrypt_field_bytea_to_text.secret_value, 'SQL_ASCII');
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
 
-CREATE FUNCTION encrypted_secrets.encrypt_field_crypt_verify ( secrets_owned_field uuid, secret_value_field text, secret_verify_value text ) RETURNS bool AS $EOFCODE$
+CREATE FUNCTION encrypted_secrets.encrypt_field_crypt_verify(secrets_owned_field uuid, secret_value_field text, secret_verify_value text) RETURNS bool AS $EOFCODE$
     DECLARE
       result bool;
       rec secrets_schema.secrets_table;
@@ -29,19 +29,19 @@ CREATE FUNCTION encrypted_secrets.encrypt_field_crypt_verify ( secrets_owned_fie
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION encrypted_secrets.encrypt_field_crypt (  ) RETURNS trigger AS $EOFCODE$
+CREATE FUNCTION encrypted_secrets.encrypt_field_crypt() RETURNS trigger AS $EOFCODE$
 BEGIN
     NEW.field_name = crypt(NEW.field_name::text, gen_salt('bf'));
     RETURN NEW;
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-CREATE FUNCTION encrypted_secrets.encrypt_field_pgp_get ( secret_value bytea, secret_encode text ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION encrypted_secrets.encrypt_field_pgp_get(secret_value bytea, secret_encode text) RETURNS text AS $EOFCODE$
   SELECT
     convert_from(decode(pgp_sym_decrypt(encrypt_field_pgp_get.secret_value, encrypt_field_pgp_get.secret_encode), 'hex'), 'SQL_ASCII');
 $EOFCODE$ LANGUAGE sql;
 
-CREATE FUNCTION encrypted_secrets.encrypt_field_pgp_getter ( secrets_owned_field uuid, secret_value_field text, secret_encode_field text ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION encrypted_secrets.encrypt_field_pgp_getter(secrets_owned_field uuid, secret_value_field text, secret_encode_field text) RETURNS text AS $EOFCODE$
     DECLARE
       result text;
       rec secrets_schema.secrets_table;
@@ -69,18 +69,18 @@ CREATE FUNCTION encrypted_secrets.encrypt_field_pgp_getter ( secrets_owned_field
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION encrypted_secrets.encrypt_field_pgp (  ) RETURNS trigger AS $EOFCODE$
+CREATE FUNCTION encrypted_secrets.encrypt_field_pgp() RETURNS trigger AS $EOFCODE$
 BEGIN
     NEW.field_name = pgp_sym_encrypt(encode(NEW.field_name::bytea, 'hex'), NEW.encode_field::text, 'compress-algo=1, cipher-algo=aes256');
     RETURN NEW;
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-CREATE FUNCTION encrypted_secrets.encrypt_field_set ( secret_value text ) RETURNS bytea AS $EOFCODE$
+CREATE FUNCTION encrypted_secrets.encrypt_field_set(secret_value text) RETURNS bytea AS $EOFCODE$
   SELECT encrypt_field_set.secret_value::bytea;
 $EOFCODE$ LANGUAGE sql;
 
-CREATE FUNCTION encrypted_secrets.secrets_getter ( secrets_owned_field uuid, secret_name text, default_value text DEFAULT NULL ) RETURNS text AS $EOFCODE$
+CREATE FUNCTION encrypted_secrets.secrets_getter(secrets_owned_field uuid, secret_name text, default_value text DEFAULT NULL) RETURNS text AS $EOFCODE$
 DECLARE
   v_secret secrets_schema.secrets_table;
 BEGIN
@@ -108,7 +108,7 @@ BEGIN
 END
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION encrypted_secrets.secrets_upsert ( v_secrets_owned_field uuid, secret_name text, secret_value text, field_encoding text DEFAULT 'pgp' ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION encrypted_secrets.secrets_upsert(v_secrets_owned_field uuid, secret_name text, secret_value text, field_encoding text DEFAULT 'pgp') RETURNS boolean AS $EOFCODE$
 BEGIN
   INSERT INTO secrets_schema.secrets_table (secrets_owned_field, name, secrets_value_field, secrets_enc_field)
     VALUES (v_secrets_owned_field, secrets_upsert.secret_name, secrets_upsert.secret_value::bytea, secrets_upsert.field_encoding)
@@ -125,7 +125,7 @@ $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
 GRANT EXECUTE ON FUNCTION encrypted_secrets.secrets_upsert TO authenticated;
 
-CREATE FUNCTION encrypted_secrets.secrets_verify ( secrets_owned_field uuid, secret_name text, secret_value text ) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION encrypted_secrets.secrets_verify(secrets_owned_field uuid, secret_name text, secret_value text) RETURNS boolean AS $EOFCODE$
 DECLARE
   v_secret_text text;
   v_secret secrets_schema.secrets_table;
@@ -156,7 +156,7 @@ $EOFCODE$ LANGUAGE plpgsql STABLE;
 
 GRANT EXECUTE ON FUNCTION encrypted_secrets.secrets_verify TO authenticated;
 
-CREATE FUNCTION encrypted_secrets.secrets_table_upsert ( secrets_owned_field uuid, data json ) RETURNS void AS $EOFCODE$
+CREATE FUNCTION encrypted_secrets.secrets_table_upsert(secrets_owned_field uuid, data pg_catalog.json) RETURNS void AS $EOFCODE$
 DECLARE
   rec secrets_schema.secrets_table;
   _sql text;
@@ -210,7 +210,7 @@ $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
 GRANT EXECUTE ON FUNCTION encrypted_secrets.secrets_table_upsert TO authenticated;
 
-CREATE FUNCTION encrypted_secrets.secrets_delete ( secrets_owned_field uuid, secret_name text ) RETURNS void AS $EOFCODE$
+CREATE FUNCTION encrypted_secrets.secrets_delete(secrets_owned_field uuid, secret_name text) RETURNS void AS $EOFCODE$
 BEGIN
   DELETE FROM secrets_schema.secrets_table s
   WHERE s.secrets_owned_field = secrets_delete.secrets_owned_field
@@ -218,7 +218,7 @@ BEGIN
 END
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-CREATE FUNCTION encrypted_secrets.secrets_delete ( secrets_owned_field uuid, secret_names text[] ) RETURNS void AS $EOFCODE$
+CREATE FUNCTION encrypted_secrets.secrets_delete(secrets_owned_field uuid, secret_names text[]) RETURNS void AS $EOFCODE$
 BEGIN
   DELETE FROM secrets_schema.secrets_table s
   WHERE s.secrets_owned_field = secrets_delete.secrets_owned_field
@@ -226,6 +226,6 @@ BEGIN
 END
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-GRANT EXECUTE ON FUNCTION encrypted_secrets.secrets_delete ( uuid,text ) TO authenticated;
+GRANT EXECUTE ON FUNCTION encrypted_secrets.secrets_delete(uuid, text) TO authenticated;
 
-GRANT EXECUTE ON FUNCTION encrypted_secrets.secrets_delete ( uuid,text[] ) TO authenticated;
+GRANT EXECUTE ON FUNCTION encrypted_secrets.secrets_delete(uuid, text[]) TO authenticated;
