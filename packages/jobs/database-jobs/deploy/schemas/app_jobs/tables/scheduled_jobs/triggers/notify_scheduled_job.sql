@@ -1,6 +1,7 @@
 -- Deploy schemas/app_jobs/tables/scheduled_jobs/triggers/notify_scheduled_job to pg
 -- requires: schemas/app_jobs/schema
 -- requires: schemas/app_jobs/tables/scheduled_jobs/table
+-- requires: schemas/app_jobs/procedures/do_notify 
 
 BEGIN;
 CREATE TRIGGER _900_notify_scheduled_job
