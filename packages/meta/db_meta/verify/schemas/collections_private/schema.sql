@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_schema ('dbs');
+SELECT verify_schema ('collections_private');
 
 ROLLBACK;

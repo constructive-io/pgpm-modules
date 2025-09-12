@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP TABLE meta_public.denormalized_fields_tables;
+DROP TABLE meta_public.denormalized_table_field;
 
 COMMIT;

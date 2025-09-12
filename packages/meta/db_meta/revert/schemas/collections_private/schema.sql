@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP SCHEMA dbs;
+DROP SCHEMA collections_private CASCADE;
 
 COMMIT;

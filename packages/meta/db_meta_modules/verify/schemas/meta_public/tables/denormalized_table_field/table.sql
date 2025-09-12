@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('meta_public.denormalized_fields_tables');
+SELECT verify_table ('meta_public.denormalized_table_field');
 
 ROLLBACK;
