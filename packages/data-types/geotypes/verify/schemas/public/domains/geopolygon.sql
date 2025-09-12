@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_type ('public.geopolygon');
+SELECT verify_domain ('public.geopolygon');
 
 ROLLBACK;
