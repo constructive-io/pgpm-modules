@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_domain ('public.location');
+SELECT verify_domain ('public.geolocation');
 
 ROLLBACK;
