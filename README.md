@@ -1,79 +1,119 @@
-# pnpm-workspace-test
+# LaunchQL Extensions
 
-Modern pnpm workspace with tsc-only builds, Jest tests, and Lerna for interdependent publishing.
+PostgreSQL extensions using the LaunchQL/Sqitch-style workflow for safe, testable, reversible SQL changes.
 
-Packages
-- @pagebond/my-first
-- @pagebond/my-second (depends on @pagebond/my-first)
-- @pagebond/my-third (directory: packages/my-thid; depends on @pagebond/my-first and @pagebond/my-second)
+## Overview
 
-Prerequisites
-- pnpm installed (see "packageManager" in root package.json)
+LaunchQL extends the Sqitch model to a multi-package npm workspace. Each package contains SQL changes organized as deploy/verify/revert triplets, enabling safe database migrations with proper rollback capabilities.
 
-Install
-- pnpm install
+## Installation
 
-Build, Test, Clean, Lint
-- Build all: pnpm -r build
-- Test all: pnpm -r test
-- Clean all: pnpm -r clean
-- Lint: pnpm eslint .
+```bash
+# Install dependencies
+pnpm install
 
-Internal Dependencies (workspace protocol)
-- Use workspace:^ in package.json:
-  - "dependencies": { "@pagebond/my-first": "workspace:^" }
-- Behavior:
-  - During development, pnpm links internal packages locally.
-  - On publish, real semver versions are written and packages are published in topological order by Lerna.
+# Install LaunchQL CLI globally
+npm install -g @launchql/cli
+```
 
-Lerna Publishing Workflow
-We use Lerna for interdependent publishing; pnpm -r is used for build/test/lint.
+## Package Structure
 
-1) Ensure builds and tests pass
-- pnpm install
-- pnpm -r build
-- pnpm -r test
+### Data Types
+- `@lql-pg/types` - Core PostgreSQL data types
+- `@lql-pg/uuid` - UUID utilities and extensions
+- `@lql-pg/stamps` - Timestamp utilities and audit trails
+- `@lql-pg/geotypes` - Geographic data types and spatial functions
 
-2) Version packages with changes
-- Independent versioning (recommended):
-  - lerna version
-- Fixed versioning (single version across repo):
-  - lerna version --conventional-commits
-- Useful dry-run flags:
-  - lerna version --no-git-tag-version --no-push
-Notes:
-- Lerna detects changed packages and bumps versions.
-- Internal workspace:^ ranges are updated automatically.
-- Without dry-run flags, commits and tags are created.
+### Jobs & Background Processing
+- `@lql-pg/jobs` - Core job system for background tasks
+- `@lql-pg/database-jobs` - Database-specific job handling
 
-3) Publish changed packages
-- After versioning/tags:
-  - lerna publish from-package
-- Dry run:
-  - lerna publish from-package --dry-run
-- Canary/pre-release (optional):
-  - lerna publish prerelease --dist-tag next
+### Meta & Database Introspection
+- `@lql-pg/db_meta` - Database metadata utilities
+- `@lql-pg/db_meta_modules` - Module metadata handling
+- `@lql-pg/db_meta_test` - Testing utilities for metadata
 
-Types and Build Outputs
-- Builds are tsc-only (CJS/ESM as configured per package) and output to dist/
-- .d.ts are emitted to dist/ and package.json "main"/"types" point to dist
-- Build scripts copy LICENSE/README/package.json via cpy
+### Security & Authentication
+- `@lql-pg/default-roles` - Default PostgreSQL role definitions
+- `@lql-pg/defaults` - Security defaults and configurations
+- `@lql-pg/jwt-claims` - JWT claim handling and validation
+- `@lql-pg/totp` - Time-based One-Time Password authentication
+- `@lql-pg/encrypted-secrets` - Encrypted secrets management
+- `@lql-pg/encrypted-secrets-table` - Table-based encrypted secrets
 
-Troubleshooting
-- ESLint linting dist:
-  - Flat config ignores **/dist/** and **/node_modules/** at the top level
-- Interdependent publishing:
-  - Ensure internal deps use workspace:^
-  - Run lerna version before lerna publish from-package
-  - Configure publishConfig/access per package if publishing public packages
-- Dependency warnings:
-  - Deprecated glob versions are overridden to glob@11 via pnpm.overrides at root
+### Utilities
+- `@lql-pg/utils` - General utility functions
+- `@lql-pg/verify` - Verification utilities (used by other modules)
+- `@lql-pg/inflection` - String inflection utilities
+- `@lql-pg/base32` - Base32 encoding/decoding
+- `@lql-pg/faker` - Fake data generation for testing
 
-Common Commands
-- Install: pnpm install
-- Build all: pnpm -r build
-- Test all: pnpm -r test
-- Clean all: pnpm -r clean
-- Lint: pnpm eslint .
-- Lerna dry-run version: lerna version --no-git-tag-version --no-push
-- Lerna dry-run publish: lerna publish from-package --dry-run
+### Metrics & Analytics
+- `@lql-pg/measurements` - Performance tracking and analytics
+- `@lql-pg/achievements` - Achievement system for user progress
+
+## LaunchQL Workflow
+
+Each package follows the deploy/verify/revert pattern:
+
+- **Deploy**: `deploy/**/*.sql` - Applies database changes
+- **Verify**: `verify/**/*.sql` - Proves changes work correctly
+- **Revert**: `revert/**/*.sql` - Safely removes changes
+
+### Basic Commands
+
+```bash
+# Deploy changes
+lql deploy
+
+# Verify deployment
+lql verify
+
+# Revert changes
+lql revert
+
+# Package a module
+lql package
+```
+
+## Development
+
+```bash
+# Install dependencies
+pnpm install
+
+# Build all packages
+pnpm -r build
+
+# Test all packages
+pnpm -r test
+
+# Clean build artifacts
+pnpm -r clean
+
+# Lint code
+pnpm eslint .
+```
+
+## Publishing
+
+```bash
+# Version packages
+lerna version
+
+# Publish to npm
+lerna publish from-package
+```
+
+## Dependencies
+
+Packages use workspace protocol for internal dependencies:
+```json
+{
+  "dependencies": {
+    "@lql-pg/verify": "workspace:*"
+  }
+}
+```
+
+For more details on the LaunchQL workflow, see [AGENTS.md](./AGENTS.md).

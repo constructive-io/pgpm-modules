@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/faker",
   "version": "0.4.6",
-  "description": "faker helpers",
+  "description": "Fake data generation utilities for testing and development",
   "publishConfig": {
     "access": "public"
   },

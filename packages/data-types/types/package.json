@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/types",
   "version": "0.4.6",
-  "description": "types",
+  "description": "Core PostgreSQL data types with deploy/verify/revert SQL scripts",
   "publishConfig": {
     "access": "public"
   },

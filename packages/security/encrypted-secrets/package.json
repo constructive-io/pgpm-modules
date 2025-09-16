@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/encrypted-secrets",
   "version": "0.1.0",
-  "description": "Encrypted secrets helpers",
+  "description": "Encrypted secrets management for PostgreSQL",
   "publishConfig": {
     "access": "public"
   },

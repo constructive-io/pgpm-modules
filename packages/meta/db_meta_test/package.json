@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/meta-db-test",
   "version": "0.1.0",
-  "description": "Database metadata test helpers",
+  "description": "Testing utilities for database metadata operations",
   "publishConfig": {
     "access": "public"
   },

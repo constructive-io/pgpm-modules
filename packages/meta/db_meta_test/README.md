@@ -1,3 +1,5 @@
-# db_meta_test
+# @lql-pg/meta-db-test
 
-Database metadata tests helpers.
+Testing utilities for database metadata operations.
+
+Provides testing functions and utilities for validating database metadata operations and schema introspection functionality.

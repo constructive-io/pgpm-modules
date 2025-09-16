@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/stamps",
   "version": "0.4.6",
-  "description": "stamps",
+  "description": "Timestamp utilities and audit trail functions for PostgreSQL",
   "publishConfig": {
     "access": "public"
   },

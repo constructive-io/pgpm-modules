@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/geotypes",
   "version": "0.4.6",
-  "description": "geotypes",
+  "description": "Geographic data types and spatial functions for PostgreSQL",
   "publishConfig": {
     "access": "public"
   },

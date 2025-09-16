@@ -1,3 +1,5 @@
-# @pgql/jwt-claims
+# @lql-pg/jwt-claims
 
-JWT claims helpers.
+JWT claim handling and validation functions.
+
+Provides functions for processing JWT claims, validating tokens, and extracting user information from JWT payloads.

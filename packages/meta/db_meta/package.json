@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/meta-db",
   "version": "0.1.0",
-  "description": "Database metadata utilities",
+  "description": "Database metadata utilities and introspection functions",
   "publishConfig": {
     "access": "public"
   },

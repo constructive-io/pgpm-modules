@@ -1,3 +1,5 @@
-# db_meta_modules
+# @lql-pg/meta-db-modules
 
-Database metadata modules.
+Module metadata handling and dependency tracking.
+
+Manages metadata for LaunchQL modules, tracks dependencies, and provides module information for the extension system.

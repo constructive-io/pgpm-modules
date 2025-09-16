@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/encrypted-secrets-table",
   "version": "0.1.0",
-  "description": "Encrypted secrets backing table helpers",
+  "description": "Table-based encrypted secrets storage and retrieval",
   "publishConfig": {
     "access": "public"
   },

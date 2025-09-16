@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/defaults",
   "version": "0.4.6",
-  "description": "defaults",
+  "description": "Security defaults and baseline configurations",
   "publishConfig": {
     "access": "public"
   },

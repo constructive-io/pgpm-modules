@@ -1,3 +1,5 @@
-# @pgql/default-roles
+# @lql-pg/default-roles
 
-Default roles helpers.
+Default PostgreSQL role definitions and permissions.
+
+Provides standard role definitions and permission sets for PostgreSQL applications, establishing baseline security configurations.

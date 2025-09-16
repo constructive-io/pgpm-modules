@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/database-jobs",
   "version": "0.4.6",
-  "description": "jobs",
+  "description": "Database-specific job handling and queue management",
   "publishConfig": {
     "access": "public"
   },

@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/verify",
   "version": "0.4.6",
-  "description": "verification utils",
+  "description": "Verification utilities for LaunchQL deploy/verify/revert workflow",
   "publishConfig": {
     "access": "public"
   },

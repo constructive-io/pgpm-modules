@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/achievements",
   "version": "0.4.6",
-  "description": "achievements",
+  "description": "Achievement system for tracking user progress and milestones",
   "publishConfig": {
     "access": "public"
   },

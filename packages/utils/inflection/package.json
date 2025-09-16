@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/inflection",
   "version": "0.4.7",
-  "description": "inflection is a port of Rails Active Support Inflection into PostgreSQL",
+  "description": "String inflection utilities for PostgreSQL naming conventions",
   "publishConfig": {
     "access": "public"
   },

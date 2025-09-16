@@ -1,3 +1,5 @@
-# encrypted-secrets-table
+# @lql-pg/encrypted-secrets-table
 
-Encrypted secrets backing table helpers.
+Table-based encrypted secrets storage and retrieval.
+
+Extends encrypted secrets functionality with table-based storage, providing structured access to encrypted sensitive data.

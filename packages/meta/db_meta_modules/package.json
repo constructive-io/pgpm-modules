@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/meta-db-modules",
   "version": "0.1.0",
-  "description": "Database metadata modules",
+  "description": "Module metadata handling and dependency tracking",
   "publishConfig": {
     "access": "public"
   },

@@ -22,49 +22,49 @@
 
 ### Core Types
 - [ ] `packages/data-types/types` - Core data types (ISSUE: domain verification failures - attachment, email, hostname, image, multiple_select, single_select, upload, url domains fail verification)
-- [x] `packages/data-types/uuid` - UUID utilities
-- [x] `packages/data-types/stamps` - Timestamp utilities
+- [ ] `packages/data-types/uuid` - UUID utilities
+- [ ] `packages/data-types/stamps` - Timestamp utilities
 - [ ] `packages/data-types/geotypes` - Geographic data types (ISSUE: deployment fails due to embedded types package creating domain conflicts - "type 'attachment' already exists")
 
 ## Jobs & Background Processing
 
 ### Job Management
-- [x] `packages/jobs/jobs` - Core job system
-- [x] `packages/jobs/database-jobs` - Database-specific job handling
+- [ ] `packages/jobs/jobs` - Core job system
+- [ ] `packages/jobs/database-jobs` - Database-specific job handling
 
 ## Meta & Database Introspection
 
 ### Database Metadata
-- [x] `packages/meta/db_meta` - Core database metadata utilities
-- [x] `packages/meta/db_meta_modules` - Module metadata handling
-- [x] `packages/meta/db_meta_test` - Testing utilities for metadata
+- [ ] `packages/meta/db_meta` - Core database metadata utilities
+- [ ] `packages/meta/db_meta_modules` - Module metadata handling
+- [ ] `packages/meta/db_meta_test` - Testing utilities for metadata
 
 ## Security & Authentication
 
 ### Core Security
 - [ ] `packages/security/default-roles` - Default role definitions (ISSUE: Revert fails due to cross-database role dependencies)
-- [x] `packages/security/defaults` - Security defaults
-- [x] `packages/security/jwt-claims` - JWT claim handling
-- [x] `packages/security/totp` - Time-based One-Time Password (TOTP)
+- [ ] `packages/security/defaults` - Security defaults
+- [ ] `packages/security/jwt-claims` - JWT claim handling
+- [ ] `packages/security/totp` - Time-based One-Time Password (TOTP)
 
 ### Encryption & Secrets
-- [x] `packages/security/encrypted-secrets` - Encrypted secrets management
-- [x] `packages/security/encrypted-secrets-table` - Table-based encrypted secrets
+- [ ] `packages/security/encrypted-secrets` - Encrypted secrets management
+- [ ] `packages/security/encrypted-secrets-table` - Table-based encrypted secrets
 
 ## Utilities
 
 ### Core Utilities
-- [x] `packages/utils/utils` - General utility functions
-- [x] `packages/utils/verify` - Verification utilities (used by other modules)
-- [x] `packages/utils/inflection` - String inflection utilities
-- [x] `packages/utils/base32` - Base32 encoding/decoding
-- [x] `packages/utils/faker` - Fake data generation
+- [ ] `packages/utils/utils` - General utility functions
+- [ ] `packages/utils/verify` - Verification utilities (used by other modules)
+- [ ] `packages/utils/inflection` - String inflection utilities
+- [ ] `packages/utils/base32` - Base32 encoding/decoding
+- [ ] `packages/utils/faker` - Fake data generation
 
 ## Metrics & Analytics
 
 ### Performance & Tracking
-- [x] `packages/metrics/measurements` - Measurement utilities
-- [x] `packages/metrics/achievements` - Achievement system
+- [ ] `packages/metrics/measurements` - Measurement utilities
+- [ ] `packages/metrics/achievements` - Achievement system
 
 ---
 

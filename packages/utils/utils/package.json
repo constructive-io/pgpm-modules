@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/utils",
   "version": "0.4.6",
-  "description": "utils",
+  "description": "General utility functions for PostgreSQL extensions",
   "publishConfig": {
     "access": "public"
   },

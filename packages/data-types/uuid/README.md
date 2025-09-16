@@ -1,3 +1,5 @@
-# @pgql/uuid
+# @lql-pg/uuid
 
-UUID helpers for LaunchQL.
+UUID utilities and extensions for PostgreSQL.
+
+Provides UUID generation, validation, and utility functions for PostgreSQL applications using the LaunchQL deploy/verify/revert workflow.

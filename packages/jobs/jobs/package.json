@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/jobs",
   "version": "0.4.6",
-  "description": "jobs",
+  "description": "Core job system for background task processing in PostgreSQL",
   "publishConfig": {
     "access": "public"
   },

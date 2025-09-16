@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/totp",
   "version": "0.4.6",
-  "description": "TOTP utilities",
+  "description": "Time-based One-Time Password (TOTP) authentication",
   "publishConfig": {
     "access": "public"
   },

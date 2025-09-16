@@ -1,3 +1,5 @@
-# @pgql/defaults
+# @lql-pg/defaults
 
-Defaults helpers.
+Security defaults and baseline configurations.
+
+Provides default security settings, configurations, and baseline security policies for PostgreSQL applications.

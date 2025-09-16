@@ -1,7 +1,7 @@
 {
   "name": "@lql-pg/default-roles",
   "version": "0.4.6",
-  "description": "default roles",
+  "description": "Default PostgreSQL role definitions and permissions",
   "publishConfig": {
     "access": "public"
   },
