@@ -1,4 +1,4 @@
-# @lql-pg/database-jobs
+# @pgpm/database-jobs
 
 Database-specific job handling and queue management.
 

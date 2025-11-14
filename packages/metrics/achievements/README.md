@@ -1,4 +1,4 @@
-# @lql-pg/achievements
+# @pgpm/achievements
 
 Achievement system for tracking user progress and milestones.
 

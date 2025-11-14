@@ -1,5 +1,5 @@
 {
-  "name": "@lql-pg/encrypted-secrets",
+  "name": "@pgpm/encrypted-secrets",
   "version": "0.3.0",
   "description": "Encrypted secrets management for PostgreSQL",
   "publishConfig": {
@@ -11,9 +11,9 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@lql-pg/default-roles": "workspace:*",
-    "@lql-pg/encrypted-secrets-table": "workspace:*",
-    "@lql-pg/verify": "workspace:*"
+    "@pgpm/default-roles": "workspace:*",
+    "@pgpm/encrypted-secrets-table": "workspace:*",
+    "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {
     "@launchql/cli": "^4.9.0"

@@ -1,5 +1,5 @@
 {
-  "name": "@lql-pg/totp",
+  "name": "@pgpm/totp",
   "version": "0.3.0",
   "description": "Time-based One-Time Password (TOTP) authentication",
   "publishConfig": {
@@ -11,8 +11,8 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@lql-pg/base32": "workspace:*",
-    "@lql-pg/verify": "workspace:*"
+    "@pgpm/base32": "workspace:*",
+    "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {
     "@launchql/cli": "^4.9.0"

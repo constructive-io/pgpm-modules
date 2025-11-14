@@ -1,5 +1,5 @@
 {
-  "name": "@lql-pg/jobs",
+  "name": "@pgpm/jobs",
   "version": "0.3.0",
   "description": "Core job system for background task processing in PostgreSQL",
   "publishConfig": {
@@ -11,8 +11,8 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@lql-pg/default-roles": "workspace:*",
-    "@lql-pg/verify": "workspace:*"
+    "@pgpm/default-roles": "workspace:*",
+    "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {
     "@launchql/cli": "^4.9.0"

@@ -1,4 +1,4 @@
-# @lql-pg/types
+# @pgpm/types
 
 Core PostgreSQL data types with SQL scripts.
 

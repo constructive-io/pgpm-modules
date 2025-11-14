@@ -1,4 +1,4 @@
-# @lql-pg/uuid
+# @pgpm/uuid
 
 UUID utilities and extensions for PostgreSQL.
 

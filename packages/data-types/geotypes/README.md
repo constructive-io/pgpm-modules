@@ -1,4 +1,4 @@
-# @lql-pg/geotypes
+# @pgpm/geotypes
 
 Geographic data types and spatial functions for PostgreSQL.
 

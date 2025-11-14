@@ -1,4 +1,4 @@
-# @lql-pg/faker
+# @pgpm/faker
 
 Fake data generation utilities for testing and development.
 

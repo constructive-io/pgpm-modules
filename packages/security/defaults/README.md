@@ -1,4 +1,4 @@
-# @lql-pg/defaults
+# @pgpm/defaults
 
 Security defaults and baseline configurations.
 

@@ -1,4 +1,4 @@
-# @lql-pg/jobs
+# @pgpm/jobs
 
 Core job system for background task processing in PostgreSQL.
 

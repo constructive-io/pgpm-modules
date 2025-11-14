@@ -1,4 +1,4 @@
-# @lql-pg/base32
+# @pgpm/base32
 
 Base32 encoding and decoding functions for PostgreSQL.
 

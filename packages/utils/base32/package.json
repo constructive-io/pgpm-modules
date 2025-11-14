@@ -1,5 +1,5 @@
 {
-  "name": "@lql-pg/base32",
+  "name": "@pgpm/base32",
   "version": "0.3.0",
   "description": "Base32 encoding and decoding functions for PostgreSQL",
   "publishConfig": {
@@ -11,7 +11,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@lql-pg/verify": "workspace:*"
+    "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {
     "@launchql/cli": "^4.9.0"

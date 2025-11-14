@@ -1,5 +1,5 @@
 {
-  "name": "@lql-pg/jwt-claims",
+  "name": "@pgpm/jwt-claims",
   "version": "0.3.0",
   "description": "JWT claim handling and validation functions",
   "publishConfig": {
@@ -14,8 +14,8 @@
     "@launchql/cli": "^4.9.0"
   },
   "dependencies": {
-    "@lql-pg/types": "workspace:*",
-    "@lql-pg/verify": "workspace:*"
+    "@pgpm/types": "workspace:*",
+    "@pgpm/verify": "workspace:*"
   },
   "repository": {
     "type": "git",

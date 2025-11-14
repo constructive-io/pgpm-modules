@@ -19,38 +19,38 @@ npm install -g @launchql/cli
 ## Package Structure
 
 ### Data Types
-- `@lql-pg/types` - Core PostgreSQL data types
-- `@lql-pg/uuid` - UUID utilities and extensions
-- `@lql-pg/stamps` - Timestamp utilities and audit trails
-- `@lql-pg/geotypes` - Geographic data types and spatial functions
+- `@pgpm/types` - Core PostgreSQL data types
+- `@pgpm/uuid` - UUID utilities and extensions
+- `@pgpm/stamps` - Timestamp utilities and audit trails
+- `@pgpm/geotypes` - Geographic data types and spatial functions
 
 ### Jobs & Background Processing
-- `@lql-pg/jobs` - Core job system for background tasks
-- `@lql-pg/database-jobs` - Database-specific job handling
+- `@pgpm/jobs` - Core job system for background tasks
+- `@pgpm/database-jobs` - Database-specific job handling
 
 ### Meta & Database Introspection
-- `@lql-pg/db_meta` - Database metadata utilities
-- `@lql-pg/db_meta_modules` - Module metadata handling
-- `@lql-pg/db_meta_test` - Testing utilities for metadata
+- `@pgpm/db_meta` - Database metadata utilities
+- `@pgpm/db_meta_modules` - Module metadata handling
+- `@pgpm/db_meta_test` - Testing utilities for metadata
 
 ### Security & Authentication
-- `@lql-pg/default-roles` - Default PostgreSQL role definitions
-- `@lql-pg/defaults` - Security defaults and configurations
-- `@lql-pg/jwt-claims` - JWT claim handling and validation
-- `@lql-pg/totp` - Time-based One-Time Password authentication
-- `@lql-pg/encrypted-secrets` - Encrypted secrets management
-- `@lql-pg/encrypted-secrets-table` - Table-based encrypted secrets
+- `@pgpm/default-roles` - Default PostgreSQL role definitions
+- `@pgpm/defaults` - Security defaults and configurations
+- `@pgpm/jwt-claims` - JWT claim handling and validation
+- `@pgpm/totp` - Time-based One-Time Password authentication
+- `@pgpm/encrypted-secrets` - Encrypted secrets management
+- `@pgpm/encrypted-secrets-table` - Table-based encrypted secrets
 
 ### Utilities
-- `@lql-pg/utils` - General utility functions
-- `@lql-pg/verify` - Verification utilities (used by other modules)
-- `@lql-pg/inflection` - String inflection utilities
-- `@lql-pg/base32` - Base32 encoding/decoding
-- `@lql-pg/faker` - Fake data generation for testing
+- `@pgpm/utils` - General utility functions
+- `@pgpm/verify` - Verification utilities (used by other modules)
+- `@pgpm/inflection` - String inflection utilities
+- `@pgpm/base32` - Base32 encoding/decoding
+- `@pgpm/faker` - Fake data generation for testing
 
 ### Metrics & Analytics
-- `@lql-pg/measurements` - Performance tracking and analytics
-- `@lql-pg/achievements` - Achievement system for user progress
+- `@pgpm/measurements` - Performance tracking and analytics
+- `@pgpm/achievements` - Achievement system for user progress
 
 ## LaunchQL Workflow
 
@@ -111,7 +111,7 @@ Packages use workspace protocol for internal dependencies:
 ```json
 {
   "dependencies": {
-    "@lql-pg/verify": "workspace:*"
+    "@pgpm/verify": "workspace:*"
   }
 }
 ```

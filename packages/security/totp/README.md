@@ -1,4 +1,4 @@
-# @lql-pg/totp
+# @pgpm/totp
 
 Time-based One-Time Password (TOTP) authentication.
 

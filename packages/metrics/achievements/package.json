@@ -1,5 +1,5 @@
 {
-  "name": "@lql-pg/achievements",
+  "name": "@pgpm/achievements",
   "version": "0.3.0",
   "description": "Achievement system for tracking user progress and milestones",
   "publishConfig": {
@@ -11,8 +11,8 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@lql-pg/jwt-claims": "workspace:*",
-    "@lql-pg/verify": "workspace:*"
+    "@pgpm/jwt-claims": "workspace:*",
+    "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {
     "@launchql/cli": "^4.9.0"

@@ -1,4 +1,4 @@
-# @lql-pg/inflection
+# @pgpm/inflection
 
 String inflection utilities for PostgreSQL naming conventions.
 

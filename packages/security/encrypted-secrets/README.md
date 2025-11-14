@@ -1,4 +1,4 @@
-# @lql-pg/encrypted-secrets
+# @pgpm/encrypted-secrets
 
 Encrypted secrets management for PostgreSQL.
 

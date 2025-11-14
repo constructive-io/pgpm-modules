@@ -1,4 +1,4 @@
-# @lql-pg/utils
+# @pgpm/utils
 
 General utility functions for PostgreSQL extensions.
 

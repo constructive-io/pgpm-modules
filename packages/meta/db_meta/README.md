@@ -1,4 +1,4 @@
-# @lql-pg/meta-db
+# @pgpm/meta-db
 
 Database metadata utilities and introspection functions.
 

@@ -1,4 +1,4 @@
-# @lql-pg/verify
+# @pgpm/verify
 
 Verification utilities for LaunchQL deploy/verify/revert workflow.
 

@@ -1,5 +1,5 @@
 {
-  "name": "@lql-pg/faker",
+  "name": "@pgpm/faker",
   "version": "0.3.0",
   "description": "Fake data generation utilities for testing and development",
   "publishConfig": {
@@ -11,8 +11,8 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@lql-pg/types": "workspace:*",
-    "@lql-pg/verify": "workspace:*"
+    "@pgpm/types": "workspace:*",
+    "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {
     "@launchql/cli": "^4.9.0"

@@ -1,5 +1,5 @@
 {
-  "name": "@lql-pg/verify",
+  "name": "@pgpm/verify",
   "version": "0.3.0",
   "description": "Verification utilities for LaunchQL deploy/verify/revert workflow",
   "publishConfig": {

@@ -1,4 +1,4 @@
-# @lql-pg/default-roles
+# @pgpm/default-roles
 
 Default PostgreSQL role definitions and permissions.
 

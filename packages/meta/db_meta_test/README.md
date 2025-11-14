@@ -1,4 +1,4 @@
-# @lql-pg/meta-db-test
+# @pgpm/meta-db-test
 
 Testing utilities for database metadata operations.
 

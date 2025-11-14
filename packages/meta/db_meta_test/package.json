@@ -1,5 +1,5 @@
 {
-  "name": "@lql-pg/meta-db-test",
+  "name": "@pgpm/meta-db-test",
   "version": "0.3.0",
   "description": "Testing utilities for database metadata operations",
   "publishConfig": {
@@ -11,9 +11,9 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@lql-pg/meta-db": "workspace:*",
-    "@lql-pg/meta-db-modules": "workspace:*",
-    "@lql-pg/verify": "workspace:*"
+    "@pgpm/meta-db": "workspace:*",
+    "@pgpm/meta-db-modules": "workspace:*",
+    "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {
     "@launchql/cli": "^4.9.0"

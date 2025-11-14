@@ -1,4 +1,4 @@
-# @lql-pg/encrypted-secrets-table
+# @pgpm/encrypted-secrets-table
 
 Table-based encrypted secrets storage and retrieval.
 

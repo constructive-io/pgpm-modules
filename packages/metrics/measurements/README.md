@@ -1,4 +1,4 @@
-# @lql-pg/measurements
+# @pgpm/measurements
 
 Measurement utilities for performance tracking and analytics.
 

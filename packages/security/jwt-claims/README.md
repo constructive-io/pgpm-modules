@@ -1,4 +1,4 @@
-# @lql-pg/jwt-claims
+# @pgpm/jwt-claims
 
 JWT claim handling and validation functions.
 

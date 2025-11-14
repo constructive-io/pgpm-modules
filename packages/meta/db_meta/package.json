@@ -1,5 +1,5 @@
 {
-  "name": "@lql-pg/meta-db",
+  "name": "@pgpm/meta-db",
   "version": "0.3.0",
   "description": "Database metadata utilities and introspection functions",
   "publishConfig": {
@@ -11,10 +11,10 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@lql-pg/database-jobs": "workspace:*",
-    "@lql-pg/inflection": "workspace:*",
-    "@lql-pg/types": "workspace:*",
-    "@lql-pg/verify": "workspace:*"
+    "@pgpm/database-jobs": "workspace:*",
+    "@pgpm/inflection": "workspace:*",
+    "@pgpm/types": "workspace:*",
+    "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {
     "@launchql/cli": "^4.9.0"

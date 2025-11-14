@@ -1,4 +1,4 @@
-# @lql-pg/stamps
+# @pgpm/stamps
 
 Timestamp utilities and audit trail functions for PostgreSQL.
 

@@ -1,5 +1,5 @@
 {
-  "name": "@lql-pg/inflection",
+  "name": "@pgpm/inflection",
   "version": "0.3.0",
   "description": "String inflection utilities for PostgreSQL naming conventions",
   "publishConfig": {
@@ -11,7 +11,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@lql-pg/verify": "workspace:*"
+    "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {
     "@launchql/cli": "^4.9.0"

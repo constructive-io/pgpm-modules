@@ -73,10 +73,10 @@ importers:
 
   packages/data-types/geotypes:
     dependencies:
-      "@lql-pg/types":
+      "@pgpm/types":
         specifier: workspace:*
         version: link:../types
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -86,10 +86,10 @@ importers:
 
   packages/data-types/stamps:
     dependencies:
-      "@lql-pg/jwt-claims":
+      "@pgpm/jwt-claims":
         specifier: workspace:*
         version: link:../../security/jwt-claims
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -99,7 +99,7 @@ importers:
 
   packages/data-types/types:
     dependencies:
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -109,7 +109,7 @@ importers:
 
   packages/data-types/uuid:
     dependencies:
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -119,10 +119,10 @@ importers:
 
   packages/jobs/database-jobs:
     dependencies:
-      "@lql-pg/default-roles":
+      "@pgpm/default-roles":
         specifier: workspace:*
         version: link:../../security/default-roles
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -132,10 +132,10 @@ importers:
 
   packages/jobs/jobs:
     dependencies:
-      "@lql-pg/default-roles":
+      "@pgpm/default-roles":
         specifier: workspace:*
         version: link:../../security/default-roles
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -145,16 +145,16 @@ importers:
 
   packages/meta/db_meta:
     dependencies:
-      "@lql-pg/database-jobs":
+      "@pgpm/database-jobs":
         specifier: workspace:*
         version: link:../../jobs/database-jobs
-      "@lql-pg/inflection":
+      "@pgpm/inflection":
         specifier: workspace:*
         version: link:../../utils/inflection
-      "@lql-pg/types":
+      "@pgpm/types":
         specifier: workspace:*
         version: link:../../data-types/types
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -164,10 +164,10 @@ importers:
 
   packages/meta/db_meta_modules:
     dependencies:
-      "@lql-pg/meta-db":
+      "@pgpm/meta-db":
         specifier: workspace:*
         version: link:../db_meta
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -177,13 +177,13 @@ importers:
 
   packages/meta/db_meta_test:
     dependencies:
-      "@lql-pg/meta-db":
+      "@pgpm/meta-db":
         specifier: workspace:*
         version: link:../db_meta
-      "@lql-pg/meta-db-modules":
+      "@pgpm/meta-db-modules":
         specifier: workspace:*
         version: link:../db_meta_modules
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -193,10 +193,10 @@ importers:
 
   packages/metrics/achievements:
     dependencies:
-      "@lql-pg/jwt-claims":
+      "@pgpm/jwt-claims":
         specifier: workspace:*
         version: link:../../security/jwt-claims
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -206,7 +206,7 @@ importers:
 
   packages/metrics/measurements:
     dependencies:
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -216,7 +216,7 @@ importers:
 
   packages/security/default-roles:
     dependencies:
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -226,7 +226,7 @@ importers:
 
   packages/security/defaults:
     dependencies:
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -236,13 +236,13 @@ importers:
 
   packages/security/encrypted-secrets:
     dependencies:
-      "@lql-pg/default-roles":
+      "@pgpm/default-roles":
         specifier: workspace:*
         version: link:../default-roles
-      "@lql-pg/encrypted-secrets-table":
+      "@pgpm/encrypted-secrets-table":
         specifier: workspace:*
         version: link:../encrypted-secrets-table
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -252,7 +252,7 @@ importers:
 
   packages/security/encrypted-secrets-table:
     dependencies:
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -262,10 +262,10 @@ importers:
 
   packages/security/jwt-claims:
     dependencies:
-      "@lql-pg/types":
+      "@pgpm/types":
         specifier: workspace:*
         version: link:../../data-types/types
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -275,10 +275,10 @@ importers:
 
   packages/security/totp:
     dependencies:
-      "@lql-pg/base32":
+      "@pgpm/base32":
         specifier: workspace:*
         version: link:../../utils/base32
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../../utils/verify
     devDependencies:
@@ -288,7 +288,7 @@ importers:
 
   packages/utils/base32:
     dependencies:
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../verify
     devDependencies:
@@ -298,10 +298,10 @@ importers:
 
   packages/utils/faker:
     dependencies:
-      "@lql-pg/types":
+      "@pgpm/types":
         specifier: workspace:*
         version: link:../../data-types/types
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../verify
     devDependencies:
@@ -311,7 +311,7 @@ importers:
 
   packages/utils/inflection:
     dependencies:
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../verify
     devDependencies:
@@ -321,7 +321,7 @@ importers:
 
   packages/utils/utils:
     dependencies:
-      "@lql-pg/verify":
+      "@pgpm/verify":
         specifier: workspace:*
         version: link:../verify
     devDependencies:

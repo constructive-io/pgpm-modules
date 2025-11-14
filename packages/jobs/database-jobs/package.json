@@ -1,5 +1,5 @@
 {
-  "name": "@lql-pg/database-jobs",
+  "name": "@pgpm/database-jobs",
   "version": "0.3.0",
   "description": "Database-specific job handling and queue management",
   "publishConfig": {
@@ -14,8 +14,8 @@
     "@launchql/cli": "^4.9.0"
   },
   "dependencies": {
-    "@lql-pg/default-roles": "workspace:*",
-    "@lql-pg/verify": "workspace:*"
+    "@pgpm/default-roles": "workspace:*",
+    "@pgpm/verify": "workspace:*"
   },
   "repository": {
     "type": "git",

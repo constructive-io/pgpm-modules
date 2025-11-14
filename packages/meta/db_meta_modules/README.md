@@ -1,4 +1,4 @@
-# @lql-pg/meta-db-modules
+# @pgpm/meta-db-modules
 
 Module metadata handling and dependency tracking.
 
