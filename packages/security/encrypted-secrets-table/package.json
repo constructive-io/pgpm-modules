@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/encrypted-secrets-table",
-  "version": "0.3.0",
+  "version": "0.0.1",
   "description": "Table-based encrypted secrets storage and retrieval",
   "publishConfig": {
     "access": "public"

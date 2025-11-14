@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/jwt-claims",
-  "version": "0.3.0",
+  "version": "0.0.1",
   "description": "JWT claim handling and validation functions",
   "publishConfig": {
     "access": "public"

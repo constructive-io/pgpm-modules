@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/geotypes",
-  "version": "0.3.0",
+  "version": "0.0.1",
   "description": "Geographic data types and spatial functions for PostgreSQL",
   "publishConfig": {
     "access": "public"

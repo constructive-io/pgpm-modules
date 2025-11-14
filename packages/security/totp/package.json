@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/totp",
-  "version": "0.3.0",
+  "version": "0.0.1",
   "description": "Time-based One-Time Password (TOTP) authentication",
   "publishConfig": {
     "access": "public"

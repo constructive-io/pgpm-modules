@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/uuid",
-  "version": "0.3.0",
+  "version": "0.0.1",
   "description": "UUID utilities and extensions for PostgreSQL",
   "publishConfig": {
     "access": "public"

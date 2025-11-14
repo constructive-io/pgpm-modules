@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/meta-db",
-  "version": "0.3.0",
+  "version": "0.0.1",
   "description": "Database metadata utilities and introspection functions",
   "publishConfig": {
     "access": "public"

@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/encrypted-secrets",
-  "version": "0.3.0",
+  "version": "0.0.1",
   "description": "Encrypted secrets management for PostgreSQL",
   "publishConfig": {
     "access": "public"

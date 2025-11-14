@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/measurements",
-  "version": "0.3.0",
+  "version": "0.0.1",
   "description": "Measurement utilities for performance tracking and analytics",
   "publishConfig": {
     "access": "public"
