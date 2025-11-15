@@ -156,8 +156,8 @@ main() {
     echo ""
     
     if ! command -v pgpm &> /dev/null; then
-        echo -e "${RED}ERROR: pgpm CLI not found. Please install @pgpm/cli globally.${NC}"
-        echo "Run: npm install -g @pgpm/cli@4.9.0"
+        echo -e "${RED}ERROR: pgpm CLI not found. Please install @launchql/cli globally.${NC}"
+        echo "Run: npm install -g @launchql/cli@4.9.0"
         exit 1
     fi
     

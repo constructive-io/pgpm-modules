@@ -129,7 +129,7 @@ describe('db_meta functionality', () => {
        VALUES ($1, $2, $3, $4::jsonb) 
        RETURNING *`,
       [database_id, objs.sites.app.id, 'legal-emails', JSON.stringify({
-        supportEmail: 'support@pgpm.com'
+        supportEmail: 'support@interweb.co'
       })]
     );
     expect(snapshot(siteModule1)).toMatchSnapshot();

@@ -1,6 +1,6 @@
-# AGENTS.md — PGPM/Sqitch‑style Workflow for SQL Changes
+# AGENTS.md — pgpm/Sqitch‑style Workflow for SQL Changes
 
-> **Audience:** internal agents and contributors who ship database changes across the Interweb/PGPM workspace.
+> **Audience:** internal agents and contributors who ship database changes across the Interweb/pgpm workspace.
 >
 > **Goal:** make safe, testable, reversible SQL changes using a Sqitch‑style plan (`pgpm.plan`) and the `deploy/`, `revert/`, `verify/` folders.
 
@@ -8,7 +8,7 @@
 
 ## Mental model
 
-PGPM extends the **Sqitch** model to a multi‑package **npm workspace**. Think of it as **Lerna/Yarn workspaces, but for SQL**:
+pgpm extends the **Sqitch** model to a multi‑package **npm workspace**. Think of it as **Lerna/Yarn workspaces, but for SQL**:
 
 * Each package contains its own `pgpm.plan` plus `deploy/`, `revert/`, `verify/` trees.
 * Plans compose **recursively** up the workspace (e.g., an app package depends on a module package). Dependencies are explicit in the plan.

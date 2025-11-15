@@ -1,4 +1,4 @@
-name: PGPM tests
+name: pgpm tests
 on:
   push:
   workflow_dispatch:
@@ -61,8 +61,8 @@ jobs:
       - name: Install
         run: pnpm install
 
-      - name: Install PGPM CLI globally
-        run: npm install -g @pgpm/cli@4.9.0
+      - name: Install pgpm CLI globally
+        run: npm install -g @launchql/cli@4.9.0
 
       - name: Build
         run: pnpm -r build
@@ -162,8 +162,8 @@ jobs:
       - name: Install
         run: pnpm install
 
-      - name: Install PGPM CLI globally
-        run: npm install -g @pgpm/cli@4.9.0
+      - name: Install pgpm CLI globally
+        run: npm install -g @launchql/cli@4.9.0
 
       - name: Build
         run: pnpm -r build
@@ -234,8 +234,8 @@ jobs:
       - name: Install
         run: pnpm install
 
-      - name: Install PGPM CLI globally
-        run: npm install -g @pgpm/cli@4.9.0
+      - name: Install pgpm CLI globally
+        run: npm install -g @launchql/cli@4.9.0
 
       - name: Build
         run: pnpm -r build
