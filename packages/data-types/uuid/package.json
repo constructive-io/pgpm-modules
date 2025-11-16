@@ -14,7 +14,7 @@
     "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {
-    "@launchql/cli": "^4.9.0"
+    "pgpm": "^0.2.0"
   },
   "repository": {
     "type": "git",
