@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/meta-db-modules",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Module metadata handling and dependency tracking",
   "publishConfig": {
     "access": "public"

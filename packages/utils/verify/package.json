@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/verify",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Verification utilities for LaunchQL deploy/verify/revert workflow",
   "publishConfig": {
     "access": "public"

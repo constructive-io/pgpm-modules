@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/base32",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Base32 encoding and decoding functions for PostgreSQL",
   "publishConfig": {
     "access": "public"

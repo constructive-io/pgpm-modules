@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/defaults",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Security defaults and baseline configurations",
   "publishConfig": {
     "access": "public"
