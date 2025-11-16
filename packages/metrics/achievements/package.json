@@ -19,10 +19,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/launchql/extensions"
+    "url": "https://github.com/launchql/pgpm-modules"
   },
-  "homepage": "https://github.com/launchql/extensions",
+  "homepage": "https://github.com/launchql/pgpm-modules",
   "bugs": {
-    "url": "https://github.com/launchql/extensions/issues"
+    "url": "https://github.com/launchql/pgpm-modules/issues"
   }
 }
