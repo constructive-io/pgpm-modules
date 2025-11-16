@@ -46,7 +46,7 @@ pgpm deploy --createdb
 pgpm install
 
 # Deploy with dependencies
-pgpm deploy <database_name> --yes --recursive --createdb
+pgpm deploy mydb1 --yes --createdb
 ```
 
 ## Usage
@@ -287,7 +287,7 @@ pgpm generate table --schema myschema --table mytable
 You can also deploy all modules utilizing versioning as sqtich modules. Remove `--createdb` if you already created your db:
 
 ```sh
-pgpm deploy <database_name> --yes --recursive --createdb
+pgpm deploy mydb1 --yes --createdb
 ```
 
 ---
@@ -333,7 +333,7 @@ pgpm deploy --createdb
 git clone <repo> && cd <project>
 
 # 2. Install dependencies
-pgpm install
+pnpm install
 
 # 3. Deploy locally
 pgpm deploy --createdb
@@ -345,7 +345,7 @@ pgpm deploy --createdb
 
 ```bash
 # 1. Install workspace deps
-pgpm install
+pnpm install
 
 # 2. Enter the module directory
 cd packages/<some-module>
