@@ -74,6 +74,26 @@ psql -d mydb1 -c "SELECT faker.city('MI');"
 >  Sterling Heights
 ```
 
+#### Add a Database Change
+
+```bash
+# 1. Navigate to your module
+cd packages/your-module
+
+# 2. Add a database change
+pgpm add some_change
+```
+
+#### Testing your Database
+
+```bash
+# 1. Navigate to your module
+cd packages/your-module
+
+# 2. Add a database change
+pnpm test:watch
+```
+
 Each module includes its own README with detailed documentation. See individual package directories for usage examples and API documentation.
 
 ---
