@@ -1,0 +1,12 @@
+node_modules
+**/node_modules
+**/dist
+**/.DS_Store
+.git
+.gitignore
+.github
+npm-debug.log
+pnpm-debug.log
+yarn-error.log
+Dockerfile*
+
