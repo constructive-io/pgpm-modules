@@ -47,23 +47,3 @@ RUN set -eux; \
         cp "$p/package.json" "$dest/"; \
       fi; \
     done
-
-################################################################################
-FROM debian:bookworm-slim AS runtime
-
-LABEL org.opencontainers.image.source="https://github.com/launchql/pgpm-modules"
-WORKDIR /pgpm
-
-# Minimal runtime with CA certs for potential HTTPS fetches
-RUN set -eux; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends ca-certificates; \
-    update-ca-certificates || true; \
-    rm -rf /var/lib/apt/lists/*
-
-COPY --from=build /out /pgpm/packages
-
-ENV PGPM_MODULES_DIR=/pgpm/packages
-
-# Default command: list packaged modules
-CMD ["sh", "-lc", "ls -1 ${PGPM_MODULES_DIR} || true"]
