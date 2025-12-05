@@ -1,6 +1,6 @@
 %syntax-version=1.0.0
-%project=launchql-meta-db
-%uri=launchql-meta-db
+%project=db-meta-schema
+%uri=db-meta-schema
   
 schemas/collections_private/schema [launchql-inflection:schemas/inflection/tables/inflection_rules/indexes/inflection_rules_type_idx launchql-database-jobs:schemas/app_jobs/triggers/tg_add_job_with_row launchql-types:schemas/public/domains/url] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/collections_private/schema
 schemas/collections_public/schema 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/collections_public/schema

@@ -2,7 +2,7 @@
 comment = 'launchql-meta-db-test extension'
 default_version = '0.7.2'
 module_pathname = '$libdir/launchql-meta-db-test'
-requires = 'plpgsql,launchql-meta-db-modules,launchql-meta-db,launchql-verify'
+requires = 'plpgsql,launchql-meta-db-modules,db-meta-schema,launchql-verify'
 relocatable = false
 superuser = false
   
