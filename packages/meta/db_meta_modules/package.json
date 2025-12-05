@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/meta-db-modules",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Module metadata handling and dependency tracking",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [

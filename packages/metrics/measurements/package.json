@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/measurements",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Measurement utilities for performance tracking and analytics",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [

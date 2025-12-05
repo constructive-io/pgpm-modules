@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/verify",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Verification utilities for LaunchQL deploy/verify/revert workflow",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [

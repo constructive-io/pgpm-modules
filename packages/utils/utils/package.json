@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/utils",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "General utility functions for PostgreSQL extensions",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
