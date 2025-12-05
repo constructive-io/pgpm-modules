@@ -122,9 +122,8 @@ Each module includes its own README with detailed documentation. See individual 
 - [`@pgpm/database-jobs`](https://www.npmjs.com/package/@pgpm/database-jobs) - Database-specific job handling
 
 ### Meta & Database Introspection
-- [`@pgpm/db_meta`](https://www.npmjs.com/package/@pgpm/db_meta) - Database metadata utilities
-- [`@pgpm/db_meta_modules`](https://www.npmjs.com/package/@pgpm/db_meta_modules) - Module metadata handling
-- [`@pgpm/db_meta_test`](https://www.npmjs.com/package/@pgpm/db_meta_test) - Testing utilities for metadata
+- [`@pgpm/db-meta-schema`](https://www.npmjs.com/package/@pgpm/db-meta-schema) - Database metadata schema and utilities
+- [`@pgpm/db-meta-modules`](https://www.npmjs.com/package/@pgpm/db-meta-modules) - Module metadata handling
 
 ### Security & Authentication
 - [`@pgpm/default-roles`](https://www.npmjs.com/package/@pgpm/default-roles) - Default PostgreSQL role definitions

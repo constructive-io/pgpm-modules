@@ -21,10 +21,10 @@
 ## Data Types
 
 ### Core Types
-- [ ] `packages/data-types/types` - Core data types (ISSUE: domain verification failures - attachment, email, hostname, image, multiple_select, single_select, upload, url domains fail verification)
+- [ ] `packages/data-types/types` - Core data types
 - [ ] `packages/data-types/uuid` - UUID utilities
 - [ ] `packages/data-types/stamps` - Timestamp utilities
-- [ ] `packages/data-types/geotypes` - Geographic data types (ISSUE: deployment fails due to embedded types package creating domain conflicts - "type 'attachment' already exists")
+- [ ] `packages/data-types/geotypes` - Geographic data types
 
 ## Jobs & Background Processing
 
@@ -35,14 +35,13 @@
 ## Meta & Database Introspection
 
 ### Database Metadata
-- [ ] `packages/meta/db_meta` - Core database metadata utilities
-- [ ] `packages/meta/db_meta_modules` - Module metadata handling
-- [ ] `packages/meta/db_meta_test` - Testing utilities for metadata
+- [ ] `packages/meta/db-meta-schema` - Database metadata schema and utilities
+- [ ] `packages/meta/db-meta-modules` - Module metadata handling
 
 ## Security & Authentication
 
 ### Core Security
-- [ ] `packages/security/default-roles` - Default role definitions (ISSUE: Revert fails due to cross-database role dependencies)
+- [ ] `packages/security/default-roles` - Default role definitions
 - [ ] `packages/security/defaults` - Security defaults
 - [ ] `packages/security/jwt-claims` - JWT claim handling
 - [ ] `packages/security/totp` - Time-based One-Time Password (TOTP)
@@ -66,37 +65,3 @@
 - [ ] `packages/metrics/measurements` - Measurement utilities
 - [ ] `packages/metrics/achievements` - Achievement system
 
----
-
-
-## Test Results Summary
-
-**Last Updated:** September 11, 2025
-**Test Environment:** Docker PostgreSQL 13
-**LaunchQL CLI Version:** 4.9.0
-
-**Passing Modules (16/22):** verify, base32, uuid, db_meta, jobs, database-jobs, defaults, db_meta_modules, db_meta_test, jwt-claims, totp, encrypted-secrets-table, encrypted-secrets, measurements, achievements, inflection, stamps
-**Failing Modules (6/22):** utils, faker, types, default-roles, geotypes
-**Untested Modules (0/22):** All packages have been tested
-
-### Common Issues Found
-
-1. **Revert Script Issues:**
-   - Function name conflicts requiring explicit signatures in DROP statements (inflection)
-   - Schema dependency issues requiring CASCADE or proper ordering (utils)
-
-2. **Verification Failures:**
-   - Domain verification failures in types package affecting dependent packages
-   - Table and procedure verification failures (faker, stamps)
-
-3. **Dependency Chain Problems:**
-   - Many packages depend on the types package which has verification failures
-   - The verify package works correctly and is properly used as a dependency
-
-## Notes
-
-- The `packages/utils/verify` module provides essential verification utilities that should be used in other modules' verify scripts
-- All modules should follow the same deploy/revert/verify pattern
-- Control files must declare dependencies properly
-- Each SQL file should be properly tested and reversible
-- Individual package testing reveals issues not caught by batch testing due to dependency order problems
