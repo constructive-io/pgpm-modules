@@ -54,6 +54,8 @@ CREATE TABLE collections_public.field (
   min float default null,
   max float default null,
 
+  tags citext[] NOT NULL DEFAULT '{}',
+
   --
   CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES collections_public.database (id) ON DELETE CASCADE,
   CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES collections_public.table (id) ON DELETE CASCADE,

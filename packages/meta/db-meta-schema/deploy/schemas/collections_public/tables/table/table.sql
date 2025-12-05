@@ -5,7 +5,7 @@
 
 BEGIN;
 
-CREATE TYPE collections_public.table_category AS ENUM ('system', 'module', 'user');
+CREATE TYPE collections_public.table_category AS ENUM ('core', 'module', 'app');
 
 CREATE TABLE collections_public.table (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
@@ -20,7 +20,7 @@ CREATE TABLE collections_public.table (
   
   smart_tags jsonb,
   
-  category collections_public.table_category NOT NULL DEFAULT 'user',
+  category collections_public.table_category NOT NULL DEFAULT 'app',
   module text NULL,
   scope int NULL,
 
@@ -31,6 +31,8 @@ CREATE TABLE collections_public.table (
 
   plural_name text,
   singular_name text,
+
+  tags citext[] NOT NULL DEFAULT '{}',
 
   -- 
 
