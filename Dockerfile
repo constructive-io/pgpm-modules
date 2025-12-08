@@ -14,8 +14,7 @@ RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends ca-certificates curl git; \
     update-ca-certificates || true; \
-    corepack enable; \
-    corepack prepare pnpm@10.12.2 --activate; \
+    npm install -g pnpm@10.12.2; \
     rm -rf /var/lib/apt/lists/*
 
 # Copy workspace (build context is the repo root of pgpm-modules)

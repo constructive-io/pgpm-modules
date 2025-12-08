@@ -78,12 +78,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Enable corepack and pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@9 --activate
-          pnpm -v
-          node -v
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
 
       - name: Install
         run: pnpm install
@@ -102,4 +106,3 @@ jobs:
 
       - name: Test ${{ matrix.package }}
         run: cd ./packages/${{ matrix.package }} && pnpm test
-
