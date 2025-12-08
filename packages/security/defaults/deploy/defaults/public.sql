@@ -13,5 +13,7 @@ $$;
 -- NOTE: don't alter this as new schemas inherit this behavior
 ALTER DEFAULT PRIVILEGES REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
 REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated, anonymous, administrator;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+GRANT EXECUTE ON FUNCTIONS TO authenticated, anonymous, administrator;
 COMMIT;
-

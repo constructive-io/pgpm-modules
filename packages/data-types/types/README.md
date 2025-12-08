@@ -22,9 +22,10 @@ Core PostgreSQL data types with SQL scripts.
 
 - **email**: Case-insensitive email address validation
 - **url**: HTTP/HTTPS URL validation
+- **origin**: Origin URL validation (scheme + host)
 - **hostname**: Domain name validation
 - **image**: JSON-based image metadata with URL and MIME type
-- **attachment**: JSON-based file attachment metadata with URL and MIME type
+- **attachment**: File attachment metadata as a URL string or JSON with URL and MIME type
 - **upload**: File upload metadata
 - **single_select**: Single selection field
 - **multiple_select**: Multiple selection field
@@ -156,7 +157,7 @@ INSERT INTO customers (domain) VALUES
 
 ### Image and Attachment Domains
 
-The `image` and `attachment` domains store JSON objects with URL and MIME type information.
+The `image` domain stores JSON objects with URL and MIME type information. The `attachment` domain accepts either that JSON shape or a plain URL string.
 
 ```sql
 -- Valid image
@@ -166,9 +167,12 @@ INSERT INTO customers (profile_image) VALUES
 -- Valid attachment
 INSERT INTO customers (document) VALUES
   ('{"url": "https://storage.example.com/file.pdf", "mime": "application/pdf"}'::json);
+
+-- Valid attachment as plain URL
+INSERT INTO customers (document) VALUES ('https://storage.example.com/favicon.ico');
 ```
 
-**Structure**: Both domains expect JSON objects with `url` and `mime` properties.
+**Structure**: Image values and JSON-form attachments expect `url` and `mime` properties; attachments also allow a bare URL string.
 
 ## Domain Types Reference
 
@@ -176,9 +180,10 @@ INSERT INTO customers (document) VALUES
 |--------|-----------|-------------|---------|
 | `email` | `citext` | Case-insensitive email address | `user@example.com` |
 | `url` | `text` | HTTP/HTTPS URL | `https://example.com/path` |
+| `origin` | `text` | Origin (scheme + host) | `https://example.com` |
 | `hostname` | `text` | Domain name without protocol | `example.com` |
 | `image` | `json` | Image metadata with URL and MIME | `{"url": "...", "mime": "image/jpeg"}` |
-| `attachment` | `json` | File attachment metadata | `{"url": "...", "mime": "application/pdf"}` |
+| `attachment` | `json` | File attachment URL or metadata | `{"url": "...", "mime": "application/pdf"}` or `https://example.com/favicon.ico` |
 | `upload` | `text` | File upload identifier | Various formats |
 | `single_select` | `text` | Single selection value | Text value |
 | `multiple_select` | `text[]` | Multiple selection values | Array of text values |

@@ -2,6 +2,7 @@
 
 BEGIN;
 
-DROP FUNCTION inflection.underscore;
+DROP FUNCTION inflection.underscore(text[]);
+DROP FUNCTION inflection.underscore(text);
 
 COMMIT;

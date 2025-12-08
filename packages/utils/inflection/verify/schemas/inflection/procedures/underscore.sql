@@ -2,6 +2,7 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection.underscore');
+SELECT verify_function ('inflection.underscore(text)');
+SELECT verify_function ('inflection.underscore(text[])');
 
 ROLLBACK;

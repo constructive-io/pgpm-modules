@@ -3,10 +3,15 @@
 
 BEGIN;
 CREATE DOMAIN attachment AS jsonb CHECK (
-  value ?& ARRAY['url', 'mime']
-  AND
-  value->>'url' ~ '^(https?)://[^\s/$.?#].[^\s]*$'
+  (
+    jsonb_typeof(VALUE) = 'object'
+    AND VALUE ?& ARRAY['url', 'mime']
+    AND VALUE->>'url' ~ '^(https?)://[^\\s/$.?#].[^\\s]*$'
+  )
+  OR (
+    jsonb_typeof(VALUE) = 'string'
+    AND VALUE #>> '{}' ~ '^(https?)://[^\\s/$.?#].[^\\s]*$'
+  )
 );
 COMMENT ON DOMAIN attachment IS E'@name launchqlInternalTypeAttachment';
 COMMIT;
-

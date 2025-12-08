@@ -48,5 +48,12 @@ FROM
 $$
 LANGUAGE 'sql'
 IMMUTABLE;
-COMMIT;
 
+CREATE FUNCTION inflection.underscore (parts text[])
+  RETURNS text
+  AS $$
+  SELECT inflection.underscore( array_to_string(parts, '_') );
+$$
+LANGUAGE 'sql'
+IMMUTABLE;
+COMMIT;
