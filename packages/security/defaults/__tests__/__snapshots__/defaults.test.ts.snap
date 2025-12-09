@@ -6,7 +6,7 @@ exports[`defaults security configurations configuration verification should crea
     {
       "current_user": "postgres",
       "database_name": "test-database",
-      "default_func_acl_count": "1",
+      "default_func_acl_count": "2",
       "public_db_connect": false,
       "public_db_create": false,
       "public_schema_create": false,
