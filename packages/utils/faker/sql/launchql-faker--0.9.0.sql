@@ -677,15 +677,11 @@ END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
 CREATE FUNCTION faker.attachment(mime text DEFAULT NULL) RETURNS attachment AS $EOFCODE$
-DECLARE
-  obj jsonb = '{}'::jsonb;
 BEGIN
   IF (mime IS NULL) THEN
     mime = faker.mime();
   END IF;
-  obj = jsonb_set(obj, '{url}', to_jsonb(faker.url(mime)::text));
-  obj = jsonb_set(obj, '{mime}', to_jsonb(mime));
-  RETURN obj;
+  RETURN faker.url(mime);
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
