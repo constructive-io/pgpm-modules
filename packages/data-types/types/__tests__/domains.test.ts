@@ -44,11 +44,22 @@ const invalidUrls = [
 ];
 
 const validAttachments = [
+  'http://www.foo.bar/some.jpg',
+  'https://foo.bar/some.PNG'
+];
+
+const invalidAttachments = [
+  'hi there',
+  'ftp://foo.bar/some.png',
+  'https:///foo.bar/some.png'
+];
+
+const validImages = [
   { url: 'http://www.foo.bar/some.jpg', mime: 'image/jpg' },
   { url: 'https://foo.bar/some.PNG', mime: 'image/jpg' }
 ];
 
-const invalidAttachments = [
+const invalidImages = [
   { url: 'hi there' },
   { url: 'https://foo.bar/some.png' }
 ];
@@ -87,24 +98,30 @@ afterAll(async () => {
 
 describe('types', () => {
   it('valid attachment and image', async () => {
-    for (const value of validAttachments) {
-      await pg.any(`INSERT INTO customers (image) VALUES ($1::json);`, [value]);
-      await pg.any(`INSERT INTO customers (attachment) VALUES ($1::json);`, [value]);
+    for (const attachment of validAttachments) {
+      await pg.any(`INSERT INTO customers (attachment) VALUES ($1);`, [attachment]);
+    }
+
+    for (const image of validImages) {
+      await pg.any(`INSERT INTO customers (image) VALUES ($1::json);`, [image]);
     }
   });
 
   it('invalid attachment and image', async () => {
-    for (const value of invalidAttachments) {
+    for (const attachment of invalidAttachments) {
       let failed = false;
       try {
-        await pg.any(`INSERT INTO customers (attachment) VALUES ($1);`, [value]);
+        await pg.any(`INSERT INTO customers (attachment) VALUES ($1);`, [attachment]);
       } catch (e) {
         failed = true;
       }
       expect(failed).toBe(true);
-      failed = false;
+    }
+
+    for (const image of invalidImages) {
+      let failed = false;
       try {
-        await pg.any(`INSERT INTO customers (image) VALUES ($1);`, [value]);
+        await pg.any(`INSERT INTO customers (image) VALUES ($1::json);`, [image]);
       } catch (e) {
         failed = true;
       }
