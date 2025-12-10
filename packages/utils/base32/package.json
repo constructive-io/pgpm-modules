@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/base32",
-  "version": "0.12.4",
+  "version": "0.12.5",
   "description": "Base32 encoding and decoding functions for PostgreSQL",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [

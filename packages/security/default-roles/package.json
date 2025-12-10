@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/default-roles",
-  "version": "0.12.4",
+  "version": "0.12.5",
   "description": "Default PostgreSQL role definitions and permissions",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [

@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/encrypted-secrets-table",
-  "version": "0.12.4",
+  "version": "0.12.5",
   "description": "Table-based encrypted secrets storage and retrieval",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
