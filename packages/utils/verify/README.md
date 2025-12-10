@@ -41,7 +41,7 @@ This is a quick way to get started. The sections below provide more detailed ins
 ### Prerequisites
 
 ```bash
-# Install pgpm CLI 
+# Install pgpm CLI
 npm install -g pgpm
 
 # Start local Postgres (via Docker) and export env vars
@@ -58,7 +58,7 @@ eval "$(pgpm env)"
 pgpm install @pgpm/verify
 
 # 2. Deploy locally
-pgpm deploy 
+pgpm deploy
 ```
 
 ### **Add to a New Project**
@@ -292,16 +292,16 @@ describe('User Table', () => {
         email text NOT NULL
       )
     `);
-    
+
     // Verify table was created
     await pg.query(`SELECT verify.verify_table('public', 'users')`);
   });
-  
+
   it('should create email index', async () => {
     await pg.query(`
       CREATE INDEX users_email_idx ON public.users(email)
     `);
-    
+
     // Verify index was created
     await pg.query(`SELECT verify.verify_index('public', 'users_email_idx')`);
   });
@@ -318,19 +318,19 @@ DO $$
 BEGIN
   -- Create schema
   CREATE SCHEMA IF NOT EXISTS app_jobs;
-  
+
   -- Verify schema was created
   PERFORM verify.verify_schema('app_jobs');
-  
+
   -- Create table
   CREATE TABLE app_jobs.jobs (
     id serial PRIMARY KEY,
     task_identifier text NOT NULL
   );
-  
+
   -- Verify table was created
   PERFORM verify.verify_table('app_jobs', 'jobs');
-  
+
   RAISE NOTICE 'Migration completed successfully';
 END $$;
 ```
