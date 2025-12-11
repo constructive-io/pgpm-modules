@@ -54,7 +54,7 @@ eval "$(pgpm env)"
 
 ```bash
 # 1. Create a workspace
-pgpm init --workspace
+pgpm init workspace
 
 # 2. Create your first module
 cd my-workspace
