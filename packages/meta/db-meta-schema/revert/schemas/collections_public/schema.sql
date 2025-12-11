@@ -1,6 +1,6 @@
 
 BEGIN;
 
-DROP SCHEMA collections_public;
+DROP SCHEMA collections_public CASCADE;
 
 COMMIT;
