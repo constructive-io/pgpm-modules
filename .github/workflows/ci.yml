@@ -95,7 +95,7 @@ jobs:
         run: pnpm install
 
       - name: Install pgpm CLI globally
-        run: npm install -g pgpm@0.2.15
+        run: npm install -g pgpm
 
       - name: Build
         run: pnpm -r build
