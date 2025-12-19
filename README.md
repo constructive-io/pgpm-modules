@@ -126,7 +126,6 @@ Each module includes its own README with detailed documentation. See individual 
 - [`@pgpm/db-meta-modules`](https://www.npmjs.com/package/@pgpm/db-meta-modules) - Module metadata handling
 
 ### Security & Authentication
-- [`@pgpm/default-roles`](https://www.npmjs.com/package/@pgpm/default-roles) - Default PostgreSQL role definitions
 - [`@pgpm/defaults`](https://www.npmjs.com/package/@pgpm/defaults) - Security defaults and configurations
 - [`@pgpm/jwt-claims`](https://www.npmjs.com/package/@pgpm/jwt-claims) - JWT claim handling and validation
 - [`@pgpm/totp`](https://www.npmjs.com/package/@pgpm/totp) - Time-based One-Time Password authentication

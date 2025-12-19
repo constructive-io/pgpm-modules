@@ -21,7 +21,6 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@pgpm/default-roles": "workspace:*",
     "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {

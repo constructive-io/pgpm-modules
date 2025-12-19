@@ -24,7 +24,6 @@
     "pgpm": "^1.0.0"
   },
   "dependencies": {
-    "@pgpm/default-roles": "workspace:*",
     "@pgpm/verify": "workspace:*"
   },
   "repository": {

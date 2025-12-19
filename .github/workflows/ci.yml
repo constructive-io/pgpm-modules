@@ -25,7 +25,6 @@ jobs:
           - security/encrypted-secrets-table
           - security/encrypted-secrets
           - security/defaults
-          - security/default-roles
           - metrics/measurements
           - metrics/achievements
           - meta/db-meta-schema
