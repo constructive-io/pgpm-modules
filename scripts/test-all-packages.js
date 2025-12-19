@@ -128,7 +128,7 @@ function runPgpmCommand(command, dbname, packageName, packagePath, projectRoot) 
   return result.success;
 }
 
-async function testPackage(packagePath, projectRoot, useDocker) {
+function testPackage(packagePath, projectRoot, useDocker) {
   const packageName = path.basename(packagePath);
   const dbname = dbsafename(packagePath);
   
