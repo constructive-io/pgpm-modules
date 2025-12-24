@@ -14,14 +14,10 @@ CREATE FUNCTION ctx.origin() RETURNS origin AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.origin', true), '')::origin;
 $EOFCODE$ LANGUAGE sql STABLE;
 
--- Returns the current user agent string from the JWT claims
--- This is a shorthand for jwt_public.current_user_agent()
 CREATE FUNCTION ctx.uagent() RETURNS text AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.user_agent', true), '');
 $EOFCODE$ LANGUAGE sql STABLE;
 
--- Returns the current user's UUID from the JWT claims
--- This is a shorthand for jwt_public.current_user_id()
 CREATE FUNCTION ctx.uid() RETURNS uuid AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.user_id', true), '')::uuid;
 $EOFCODE$ LANGUAGE sql STABLE;
