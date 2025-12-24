@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/types",
-  "version": "0.15.3",
+  "version": "0.15.4",
   "description": "Core PostgreSQL data types with deploy/verify/revert SQL scripts",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
