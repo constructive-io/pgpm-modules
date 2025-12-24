@@ -1,6 +1,6 @@
 # pgpm-achievements extension
 comment = 'pgpm-achievements extension'
-default_version = '0.15.2'
+default_version = '0.15.3'
 module_pathname = '$libdir/pgpm-achievements'
 requires = 'plpgsql,uuid-ossp,pgpm-jwt-claims,pgpm-verify'
 relocatable = false

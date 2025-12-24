@@ -1,6 +1,6 @@
 # db-meta-schema extension
 comment = 'db-meta-schema extension'
-default_version = '0.15.2'
+default_version = '0.15.3'
 module_pathname = '$libdir/db-meta-schema'
 requires = 'citext,hstore,pgpm-inflection,pgpm-database-jobs,pgpm-types,pgcrypto,plpgsql,postgis,uuid-ossp,pgpm-verify'
 relocatable = false
