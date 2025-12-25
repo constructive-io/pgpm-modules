@@ -9,7 +9,7 @@
     <img height="20" src="https://github.com/constructive-io/pgpm-modules/actions/workflows/ci.yml/badge.svg" />
   </a>
    <a href="https://github.com/constructive-io/pgpm-modules/blob/main/LICENSE"><img height="20" src="https://img.shields.io/badge/license-MIT-blue.svg"/></a>
-   <a href="https://www.npmjs.com/package/@pgpm/measurements"><img height="20" src="https://img.shields.io/github/package-json/v/constructive-io/pgpm-modules?filename=packages%2Fmetrics%2Fmeasurements%2Fpackage.json"/></a>
+   <a href="https://www.npmjs.com/package/@pgpm/measurements"><img height="20" src="https://img.shields.io/github/package-json/v/constructive-io/pgpm-modules?filename=packages%2Fmeasurements%2Fpackage.json"/></a>
 </p>
 
 Measurement utilities for performance tracking and analytics.
