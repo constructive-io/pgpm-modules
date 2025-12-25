@@ -79,4 +79,4 @@ jobs:
           pgpm admin-users bootstrap --yes
 
       - name: Run Integration Tests
-        run: ./scripts/test-all-packages.js
+        run: pgpm test-packages --full-cycle

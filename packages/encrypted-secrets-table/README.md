@@ -9,7 +9,7 @@
     <img height="20" src="https://github.com/constructive-io/pgpm-modules/actions/workflows/ci.yml/badge.svg" />
   </a>
    <a href="https://github.com/constructive-io/pgpm-modules/blob/main/LICENSE"><img height="20" src="https://img.shields.io/badge/license-MIT-blue.svg"/></a>
-   <a href="https://www.npmjs.com/package/@pgpm/encrypted-secrets-table"><img height="20" src="https://img.shields.io/github/package-json/v/constructive-io/pgpm-modules?filename=packages%2Fsecurity%2Fencrypted-secrets-table%2Fpackage.json"/></a>
+   <a href="https://www.npmjs.com/package/@pgpm/encrypted-secrets-table"><img height="20" src="https://img.shields.io/github/package-json/v/constructive-io/pgpm-modules?filename=packages%2Fencrypted-secrets-table%2Fpackage.json"/></a>
 </p>
 
 Table-based encrypted secrets storage and retrieval.
