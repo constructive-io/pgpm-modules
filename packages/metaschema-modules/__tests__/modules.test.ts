@@ -193,40 +193,43 @@ describe('db_meta_modules', () => {
     })).toMatchSnapshot();
   });
 
-  it('should verify module tables have proper foreign key relationships', async () => {
-    jest.setTimeout(30000); // Increase timeout for this slow query
-    // Get all foreign key constraints for module tables
-    const fkConstraints = await pg.any(`
-      SELECT 
-        tc.table_name,
-        kcu.column_name,
-        ccu.table_name AS foreign_table_name,
-        ccu.column_name AS foreign_column_name
-      FROM information_schema.table_constraints AS tc
-      JOIN information_schema.key_column_usage AS kcu
-        ON tc.constraint_name = kcu.constraint_name
-      JOIN information_schema.constraint_column_usage AS ccu
-        ON ccu.constraint_name = tc.constraint_name
-      WHERE tc.table_schema = 'metaschema_modules_public'
-        AND tc.table_name LIKE '%_module'
-        AND tc.constraint_type = 'FOREIGN KEY'
-      ORDER BY tc.table_name, kcu.column_name
-    `);
+    it(
+      'should verify module tables have proper foreign key relationships',
+      async () => {
+        // Get all foreign key constraints for module tables
+        const fkConstraints = await pg.any(`
+          SELECT 
+            tc.table_name,
+            kcu.column_name,
+            ccu.table_name AS foreign_table_name,
+            ccu.column_name AS foreign_column_name
+          FROM information_schema.table_constraints AS tc
+          JOIN information_schema.key_column_usage AS kcu
+            ON tc.constraint_name = kcu.constraint_name
+          JOIN information_schema.constraint_column_usage AS ccu
+            ON ccu.constraint_name = tc.constraint_name
+          WHERE tc.table_schema = 'metaschema_modules_public'
+            AND tc.table_name LIKE '%_module'
+            AND tc.constraint_type = 'FOREIGN KEY'
+          ORDER BY tc.table_name, kcu.column_name
+        `);
 
-    // Should have many foreign key relationships
-    expect(fkConstraints.length).toBeGreaterThan(20);
+        // Should have many foreign key relationships
+        expect(fkConstraints.length).toBeGreaterThan(20);
 
-    // Group by foreign table to see what they reference
-    const foreignTables = [...new Set(fkConstraints.map(fk => fk.foreign_table_name))];
-    expect(foreignTables).toContain('database');
-    expect(foreignTables).toContain('schema');
-    expect(foreignTables).toContain('table');
+        // Group by foreign table to see what they reference
+        const foreignTables = [...new Set(fkConstraints.map(fk => fk.foreign_table_name))];
+        expect(foreignTables).toContain('database');
+        expect(foreignTables).toContain('schema');
+        expect(foreignTables).toContain('table');
 
-    expect(snapshot({ 
-      constraintCount: fkConstraints.length,
-      foreignTables: foreignTables.sort()
-    })).toMatchSnapshot();
-  });
+        expect(snapshot({ 
+          constraintCount: fkConstraints.length,
+          foreignTables: foreignTables.sort()
+        })).toMatchSnapshot();
+      },
+      30000
+    );
 
   it('should verify specific module table column defaults', async () => {
     // Check that modules have sensible defaults
@@ -257,4 +260,4 @@ describe('db_meta_modules', () => {
       usersDefaults
     })).toMatchSnapshot();
   });
-});            
+});                
