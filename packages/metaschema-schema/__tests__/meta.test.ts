@@ -127,14 +127,15 @@ describe('metaschema_schema functionality', () => {
 
   it('should create extension', async () => {
     const [extension] = await pg.any(
-      `INSERT INTO metaschema_public.extension (name, description) 
-       VALUES ($1, $2) 
+      `INSERT INTO metaschema_public.extension (name, public_schemas, private_schemas) 
+       VALUES ($1, $2, $3) 
        RETURNING *`,
-      ['pgcrypto', 'Cryptographic functions']
+      ['pgcrypto', ['crypto_public'], ['crypto_private']]
     );
     
     expect(extension.name).toBe('pgcrypto');
-    expect(extension.description).toBe('Cryptographic functions');
+    expect(extension.public_schemas).toEqual(['crypto_public']);
+    expect(extension.private_schemas).toEqual(['crypto_private']);
   });
 
   it('should associate extension with database', async () => {
@@ -148,20 +149,20 @@ describe('metaschema_schema functionality', () => {
     );
     
     const [extension] = await pg.any(
-      `INSERT INTO metaschema_public.extension (name, description) 
-       VALUES ($1, $2) 
+      `INSERT INTO metaschema_public.extension (name, public_schemas, private_schemas) 
+       VALUES ($1, $2, $3) 
        RETURNING *`,
-      ['uuid-ossp', 'UUID generation functions']
+      ['uuid-ossp', ['uuid_public'], ['uuid_private']]
     );
     
     const [dbExtension] = await pg.any(
-      `INSERT INTO metaschema_public.database_extension (database_id, extension_id) 
+      `INSERT INTO metaschema_public.database_extension (name, database_id) 
        VALUES ($1, $2) 
        RETURNING *`,
-      [database.id, extension.id]
+      [extension.name, database.id]
     );
     
     expect(dbExtension.database_id).toBe(database.id);
-    expect(dbExtension.extension_id).toBe(extension.id);
+    expect(dbExtension.name).toBe(extension.name);
   });
 });
