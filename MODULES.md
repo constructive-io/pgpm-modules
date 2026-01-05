@@ -35,8 +35,9 @@
 ## Meta & Database Introspection
 
 ### Database Metadata
-- [ ] `packages/meta/db-meta-schema` - Database metadata schema and utilities
-- [ ] `packages/meta/db-meta-modules` - Module metadata handling
+- [ ] `packages/metaschema-schema` - Database metadata schema and utilities
+- [ ] `packages/metaschema-modules` - Module metadata handling
+- [ ] `packages/services` - Services schemas for APIs, sites, and domains
 
 ## Security & Authentication
 
