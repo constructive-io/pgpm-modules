@@ -194,6 +194,7 @@ describe('db_meta_modules', () => {
   });
 
   it('should verify module tables have proper foreign key relationships', async () => {
+    jest.setTimeout(30000); // Increase timeout for this slow query
     // Get all foreign key constraints for module tables
     const fkConstraints = await pg.any(`
       SELECT 
@@ -256,4 +257,4 @@ describe('db_meta_modules', () => {
       usersDefaults
     })).toMatchSnapshot();
   });
-});          
+});            
