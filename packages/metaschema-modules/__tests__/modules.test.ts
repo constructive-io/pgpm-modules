@@ -29,6 +29,7 @@ describe('db_meta_modules', () => {
       'emails_module',
       'encrypted_secrets_module',
       'field_module',
+      'hierarchy_module',
       'invites_module',
       'levels_module',
       'limits_module',
@@ -36,6 +37,7 @@ describe('db_meta_modules', () => {
       'memberships_module',
       'permissions_module',
       'phone_numbers_module',
+      'profiles_module',
       'rls_module',
       'secrets_module',
       'tokens_module',
@@ -254,4 +256,4 @@ describe('db_meta_modules', () => {
       usersDefaults
     })).toMatchSnapshot();
   });
-});        
+});          
