@@ -44,11 +44,11 @@ describe('db_meta_modules', () => {
       'uuid_module'
     ];
 
-    // Query for all module tables in services_public schema
+    // Query for all module tables in metaschema_modules_public schema
     const moduleTables = await pg.any(`
       SELECT table_name 
       FROM information_schema.tables 
-      WHERE table_schema = 'services_public' 
+      WHERE table_schema = 'metaschema_modules_public' 
       AND table_name LIKE '%_module'
       ORDER BY table_name
     `);
@@ -71,7 +71,7 @@ describe('db_meta_modules', () => {
         is_nullable, 
         column_default
       FROM information_schema.columns 
-      WHERE table_schema = 'services_public' 
+      WHERE table_schema = 'metaschema_modules_public' 
       AND table_name = 'users_module'
       ORDER BY ordinal_position
     `);
@@ -96,7 +96,7 @@ describe('db_meta_modules', () => {
         is_nullable, 
         column_default
       FROM information_schema.columns 
-      WHERE table_schema = 'services_public' 
+      WHERE table_schema = 'metaschema_modules_public' 
       AND table_name = 'tokens_module'
       ORDER BY ordinal_position
     `);
@@ -121,7 +121,7 @@ describe('db_meta_modules', () => {
         is_nullable, 
         column_default
       FROM information_schema.columns 
-      WHERE table_schema = 'services_public' 
+      WHERE table_schema = 'metaschema_modules_public' 
       AND table_name = 'emails_module'
       ORDER BY ordinal_position
     `);
@@ -153,7 +153,7 @@ describe('db_meta_modules', () => {
         ON tc.constraint_name = kcu.constraint_name
       JOIN information_schema.constraint_column_usage AS ccu
         ON ccu.constraint_name = tc.constraint_name
-      WHERE tc.table_schema = 'services_public'
+      WHERE tc.table_schema = 'metaschema_modules_public'
         AND tc.table_name LIKE '%_module'
         AND tc.constraint_type = 'FOREIGN KEY'
         AND kcu.column_name = 'database_id'
@@ -174,11 +174,11 @@ describe('db_meta_modules', () => {
     expect(snapshot({ constraintCount: constraints.length })).toMatchSnapshot();
   });
 
-  it('should verify all module tables exist in services_public schema', async () => {
+  it('should verify all module tables exist in metaschema_modules_public schema', async () => {
     const tables = await pg.any(`
       SELECT table_name, table_type
       FROM information_schema.tables 
-      WHERE table_schema = 'services_public'
+      WHERE table_schema = 'metaschema_modules_public'
       ORDER BY table_name
     `);
 
@@ -204,7 +204,7 @@ describe('db_meta_modules', () => {
         ON tc.constraint_name = kcu.constraint_name
       JOIN information_schema.constraint_column_usage AS ccu
         ON ccu.constraint_name = tc.constraint_name
-      WHERE tc.table_schema = 'services_public'
+      WHERE tc.table_schema = 'metaschema_modules_public'
         AND tc.table_name LIKE '%_module'
         AND tc.constraint_type = 'FOREIGN KEY'
       ORDER BY tc.table_name, kcu.column_name
@@ -230,7 +230,7 @@ describe('db_meta_modules', () => {
     const tokensDefaults = await pg.any(`
       SELECT column_name, column_default
       FROM information_schema.columns 
-      WHERE table_schema = 'services_public' 
+      WHERE table_schema = 'metaschema_modules_public' 
       AND table_name = 'tokens_module'
       AND column_default IS NOT NULL
       ORDER BY column_name
@@ -239,7 +239,7 @@ describe('db_meta_modules', () => {
     const usersDefaults = await pg.any(`
       SELECT column_name, column_default
       FROM information_schema.columns 
-      WHERE table_schema = 'services_public' 
+      WHERE table_schema = 'metaschema_modules_public' 
       AND table_name = 'users_module'
       AND column_default IS NOT NULL
       ORDER BY column_name
@@ -254,4 +254,4 @@ describe('db_meta_modules', () => {
       usersDefaults
     })).toMatchSnapshot();
   });
-}); 
+});        
