@@ -3,7 +3,7 @@ import { getConnections, PgTestClient, snapshot } from 'pgsql-test';
 let pg: PgTestClient;
 let teardown: () => Promise<void>;
 
-describe('db_meta functionality', () => {
+describe('metaschema_schema functionality', () => {
   beforeAll(async () => {
     ({ pg, teardown } = await getConnections());
   });
@@ -14,7 +14,6 @@ describe('db_meta functionality', () => {
 
   beforeEach(async () => {
     await pg.beforeEach();
-    // Grant execute permissions for functions
     await pg.any(`GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO public`);
   });
 
@@ -22,172 +21,6 @@ describe('db_meta functionality', () => {
     await pg.afterEach();
   });
 
-  it('should handle complete meta workflow', async () => {
-    const objs: Record<string, any> = {
-      tables: {},
-      domains: {},
-      apis: {},
-      sites: {}
-    };
-
-    const owner_id = '07281002-1699-4762-57e3-ab1b92243120';
-
-    // Helper function for snapshots
-    const snap = (obj: any) => {
-      expect(snapshot(obj)).toMatchSnapshot();
-    };
-
-    // Helper function for snapshots with dbname normalization
-    const snapWithNormalizedDbname = (obj: any) => {
-      const normalized = {
-        ...obj,
-        dbname: 'test-database' // Replace dynamic dbname with static value
-      };
-      expect(snapshot(normalized)).toMatchSnapshot();
-    };
-
-    // Step 1: Create database
-    const [database] = await pg.any(
-      `INSERT INTO metaschema_public.database (owner_id, name) 
-       VALUES ($1, $2) 
-       RETURNING *`,
-      [owner_id, 'my-meta-db']
-    );
-    objs.db = database;
-    const database_id = database.id;
-    expect(snapshot(database)).toMatchSnapshot();
-
-    // Step 2: Create APIs first (since domains reference them)
-    const [publicApi] = await pg.any(
-      `INSERT INTO services_public.apis (database_id, name, role_name, anon_role) 
-       VALUES ($1, $2, $3, $4) 
-       RETURNING *`,
-      [database_id, 'public', 'authenticated', 'anonymous']
-    );
-    objs.apis.public = publicApi;
-    snapWithNormalizedDbname(publicApi);
-
-    const [adminApi] = await pg.any(
-      `INSERT INTO services_public.apis (database_id, name, role_name, anon_role) 
-       VALUES ($1, $2, $3, $4) 
-       RETURNING *`,
-      [database_id, 'admin', 'administrator', 'administrator']
-    );
-    objs.apis.admin = adminApi;
-    snapWithNormalizedDbname(adminApi);
-
-    // Step 3: Create sites
-    const [appSite] = await pg.any(
-      `INSERT INTO services_public.sites (database_id, title, description) 
-       VALUES ($1, $2, $3) 
-       RETURNING *`,
-      [database_id, 'Website Title', 'Website Description']
-    );
-    objs.sites.app = appSite;
-    snapWithNormalizedDbname(appSite);
-
-    // Step 4: Register domains (linking to APIs and sites)
-    const [apiDomain] = await pg.any(
-      `INSERT INTO services_public.domains (database_id, api_id, domain, subdomain) 
-       VALUES ($1, $2, $3, $4) 
-       RETURNING *`,
-      [database_id, objs.apis.public.id, 'pgpm.io', 'api']
-    );
-    objs.domains.api = apiDomain;
-    expect(snapshot(apiDomain)).toMatchSnapshot();
-
-    const [appDomain] = await pg.any(
-      `INSERT INTO services_public.domains (database_id, site_id, domain, subdomain) 
-       VALUES ($1, $2, $3, $4) 
-       RETURNING *`,
-      [database_id, objs.sites.app.id, 'pgpm.io', 'app']
-    );
-    objs.domains.app = appDomain;
-    expect(snapshot(appDomain)).toMatchSnapshot();
-
-    const [adminDomain] = await pg.any(
-      `INSERT INTO services_public.domains (database_id, api_id, domain, subdomain) 
-       VALUES ($1, $2, $3, $4) 
-       RETURNING *`,
-      [database_id, objs.apis.admin.id, 'pgpm.io', 'admin']
-    );
-    objs.domains.admin = adminDomain;
-    expect(snapshot(adminDomain)).toMatchSnapshot();
-
-    const [baseDomain] = await pg.any(
-      `INSERT INTO services_public.domains (database_id, domain) 
-       VALUES ($1, $2) 
-       RETURNING *`,
-      [database_id, 'pgpm.io']
-    );
-    objs.domains.base = baseDomain;
-
-    // Step 5: Register modules
-    const [siteModule1] = await pg.any(
-      `INSERT INTO services_public.site_modules (database_id, site_id, name, data) 
-       VALUES ($1, $2, $3, $4::jsonb) 
-       RETURNING *`,
-      [database_id, objs.sites.app.id, 'legal-emails', JSON.stringify({
-        supportEmail: 'support@interweb.co'
-      })]
-    );
-    expect(snapshot(siteModule1)).toMatchSnapshot();
-
-    const [apiModule] = await pg.any(
-      `INSERT INTO services_public.api_modules (database_id, api_id, name, data) 
-       VALUES ($1, $2, $3, $4::jsonb) 
-       RETURNING *`,
-      [database_id, objs.apis.public.id, 'rls_module', JSON.stringify({
-        authenticate_schema: 'services_private',
-        authenticate: 'authenticate'
-      })]
-    );
-    expect(snapshot(apiModule)).toMatchSnapshot();
-
-    const [siteModule2] = await pg.any(
-      `INSERT INTO services_public.site_modules (database_id, site_id, name, data) 
-       VALUES ($1, $2, $3, $4::jsonb) 
-       RETURNING *`,
-      [database_id, objs.sites.app.id, 'user_auth_module', JSON.stringify({
-        auth_schema: 'services_public',
-        sign_in: 'login',
-        sign_up: 'register',
-        set_password: 'set_password',
-        reset_password: 'reset_password',
-        forgot_password: 'forgot_password',
-        send_verification_email: 'send_verification_email',
-        verify_email: 'verify_email'
-      })]
-    );
-    expect(snapshot(siteModule2)).toMatchSnapshot();
-
-    // Step 6: Schema associations
-    const [schema] = await pg.any(
-      `INSERT INTO metaschema_public.schema (database_id, schema_name, name) 
-       VALUES ($1, $2, $3) 
-       RETURNING *`,
-      [database_id, 'brand-public', 'public']
-    );
-
-    const [publicAssoc] = await pg.any(
-      `INSERT INTO services_public.api_schemata (database_id, schema_id, api_id) 
-       VALUES ($1, $2, $3) 
-       RETURNING *`,
-      [database_id, schema.id, objs.apis.public.id]
-    );
-    
-    const [adminAssoc] = await pg.any(
-      `INSERT INTO services_public.api_schemata (database_id, schema_id, api_id) 
-       VALUES ($1, $2, $3) 
-       RETURNING *`,
-      [database_id, schema.id, objs.apis.admin.id]
-    );
-    
-    snap(publicAssoc);
-    snap(adminAssoc);
-  });
-
-  // Individual component tests
   it('should create database independently', async () => {
     const owner_id = '07281002-1699-4762-57e3-ab1b92243120';
     
@@ -203,27 +36,132 @@ describe('db_meta functionality', () => {
     expect(database.id).toBeDefined();
   });
 
-  it('should register domain independently', async () => {
+  it('should create schema for database', async () => {
     const owner_id = '07281002-1699-4762-57e3-ab1b92243120';
     
-    // Create database first
     const [database] = await pg.any(
       `INSERT INTO metaschema_public.database (owner_id, name) 
        VALUES ($1, $2) 
        RETURNING *`,
-      [owner_id, 'test-db-for-domain']
+      [owner_id, 'test-db-for-schema']
     );
     
-    // Then create domain
-    const [domain] = await pg.any(
-      `INSERT INTO services_public.domains (database_id, domain, subdomain) 
+    const [schema] = await pg.any(
+      `INSERT INTO metaschema_public.schema (database_id, schema_name, name) 
        VALUES ($1, $2, $3) 
        RETURNING *`,
-      [database.id, 'example.com', 'api']
+      [database.id, 'app_public', 'public']
     );
     
-    expect(domain.database_id).toBe(database.id);
-    expect(domain.domain).toBe('example.com');
-    expect(domain.subdomain).toBe('api');
+    expect(schema.database_id).toBe(database.id);
+    expect(schema.schema_name).toBe('app_public');
+    expect(schema.name).toBe('public');
+  });
+
+  it('should create table for schema', async () => {
+    const owner_id = '07281002-1699-4762-57e3-ab1b92243120';
+    
+    const [database] = await pg.any(
+      `INSERT INTO metaschema_public.database (owner_id, name) 
+       VALUES ($1, $2) 
+       RETURNING *`,
+      [owner_id, 'test-db-for-table']
+    );
+    
+    const [schema] = await pg.any(
+      `INSERT INTO metaschema_public.schema (database_id, schema_name, name) 
+       VALUES ($1, $2, $3) 
+       RETURNING *`,
+      [database.id, 'app_public', 'public']
+    );
+    
+    const [table] = await pg.any(
+      `INSERT INTO metaschema_public.table (database_id, schema_id, table_name, name) 
+       VALUES ($1, $2, $3, $4) 
+       RETURNING *`,
+      [database.id, schema.id, 'users', 'users']
+    );
+    
+    expect(table.database_id).toBe(database.id);
+    expect(table.schema_id).toBe(schema.id);
+    expect(table.table_name).toBe('users');
+    expect(table.name).toBe('users');
+  });
+
+  it('should create field for table', async () => {
+    const owner_id = '07281002-1699-4762-57e3-ab1b92243120';
+    
+    const [database] = await pg.any(
+      `INSERT INTO metaschema_public.database (owner_id, name) 
+       VALUES ($1, $2) 
+       RETURNING *`,
+      [owner_id, 'test-db-for-field']
+    );
+    
+    const [schema] = await pg.any(
+      `INSERT INTO metaschema_public.schema (database_id, schema_name, name) 
+       VALUES ($1, $2, $3) 
+       RETURNING *`,
+      [database.id, 'app_public', 'public']
+    );
+    
+    const [table] = await pg.any(
+      `INSERT INTO metaschema_public.table (database_id, schema_id, table_name, name) 
+       VALUES ($1, $2, $3, $4) 
+       RETURNING *`,
+      [database.id, schema.id, 'users', 'users']
+    );
+    
+    const [field] = await pg.any(
+      `INSERT INTO metaschema_public.field (table_id, field_name, name, type) 
+       VALUES ($1, $2, $3, $4) 
+       RETURNING *`,
+      [table.id, 'email', 'email', 'text']
+    );
+    
+    expect(field.table_id).toBe(table.id);
+    expect(field.field_name).toBe('email');
+    expect(field.name).toBe('email');
+    expect(field.type).toBe('text');
+  });
+
+  it('should create extension', async () => {
+    const [extension] = await pg.any(
+      `INSERT INTO metaschema_public.extension (name, description) 
+       VALUES ($1, $2) 
+       RETURNING *`,
+      ['pgcrypto', 'Cryptographic functions']
+    );
+    
+    expect(extension.name).toBe('pgcrypto');
+    expect(extension.description).toBe('Cryptographic functions');
+  });
+
+  it('should associate extension with database', async () => {
+    const owner_id = '07281002-1699-4762-57e3-ab1b92243120';
+    
+    const [database] = await pg.any(
+      `INSERT INTO metaschema_public.database (owner_id, name) 
+       VALUES ($1, $2) 
+       RETURNING *`,
+      [owner_id, 'test-db-for-extension']
+    );
+    
+    const [extension] = await pg.any(
+      `INSERT INTO metaschema_public.extension (name, description) 
+       VALUES ($1, $2) 
+       RETURNING *`,
+      ['uuid-ossp', 'UUID generation functions']
+    );
+    
+    const [dbExtension] = await pg.any(
+      `INSERT INTO metaschema_public.database_extension (database_id, extension_id) 
+       VALUES ($1, $2) 
+       RETURNING *`,
+      [database.id, extension.id]
+    );
+    
+    expect(dbExtension.database_id).toBe(database.id);
+    expect(dbExtension.extension_id).toBe(extension.id);
   });
 });
