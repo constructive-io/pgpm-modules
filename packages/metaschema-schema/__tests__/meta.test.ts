@@ -76,15 +76,14 @@ describe('metaschema_schema functionality', () => {
     );
     
     const [table] = await pg.any(
-      `INSERT INTO metaschema_public.table (database_id, schema_id, table_name, name) 
-       VALUES ($1, $2, $3, $4) 
+      `INSERT INTO metaschema_public.table (database_id, schema_id, name) 
+       VALUES ($1, $2, $3) 
        RETURNING *`,
-      [database.id, schema.id, 'users', 'users']
+      [database.id, schema.id, 'users']
     );
     
     expect(table.database_id).toBe(database.id);
     expect(table.schema_id).toBe(schema.id);
-    expect(table.table_name).toBe('users');
     expect(table.name).toBe('users');
   });
 
@@ -106,21 +105,20 @@ describe('metaschema_schema functionality', () => {
     );
     
     const [table] = await pg.any(
-      `INSERT INTO metaschema_public.table (database_id, schema_id, table_name, name) 
-       VALUES ($1, $2, $3, $4) 
+      `INSERT INTO metaschema_public.table (database_id, schema_id, name) 
+       VALUES ($1, $2, $3) 
        RETURNING *`,
-      [database.id, schema.id, 'users', 'users']
+      [database.id, schema.id, 'users']
     );
     
     const [field] = await pg.any(
-      `INSERT INTO metaschema_public.field (table_id, field_name, name, type) 
+      `INSERT INTO metaschema_public.field (database_id, table_id, name, type) 
        VALUES ($1, $2, $3, $4) 
        RETURNING *`,
-      [table.id, 'email', 'email', 'text']
+      [database.id, table.id, 'email', 'text']
     );
     
     expect(field.table_id).toBe(table.id);
-    expect(field.field_name).toBe('email');
     expect(field.name).toBe('email');
     expect(field.type).toBe('text');
   });
