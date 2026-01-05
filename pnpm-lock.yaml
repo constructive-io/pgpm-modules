@@ -219,9 +219,6 @@ importers:
       '@pgpm/inflection':
         specifier: workspace:*
         version: link:../inflection
-      '@pgpm/services':
-        specifier: workspace:*
-        version: link:../services
       '@pgpm/types':
         specifier: workspace:*
         version: link:../types
