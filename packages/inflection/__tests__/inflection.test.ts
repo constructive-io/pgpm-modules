@@ -154,7 +154,9 @@ describe('inflection', () => {
       { name: 'children', result: 'children' },
       { name: 'child', result: 'children' },
       { name: 'man', result: 'men' },
-      { name: 'men', result: 'men' }
+      { name: 'men', result: 'men' },
+      { name: 'regimens', result: 'regimens' },
+      { name: 'regimen', result: 'regimens' }
     ]
   );
 
@@ -175,7 +177,9 @@ describe('inflection', () => {
       { name: 'children', result: 'child' },
       { name: 'child', result: 'child' },
       { name: 'man', result: 'man' },
-      { name: 'men', result: 'man' }
+      { name: 'men', result: 'man' },
+      { name: 'regimens', result: 'regimen' },
+      { name: 'regimen', result: 'regimen' }
     ]
   );
 });
