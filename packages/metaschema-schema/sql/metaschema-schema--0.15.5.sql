@@ -224,7 +224,7 @@ CREATE INDEX field_database_id_idx ON metaschema_public.field (database_id);
 
 COMMENT ON COLUMN metaschema_public.field.default_value IS '@sqlExpression';
 
-CREATE UNIQUE INDEX databases_field_uniq_names_idx ON metaschema_public.field (table_id, (decode(md5(lower(regexp_replace(name, '^(.+?)(_row_id|_id|_uuid|_fk|_pk)$', E'\\1', 'i'))), 'hex')));
+CREATE UNIQUE INDEX databases_field_uniq_names_idx ON metaschema_public.field (table_id, (decode(md5(lower(CASE WHEN type = 'uuid' THEN regexp_replace(name, '^(.+?)(_row_id|_id|_uuid|_fk|_pk)$', E'\\1', 'i') ELSE name END)), 'hex')));
 
 CREATE TABLE metaschema_public.foreign_key_constraint (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
