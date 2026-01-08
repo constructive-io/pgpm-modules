@@ -167,14 +167,14 @@ describe('services functionality', () => {
     );
 
     const [publicAssoc] = await pg.any(
-      `INSERT INTO services_public.api_schemata (database_id, schema_id, api_id) 
+      `INSERT INTO services_public.api_schemas (database_id, schema_id, api_id) 
        VALUES ($1, $2, $3) 
        RETURNING *`,
       [database_id, schema.id, objs.apis.public.id]
     );
     
     const [adminAssoc] = await pg.any(
-      `INSERT INTO services_public.api_schemata (database_id, schema_id, api_id) 
+      `INSERT INTO services_public.api_schemas (database_id, schema_id, api_id) 
        VALUES ($1, $2, $3) 
        RETURNING *`,
       [database_id, schema.id, objs.apis.admin.id]

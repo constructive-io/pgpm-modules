@@ -113,7 +113,7 @@ Application-level metadata:
 - **apis**: API configurations
 - **api_extensions**: API extension relationships
 - **api_modules**: API module definitions
-- **api_schemata**: API schema configurations
+- **api_schemas**: API schema configurations
 - **sites**: Site definitions
 - **apps**: Application definitions
 - **domains**: Domain configurations
