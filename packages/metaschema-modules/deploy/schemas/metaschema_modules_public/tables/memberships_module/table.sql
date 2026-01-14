@@ -54,9 +54,6 @@ CREATE TABLE metaschema_modules_public.memberships_module (
     entity_ids_by_perm text NULL,
     entity_ids_function text NULL,
 
-    default_is_approved boolean NOT NULL DEFAULT TRUE,
-    default_is_verified boolean NOT NULL DEFAULT TRUE,
-
     -- 
      
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
