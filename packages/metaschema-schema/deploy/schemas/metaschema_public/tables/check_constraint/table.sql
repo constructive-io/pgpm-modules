@@ -3,6 +3,7 @@
 -- requires: schemas/metaschema_public/schema
 -- requires: schemas/metaschema_public/tables/database/table 
 -- requires: schemas/metaschema_public/tables/table/table 
+-- requires: schemas/metaschema_public/types/object_category
 
 BEGIN;
 
@@ -15,7 +16,14 @@ CREATE TABLE metaschema_public.check_constraint (
   type text,
   field_ids uuid[] NOT NULL,
   expr jsonb,
-  --
+
+  smart_tags jsonb,
+
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
+  module text NULL,
+  scope int NULL,
+
+  tags citext[] NOT NULL DEFAULT '{}',
 
   CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
   CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,

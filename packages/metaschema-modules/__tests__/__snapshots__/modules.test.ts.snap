@@ -16,13 +16,17 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "limits_module",
     "membership_types_module",
     "memberships_module",
+    "organization_settings_module",
     "permissions_module",
     "phone_numbers_module",
     "profiles_module",
     "rls_module",
     "secrets_module",
+    "table_module",
     "tokens_module",
     "user_auth_module",
+    "user_profiles_module",
+    "user_settings_module",
     "users_module",
     "uuid_module",
   ],
@@ -31,8 +35,8 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
-  "moduleTablesCount": 22,
-  "totalTables": 23,
+  "moduleTablesCount": 26,
+  "totalTables": 27,
 }
 `;
 
@@ -87,13 +91,13 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 57222,
+  "constraintCount": 78650,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 78690,
+  "constraintCount": 113921,
   "foreignTables": [
     "apis",
     "database",

@@ -2,6 +2,7 @@
 
 -- requires: schemas/metaschema_public/schema
 -- requires: schemas/metaschema_public/tables/table/table
+-- requires: schemas/metaschema_public/types/object_category
 
 BEGIN;
 
@@ -14,17 +15,19 @@ CREATE TABLE metaschema_public.policy (
   role_name text,
   privilege text,
 
-  -- using_expression text,
-  -- check_expression text,
-  -- policy_text text,
-
   permissive boolean default true,
   disabled boolean default false,
 
-  template text,
+  policy_type text,
   data jsonb,
 
-  --
+  smart_tags jsonb,
+
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
+  module text NULL,
+  scope int NULL,
+
+  tags citext[] NOT NULL DEFAULT '{}',
 
   CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
   CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
