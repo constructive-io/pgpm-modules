@@ -13,8 +13,8 @@ CREATE TABLE metaschema_modules_public.field_module (
     table_id uuid NOT NULL DEFAULT uuid_nil(),
     field_id uuid NOT NULL DEFAULT uuid_nil(),
 
-    -- data = '{"regexp":"^kjhsdkjhsd$"}'
-    -- data = '{"min":10, "max": 20}'
+    node_type text NOT NULL,
+
     data jsonb NOT NULL DEFAULT '{}',
 
     triggers text[],
@@ -32,6 +32,7 @@ COMMENT ON CONSTRAINT table_fkey ON metaschema_modules_public.field_module IS E'
 COMMENT ON CONSTRAINT field_fkey ON metaschema_modules_public.field_module IS E'@omit manyToMany';
 COMMENT ON CONSTRAINT db_fkey ON metaschema_modules_public.field_module IS E'@omit manyToMany';
 CREATE INDEX field_module_database_id_idx ON metaschema_modules_public.field_module ( database_id );
+CREATE INDEX field_module_node_type_idx ON metaschema_modules_public.field_module ( node_type );
 
 COMMIT;
 
