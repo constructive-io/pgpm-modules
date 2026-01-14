@@ -23,6 +23,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "rls_module",
     "secrets_module",
     "table_module",
+    "table_template_module",
     "tokens_module",
     "user_auth_module",
     "user_profiles_module",
@@ -35,8 +36,8 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
-  "moduleTablesCount": 26,
-  "totalTables": 27,
+  "moduleTablesCount": 27,
+  "totalTables": 28,
 }
 `;
 
@@ -91,13 +92,13 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 78650,
+  "constraintCount": 84672,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 113921,
+  "constraintCount": 124779,
   "foreignTables": [
     "apis",
     "database",
