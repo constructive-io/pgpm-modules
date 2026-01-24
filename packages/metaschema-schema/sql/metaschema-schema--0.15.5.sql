@@ -139,38 +139,6 @@ CREATE INDEX check_constraint_table_id_idx ON metaschema_public.check_constraint
 
 CREATE INDEX check_constraint_database_id_idx ON metaschema_public.check_constraint (database_id);
 
-CREATE TABLE metaschema_public.extension (
-  name text NOT NULL PRIMARY KEY,
-  public_schemas text[],
-  private_schemas text[]
-);
-
-INSERT INTO metaschema_public.extension (
-  name,
-  public_schemas,
-  private_schemas
-) VALUES
-  ('collections', ARRAY['metaschema_public'], ARRAY['metaschema_private']),
-  ('meta', ARRAY['services_public'], ARRAY['services_private']);
-
-CREATE TABLE metaschema_public.database_extension (
-  name text NOT NULL PRIMARY KEY,
-  database_id uuid NOT NULL,
-  CONSTRAINT ext_fkey
-    FOREIGN KEY(name)
-    REFERENCES metaschema_public.extension (name)
-    ON DELETE CASCADE,
-  CONSTRAINT db_fkey
-    FOREIGN KEY(database_id)
-    REFERENCES metaschema_public.database (id)
-    ON DELETE CASCADE,
-  UNIQUE (database_id, name)
-);
-
-COMMENT ON CONSTRAINT db_fkey ON metaschema_public.database_extension IS '@omit manyToMany';
-
-CREATE INDEX database_extension_database_id_idx ON metaschema_public.database_extension (database_id);
-
 CREATE FUNCTION metaschema_private.database_name_hash(name text) RETURNS bytea AS $EOFCODE$
   SELECT
     DECODE(MD5(LOWER(inflection.plural (name))), 'hex');

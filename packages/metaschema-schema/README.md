@@ -25,7 +25,6 @@ Database metadata utilities and introspection functions.
 - **Index Management**: Store and query index definitions
 - **Trigger and Procedure Metadata**: Track database functions and triggers
 - **RLS and Policy Information**: Store row-level security policies
-- **Extension Tracking**: Manage database extensions and their relationships
 - **API and Site Metadata**: Store API configurations and site information
 - **GraphQL Integration**: Smart tags and annotations for GraphQL schema generation
 
@@ -99,8 +98,6 @@ Stores database structure metadata:
 - **trigger**: Trigger definitions
 - **procedure**: Stored procedure definitions
 - **policy**: Row-level security policies
-- **extension**: PostgreSQL extensions
-- **database_extension**: Extension installations per database
 
 ### metaschema_private Schema
 
@@ -111,7 +108,6 @@ Private schema for internal metadata operations.
 Application-level metadata:
 
 - **apis**: API configurations
-- **api_extensions**: API extension relationships
 - **api_modules**: API module definitions
 - **api_schemas**: API schema configurations
 - **sites**: Site definitions
