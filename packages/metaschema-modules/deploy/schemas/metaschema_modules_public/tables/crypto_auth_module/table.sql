@@ -11,8 +11,10 @@ CREATE TABLE metaschema_modules_public.crypto_auth_module (
     schema_id uuid NOT NULL DEFAULT uuid_nil(),
 
     users_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    tokens_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    -- TOKENS_REMOVAL: tokens_table_id removed - crypto auth now uses sessions_module
     secrets_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    sessions_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    session_credentials_table_id uuid NOT NULL DEFAULT uuid_nil(),
     addresses_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     user_field text NOT NULL,
@@ -27,14 +29,18 @@ CREATE TABLE metaschema_modules_public.crypto_auth_module (
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
     CONSTRAINT secrets_table_fkey FOREIGN KEY (secrets_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT users_table_fkey FOREIGN KEY (users_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT tokens_table_fkey FOREIGN KEY (tokens_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    -- TOKENS_REMOVAL: tokens_table_fkey removed - crypto auth now uses sessions_module
+    CONSTRAINT sessions_table_fkey FOREIGN KEY (sessions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT session_credentials_table_fkey FOREIGN KEY (session_credentials_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE
 );
 
 COMMENT ON CONSTRAINT db_fkey ON metaschema_modules_public.crypto_auth_module IS E'@omit manyToMany';
 COMMENT ON CONSTRAINT secrets_table_fkey ON metaschema_modules_public.crypto_auth_module IS E'@omit manyToMany';
 COMMENT ON CONSTRAINT users_table_fkey ON metaschema_modules_public.crypto_auth_module IS E'@omit manyToMany';
-COMMENT ON CONSTRAINT tokens_table_fkey ON metaschema_modules_public.crypto_auth_module IS E'@omit manyToMany';
+-- TOKENS_REMOVAL: tokens_table_fkey comment removed
+COMMENT ON CONSTRAINT sessions_table_fkey ON metaschema_modules_public.crypto_auth_module IS E'@omit manyToMany';
+COMMENT ON CONSTRAINT session_credentials_table_fkey ON metaschema_modules_public.crypto_auth_module IS E'@omit manyToMany';
 COMMENT ON CONSTRAINT schema_fkey ON metaschema_modules_public.crypto_auth_module IS E'@omit manyToMany';
 CREATE INDEX crypto_auth_module_database_id_idx ON metaschema_modules_public.crypto_auth_module ( database_id );
 

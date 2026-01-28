@@ -13,7 +13,10 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
     users_table_id uuid NOT NULL DEFAULT uuid_nil(),
     secrets_table_id uuid NOT NULL DEFAULT uuid_nil(),
     encrypted_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    tokens_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    -- TOKENS_REMOVAL: tokens_table_id removed - all auth now uses sessions_module
+    -- SESSION_MIGRATION: sessions and session_credentials for session-centric auth
+    sessions_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    session_credentials_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     audits_table_id uuid NOT NULL DEFAULT uuid_nil(),
     audits_table_name text NOT NULL DEFAULT 'audit_logs',
@@ -47,7 +50,10 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
     CONSTRAINT users_table_fkey FOREIGN KEY (users_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT secrets_table_fkey FOREIGN KEY (secrets_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT encrypted_table_fkey FOREIGN KEY (encrypted_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT tokens_table_fkey FOREIGN KEY (tokens_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
+    -- TOKENS_REMOVAL: tokens_table_fkey removed - all auth now uses sessions_module
+    -- SESSION_MIGRATION: foreign keys for sessions and session_credentials
+    CONSTRAINT sessions_table_fkey FOREIGN KEY (sessions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT session_credentials_table_fkey FOREIGN KEY (session_credentials_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
 COMMENT ON CONSTRAINT schema_fkey ON metaschema_modules_public.user_auth_module IS E'@omit manyToMany';
@@ -62,7 +68,11 @@ COMMENT ON CONSTRAINT secrets_table_fkey
      ON metaschema_modules_public.user_auth_module IS E'@omit';
 COMMENT ON CONSTRAINT encrypted_table_fkey
      ON metaschema_modules_public.user_auth_module IS E'@omit';
-COMMENT ON CONSTRAINT tokens_table_fkey
+-- TOKENS_REMOVAL: tokens_table_fkey comment removed
+-- SESSION_MIGRATION: omit comments for sessions and session_credentials foreign keys
+COMMENT ON CONSTRAINT sessions_table_fkey
+     ON metaschema_modules_public.user_auth_module IS E'@omit';
+COMMENT ON CONSTRAINT session_credentials_table_fkey
      ON metaschema_modules_public.user_auth_module IS E'@omit';
 
 COMMIT;
