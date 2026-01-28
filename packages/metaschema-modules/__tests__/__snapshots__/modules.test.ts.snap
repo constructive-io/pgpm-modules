@@ -87,6 +87,67 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
 }
 `;
 
+exports[`db_meta_modules should verify field_module table structure 1`] = `
+{
+  "columns": [
+    {
+      "column_default": "uuid_generate_v4()",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": null,
+      "column_name": "database_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "private_schema_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "table_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "field_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": null,
+      "column_name": "node_type",
+      "data_type": "text",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "'{}'::jsonb",
+      "column_name": "data",
+      "data_type": "jsonb",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": null,
+      "column_name": "triggers",
+      "data_type": "ARRAY",
+      "is_nullable": "YES",
+    },
+    {
+      "column_default": null,
+      "column_name": "functions",
+      "data_type": "ARRAY",
+      "is_nullable": "YES",
+    },
+  ],
+}
+`;
+
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
   "constraintCount": 69984,
@@ -174,6 +235,116 @@ exports[`db_meta_modules should verify specific module table column defaults 1`]
     {
       "column_default": "'role_types'::text",
       "column_name": "type_table_name",
+    },
+  ],
+}
+`;
+
+exports[`db_meta_modules should verify table_module table structure 1`] = `
+{
+  "columns": [
+    {
+      "column_default": "uuid_generate_v4()",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": null,
+      "column_name": "database_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "private_schema_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": null,
+      "column_name": "table_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": null,
+      "column_name": "node_type",
+      "data_type": "text",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "'{}'::jsonb",
+      "column_name": "data",
+      "data_type": "jsonb",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": null,
+      "column_name": "fields",
+      "data_type": "ARRAY",
+      "is_nullable": "YES",
+    },
+  ],
+}
+`;
+
+exports[`db_meta_modules should verify table_template_module table structure 1`] = `
+{
+  "columns": [
+    {
+      "column_default": "uuid_generate_v4()",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": null,
+      "column_name": "database_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "schema_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "private_schema_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "table_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "owner_table_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": null,
+      "column_name": "table_name",
+      "data_type": "text",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": null,
+      "column_name": "node_type",
+      "data_type": "text",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "'{}'::jsonb",
+      "column_name": "data",
+      "data_type": "jsonb",
+      "is_nullable": "NO",
     },
   ],
 }
