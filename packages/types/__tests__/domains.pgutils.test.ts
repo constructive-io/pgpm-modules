@@ -1,7 +1,34 @@
 import { getConnections, PgTestClient } from 'pgsql-test';
 
-// With simplified validation, all text values are valid for url, hostname, attachment, email
-// Only structural checks remain: image requires 'url' key, upload requires 'url' OR 'id' OR 'key'
+// Validation rules:
+// - url/origin: lenient regex ^https?://[^\s]+$ (must start with http/https, no whitespace)
+// - hostname, attachment, email: no validation (plain text)
+// - image: jsonb requiring 'url' key
+// - upload: jsonb requiring 'url' OR 'id' OR 'key'
+
+const validUrls = [
+  'http://foo.com/blah_blah',
+  'http://foo.com/blah_blah/',
+  'http://foo.com/blah_blah_(wikipedia)',
+  'http://www.example.com/wpstyle/?p=364',
+  'https://www.example.com/foo/?bar=baz&inga=42&quux',
+  'http://foo.com/blah_(wikipedia)#cite-1',
+  'http://foo.com/(something)?after=parens',
+  'http://code.google.com/events/#&product=browser',
+  'http://j.mp',
+  'http://foo.bar/?q=Test%20URL-encoded%20stuff',
+  'http://1337.net',
+  'http://a.b-c.de',
+  'https://foo_bar.example.com/'
+];
+
+const invalidUrls = [
+  'foo.com',
+  'ftp://foo.bar/',
+  'not-a-url',
+  'random text with spaces',
+  '//missing-protocol.com'
+];
 
 const validImages = [
   { url: 'http://www.foo.bar/some.jpg' },
@@ -61,17 +88,22 @@ afterAll(async () => {
 });
 
 describe('types', () => {
-  describe('url domain (plain text, no validation)', () => {
-    it('accepts any text value', async () => {
-      const values = [
-        'http://foo.com/blah',
-        'https://example.com',
-        'not-a-url',
-        'ftp://something',
-        'random text'
-      ];
-      for (const value of values) {
+  describe('url domain (lenient regex: ^https?://[^\\s]+$)', () => {
+    it('accepts valid URLs', async () => {
+      for (const value of validUrls) {
         await pg.any(`INSERT INTO customers (url) VALUES ($1);`, [value]);
+      }
+    });
+
+    it('rejects invalid URLs', async () => {
+      for (const value of invalidUrls) {
+        let failed = false;
+        try {
+          await pg.any(`INSERT INTO customers (url) VALUES ($1);`, [value]);
+        } catch (e) {
+          failed = true;
+        }
+        expect(failed).toBe(true);
       }
     });
   });

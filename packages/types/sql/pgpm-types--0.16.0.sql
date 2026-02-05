@@ -16,7 +16,8 @@ CREATE DOMAIN image AS jsonb
 
 COMMENT ON DOMAIN image IS '@name constructiveInternalTypeImage';
 
-CREATE DOMAIN origin AS text;
+CREATE DOMAIN origin AS text 
+  CHECK (value ~ E'^https?://[^\\s]+$');
 
 COMMENT ON DOMAIN origin IS '@name constructiveInternalTypeOrigin';
 
@@ -29,6 +30,7 @@ CREATE DOMAIN upload AS jsonb
 
 COMMENT ON DOMAIN upload IS '@name constructiveInternalTypeUpload';
 
-CREATE DOMAIN url AS text;
+CREATE DOMAIN url AS text 
+  CHECK (value ~ E'^https?://[^\\s]+$');
 
 COMMENT ON DOMAIN url IS '@name constructiveInternalTypeUrl';
