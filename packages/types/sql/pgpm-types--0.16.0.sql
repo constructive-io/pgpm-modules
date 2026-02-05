@@ -16,11 +16,7 @@ CREATE DOMAIN image AS jsonb
 
 COMMENT ON DOMAIN image IS '@name constructiveInternalTypeImage';
 
-CREATE DOMAIN origin AS text 
-  CHECK (
-  value LIKE 'http://%'
-    OR value LIKE 'https://%'
-);
+CREATE DOMAIN origin AS text;
 
 COMMENT ON DOMAIN origin IS '@name constructiveInternalTypeOrigin';
 
@@ -33,10 +29,6 @@ CREATE DOMAIN upload AS jsonb
 
 COMMENT ON DOMAIN upload IS '@name constructiveInternalTypeUpload';
 
-CREATE DOMAIN url AS text 
-  CHECK (
-  value LIKE 'http://%'
-    OR value LIKE 'https://%'
-);
+CREATE DOMAIN url AS text;
 
 COMMENT ON DOMAIN url IS '@name constructiveInternalTypeUrl';
