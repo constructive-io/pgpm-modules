@@ -1,7 +1,8 @@
 import { getConnections, PgTestClient } from 'pgsql-test';
 
 // Validation rules:
-// - url/origin: lenient regex ^https?://[^\s]+$ (must start with http/https, no whitespace)
+// - url: lenient regex ^https?://[^\s]+$ (must start with http/https, no whitespace, paths allowed)
+// - origin: strict regex ^https?://[^/\s]+$ (protocol + host only, no paths for CORS security)
 // - hostname, attachment, email: no validation (plain text)
 // - image: jsonb requiring 'url' key
 // - upload: jsonb requiring 'url' OR 'id' OR 'key'
@@ -28,6 +29,28 @@ const invalidUrls = [
   'not-a-url',
   'random text with spaces',
   '//missing-protocol.com'
+];
+
+// Valid origins: protocol + host only (no paths)
+const validOrigins = [
+  'http://example.com',
+  'https://example.com',
+  'http://localhost:3000',
+  'https://api.example.com:8080',
+  'http://192.168.1.1',
+  'https://foo_bar.example.com'
+];
+
+// Invalid origins: paths, query strings, fragments, or non-http protocols
+const invalidOrigins = [
+  'https://example.com/',
+  'https://example.com/path',
+  'https://example.com/malicious/path',
+  'https://example.com?query=1',
+  'https://example.com#fragment',
+  'ftp://example.com',
+  'foo.com',
+  'not-an-origin'
 ];
 
 const validImages = [
@@ -66,6 +89,7 @@ beforeAll(async () => {
 CREATE TABLE customers (
   id serial,
   url url,
+  origin origin,
   image image,
   attachment attachment,
   domain hostname,
@@ -100,6 +124,26 @@ describe('types', () => {
         let failed = false;
         try {
           await pg.any(`INSERT INTO customers (url) VALUES ($1);`, [value]);
+        } catch (e) {
+          failed = true;
+        }
+        expect(failed).toBe(true);
+      }
+    });
+  });
+
+  describe('origin domain (strict regex: ^https?://[^/\\s]+$ - no paths)', () => {
+    it('accepts valid origins (protocol + host only)', async () => {
+      for (const value of validOrigins) {
+        await pg.any(`INSERT INTO customers (origin) VALUES ($1);`, [value]);
+      }
+    });
+
+    it('rejects origins with paths, query strings, or invalid protocols', async () => {
+      for (const value of invalidOrigins) {
+        let failed = false;
+        try {
+          await pg.any(`INSERT INTO customers (origin) VALUES ($1);`, [value]);
         } catch (e) {
           failed = true;
         }

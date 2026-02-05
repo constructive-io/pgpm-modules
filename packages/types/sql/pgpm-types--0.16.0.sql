@@ -17,7 +17,7 @@ CREATE DOMAIN image AS jsonb
 COMMENT ON DOMAIN image IS '@name constructiveInternalTypeImage';
 
 CREATE DOMAIN origin AS text 
-  CHECK (value ~ E'^https?://[^\\s]+$');
+  CHECK (value ~ E'^https?://[^/\\s]+$');
 
 COMMENT ON DOMAIN origin IS '@name constructiveInternalTypeOrigin';
 
