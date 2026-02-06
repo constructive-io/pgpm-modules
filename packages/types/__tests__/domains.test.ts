@@ -6,7 +6,7 @@ import { getConnections, PgTestClient } from 'pgsql-test';
 // - attachment: lenient regex ^https?://[^\s]+$ (same as url)
 // - hostname: no whitespace (^[^\s]+$)
 // - email: must contain @ (value ~ '@')
-// - image: jsonb object requiring 'url' key with http/https validation, optional bucket/provider/mime (all strings)
+// - image: jsonb object requiring 'url' OR 'id' OR 'key', with type validation, optional bucket/provider/mime/versions (versions is array)
 // - upload: jsonb object requiring 'url' OR 'id' OR 'key', with type validation on all fields, optional bucket/provider/mime
 
 const validUrls = [
@@ -62,18 +62,25 @@ const validImages = [
   { url: 'https://example.com/image.png', bucket: 'my-bucket' },
   { url: 'https://example.com/image.png', provider: 's3' },
   { url: 'https://example.com/image.png', mime: 'image/png' },
-  { url: 'https://example.com/image.png', bucket: 'my-bucket', provider: 's3', mime: 'image/jpeg' }
+  { url: 'https://example.com/image.png', bucket: 'my-bucket', provider: 's3', mime: 'image/jpeg' },
+  { id: 'some-image-id' },
+  { key: 'some-image-key' },
+  { id: 'private-image', bucket: 'my-bucket', provider: 's3' },
+  { url: 'https://example.com/image.png', versions: ['thumb', 'medium', 'large'] },
+  { id: 'image-with-versions', versions: [{ size: 'thumb' }, { size: 'large' }] }
 ];
 
 const invalidImages = [
-  { notUrl: 'missing url key' },
-  { id: 'has id but not url' },
+  { notUrl: 'missing required keys' },
+  { mime: 'only mime, no url/id/key' },
   { url: 'not-a-valid-url' },
   { url: 'ftp://wrong-protocol.com/image.png' },
-  { url: 123 },
+  { id: 123 },
+  { key: true },
   { url: 'https://example.com/image.png', bucket: 123 },
   { url: 'https://example.com/image.png', provider: true },
   { url: 'https://example.com/image.png', mime: ['array'] },
+  { url: 'https://example.com/image.png', versions: 'not-an-array' },
   'not-an-object',
   ['array-not-object']
 ];
@@ -271,14 +278,14 @@ describe('types', () => {
     });
   });
 
-  describe('image domain (jsonb requiring url key)', () => {
-    it('accepts valid images with url key', async () => {
+  describe('image domain (jsonb requiring url OR id OR key, optional versions array)', () => {
+    it('accepts valid images with url, id, or key', async () => {
       for (const image of validImages) {
         await pg.any(`INSERT INTO customers (image) VALUES ($1::json);`, [image]);
       }
     });
 
-    it('rejects images without url key', async () => {
+    it('rejects invalid images', async () => {
       for (const image of invalidImages) {
         let failed = false;
         try {
