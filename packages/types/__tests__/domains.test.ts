@@ -3,9 +3,10 @@ import { getConnections, PgTestClient } from 'pgsql-test';
 // Validation rules:
 // - url: lenient regex ^https?://[^\s]+$ (must start with http/https, no whitespace, paths allowed)
 // - origin: strict regex ^https?://[^/\s]+$ (protocol + host only, no paths for CORS security)
-// - hostname, attachment, email: no validation (plain text)
-// - image: jsonb requiring 'url' key
-// - upload: jsonb requiring 'url' OR 'id' OR 'key'
+// - attachment: lenient regex ^https?://[^\s]+$ (same as url)
+// - hostname, email: no validation (plain text)
+// - image: jsonb requiring 'url' key with http/https validation on url value
+// - upload: jsonb requiring 'url' OR 'id' OR 'key', with http/https validation on url value when present
 
 const validUrls = [
   'http://foo.com/blah_blah',
@@ -56,12 +57,14 @@ const invalidOrigins = [
 const validImages = [
   { url: 'http://www.foo.bar/some.jpg' },
   { url: 'https://foo.bar/some.PNG' },
-  { url: 'any-string-is-fine' }
+  { url: 'https://example.com/path/to/image.png' }
 ];
 
 const invalidImages = [
   { notUrl: 'missing url key' },
-  { id: 'has id but not url' }
+  { id: 'has id but not url' },
+  { url: 'not-a-valid-url' },
+  { url: 'ftp://wrong-protocol.com/image.png' }
 ];
 
 const validUploads = [
@@ -69,12 +72,14 @@ const validUploads = [
   { url: 'https://foo.bar/some.PNG' },
   { id: 'some-id' },
   { key: 'some-key' },
-  { url: 'any-string', id: 'with-id' }
+  { url: 'https://example.com/file.pdf', id: 'with-id' }
 ];
 
 const invalidUploads = [
   { notUrl: 'missing required keys' },
-  { mime: 'only mime, no url/id/key' }
+  { mime: 'only mime, no url/id/key' },
+  { url: 'not-a-valid-url' },
+  { url: 'ftp://wrong-protocol.com/file.pdf' }
 ];
 
 let pg: PgTestClient;
@@ -166,16 +171,32 @@ describe('types', () => {
     });
   });
 
-  describe('attachment domain (plain text, no validation)', () => {
-    it('accepts any text value', async () => {
+  describe('attachment domain (lenient regex: ^https?://[^\\s]+$)', () => {
+    it('accepts valid URLs', async () => {
       const values = [
         'http://www.foo.bar/some.jpg',
         'https://foo.bar/some.PNG',
-        'not-a-url',
-        'random text'
+        'https://example.com/path/to/file.pdf'
       ];
       for (const value of values) {
         await pg.any(`INSERT INTO customers (attachment) VALUES ($1);`, [value]);
+      }
+    });
+
+    it('rejects invalid URLs', async () => {
+      const invalidValues = [
+        'not-a-url',
+        'ftp://wrong-protocol.com/file.pdf',
+        'random text with spaces'
+      ];
+      for (const value of invalidValues) {
+        let failed = false;
+        try {
+          await pg.any(`INSERT INTO customers (attachment) VALUES ($1);`, [value]);
+        } catch (e) {
+          failed = true;
+        }
+        expect(failed).toBe(true);
       }
     });
   });

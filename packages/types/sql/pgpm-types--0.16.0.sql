@@ -1,5 +1,6 @@
 \echo Use "CREATE EXTENSION pgpm-types" to load this file. \quit
-CREATE DOMAIN attachment AS text;
+CREATE DOMAIN attachment AS text 
+  CHECK (value ~ E'^https?://[^\\s]+$');
 
 COMMENT ON DOMAIN attachment IS '@name constructiveInternalTypeAttachment';
 
@@ -12,7 +13,10 @@ CREATE DOMAIN hostname AS text;
 COMMENT ON DOMAIN hostname IS '@name constructiveInternalTypeHostname';
 
 CREATE DOMAIN image AS jsonb 
-  CHECK (value ? 'url');
+  CHECK (
+  value ? 'url'
+    AND (value ->> 'url') ~ E'^https?://[^\\s]+$'
+);
 
 COMMENT ON DOMAIN image IS '@name constructiveInternalTypeImage';
 
@@ -23,9 +27,11 @@ COMMENT ON DOMAIN origin IS '@name constructiveInternalTypeOrigin';
 
 CREATE DOMAIN upload AS jsonb 
   CHECK (
-  value ? 'url'
+  (value ? 'url'
     OR value ? 'id'
-    OR value ? 'key'
+    OR value ? 'key')
+    AND (NOT (value ? 'url')
+    OR (value ->> 'url') ~ E'^https?://[^\\s]+$')
 );
 
 COMMENT ON DOMAIN upload IS '@name constructiveInternalTypeUpload';
