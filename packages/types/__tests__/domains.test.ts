@@ -4,9 +4,10 @@ import { getConnections, PgTestClient } from 'pgsql-test';
 // - url: lenient regex ^https?://[^\s]+$ (must start with http/https, no whitespace, paths allowed)
 // - origin: strict regex ^https?://[^/\s]+$ (protocol + host only, no paths for CORS security)
 // - attachment: lenient regex ^https?://[^\s]+$ (same as url)
-// - hostname, email: no validation (plain text)
-// - image: jsonb requiring 'url' key with http/https validation on url value
-// - upload: jsonb requiring 'url' OR 'id' OR 'key', with http/https validation on url value when present
+// - hostname: no whitespace (^[^\s]+$)
+// - email: must contain @ (value ~ '@')
+// - image: jsonb object requiring 'url' key with http/https validation, optional bucket/provider/mime (all strings)
+// - upload: jsonb object requiring 'url' OR 'id' OR 'key', with type validation on all fields, optional bucket/provider/mime
 
 const validUrls = [
   'http://foo.com/blah_blah',
@@ -57,14 +58,24 @@ const invalidOrigins = [
 const validImages = [
   { url: 'http://www.foo.bar/some.jpg' },
   { url: 'https://foo.bar/some.PNG' },
-  { url: 'https://example.com/path/to/image.png' }
+  { url: 'https://example.com/path/to/image.png' },
+  { url: 'https://example.com/image.png', bucket: 'my-bucket' },
+  { url: 'https://example.com/image.png', provider: 's3' },
+  { url: 'https://example.com/image.png', mime: 'image/png' },
+  { url: 'https://example.com/image.png', bucket: 'my-bucket', provider: 's3', mime: 'image/jpeg' }
 ];
 
 const invalidImages = [
   { notUrl: 'missing url key' },
   { id: 'has id but not url' },
   { url: 'not-a-valid-url' },
-  { url: 'ftp://wrong-protocol.com/image.png' }
+  { url: 'ftp://wrong-protocol.com/image.png' },
+  { url: 123 },
+  { url: 'https://example.com/image.png', bucket: 123 },
+  { url: 'https://example.com/image.png', provider: true },
+  { url: 'https://example.com/image.png', mime: ['array'] },
+  'not-an-object',
+  ['array-not-object']
 ];
 
 const validUploads = [
@@ -72,14 +83,24 @@ const validUploads = [
   { url: 'https://foo.bar/some.PNG' },
   { id: 'some-id' },
   { key: 'some-key' },
-  { url: 'https://example.com/file.pdf', id: 'with-id' }
+  { url: 'https://example.com/file.pdf', id: 'with-id' },
+  { id: 'some-id', bucket: 'my-bucket', provider: 's3' },
+  { key: 'some-key', mime: 'application/pdf' },
+  { url: 'https://example.com/file.pdf', bucket: 'bucket', provider: 'gcs', mime: 'application/pdf' }
 ];
 
 const invalidUploads = [
   { notUrl: 'missing required keys' },
   { mime: 'only mime, no url/id/key' },
   { url: 'not-a-valid-url' },
-  { url: 'ftp://wrong-protocol.com/file.pdf' }
+  { url: 'ftp://wrong-protocol.com/file.pdf' },
+  { id: 123 },
+  { key: true },
+  { url: 'https://example.com/file.pdf', bucket: 123 },
+  { url: 'https://example.com/file.pdf', provider: ['array'] },
+  { id: 'some-id', mime: { nested: 'object' } },
+  'not-an-object',
+  ['array-not-object']
 ];
 
 let pg: PgTestClient;
@@ -157,16 +178,34 @@ describe('types', () => {
     });
   });
 
-  describe('hostname domain (plain text, no validation)', () => {
-    it('accepts any text value', async () => {
+  describe('hostname domain (no whitespace: ^[^\\s]+$)', () => {
+    it('accepts values without whitespace', async () => {
       const values = [
         'google.com',
         'www.example.com',
         'not-a-hostname',
-        'http://with-protocol.com'
+        'http://with-protocol.com',
+        'anything-without-spaces'
       ];
       for (const value of values) {
         await pg.any(`INSERT INTO customers (domain) VALUES ($1);`, [value]);
+      }
+    });
+
+    it('rejects values with whitespace', async () => {
+      const invalidValues = [
+        'has spaces',
+        'has\ttab',
+        'has\nnewline'
+      ];
+      for (const value of invalidValues) {
+        let failed = false;
+        try {
+          await pg.any(`INSERT INTO customers (domain) VALUES ($1);`, [value]);
+        } catch (e) {
+          failed = true;
+        }
+        expect(failed).toBe(true);
       }
     });
   });
@@ -201,13 +240,34 @@ describe('types', () => {
     });
   });
 
-  describe('email domain (citext, no validation)', () => {
-    it('accepts any text value', async () => {
-      await pg.any(`
-      INSERT INTO customers (email) VALUES
-      ('d@google.com'),
-      ('not-an-email'),
-      ('random text')`);
+  describe('email domain (must contain @)', () => {
+    it('accepts values containing @', async () => {
+      const values = [
+        'd@google.com',
+        'user@example.org',
+        'test@localhost',
+        'weird@but@valid'
+      ];
+      for (const value of values) {
+        await pg.any(`INSERT INTO customers (email) VALUES ($1);`, [value]);
+      }
+    });
+
+    it('rejects values without @', async () => {
+      const invalidValues = [
+        'not-an-email',
+        'random text',
+        'missing.at.sign'
+      ];
+      for (const value of invalidValues) {
+        let failed = false;
+        try {
+          await pg.any(`INSERT INTO customers (email) VALUES ($1);`, [value]);
+        } catch (e) {
+          failed = true;
+        }
+        expect(failed).toBe(true);
+      }
     });
   });
 
