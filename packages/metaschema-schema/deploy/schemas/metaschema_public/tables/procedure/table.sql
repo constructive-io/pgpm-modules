@@ -12,6 +12,9 @@ CREATE TABLE metaschema_public.procedure (
 
   name text NOT NULL,
 
+  -- MAYBE MAKE A SPECIAL RLS functions for policy making...
+
+  -- can we make this all JSON?
   argnames text[],
   argtypes text[],
   argdefaults text[],

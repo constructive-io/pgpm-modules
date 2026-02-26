@@ -25,18 +25,16 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA metaschema_public
 ALTER DEFAULT PRIVILEGES IN SCHEMA metaschema_public
   GRANT ALL ON FUNCTIONS TO authenticated;
 
+CREATE TYPE metaschema_public.object_category AS ENUM ('core', 'module', 'app');
+
 CREATE TABLE metaschema_public.database (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id uuid,
   schema_hash text,
-  schema_name text,
-  private_schema_name text,
   name text,
   label text,
   hash uuid,
-  UNIQUE (schema_hash),
-  UNIQUE (schema_name),
-  UNIQUE (private_schema_name)
+  UNIQUE (schema_hash)
 );
 
 ALTER TABLE metaschema_public.database 
@@ -52,6 +50,12 @@ CREATE TABLE metaschema_public.schema (
   schema_name text NOT NULL,
   label text,
   description text,
+  smart_tags jsonb,
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
+  module text NULL,
+  scope int NULL,
+  tags citext[] NOT NULL DEFAULT '{}',
+  is_public boolean NOT NULL DEFAULT true,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -68,8 +72,6 @@ COMMENT ON CONSTRAINT db_fkey ON metaschema_public.schema IS '@omit manyToMany';
 
 CREATE INDEX schema_database_id_idx ON metaschema_public.schema (database_id);
 
-CREATE TYPE metaschema_public.table_category AS ENUM ('core', 'module', 'app');
-
 CREATE TABLE metaschema_public."table" (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   database_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -78,7 +80,7 @@ CREATE TABLE metaschema_public."table" (
   label text,
   description text,
   smart_tags jsonb,
-  category metaschema_public.table_category NOT NULL DEFAULT 'app',
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
   module text NULL,
   scope int NULL,
   use_rls boolean NOT NULL DEFAULT false,
@@ -119,6 +121,11 @@ CREATE TABLE metaschema_public.check_constraint (
   type text,
   field_ids uuid[] NOT NULL,
   expr jsonb,
+  smart_tags jsonb,
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
+  module text NULL,
+  scope int NULL,
+  tags citext[] NOT NULL DEFAULT '{}',
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -146,8 +153,6 @@ $EOFCODE$ LANGUAGE sql IMMUTABLE;
 
 CREATE UNIQUE INDEX databases_database_unique_name_idx ON metaschema_public.database (owner_id, (metaschema_private.database_name_hash(name)));
 
-CREATE TYPE metaschema_public.field_category AS ENUM ('core', 'module', 'app');
-
 CREATE TABLE metaschema_public.field (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   database_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -168,7 +173,7 @@ CREATE TABLE metaschema_public.field (
   min double precision DEFAULT NULL,
   max double precision DEFAULT NULL,
   tags citext[] NOT NULL DEFAULT '{}',
-  category metaschema_public.field_category NOT NULL DEFAULT 'app',
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
   module text NULL,
   scope int NULL,
   CONSTRAINT db_fkey
@@ -192,7 +197,10 @@ CREATE INDEX field_database_id_idx ON metaschema_public.field (database_id);
 
 COMMENT ON COLUMN metaschema_public.field.default_value IS '@sqlExpression';
 
-CREATE UNIQUE INDEX databases_field_uniq_names_idx ON metaschema_public.field (table_id, (decode(md5(lower(CASE WHEN type = 'uuid' THEN regexp_replace(name, '^(.+?)(_row_id|_id|_uuid|_fk|_pk)$', E'\\1', 'i') ELSE name END)), 'hex')));
+CREATE UNIQUE INDEX databases_field_uniq_names_idx ON metaschema_public.field (table_id, (decode(md5(lower(CASE 
+  WHEN type = 'uuid' THEN regexp_replace(name, '^(.+?)(_row_id|_id|_uuid|_fk|_pk)$', E'\\1', 'i') 
+  ELSE name 
+END)), 'hex')));
 
 CREATE TABLE metaschema_public.foreign_key_constraint (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -208,6 +216,10 @@ CREATE TABLE metaschema_public.foreign_key_constraint (
   ref_field_ids uuid[] NOT NULL,
   delete_action char(1) DEFAULT 'c',
   update_action char(1) DEFAULT 'a',
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
+  module text NULL,
+  scope int NULL,
+  tags citext[] NOT NULL DEFAULT '{}',
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -270,6 +282,11 @@ CREATE TABLE metaschema_public.index (
   index_params jsonb,
   where_clause jsonb,
   is_unique boolean NOT NULL DEFAULT false,
+  smart_tags jsonb,
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
+  module text NULL,
+  scope int NULL,
+  tags citext[] NOT NULL DEFAULT '{}',
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -326,8 +343,13 @@ CREATE TABLE metaschema_public.policy (
   privilege text,
   permissive boolean DEFAULT true,
   disabled boolean DEFAULT false,
-  template text,
+  policy_type text,
   data jsonb,
+  smart_tags jsonb,
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
+  module text NULL,
+  scope int NULL,
+  tags citext[] NOT NULL DEFAULT '{}',
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -354,6 +376,11 @@ CREATE TABLE metaschema_public.primary_key_constraint (
   name text,
   type text,
   field_ids uuid[] NOT NULL,
+  smart_tags jsonb,
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
+  module text NULL,
+  scope int NULL,
+  tags citext[] NOT NULL DEFAULT '{}',
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -383,6 +410,11 @@ CREATE TABLE metaschema_public.procedure (
   argdefaults text[],
   lang_name text,
   definition text,
+  smart_tags jsonb,
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
+  module text NULL,
+  scope int NULL,
+  tags citext[] NOT NULL DEFAULT '{}',
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -393,35 +425,6 @@ CREATE TABLE metaschema_public.procedure (
 COMMENT ON CONSTRAINT db_fkey ON metaschema_public.procedure IS '@omit manyToMany';
 
 CREATE INDEX procedure_database_id_idx ON metaschema_public.procedure (database_id);
-
-CREATE TABLE metaschema_public.rls_function (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  database_id uuid NOT NULL DEFAULT uuid_nil(),
-  table_id uuid NOT NULL,
-  name text,
-  label text,
-  description text,
-  data jsonb,
-  inline boolean DEFAULT false,
-  security int DEFAULT 0,
-  CONSTRAINT db_fkey
-    FOREIGN KEY(database_id)
-    REFERENCES metaschema_public.database (id)
-    ON DELETE CASCADE,
-  CONSTRAINT table_fkey
-    FOREIGN KEY(table_id)
-    REFERENCES metaschema_public."table" (id)
-    ON DELETE CASCADE,
-  UNIQUE (database_id, name)
-);
-
-COMMENT ON CONSTRAINT db_fkey ON metaschema_public.rls_function IS '@omit manyToMany';
-
-COMMENT ON CONSTRAINT table_fkey ON metaschema_public.rls_function IS '@omit manyToMany';
-
-CREATE INDEX rls_function_table_id_idx ON metaschema_public.rls_function (table_id);
-
-CREATE INDEX rls_function_database_id_idx ON metaschema_public.rls_function (database_id);
 
 CREATE TABLE metaschema_public.schema_grant (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -501,6 +504,11 @@ CREATE TABLE metaschema_public.trigger (
   name text NOT NULL,
   event text,
   function_name text,
+  smart_tags jsonb,
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
+  module text NULL,
+  scope int NULL,
+  tags citext[] NOT NULL DEFAULT '{}',
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -529,6 +537,10 @@ CREATE TABLE metaschema_public.unique_constraint (
   smart_tags jsonb,
   type text,
   field_ids uuid[] NOT NULL,
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
+  module text NULL,
+  scope int NULL,
+  tags citext[] NOT NULL DEFAULT '{}',
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)

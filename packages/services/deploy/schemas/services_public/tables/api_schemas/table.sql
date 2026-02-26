@@ -18,6 +18,12 @@ CREATE TABLE services_public.api_schemas (
   unique(api_id, schema_id)
 );
 
+COMMENT ON TABLE services_public.api_schemas IS 'Join table linking APIs to the database schemas they expose; controls which schemas are accessible through each API';
+COMMENT ON COLUMN services_public.api_schemas.id IS 'Unique identifier for this API-schema mapping';
+COMMENT ON COLUMN services_public.api_schemas.database_id IS 'Reference to the metaschema database';
+COMMENT ON COLUMN services_public.api_schemas.schema_id IS 'Metaschema schema being exposed through the API';
+COMMENT ON COLUMN services_public.api_schemas.api_id IS 'API that exposes this schema';
+
 -- COMMENT ON CONSTRAINT schema_fkey ON services_public.api_schemas IS E'@omit manyToMany';
 -- COMMENT ON CONSTRAINT api_fkey ON services_public.api_schemas IS E'@omit manyToMany';
 COMMENT ON CONSTRAINT db_fkey ON services_public.api_schemas IS E'@omit manyToMany';

@@ -15,6 +15,10 @@ CREATE TABLE metaschema_public.policy (
   role_name text,
   privilege text,
 
+  -- using_expression text,
+  -- check_expression text,
+  -- policy_text text,
+
   permissive boolean default true,
   disabled boolean default false,
 

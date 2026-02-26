@@ -33,8 +33,6 @@ CREATE TABLE metaschema_public.table (
 
   tags citext[] NOT NULL DEFAULT '{}',
 
-  -- 
-
   CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
   CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
   
