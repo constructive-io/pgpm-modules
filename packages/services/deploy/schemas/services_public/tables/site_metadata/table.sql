@@ -23,6 +23,14 @@ CREATE TABLE services_public.site_metadata (
 );
 
 
+COMMENT ON TABLE services_public.site_metadata IS 'SEO and social sharing metadata for a site: page title, description, and Open Graph image';
+COMMENT ON COLUMN services_public.site_metadata.id IS 'Unique identifier for this metadata record';
+COMMENT ON COLUMN services_public.site_metadata.database_id IS 'Reference to the metaschema database';
+COMMENT ON COLUMN services_public.site_metadata.site_id IS 'Site this metadata belongs to';
+COMMENT ON COLUMN services_public.site_metadata.title IS 'Page title for SEO (max 120 characters)';
+COMMENT ON COLUMN services_public.site_metadata.description IS 'Meta description for SEO and social sharing (max 120 characters)';
+COMMENT ON COLUMN services_public.site_metadata.og_image IS 'Open Graph image for social media previews';
+
 ALTER TABLE services_public.site_metadata ADD CONSTRAINT site_metadata_site_id_fkey FOREIGN KEY ( site_id ) REFERENCES services_public.sites ( id );
 COMMENT ON CONSTRAINT site_metadata_site_id_fkey ON services_public.site_metadata IS E'@omit manyToMany';
 CREATE INDEX site_metadata_site_id_idx ON services_public.site_metadata ( site_id );

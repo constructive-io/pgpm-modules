@@ -29,6 +29,14 @@ CREATE TABLE services_public.domains (
     UNIQUE ( subdomain, domain )
 );
 
+COMMENT ON TABLE services_public.domains IS 'DNS domain and subdomain routing: maps hostnames to either an API endpoint or a site';
+COMMENT ON COLUMN services_public.domains.id IS 'Unique identifier for this domain record';
+COMMENT ON COLUMN services_public.domains.database_id IS 'Reference to the metaschema database this domain belongs to';
+COMMENT ON COLUMN services_public.domains.api_id IS 'API endpoint this domain routes to (mutually exclusive with site_id)';
+COMMENT ON COLUMN services_public.domains.site_id IS 'Site this domain routes to (mutually exclusive with api_id)';
+COMMENT ON COLUMN services_public.domains.subdomain IS 'Subdomain portion of the hostname';
+COMMENT ON COLUMN services_public.domains.domain IS 'Root domain of the hostname';
+
 COMMENT ON CONSTRAINT db_fkey ON services_public.domains IS E'@omit manyToMany';
 CREATE INDEX domains_database_id_idx ON services_public.domains ( database_id );
 

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP TYPE IF EXISTS metaschema_public.object_category;
+DROP TYPE metaschema_public.object_category;
 
 COMMIT;

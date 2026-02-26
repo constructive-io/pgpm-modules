@@ -224,7 +224,7 @@ describe('db_meta_modules', () => {
       constraintCount: fkConstraints.length,
       foreignTables: foreignTables.sort()
     })).toMatchSnapshot();
-  }, 30000);
+  });
 
   it('should verify specific module table column defaults', async () => {
     // Check that modules have sensible defaults

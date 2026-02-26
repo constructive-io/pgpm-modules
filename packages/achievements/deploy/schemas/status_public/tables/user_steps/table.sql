@@ -13,6 +13,12 @@ CREATE TABLE status_public.user_steps (
 );
 
 COMMENT ON TABLE status_public.user_steps IS 'The user achieving a requirement for a level. Log table that has every single step ever taken.';
+COMMENT ON COLUMN status_public.user_steps.id IS 'Unique identifier for this step record';
+COMMENT ON COLUMN status_public.user_steps.user_id IS 'User who performed this step';
+COMMENT ON COLUMN status_public.user_steps.name IS 'Name of the level requirement this step counts toward';
+COMMENT ON COLUMN status_public.user_steps.count IS 'Number of units this step contributes (default 1)';
+COMMENT ON COLUMN status_public.user_steps.created_at IS 'Timestamp when this step was recorded';
+
 CREATE INDEX ON status_public.user_steps (user_id, name);
 
 COMMIT;
