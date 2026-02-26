@@ -34,7 +34,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
   "moduleTablesCount": 24,
-  "totalTables": 25,
+  "totalTables": 26,
 }
 `;
 
@@ -150,13 +150,13 @@ exports[`db_meta_modules should verify field_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 69984,
+  "constraintCount": 72600,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 98022,
+  "constraintCount": 102535,
   "foreignTables": [
     "apis",
     "database",
