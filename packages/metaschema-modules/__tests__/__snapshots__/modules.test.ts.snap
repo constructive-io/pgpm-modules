@@ -150,19 +150,92 @@ exports[`db_meta_modules should verify field_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 72600,
+  "constraintCount": 67416,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 102535,
+  "constraintCount": 96840,
   "foreignTables": [
     "apis",
     "database",
     "field",
     "schema",
     "table",
+  ],
+}
+`;
+
+exports[`db_meta_modules should verify sessions_module table structure 1`] = `
+{
+  "columns": [
+    {
+      "column_default": "uuid_generate_v4()",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": null,
+      "column_name": "database_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "schema_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "sessions_table_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "session_credentials_table_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "auth_settings_table_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "users_table_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "'30 days'::interval",
+      "column_name": "sessions_default_expiration",
+      "data_type": "interval",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "'sessions'::text",
+      "column_name": "sessions_table",
+      "data_type": "text",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "'session_credentials'::text",
+      "column_name": "session_credentials_table",
+      "data_type": "text",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "'app_auth_settings'::text",
+      "column_name": "auth_settings_table",
+      "data_type": "text",
+      "is_nullable": "NO",
+    },
   ],
 }
 `;
@@ -344,79 +417,6 @@ exports[`db_meta_modules should verify table_template_module table structure 1`]
       "column_default": "'{}'::jsonb",
       "column_name": "data",
       "data_type": "jsonb",
-      "is_nullable": "NO",
-    },
-  ],
-}
-`;
-
-exports[`db_meta_modules should verify sessions_module table structure 1`] = `
-{
-  "columns": [
-    {
-      "column_default": "uuid_generate_v4()",
-      "column_name": "id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": null,
-      "column_name": "database_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "uuid_nil()",
-      "column_name": "schema_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "uuid_nil()",
-      "column_name": "sessions_table_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "uuid_nil()",
-      "column_name": "session_credentials_table_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "uuid_nil()",
-      "column_name": "auth_settings_table_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "uuid_nil()",
-      "column_name": "users_table_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "'30 days'::interval",
-      "column_name": "sessions_default_expiration",
-      "data_type": "interval",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "'sessions'::text",
-      "column_name": "sessions_table",
-      "data_type": "text",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "'session_credentials'::text",
-      "column_name": "session_credentials_table",
-      "data_type": "text",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "'app_auth_settings'::text",
-      "column_name": "auth_settings_table",
-      "data_type": "text",
       "is_nullable": "NO",
     },
   ],
