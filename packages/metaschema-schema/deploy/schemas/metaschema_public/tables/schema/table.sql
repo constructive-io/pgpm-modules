@@ -31,6 +31,9 @@ CREATE TABLE metaschema_public.schema (
     UNIQUE (schema_name)
 );
 
+-- TODO: build out services
+-- COMMENT ON COLUMN metaschema_public.schema.schema_name IS '@omit';
+
 ALTER TABLE metaschema_public.schema
   ADD CONSTRAINT schema_namechk CHECK (char_length(name) > 2);
 
