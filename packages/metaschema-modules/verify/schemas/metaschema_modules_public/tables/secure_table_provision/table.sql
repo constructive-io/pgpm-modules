@@ -17,6 +17,7 @@ SELECT
     policy_privileges,
     policy_role,
     policy_permissive,
+    policy_name,
     policy_data,
     out_fields
 FROM metaschema_modules_public.secure_table_provision

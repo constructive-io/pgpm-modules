@@ -13,8 +13,14 @@ CREATE TABLE metaschema_modules_public.field_module (
     table_id uuid NOT NULL DEFAULT uuid_nil(),
     field_id uuid NOT NULL DEFAULT uuid_nil(),
 
+    -- Node type from node_type_registry (e.g., 'FieldSlug', 'FieldImmutable', 'FieldInflection', 'FieldOwned')
     node_type text NOT NULL,
 
+    -- Type-specific parameters as jsonb
+    -- FieldSlug: {"source_field_id": "uuid"}
+    -- FieldImmutable: {} (no extra params)
+    -- FieldInflection: {"ops": ["snake_case", "uppercase"]}
+    -- FieldOwned: {"role_key_field_id": "uuid", "protected_field_ids": ["uuid", ...]}
     data jsonb NOT NULL DEFAULT '{}',
 
     triggers text[],
@@ -35,4 +41,3 @@ CREATE INDEX field_module_database_id_idx ON metaschema_modules_public.field_mod
 CREATE INDEX field_module_node_type_idx ON metaschema_modules_public.field_module ( node_type );
 
 COMMIT;
-

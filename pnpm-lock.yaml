@@ -73,8 +73,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/base32:
     dependencies:
@@ -83,8 +83,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/database-jobs:
     dependencies:
@@ -93,8 +93,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/defaults:
     dependencies:
@@ -103,8 +103,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/encrypted-secrets:
     dependencies:
@@ -116,8 +116,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/encrypted-secrets-table:
     dependencies:
@@ -126,8 +126,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/faker:
     dependencies:
@@ -139,8 +139,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/geotypes:
     dependencies:
@@ -152,8 +152,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/inflection:
     dependencies:
@@ -162,8 +162,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/jobs:
     dependencies:
@@ -172,8 +172,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/jwt-claims:
     dependencies:
@@ -185,8 +185,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/measurements:
     dependencies:
@@ -195,24 +195,21 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/metaschema-modules:
     dependencies:
       '@pgpm/metaschema-schema':
         specifier: workspace:*
         version: link:../metaschema-schema
-      '@pgpm/services':
-        specifier: workspace:*
-        version: link:../services
       '@pgpm/verify':
         specifier: workspace:*
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/metaschema-schema:
     dependencies:
@@ -230,8 +227,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/services:
     dependencies:
@@ -243,8 +240,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/stamps:
     dependencies:
@@ -256,8 +253,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/totp:
     dependencies:
@@ -269,8 +266,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/types:
     dependencies:
@@ -279,8 +276,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/utils:
     dependencies:
@@ -289,8 +286,8 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/uuid:
     dependencies:
@@ -299,14 +296,14 @@ importers:
         version: link:../verify
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
   packages/verify:
     devDependencies:
       pgpm:
-        specifier: ^4.2.1
-        version: 4.2.1
+        specifier: ^4.2.3
+        version: 4.2.4
 
 packages:
 
@@ -555,8 +552,8 @@ packages:
       '@types/node':
         optional: true
 
-  '@inquirerer/utils@3.2.5':
-    resolution: {integrity: sha512-COif8EFydBCnT6tiSmY1rDOVEaufUlG1UWjDe8DWg2ohkXQrFEsP/YOjAE1+1BBXU+yluACz/5oRaRWc+tGPuA==}
+  '@inquirerer/utils@3.3.0':
+    resolution: {integrity: sha512-QugrMW6U6UfPLBKiAvGRUsyQ/WmQlGnOfWOtXX4Zd5uwJuaxbwcXoTy7MJvZpD9WRjg7IaDhI1Wwdlewxq2nFg==}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -880,6 +877,9 @@ packages:
 
   '@pgpmjs/core@6.3.0':
     resolution: {integrity: sha512-Cfg/pOwgL5gWcOlNDaKefyXf97omhyKgIC7K44Wd37WH96Uy75nFD39fYdznkCdTQB0nieCfAHpEFuQpLC9JnQ==}
+
+  '@pgpmjs/core@6.3.2':
+    resolution: {integrity: sha512-B+CCcvEXWtn/u1+pLvCkdYr8AoAVDslROJKCldFNy+umHoZZYqlH5XtBfNP2uqtLdWJ/rozdarJo7D1ujgn75g==}
 
   '@pgpmjs/env@2.13.0':
     resolution: {integrity: sha512-b7RDvkfWlhiqsQm8YZ9lfDUqvVjlZ7GBF7jhj+194OuAmNMELp1IdiKbIGmgu125BTr4ucNd0HMGmhNE3Sjmsw==}
@@ -3206,8 +3206,8 @@ packages:
   pgpass@1.0.5:
     resolution: {integrity: sha512-FdW9r/jQZhSeohs1Z3sI1yxFQNFvMcnmfuj4WBMUTxOrAyLMaTcE1aAMBiTlbMNaXvBCQuVi0R7hd8udDSP7ug==}
 
-  pgpm@4.2.1:
-    resolution: {integrity: sha512-IYdUUj74arVhXEUFBtAgukcfpA1kYWDAhQHy3NHcqupAUbrlkKeEjzzIdkP/D2ClvejycqFbE4iOmAZnmZRLOg==}
+  pgpm@4.2.4:
+    resolution: {integrity: sha512-MougyQ3f5VcMVRavweQYjK39H0w7EI4jWbfW/EfM6B5pLoM3ujt/C4WUVhRlZrD7ZdpBxj6A5BZpIyg/z6y0rQ==}
     hasBin: true
 
   pgsql-client@3.2.1:
@@ -4292,7 +4292,7 @@ snapshots:
     optionalDependencies:
       '@types/node': 22.19.3
 
-  '@inquirerer/utils@3.2.5':
+  '@inquirerer/utils@3.3.0':
     dependencies:
       appstash: 0.5.0
       inquirerer: 4.5.1
@@ -4871,6 +4871,28 @@ snapshots:
       '@octokit/openapi-types': 24.2.0
 
   '@pgpmjs/core@6.3.0':
+    dependencies:
+      '@pgpmjs/env': 2.13.0
+      '@pgpmjs/logger': 2.2.0
+      '@pgpmjs/server-utils': 3.2.0
+      '@pgpmjs/types': 2.17.0
+      csv-to-pg: 3.8.0
+      genomic: 5.3.4
+      glob: 13.0.6
+      komoji: 0.8.1
+      minimatch: 10.2.4
+      parse-package-name: 1.0.0
+      pg: 8.19.0
+      pg-cache: 3.1.0
+      pg-env: 1.5.0
+      pgsql-deparser: 17.17.2
+      pgsql-parser: 17.9.11
+      yanse: 0.2.1
+    transitivePeerDependencies:
+      - pg-native
+      - supports-color
+
+  '@pgpmjs/core@6.3.2':
     dependencies:
       '@pgpmjs/env': 2.13.0
       '@pgpmjs/logger': 2.2.0
@@ -7619,10 +7641,10 @@ snapshots:
     dependencies:
       split2: 4.2.0
 
-  pgpm@4.2.1:
+  pgpm@4.2.4:
     dependencies:
-      '@inquirerer/utils': 3.2.5
-      '@pgpmjs/core': 6.3.0
+      '@inquirerer/utils': 3.3.0
+      '@pgpmjs/core': 6.3.2
       '@pgpmjs/env': 2.13.0
       '@pgpmjs/logger': 2.2.0
       '@pgpmjs/types': 2.17.0

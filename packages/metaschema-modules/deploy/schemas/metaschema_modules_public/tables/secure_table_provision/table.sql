@@ -33,6 +33,8 @@ CREATE TABLE metaschema_modules_public.secure_table_provision (
 
     policy_permissive boolean NOT NULL DEFAULT true,
 
+    policy_name text DEFAULT NULL,
+
     policy_data jsonb NOT NULL DEFAULT '{}',
 
     out_fields uuid[] DEFAULT NULL,
@@ -86,6 +88,9 @@ COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.policy_role I
 
 COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.policy_permissive IS
     'Whether the policy is PERMISSIVE (true) or RESTRICTIVE (false). Defaults to true.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.policy_name IS
+    'Custom suffix for the generated policy name. When NULL and policy_type is set, the trigger auto-derives a suffix from policy_type by stripping the Authz prefix and underscoring the remainder (e.g. AuthzDirectOwner becomes direct_owner, producing policy names like auth_sel_direct_owner). When explicitly set, the value is passed through as-is to metaschema.create_policy name parameter. This ensures multiple policies on the same table do not collide (e.g. AuthzDirectOwner + AuthzPublishable each get unique names).';
 
 COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.policy_data IS
     'Opaque configuration passed through to metaschema.create_policy(). Structure varies by policy_type and is not interpreted by this trigger. Defaults to ''{}''.';

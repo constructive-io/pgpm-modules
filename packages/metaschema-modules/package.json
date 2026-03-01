@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/metaschema-modules",
-  "version": "0.17.0",
+  "version": "0.15.5",
   "description": "Module metadata handling and dependency tracking",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
@@ -22,11 +22,10 @@
   },
   "dependencies": {
     "@pgpm/metaschema-schema": "workspace:*",
-    "@pgpm/services": "workspace:*",
     "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {
-    "pgpm": "^4.2.1"
+    "pgpm": "^4.2.3"
   },
   "repository": {
     "type": "git",

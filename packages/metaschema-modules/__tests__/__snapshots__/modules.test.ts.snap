@@ -34,7 +34,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
   "moduleTablesCount": 24,
-  "totalTables": 26,
+  "totalTables": 27,
 }
 `;
 
@@ -150,13 +150,13 @@ exports[`db_meta_modules should verify field_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 67416,
+  "constraintCount": 69984,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 96840,
+  "constraintCount": 100951,
   "foreignTables": [
     "apis",
     "database",
@@ -330,20 +330,32 @@ exports[`db_meta_modules should verify table_module table structure 1`] = `
     },
     {
       "column_default": "uuid_nil()",
-      "column_name": "private_schema_id",
+      "column_name": "schema_id",
       "data_type": "uuid",
       "is_nullable": "NO",
     },
     {
-      "column_default": null,
+      "column_default": "uuid_nil()",
       "column_name": "table_id",
       "data_type": "uuid",
       "is_nullable": "NO",
     },
     {
       "column_default": null,
+      "column_name": "table_name",
+      "data_type": "text",
+      "is_nullable": "YES",
+    },
+    {
+      "column_default": null,
       "column_name": "node_type",
       "data_type": "text",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "true",
+      "column_name": "use_rls",
+      "data_type": "boolean",
       "is_nullable": "NO",
     },
     {
