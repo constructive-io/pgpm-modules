@@ -7,9 +7,7 @@ exports[`db_meta functionality should handle complete meta workflow 1`] = `
   "label": null,
   "name": "my-meta-db",
   "owner_id": "[ID]",
-  "private_schema_name": null,
   "schema_hash": null,
-  "schema_name": null,
 }
 `;
 
