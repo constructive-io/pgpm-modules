@@ -2,6 +2,7 @@
 
 -- requires: schemas/inflection/schema
 -- requires: schemas/inflection/tables/inflection_rules/table
+-- requires: schemas/inflection/procedures/should_skip_uncountable
 
 BEGIN;
 
@@ -12,6 +13,10 @@ DECLARE
   result record;
   matches text[];
 BEGIN
+    IF inflection.should_skip_uncountable(lower(str)) THEN
+      return str;
+    END IF;
+
     FOR result IN
     SELECT * FROM inflection.inflection_rules where type='singular'
       LOOP

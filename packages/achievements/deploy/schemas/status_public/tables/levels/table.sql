@@ -9,6 +9,7 @@ CREATE TABLE status_public.levels (
 );
 
 COMMENT ON TABLE status_public.levels IS 'Levels for achievement';
+COMMENT ON COLUMN status_public.levels.name IS 'Unique level name used as the primary key (e.g. bronze, silver, gold)';
 
 GRANT SELECT ON TABLE status_public.levels TO public;
 

@@ -141,3 +141,7 @@ $EOFCODE$ LANGUAGE plpgsql STABLE;
 CREATE FUNCTION jwt_private.current_token_id() RETURNS uuid AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.token_id', true), '')::uuid;
 $EOFCODE$ LANGUAGE sql STABLE;
+
+CREATE FUNCTION jwt_private.current_session_id() RETURNS uuid AS $EOFCODE$
+  SELECT nullif(current_setting('jwt.claims.session_id', true), '')::uuid;
+$EOFCODE$ LANGUAGE sql STABLE;

@@ -37,11 +37,11 @@ CREATE TABLE metaschema_modules_public.connected_accounts_module (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT owner_table_fkey
     FOREIGN KEY(owner_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT schema_fkey
     FOREIGN KEY(schema_id)
@@ -80,11 +80,11 @@ CREATE TABLE metaschema_modules_public.crypto_addresses_module (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT owner_table_fkey
     FOREIGN KEY(owner_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT schema_fkey
     FOREIGN KEY(schema_id)
@@ -113,8 +113,9 @@ CREATE TABLE metaschema_modules_public.crypto_auth_module (
   database_id uuid NOT NULL,
   schema_id uuid NOT NULL DEFAULT uuid_nil(),
   users_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  tokens_table_id uuid NOT NULL DEFAULT uuid_nil(),
   secrets_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  sessions_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  session_credentials_table_id uuid NOT NULL DEFAULT uuid_nil(),
   addresses_table_id uuid NOT NULL DEFAULT uuid_nil(),
   user_field text NOT NULL,
   crypto_network text NOT NULL DEFAULT 'BTC',
@@ -128,15 +129,19 @@ CREATE TABLE metaschema_modules_public.crypto_auth_module (
     ON DELETE CASCADE,
   CONSTRAINT secrets_table_fkey
     FOREIGN KEY(secrets_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT users_table_fkey
     FOREIGN KEY(users_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
-  CONSTRAINT tokens_table_fkey
-    FOREIGN KEY(tokens_table_id)
-    REFERENCES metaschema_public.table (id)
+  CONSTRAINT sessions_table_fkey
+    FOREIGN KEY(sessions_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT session_credentials_table_fkey
+    FOREIGN KEY(session_credentials_table_id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT schema_fkey
     FOREIGN KEY(schema_id)
@@ -150,7 +155,9 @@ COMMENT ON CONSTRAINT secrets_table_fkey ON metaschema_modules_public.crypto_aut
 
 COMMENT ON CONSTRAINT users_table_fkey ON metaschema_modules_public.crypto_auth_module IS '@omit manyToMany';
 
-COMMENT ON CONSTRAINT tokens_table_fkey ON metaschema_modules_public.crypto_auth_module IS '@omit manyToMany';
+COMMENT ON CONSTRAINT sessions_table_fkey ON metaschema_modules_public.crypto_auth_module IS '@omit manyToMany';
+
+COMMENT ON CONSTRAINT session_credentials_table_fkey ON metaschema_modules_public.crypto_auth_module IS '@omit manyToMany';
 
 COMMENT ON CONSTRAINT schema_fkey ON metaschema_modules_public.crypto_auth_module IS '@omit manyToMany';
 
@@ -188,11 +195,11 @@ CREATE TABLE metaschema_modules_public.denormalized_table_field (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT ref_table_fkey
     FOREIGN KEY(ref_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT field_fkey
     FOREIGN KEY(field_id)
@@ -230,11 +237,11 @@ CREATE TABLE metaschema_modules_public.emails_module (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT owner_table_fkey
     FOREIGN KEY(owner_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT schema_fkey
     FOREIGN KEY(schema_id)
@@ -274,7 +281,7 @@ CREATE TABLE metaschema_modules_public.encrypted_secrets_module (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE
 );
 
@@ -292,6 +299,7 @@ CREATE TABLE metaschema_modules_public.field_module (
   private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
   table_id uuid NOT NULL DEFAULT uuid_nil(),
   field_id uuid NOT NULL DEFAULT uuid_nil(),
+  node_type text NOT NULL,
   data jsonb NOT NULL DEFAULT '{}',
   triggers text[],
   functions text[],
@@ -301,7 +309,7 @@ CREATE TABLE metaschema_modules_public.field_module (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT field_fkey
     FOREIGN KEY(field_id)
@@ -322,6 +330,142 @@ COMMENT ON CONSTRAINT field_fkey ON metaschema_modules_public.field_module IS '@
 COMMENT ON CONSTRAINT db_fkey ON metaschema_modules_public.field_module IS '@omit manyToMany';
 
 CREATE INDEX field_module_database_id_idx ON metaschema_modules_public.field_module (database_id);
+
+CREATE INDEX field_module_node_type_idx ON metaschema_modules_public.field_module (node_type);
+
+CREATE TABLE metaschema_modules_public.table_module (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_name text DEFAULT NULL,
+  node_type text NOT NULL,
+  use_rls boolean NOT NULL DEFAULT true,
+  data jsonb NOT NULL DEFAULT '{}',
+  fields uuid[],
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT table_fkey
+    FOREIGN KEY(table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE
+);
+
+COMMENT ON CONSTRAINT schema_fkey ON metaschema_modules_public.table_module IS '@omit manyToMany';
+
+COMMENT ON CONSTRAINT table_fkey ON metaschema_modules_public.table_module IS '@omit manyToMany';
+
+COMMENT ON CONSTRAINT db_fkey ON metaschema_modules_public.table_module IS '@omit manyToMany';
+
+CREATE INDEX table_module_database_id_idx ON metaschema_modules_public.table_module (database_id);
+
+CREATE INDEX table_module_table_id_idx ON metaschema_modules_public.table_module (table_id);
+
+CREATE INDEX table_module_node_type_idx ON metaschema_modules_public.table_module (node_type);
+
+CREATE TABLE metaschema_modules_public.secure_table_provision (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_name text DEFAULT NULL,
+  node_type text DEFAULT NULL,
+  use_rls boolean NOT NULL DEFAULT true,
+  node_data jsonb NOT NULL DEFAULT '{}',
+  grant_roles text[] NOT NULL DEFAULT ARRAY['authenticated'],
+  grant_privileges jsonb NOT NULL DEFAULT '[]',
+  policy_type text DEFAULT NULL,
+  policy_privileges text[] DEFAULT NULL,
+  policy_role text DEFAULT NULL,
+  policy_permissive boolean NOT NULL DEFAULT true,
+  policy_name text DEFAULT NULL,
+  policy_data jsonb NOT NULL DEFAULT '{}',
+  out_fields uuid[] DEFAULT NULL,
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT table_fkey
+    FOREIGN KEY(table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE
+);
+
+COMMENT ON TABLE metaschema_modules_public.secure_table_provision IS 'Provisions security, fields, grants, and policies onto a table. Each row can independently: (1) create fields via node_type, (2) grant privileges via grant_privileges, (3) create RLS policies via policy_type. Multiple rows can target the same table to compose different concerns. All three concerns are optional and independent.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.id IS 'Unique identifier for this provision row.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.database_id IS 'The database this provision belongs to. Required.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.schema_id IS 'Target schema for the table. Defaults to uuid_nil(); the trigger resolves this to the app_public schema if not explicitly provided.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.table_id IS 'Target table to provision. Defaults to uuid_nil(); the trigger creates or resolves the table via table_name if not explicitly provided.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.table_name IS 'Name of the target table. Used to create or look up the table when table_id is not provided. If omitted, it is backfilled from the resolved table.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.node_type IS 'Which generator to invoke for field creation. One of: DataId, DataDirectOwner, DataEntityMembership, DataOwnershipInEntity, DataTimestamps, DataPeoplestamps, DataPublishable, DataSoftDelete. NULL means no field creation — the row only provisions grants and/or policies.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.use_rls IS 'If true and Row Level Security is not yet enabled on the target table, enable it. Automatically set to true by the trigger when policy_type is provided. Defaults to true.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.node_data IS 'Configuration passed to the generator function for field creation (only used when node_type is set). Known keys include: field_name (text, default ''id'') for DataId, owner_field_name (text, default ''owner_id'') for DataDirectOwner/DataOwnershipInEntity, entity_field_name (text, default ''entity_id'') for DataEntityMembership/DataOwnershipInEntity, include_id (boolean, default true) for most node_types, include_user_fk (boolean, default true) to add FK to users table. Defaults to ''{}''.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.grant_roles IS 'Database roles to grant privileges to. Supports multiple roles, e.g. ARRAY[''authenticated'', ''admin'']. Each role receives all privileges defined in grant_privileges. Defaults to ARRAY[''authenticated''].';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.grant_privileges IS 'Array of [privilege, columns] tuples defining table grants. Examples: [["select","*"],["insert","*"]] for full access, or [["update",["name","bio"]]] for column-level grants. "*" means all columns; an array means column-level grant. Defaults to ''[]'' (no grants). The trigger validates this is a proper jsonb array.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.policy_type IS 'Policy generator type, e.g. ''AuthzEntityMembership'', ''AuthzMembership'', ''AuthzAllowAll''. NULL means no policy is created. When set, the trigger automatically enables RLS on the target table.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.policy_privileges IS 'Privileges the policy applies to, e.g. ARRAY[''select'',''update'']. NULL means privileges are derived from the grant_privileges verbs.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.policy_role IS 'Role the policy targets. NULL means it falls back to the first role in grant_roles.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.policy_permissive IS 'Whether the policy is PERMISSIVE (true) or RESTRICTIVE (false). Defaults to true.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.policy_name IS 'Custom suffix for the generated policy name. When NULL and policy_type is set, the trigger auto-derives a suffix from policy_type by stripping the Authz prefix and underscoring the remainder (e.g. AuthzDirectOwner becomes direct_owner, producing policy names like auth_sel_direct_owner). When explicitly set, the value is passed through as-is to metaschema.create_policy name parameter. This ensures multiple policies on the same table do not collide (e.g. AuthzDirectOwner + AuthzPublishable each get unique names).';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.policy_data IS 'Opaque configuration passed through to metaschema.create_policy(). Structure varies by policy_type and is not interpreted by this trigger. Defaults to ''{}''.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.out_fields IS 'Output column populated by the trigger after field creation. Contains the UUIDs of the metaschema fields created on the target table by this provision row''s generator. NULL when node_type is NULL or before the trigger runs. Callers should not set this directly.';
+
+COMMENT ON CONSTRAINT schema_fkey ON metaschema_modules_public.secure_table_provision IS '@omit manyToMany';
+
+COMMENT ON CONSTRAINT table_fkey ON metaschema_modules_public.secure_table_provision IS '@omit manyToMany';
+
+COMMENT ON CONSTRAINT db_fkey ON metaschema_modules_public.secure_table_provision IS '@omit manyToMany';
+
+CREATE INDEX secure_table_provision_database_id_idx ON metaschema_modules_public.secure_table_provision (database_id);
+
+CREATE INDEX secure_table_provision_table_id_idx ON metaschema_modules_public.secure_table_provision (table_id);
+
+CREATE INDEX secure_table_provision_node_type_idx ON metaschema_modules_public.secure_table_provision (node_type);
+
+CREATE FUNCTION metaschema_modules_private.tg_set_secure_table_provision_deterministic_id() RETURNS trigger AS $EOFCODE$
+BEGIN
+  IF current_setting('metaschema.deterministic_ids', true) = 'true' THEN
+    NEW.id := metaschema_private.deterministic_id(NEW.table_id, NEW.node_type);
+  END IF;
+  RETURN NEW;
+END;
+$EOFCODE$ LANGUAGE plpgsql;
+
+CREATE TRIGGER zzz_set_deterministic_id
+  BEFORE INSERT
+  ON metaschema_modules_public.secure_table_provision
+  FOR EACH ROW
+  EXECUTE PROCEDURE metaschema_modules_private.tg_set_secure_table_provision_deterministic_id();
+
+ALTER TABLE metaschema_modules_public.secure_table_provision
+  ENABLE ALWAYS TRIGGER zzz_set_deterministic_id;
 
 CREATE TABLE metaschema_modules_public.invites_module (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -344,23 +488,23 @@ CREATE TABLE metaschema_modules_public.invites_module (
     ON DELETE CASCADE,
   CONSTRAINT invites_table_fkey
     FOREIGN KEY(invites_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT emails_table_fkey
     FOREIGN KEY(emails_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT users_table_fkey
     FOREIGN KEY(users_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT entity_table_fkey
     FOREIGN KEY(entity_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT claimed_invites_table_fkey
     FOREIGN KEY(claimed_invites_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT schema_fkey
     FOREIGN KEY(schema_id)
@@ -429,27 +573,27 @@ CREATE TABLE metaschema_modules_public.levels_module (
     ON DELETE CASCADE,
   CONSTRAINT steps_table_fkey
     FOREIGN KEY(steps_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT achievements_table_fkey
     FOREIGN KEY(achievements_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT levels_table_fkey
     FOREIGN KEY(levels_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT level_requirements_table_fkey
     FOREIGN KEY(level_requirements_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT entity_table_fkey
     FOREIGN KEY(entity_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT actor_table_fkey
     FOREIGN KEY(actor_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE
 );
 
@@ -502,19 +646,19 @@ CREATE TABLE metaschema_modules_public.limits_module (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT default_table_fkey
     FOREIGN KEY(default_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT entity_table_fkey
     FOREIGN KEY(entity_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT actor_table_fkey
     FOREIGN KEY(actor_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE
 );
 
@@ -548,7 +692,7 @@ CREATE TABLE metaschema_modules_public.membership_types_module (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE
 );
 
@@ -606,27 +750,27 @@ CREATE TABLE metaschema_modules_public.memberships_module (
     ON DELETE CASCADE,
   CONSTRAINT memberships_table_fkey
     FOREIGN KEY(memberships_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT membership_defaults_table_fkey
     FOREIGN KEY(membership_defaults_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT members_table_fkey
     FOREIGN KEY(members_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT grants_table_fkey
     FOREIGN KEY(grants_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT sprt_table_fkey
     FOREIGN KEY(sprt_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT entity_table_fkey
     FOREIGN KEY(entity_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT entity_table_owner_fkey
     FOREIGN KEY(entity_table_owner_id)
@@ -634,23 +778,23 @@ CREATE TABLE metaschema_modules_public.memberships_module (
     ON DELETE CASCADE,
   CONSTRAINT actor_table_fkey
     FOREIGN KEY(actor_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT limits_table_fkey
     FOREIGN KEY(limits_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT default_limits_table_fkey
     FOREIGN KEY(default_limits_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT permissions_table_fkey
     FOREIGN KEY(permissions_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT default_permissions_table_fkey
     FOREIGN KEY(default_permissions_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE
 );
 
@@ -718,19 +862,19 @@ CREATE TABLE metaschema_modules_public.permissions_module (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT default_table_fkey
     FOREIGN KEY(default_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT entity_table_fkey
     FOREIGN KEY(entity_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT actor_table_fkey
     FOREIGN KEY(actor_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE
 );
 
@@ -762,11 +906,11 @@ CREATE TABLE metaschema_modules_public.phone_numbers_module (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT owner_table_fkey
     FOREIGN KEY(owner_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT schema_fkey
     FOREIGN KEY(schema_id)
@@ -803,7 +947,6 @@ CREATE TABLE metaschema_modules_public.profiles_module (
   profile_grants_table_name text NOT NULL DEFAULT '',
   profile_definition_grants_table_id uuid NOT NULL DEFAULT uuid_nil(),
   profile_definition_grants_table_name text NOT NULL DEFAULT '',
-  bitlen int NOT NULL DEFAULT 24,
   membership_type int NOT NULL,
   entity_table_id uuid NULL,
   actor_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -824,35 +967,35 @@ CREATE TABLE metaschema_modules_public.profiles_module (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT profile_permissions_table_fkey
     FOREIGN KEY(profile_permissions_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT profile_grants_table_fkey
     FOREIGN KEY(profile_grants_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT profile_definition_grants_table_fkey
     FOREIGN KEY(profile_definition_grants_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT entity_table_fkey
     FOREIGN KEY(entity_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT actor_table_fkey
     FOREIGN KEY(actor_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT permissions_table_fkey
     FOREIGN KEY(permissions_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT memberships_table_fkey
     FOREIGN KEY(memberships_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT profiles_module_unique 
     UNIQUE (database_id, membership_type)
@@ -888,7 +1031,8 @@ CREATE TABLE metaschema_modules_public.rls_module (
   api_id uuid NOT NULL DEFAULT uuid_nil(),
   schema_id uuid NOT NULL DEFAULT uuid_nil(),
   private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
-  tokens_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  session_credentials_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  sessions_table_id uuid NOT NULL DEFAULT uuid_nil(),
   users_table_id uuid NOT NULL DEFAULT uuid_nil(),
   authenticate text NOT NULL DEFAULT 'authenticate',
   authenticate_strict text NOT NULL DEFAULT 'authenticate_strict',
@@ -902,13 +1046,17 @@ CREATE TABLE metaschema_modules_public.rls_module (
     FOREIGN KEY(api_id)
     REFERENCES services_public.apis (id)
     ON DELETE CASCADE,
-  CONSTRAINT tokens_table_fkey
-    FOREIGN KEY(tokens_table_id)
-    REFERENCES metaschema_public.table (id)
+  CONSTRAINT session_credentials_table_fkey
+    FOREIGN KEY(session_credentials_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT sessions_table_fkey
+    FOREIGN KEY(sessions_table_id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT users_table_fkey
     FOREIGN KEY(users_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT schema_fkey
     FOREIGN KEY(schema_id)
@@ -930,7 +1078,9 @@ COMMENT ON CONSTRAINT pschema_fkey ON metaschema_modules_public.rls_module IS '@
 
 COMMENT ON CONSTRAINT db_fkey ON metaschema_modules_public.rls_module IS '@omit';
 
-COMMENT ON CONSTRAINT tokens_table_fkey ON metaschema_modules_public.rls_module IS '@omit';
+COMMENT ON CONSTRAINT session_credentials_table_fkey ON metaschema_modules_public.rls_module IS '@omit';
+
+COMMENT ON CONSTRAINT sessions_table_fkey ON metaschema_modules_public.rls_module IS '@omit';
 
 COMMENT ON CONSTRAINT users_table_fkey ON metaschema_modules_public.rls_module IS '@omit';
 
@@ -952,7 +1102,7 @@ CREATE TABLE metaschema_modules_public.secrets_module (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE
 );
 
@@ -964,14 +1114,18 @@ CREATE INDEX secrets_module_database_id_idx ON metaschema_modules_public.secrets
 
 COMMENT ON CONSTRAINT table_fkey ON metaschema_modules_public.secrets_module IS '@omit manyToMany';
 
-CREATE TABLE metaschema_modules_public.tokens_module (
+CREATE TABLE metaschema_modules_public.sessions_module (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   database_id uuid NOT NULL,
   schema_id uuid NOT NULL DEFAULT uuid_nil(),
-  table_id uuid NOT NULL DEFAULT uuid_nil(),
-  owned_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  tokens_default_expiration interval NOT NULL DEFAULT '3 days'::interval,
-  tokens_table text NOT NULL DEFAULT 'api_tokens',
+  sessions_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  session_credentials_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  auth_settings_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  users_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  sessions_default_expiration interval NOT NULL DEFAULT '30 days'::interval,
+  sessions_table text NOT NULL DEFAULT 'sessions',
+  session_credentials_table text NOT NULL DEFAULT 'session_credentials',
+  auth_settings_table text NOT NULL DEFAULT 'app_auth_settings',
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -980,25 +1134,40 @@ CREATE TABLE metaschema_modules_public.tokens_module (
     FOREIGN KEY(schema_id)
     REFERENCES metaschema_public.schema (id)
     ON DELETE CASCADE,
-  CONSTRAINT table_fkey
-    FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+  CONSTRAINT sessions_table_fkey
+    FOREIGN KEY(sessions_table_id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
-  CONSTRAINT owned_table_fkey
-    FOREIGN KEY(owned_table_id)
-    REFERENCES metaschema_public.table (id)
+  CONSTRAINT session_credentials_table_fkey
+    FOREIGN KEY(session_credentials_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT auth_settings_table_fkey
+    FOREIGN KEY(auth_settings_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT users_table_fkey
+    FOREIGN KEY(users_table_id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE
 );
 
-COMMENT ON CONSTRAINT schema_fkey ON metaschema_modules_public.tokens_module IS '@omit manyToMany';
+COMMENT ON CONSTRAINT schema_fkey ON metaschema_modules_public.sessions_module IS '@omit manyToMany';
 
-COMMENT ON CONSTRAINT db_fkey ON metaschema_modules_public.tokens_module IS '@omit manyToMany';
+COMMENT ON CONSTRAINT db_fkey ON metaschema_modules_public.sessions_module IS '@omit manyToMany';
 
-CREATE INDEX tokens_module_database_id_idx ON metaschema_modules_public.tokens_module (database_id);
+CREATE INDEX sessions_module_database_id_idx ON metaschema_modules_public.sessions_module (database_id);
 
-COMMENT ON CONSTRAINT owned_table_fkey ON metaschema_modules_public.tokens_module IS '@omit manyToMany';
+COMMENT ON CONSTRAINT sessions_table_fkey ON metaschema_modules_public.sessions_module IS '@fieldName sessionsTableBySessionsTableId
+@omit manyToMany';
 
-COMMENT ON CONSTRAINT table_fkey ON metaschema_modules_public.tokens_module IS '@omit manyToMany';
+COMMENT ON CONSTRAINT session_credentials_table_fkey ON metaschema_modules_public.sessions_module IS '@fieldName sessionCredentialsTableBySessionCredentialsTableId
+@omit manyToMany';
+
+COMMENT ON CONSTRAINT auth_settings_table_fkey ON metaschema_modules_public.sessions_module IS '@fieldName authSettingsTableByAuthSettingsTableId
+@omit manyToMany';
+
+COMMENT ON CONSTRAINT users_table_fkey ON metaschema_modules_public.sessions_module IS '@omit manyToMany';
 
 CREATE TABLE metaschema_modules_public.user_auth_module (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -1008,7 +1177,8 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
   users_table_id uuid NOT NULL DEFAULT uuid_nil(),
   secrets_table_id uuid NOT NULL DEFAULT uuid_nil(),
   encrypted_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  tokens_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  sessions_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  session_credentials_table_id uuid NOT NULL DEFAULT uuid_nil(),
   audits_table_id uuid NOT NULL DEFAULT uuid_nil(),
   audits_table_name text NOT NULL DEFAULT 'audit_logs',
   sign_in_function text NOT NULL DEFAULT 'sign_in',
@@ -1036,23 +1206,27 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
     ON DELETE CASCADE,
   CONSTRAINT email_table_fkey
     FOREIGN KEY(emails_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT users_table_fkey
     FOREIGN KEY(users_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT secrets_table_fkey
     FOREIGN KEY(secrets_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT encrypted_table_fkey
     FOREIGN KEY(encrypted_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
-  CONSTRAINT tokens_table_fkey
-    FOREIGN KEY(tokens_table_id)
-    REFERENCES metaschema_public.table (id)
+  CONSTRAINT sessions_table_fkey
+    FOREIGN KEY(sessions_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT session_credentials_table_fkey
+    FOREIGN KEY(session_credentials_table_id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE
 );
 
@@ -1070,7 +1244,9 @@ COMMENT ON CONSTRAINT secrets_table_fkey ON metaschema_modules_public.user_auth_
 
 COMMENT ON CONSTRAINT encrypted_table_fkey ON metaschema_modules_public.user_auth_module IS '@omit';
 
-COMMENT ON CONSTRAINT tokens_table_fkey ON metaschema_modules_public.user_auth_module IS '@omit';
+COMMENT ON CONSTRAINT sessions_table_fkey ON metaschema_modules_public.user_auth_module IS '@omit';
+
+COMMENT ON CONSTRAINT session_credentials_table_fkey ON metaschema_modules_public.user_auth_module IS '@omit';
 
 CREATE TABLE metaschema_modules_public.users_module (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -1090,11 +1266,11 @@ CREATE TABLE metaschema_modules_public.users_module (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT type_table_fkey
     FOREIGN KEY(type_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE
 );
 
@@ -1165,23 +1341,23 @@ CREATE TABLE metaschema_modules_public.hierarchy_module (
     ON DELETE CASCADE,
   CONSTRAINT chart_edges_table_fkey
     FOREIGN KEY(chart_edges_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT hierarchy_sprt_table_fkey
     FOREIGN KEY(hierarchy_sprt_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT chart_edge_grants_table_fkey
     FOREIGN KEY(chart_edge_grants_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT entity_table_fkey
     FOREIGN KEY(entity_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT users_table_fkey
     FOREIGN KEY(users_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT hierarchy_module_database_unique 
     UNIQUE (database_id)
@@ -1204,3 +1380,57 @@ COMMENT ON CONSTRAINT chart_edge_grants_table_fkey ON metaschema_modules_public.
 COMMENT ON CONSTRAINT entity_table_fkey ON metaschema_modules_public.hierarchy_module IS '@omit manyToMany';
 
 COMMENT ON CONSTRAINT users_table_fkey ON metaschema_modules_public.hierarchy_module IS '@omit manyToMany';
+
+CREATE TABLE metaschema_modules_public.table_template_module (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_id uuid NOT NULL DEFAULT uuid_nil(),
+  owner_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_name text NOT NULL,
+  node_type text NOT NULL,
+  data jsonb NOT NULL DEFAULT '{}',
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT table_fkey
+    FOREIGN KEY(table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT owner_table_fkey
+    FOREIGN KEY(owner_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE
+);
+
+COMMENT ON CONSTRAINT schema_fkey ON metaschema_modules_public.table_template_module IS '@omit manyToMany';
+
+COMMENT ON CONSTRAINT private_schema_fkey ON metaschema_modules_public.table_template_module IS '@omit manyToMany';
+
+COMMENT ON CONSTRAINT table_fkey ON metaschema_modules_public.table_template_module IS '@omit manyToMany';
+
+COMMENT ON CONSTRAINT owner_table_fkey ON metaschema_modules_public.table_template_module IS '@omit manyToMany';
+
+COMMENT ON CONSTRAINT db_fkey ON metaschema_modules_public.table_template_module IS '@omit manyToMany';
+
+CREATE INDEX table_template_module_database_id_idx ON metaschema_modules_public.table_template_module (database_id);
+
+CREATE INDEX table_template_module_schema_id_idx ON metaschema_modules_public.table_template_module (schema_id);
+
+CREATE INDEX table_template_module_private_schema_id_idx ON metaschema_modules_public.table_template_module (private_schema_id);
+
+CREATE INDEX table_template_module_table_id_idx ON metaschema_modules_public.table_template_module (table_id);
+
+CREATE INDEX table_template_module_owner_table_id_idx ON metaschema_modules_public.table_template_module (owner_table_id);
+
+CREATE INDEX table_template_module_node_type_idx ON metaschema_modules_public.table_template_module (node_type);

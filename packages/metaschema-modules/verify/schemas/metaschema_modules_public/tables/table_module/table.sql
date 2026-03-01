@@ -5,9 +5,11 @@ BEGIN;
 SELECT
     id,
     database_id,
-    private_schema_id,
+    schema_id,
     table_id,
+    table_name,
     node_type,
+    use_rls,
     data,
     fields
 FROM metaschema_modules_public.table_module

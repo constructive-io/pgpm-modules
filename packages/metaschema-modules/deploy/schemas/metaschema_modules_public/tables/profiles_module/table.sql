@@ -27,8 +27,6 @@ CREATE TABLE metaschema_modules_public.profiles_module (
     profile_definition_grants_table_id uuid NOT NULL DEFAULT uuid_nil(),
     profile_definition_grants_table_name text NOT NULL DEFAULT '',
     
-    -- Configuration
-    bitlen int NOT NULL DEFAULT 24,
     membership_type int NOT NULL,
     
     -- Entity table for org/group scoped profiles (NULL for app-level)

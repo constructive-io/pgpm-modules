@@ -22,6 +22,11 @@ CREATE TABLE status_public.user_steps (
 );
 
 COMMENT ON TABLE status_public.user_steps IS 'The user achieving a requirement for a level. Log table that has every single step ever taken.';
+COMMENT ON COLUMN status_public.user_steps.id IS 'Unique identifier for this step record';
+COMMENT ON COLUMN status_public.user_steps.user_id IS 'User who performed this step';
+COMMENT ON COLUMN status_public.user_steps.name IS 'Name of the level requirement this step counts toward';
+COMMENT ON COLUMN status_public.user_steps.count IS 'Number of units this step contributes (default 1)';
+COMMENT ON COLUMN status_public.user_steps.created_at IS 'Timestamp when this step was recorded';
 
 CREATE INDEX ON status_public.user_steps (user_id, name);
 
@@ -124,6 +129,11 @@ CREATE TABLE status_public.user_achievements (
 );
 
 COMMENT ON TABLE status_public.user_achievements IS 'This table represents the users progress for particular level requirements, tallying the total count. This table is updated via triggers and should not be updated maually.';
+COMMENT ON COLUMN status_public.user_achievements.id IS 'Unique identifier for this achievement progress record';
+COMMENT ON COLUMN status_public.user_achievements.user_id IS 'User whose progress is being tracked';
+COMMENT ON COLUMN status_public.user_achievements.name IS 'Name of the level requirement this progress relates to';
+COMMENT ON COLUMN status_public.user_achievements.count IS 'Accumulated count toward the requirement (updated by triggers)';
+COMMENT ON COLUMN status_public.user_achievements.created_at IS 'Timestamp when this progress record was first created';
 
 CREATE INDEX ON status_public.user_achievements (user_id, name);
 
@@ -145,6 +155,7 @@ CREATE TABLE status_public.levels (
 );
 
 COMMENT ON TABLE status_public.levels IS 'Levels for achievement';
+COMMENT ON COLUMN status_public.levels.name IS 'Unique level name used as the primary key (e.g. bronze, silver, gold)';
 
 GRANT SELECT ON status_public.levels TO PUBLIC;
 
@@ -158,6 +169,11 @@ CREATE TABLE status_public.level_requirements (
 );
 
 COMMENT ON TABLE status_public.level_requirements IS 'Requirements to achieve a level';
+COMMENT ON COLUMN status_public.level_requirements.id IS 'Unique identifier for this requirement';
+COMMENT ON COLUMN status_public.level_requirements.name IS 'Requirement name (e.g. posts_created, logins); matches user_steps.name';
+COMMENT ON COLUMN status_public.level_requirements.level IS 'Level this requirement belongs to (references levels.name)';
+COMMENT ON COLUMN status_public.level_requirements.required_count IS 'Number of steps needed to satisfy this requirement (default 1)';
+COMMENT ON COLUMN status_public.level_requirements.priority IS 'Display/evaluation order; lower numbers are checked first (default 100)';
 
 CREATE INDEX ON status_public.level_requirements (name, level, priority);
 

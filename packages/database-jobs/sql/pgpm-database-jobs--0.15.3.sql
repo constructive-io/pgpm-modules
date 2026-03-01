@@ -134,6 +134,21 @@ CREATE TABLE app_jobs.scheduled_jobs (
   UNIQUE (key)
 );
 
+COMMENT ON TABLE app_jobs.scheduled_jobs IS 'Recurring/cron-style job definitions with database scoping: each row spawns jobs on a schedule for a specific database';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.id IS 'Auto-incrementing scheduled job identifier';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.database_id IS 'Database this scheduled job belongs to, for multi-tenant isolation';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.queue_name IS 'Name of the queue spawned jobs are placed into';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.task_identifier IS 'Task type identifier for spawned jobs';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.payload IS 'JSON payload passed to each spawned job';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.priority IS 'Priority assigned to spawned jobs (lower = higher priority)';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.max_attempts IS 'Max retry attempts for spawned jobs';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.key IS 'Optional unique deduplication key';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.locked_at IS 'Timestamp when the scheduler locked this record for processing';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.locked_by IS 'Identifier of the scheduler worker holding the lock';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.schedule_info IS 'JSON schedule configuration (e.g. cron expression, interval)';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.last_scheduled IS 'Timestamp when a job was last spawned from this schedule';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.last_scheduled_id IS 'ID of the last job spawned from this schedule';
+
 CREATE FUNCTION app_jobs.do_notify() RETURNS trigger AS $EOFCODE$
 BEGIN
   PERFORM
@@ -175,6 +190,21 @@ CREATE TABLE app_jobs.jobs (
   CHECK (length(locked_by) > 3),
   UNIQUE (key)
 );
+
+COMMENT ON TABLE app_jobs.jobs IS 'Background job queue with database scoping: each row is a pending or in-progress task for a specific database';
+COMMENT ON COLUMN app_jobs.jobs.id IS 'Auto-incrementing job identifier';
+COMMENT ON COLUMN app_jobs.jobs.database_id IS 'Database this job belongs to, for multi-tenant job isolation';
+COMMENT ON COLUMN app_jobs.jobs.queue_name IS 'Name of the queue this job belongs to; used for worker routing and concurrency control';
+COMMENT ON COLUMN app_jobs.jobs.task_identifier IS 'Identifier for the task type (maps to a worker handler function)';
+COMMENT ON COLUMN app_jobs.jobs.payload IS 'JSON payload of arguments passed to the task handler';
+COMMENT ON COLUMN app_jobs.jobs.priority IS 'Execution priority; lower numbers run first (default 0)';
+COMMENT ON COLUMN app_jobs.jobs.run_at IS 'Earliest time this job should be executed; used for delayed/scheduled execution';
+COMMENT ON COLUMN app_jobs.jobs.attempts IS 'Number of times this job has been attempted so far';
+COMMENT ON COLUMN app_jobs.jobs.max_attempts IS 'Maximum retry attempts before the job is considered permanently failed';
+COMMENT ON COLUMN app_jobs.jobs.key IS 'Optional unique deduplication key; prevents duplicate jobs with the same key';
+COMMENT ON COLUMN app_jobs.jobs.last_error IS 'Error message from the most recent failed attempt';
+COMMENT ON COLUMN app_jobs.jobs.locked_at IS 'Timestamp when a worker locked this job for processing';
+COMMENT ON COLUMN app_jobs.jobs.locked_by IS 'Identifier of the worker that currently holds the lock';
 
 ALTER TABLE app_jobs.jobs 
   ADD COLUMN created_at timestamptz;
@@ -274,6 +304,12 @@ CREATE TABLE app_jobs.job_queues (
   locked_at timestamptz,
   locked_by text
 );
+
+COMMENT ON TABLE app_jobs.job_queues IS 'Queue metadata: tracks job counts and locking state for each named queue';
+COMMENT ON COLUMN app_jobs.job_queues.queue_name IS 'Unique name identifying this queue';
+COMMENT ON COLUMN app_jobs.job_queues.job_count IS 'Number of pending jobs in this queue';
+COMMENT ON COLUMN app_jobs.job_queues.locked_at IS 'Timestamp when this queue was locked for batch processing';
+COMMENT ON COLUMN app_jobs.job_queues.locked_by IS 'Identifier of the worker that currently holds the queue lock';
 
 CREATE INDEX job_queues_locked_by_idx ON app_jobs.job_queues (locked_by);
 

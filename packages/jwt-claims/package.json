@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/jwt-claims",
-  "version": "0.17.0",
+  "version": "0.15.5",
   "description": "JWT claim handling and validation functions",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
@@ -21,7 +21,7 @@
     "test:watch": "jest --watch"
   },
   "devDependencies": {
-    "pgpm": "^4.2.1"
+    "pgpm": "^4.2.3"
   },
   "dependencies": {
     "@pgpm/types": "workspace:*",

@@ -154,7 +154,26 @@ describe('inflection', () => {
       { name: 'children', result: 'children' },
       { name: 'child', result: 'children' },
       { name: 'man', result: 'men' },
-      { name: 'men', result: 'men' }
+      { name: 'men', result: 'men' },
+      // node.inflection v3 sync: octopus/virus use -uses
+      { name: 'octopus', result: 'octopuses' },
+      { name: 'virus', result: 'viruses' },
+      { name: 'octopuses', result: 'octopuses' },
+      { name: 'viruses', result: 'viruses' },
+      // node.inflection v3 sync: drive, focus, bonus, database
+      { name: 'drive', result: 'drives' },
+      { name: 'drives', result: 'drives' },
+      { name: 'focus', result: 'focuses' },
+      { name: 'bonus', result: 'bonuses' },
+      { name: 'database', result: 'databases' },
+      { name: 'databases', result: 'databases' },
+      // uncountable words
+      { name: 'sheep', result: 'sheep' },
+      { name: 'equipment', result: 'equipment' },
+      { name: 'information', result: 'information' },
+      { name: 'deer', result: 'deer' },
+      { name: 'series', result: 'series' },
+      { name: 'species', result: 'species' }
     ]
   );
 
@@ -175,7 +194,31 @@ describe('inflection', () => {
       { name: 'children', result: 'child' },
       { name: 'child', result: 'child' },
       { name: 'man', result: 'man' },
-      { name: 'men', result: 'man' }
+      { name: 'men', result: 'man' },
+      // node.inflection v3 sync: octopus/virus use -uses
+      { name: 'octopuses', result: 'octopus' },
+      { name: 'viruses', result: 'virus' },
+      { name: 'octopus', result: 'octopus' },
+      { name: 'virus', result: 'virus' },
+      // node.inflection v3 sync: drive, database
+      { name: 'drives', result: 'drive' },
+      { name: 'drive', result: 'drive' },
+      { name: 'databases', result: 'database' },
+      { name: 'database', result: 'database' },
+      { name: 'bonuses', result: 'bonus' },
+      // Latin suffix overrides (PostGraphile-compatible)
+      { name: 'schemata', result: 'schema' },
+      { name: 'phenomena', result: 'phenomenon' },
+      { name: 'memoranda', result: 'memorandum' },
+      { name: 'curricula', result: 'curriculum' },
+      { name: 'criteria', result: 'criterion' },
+      { name: 'media', result: 'medium' },
+      { name: 'data', result: 'datum' },
+      { name: 'strata', result: 'stratum' },
+      // uncountable words
+      { name: 'sheep', result: 'sheep' },
+      { name: 'equipment', result: 'equipment' },
+      { name: 'information', result: 'information' }
     ]
   );
 });

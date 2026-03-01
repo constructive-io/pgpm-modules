@@ -242,6 +242,10 @@ DECLARE
   result record;
   matches text[];
 BEGIN
+    IF inflection.should_skip_uncountable(lower(str)) THEN
+      return str;
+    END IF;
+
     FOR result IN
     SELECT * FROM inflection.inflection_rules where type='plural'
       LOOP
@@ -272,6 +276,10 @@ DECLARE
   result record;
   matches text[];
 BEGIN
+    IF inflection.should_skip_uncountable(lower(str)) THEN
+      return str;
+    END IF;
+
     FOR result IN
     SELECT * FROM inflection.inflection_rules where type='singular'
       LOOP
@@ -334,11 +342,14 @@ INSERT INTO inflection.inflection_rules (
   test,
   replacement
 ) VALUES
+  -- plural guards: already-plural words return as-is (NULL replacement)
   ('plural', '^(m|wom)en$', NULL),
   ('plural', '(pe)ople$', NULL),
   ('plural', '(child)ren$', NULL),
   ('plural', '([ti])a$', NULL),
   ('plural', '((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$', NULL),
+  ('plural', '(database)s$', NULL),
+  ('plural', '(drive)s$', NULL),
   ('plural', '(hi|ti)ves$', NULL),
   ('plural', '(curve)s$', NULL),
   ('plural', '([lr])ves$', NULL),
@@ -352,11 +363,12 @@ INSERT INTO inflection.inflection_rules (
   ('plural', '(o)es$', NULL),
   ('plural', '(shoe)s$', NULL),
   ('plural', '(cris|ax|test)es$', NULL),
-  ('plural', '(octop|vir)i$', NULL),
+  ('plural', '(octop|vir)uses$', NULL),
   ('plural', '(alias|canvas|status|campus)es$', NULL),
-  ('plural', '^(summons)es$', NULL),
+  ('plural', '^(summons|bonus)es$', NULL),
   ('plural', '^(ox)en', NULL),
   ('plural', '(matr)ices$', NULL),
+  ('plural', '(vert|ind)ices$', NULL),
   ('plural', '^feet$', NULL),
   ('plural', '^teeth$', NULL),
   ('plural', '^geese$', NULL),
@@ -364,19 +376,22 @@ INSERT INTO inflection.inflection_rules (
   ('plural', '^(whereas)es$', NULL),
   ('plural', '^(criteri)a$', NULL),
   ('plural', '^genera$', NULL),
+  -- plural replacement rules
   ('plural', '^(m|wom)an$', E'\\1en'),
   ('plural', '(pe)rson$', E'\\1ople'),
   ('plural', '(child)$', E'\\1ren'),
+  ('plural', '(drive)$', E'\\1s'),
   ('plural', '^(ox)$', E'\\1en'),
   ('plural', '(ax|test)is$', E'\\1es'),
-  ('plural', '(octop|vir)us$', E'\\1i'),
+  ('plural', '(octop|vir)us$', E'\\1uses'),
   ('plural', '(alias|status|canvas|campus)$', E'\\1es'),
-  ('plural', '^(summons)$', E'\\1es'),
+  ('plural', '^(summons|bonus)$', E'\\1es'),
   ('plural', '(bu)s$', E'\\1ses'),
   ('plural', '(buffal|tomat|potat)o$', E'\\1oes'),
   ('plural', '([ti])um$', E'\\1a'),
   ('plural', 'sis$', 'ses'),
   ('plural', '(?:([^f])fe|([lr])f)$', E'\\1\\2ves'),
+  ('plural', '^(focus)$', E'\\1es'),
   ('plural', '(hi|ti)ve$', E'\\1ves'),
   ('plural', '([^aeiouy]|qu)y$', E'\\1ies'),
   ('plural', '(matr)ix$', E'\\1ices'),
@@ -392,23 +407,27 @@ INSERT INTO inflection.inflection_rules (
   ('plural', '^genus$', 'genera'),
   ('plural', 's$', 's'),
   ('plural', '$', 's'),
+  -- singular guards: already-singular words return as-is (NULL replacement)
   ('singular', '^(m|wom)an$', NULL),
   ('singular', '(pe)rson$', NULL),
   ('singular', '(child)$', NULL),
+  ('singular', '(drive)$', NULL),
   ('singular', '^(ox)$', NULL),
   ('singular', '(ax|test)is$', NULL),
   ('singular', '(octop|vir)us$', NULL),
   ('singular', '(alias|status|canvas|campus)$', NULL),
-  ('singular', '^(summons)$', NULL),
+  ('singular', '^(summons|bonus)$', NULL),
   ('singular', '(bu)s$', NULL),
   ('singular', '(buffal|tomat|potat)o$', NULL),
   ('singular', '([ti])um$', NULL),
   ('singular', 'sis$', NULL),
   ('singular', '(?:([^f])fe|([lr])f)$', NULL),
+  ('singular', '^(focus)$', NULL),
   ('singular', '(hi|ti)ve$', NULL),
   ('singular', '([^aeiouy]|qu)y$', NULL),
   ('singular', '(x|ch|ss|sh)$', NULL),
   ('singular', '(matr)ix$', NULL),
+  ('singular', '(vert|ind)ex$', NULL),
   ('singular', '([m|l])ouse$', NULL),
   ('singular', '^foot$', NULL),
   ('singular', '^tooth$', NULL),
@@ -417,11 +436,19 @@ INSERT INTO inflection.inflection_rules (
   ('singular', '^(whereas)$', NULL),
   ('singular', '^(criteri)on$', NULL),
   ('singular', '^genus$', NULL),
+  -- singular replacement rules
   ('singular', '^(m|wom)en$', E'\\1an'),
   ('singular', '(pe)ople$', E'\\1rson'),
   ('singular', '(child)ren$', E'\\1'),
+  ('singular', '(database)s$', E'\\1'),
+  ('singular', '(drive)s$', E'\\1'),
   ('singular', '^genera$', 'genus'),
   ('singular', '^(criteri)a$', E'\\1on'),
+  -- Latin suffix overrides (PostGraphile-compatible)
+  ('singular', '(schema)ta$', E'\\1'),
+  ('singular', '(phenomen)a$', E'\\1on'),
+  ('singular', '(memorand)a$', E'\\1um'),
+  ('singular', '(curricul)a$', E'\\1um'),
   ('singular', '([ti])a$', E'\\1um'),
   ('singular', '((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$', E'\\1\\2sis'),
   ('singular', '(hi|ti)ves$', E'\\1ve'),
@@ -438,9 +465,9 @@ INSERT INTO inflection.inflection_rules (
   ('singular', '(o)es$', E'\\1'),
   ('singular', '(shoe)s$', E'\\1'),
   ('singular', '(cris|ax|test)es$', E'\\1is'),
-  ('singular', '(octop|vir)i$', E'\\1us'),
+  ('singular', '(octop|vir)uses$', E'\\1us'),
   ('singular', '(alias|canvas|status|campus)es$', E'\\1'),
-  ('singular', '^(summons)es$', E'\\1'),
+  ('singular', '^(summons|bonus)es$', E'\\1'),
   ('singular', '^(ox)en', E'\\1'),
   ('singular', '(matr)ices$', E'\\1ix'),
   ('singular', '(vert|ind)ices$', E'\\1ex'),
