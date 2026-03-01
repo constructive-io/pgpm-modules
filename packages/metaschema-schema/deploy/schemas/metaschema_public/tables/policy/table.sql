@@ -12,8 +12,12 @@ CREATE TABLE metaschema_public.policy (
 
   table_id uuid NOT NULL,
   name text,
-  role_name text,
+  grantee_name text,
   privilege text,
+
+  -- using_expression text,
+  -- check_expression text,
+  -- policy_text text,
 
   permissive boolean default true,
   disabled boolean default false,

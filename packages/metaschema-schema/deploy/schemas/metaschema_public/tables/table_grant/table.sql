@@ -11,8 +11,12 @@ CREATE TABLE metaschema_public.table_grant (
     
     table_id uuid NOT NULL,
     privilege text NOT NULL,
-    role_name text NOT NULL,
+    grantee_name text NOT NULL,
     field_ids uuid[],
+
+    -- true = GRANT, false = REVOKE
+    is_grant boolean NOT NULL DEFAULT true,
+
     --
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
     CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE

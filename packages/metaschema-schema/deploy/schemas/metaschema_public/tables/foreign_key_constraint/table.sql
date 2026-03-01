@@ -19,7 +19,7 @@ CREATE TABLE metaschema_public.foreign_key_constraint (
     field_ids uuid[] NOT NULL,
     ref_table_id uuid NOT NULL REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     ref_field_ids uuid[] NOT NULL,
-    delete_action char(1) DEFAULT 'c',
+    delete_action char(1) DEFAULT 'c', -- postgres default is 'a'
     update_action char(1) DEFAULT 'a',
 
     category metaschema_public.object_category NOT NULL DEFAULT 'app',

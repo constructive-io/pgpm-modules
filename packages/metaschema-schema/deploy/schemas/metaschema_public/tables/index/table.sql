@@ -33,6 +33,7 @@ CREATE TABLE metaschema_public.index (
   CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
   CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
 
+  -- index names are UNIQUE across schemas, so for portability we will check against database_id
   UNIQUE (database_id, name)
 );
 

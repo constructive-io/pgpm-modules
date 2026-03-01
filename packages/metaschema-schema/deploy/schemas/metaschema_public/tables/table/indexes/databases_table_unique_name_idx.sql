@@ -14,7 +14,7 @@ $BODY$
 LANGUAGE sql
 IMMUTABLE;
 
-CREATE UNIQUE INDEX databases_table_unique_name_idx ON metaschema_public.table (database_id, metaschema_private.table_name_hash (name));
+CREATE UNIQUE INDEX databases_table_unique_name_idx ON metaschema_public.table (database_id, schema_id, metaschema_private.table_name_hash (name));
 
 COMMIT;
 

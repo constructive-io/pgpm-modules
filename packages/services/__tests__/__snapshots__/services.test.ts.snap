@@ -7,9 +7,7 @@ exports[`services functionality should handle complete meta workflow with servic
   "label": null,
   "name": "my-meta-db",
   "owner_id": "[ID]",
-  "private_schema_name": null,
   "schema_hash": null,
-  "schema_name": null,
 }
 `;
 
