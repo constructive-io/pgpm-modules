@@ -150,13 +150,13 @@ exports[`db_meta_modules should verify field_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 69984,
+  "constraintCount": 72600,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 100951,
+  "constraintCount": 104821,
   "foreignTables": [
     "apis",
     "database",
