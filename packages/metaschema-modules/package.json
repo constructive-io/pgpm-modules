@@ -25,7 +25,7 @@
     "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {
-    "pgpm": "^4.2.3"
+    "pgpm": "^4.7.6"
   },
   "repository": {
     "type": "git",
