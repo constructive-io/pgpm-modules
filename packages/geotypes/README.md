@@ -16,12 +16,14 @@ Geographic data types and spatial functions for PostgreSQL.
 
 ## Overview
 
-`@pgpm/geotypes` provides PostgreSQL domain types for geographic data, built on top of PostGIS geometry types. This package enables type-safe storage and validation of geographic coordinates and polygons with proper SRID (Spatial Reference System Identifier) enforcement.
+`@pgpm/geotypes` provides PostgreSQL domain types for geographic data, built on top of PostGIS geometry and geography types. This package enables type-safe storage and validation of geographic coordinates and polygons with proper SRID (Spatial Reference System Identifier) enforcement.
 
 ## Features
 
-- **geolocation**: A domain type for geographic points (latitude/longitude) using WGS84 (SRID 4326)
-- **geopolygon**: A domain type for geographic polygons using WGS84 (SRID 4326)
+- **geo_point**: A geometry domain for geographic points (latitude/longitude) using WGS84 (SRID 4326) — planar coordinates, fast computation
+- **geo_polygon**: A geometry domain for geographic polygons using WGS84 (SRID 4326) — planar coordinates
+- **geography_point**: A geography domain for geographic points using WGS84 (SRID 4326) — geodetic calculations on the sphere, distances in meters
+- **geography_polygon**: A geography domain for geographic polygons using WGS84 (SRID 4326) — geodetic calculations on the sphere
 - Automatic SRID validation to ensure coordinate system consistency
 - Integration with PostGIS spatial functions
 
@@ -82,29 +84,43 @@ pgpm deploy --createdb --database mydb1
 ### Creating Tables with Geographic Types
 
 ```sql
+-- Geometry (planar) types
 CREATE TABLE places (
   id serial PRIMARY KEY,
-  loc geolocation,
-  area geopolygon
+  loc geo_point,
+  area geo_polygon
+);
+
+-- Geography (spherical) types
+CREATE TABLE places_geo (
+  id serial PRIMARY KEY,
+  loc geography_point,
+  area geography_polygon
 );
 ```
 
 ### Inserting Geographic Data
 
 ```sql
--- Insert a point location (San Francisco)
+-- Insert a geometry point (San Francisco)
 INSERT INTO places (loc)
 VALUES (
   ST_SetSRID(ST_MakePoint(-122.4194, 37.7749), 4326)
 );
 
--- Insert a polygon area
+-- Insert a geometry polygon
 INSERT INTO places (area)
 VALUES (
   ST_SetSRID(
     ST_GeomFromText('POLYGON((-122.5 37.7, -122.4 37.7, -122.4 37.8, -122.5 37.8, -122.5 37.7))'),
     4326
   )
+);
+
+-- Insert a geography point (distances in meters, accounts for curvature)
+INSERT INTO places_geo (loc)
+VALUES (
+  ST_SetSRID(ST_MakePoint(-122.4194, 37.7749), 4326)::geography
 );
 ```
 
@@ -118,27 +134,47 @@ INSERT INTO places (loc)
 VALUES (
   ST_SetSRID(ST_MakePoint(-122.4194, 37.7749), 3857)
 );
--- ERROR: value for domain geolocation violates check constraint
+-- ERROR: value for domain geo_point violates check constraint
 ```
 
 ## Domain Types
 
-### geolocation
+### Geometry Domains (Planar)
 
-A PostgreSQL domain based on `geometry(Point, 4326)` that stores geographic point coordinates.
+#### geo_point
+
+A PostgreSQL domain based on `geometry(Point, 4326)` that stores geographic point coordinates using planar (flat) coordinates.
 
 - **Base Type**: `geometry(Point, 4326)`
-- **Use Case**: Storing latitude/longitude coordinates for locations
+- **Use Case**: Storing latitude/longitude coordinates for locations, fast computation
 - **SRID**: 4326 (WGS84 - World Geodetic System 1984)
 
-### geopolygon
+#### geo_polygon
 
-A PostgreSQL domain based on `geometry(Polygon, 4326)` that stores geographic polygon areas.
+A PostgreSQL domain based on `geometry(Polygon, 4326)` that stores geographic polygon areas using planar coordinates.
 
 - **Base Type**: `geometry(Polygon, 4326)`
 - **Use Case**: Storing geographic boundaries, regions, or areas
 - **SRID**: 4326 (WGS84)
 - **Validation**: Ensures valid polygon geometry (closed rings, proper vertex count)
+
+### Geography Domains (Spherical)
+
+#### geography_point
+
+A PostgreSQL domain based on `geography(Point, 4326)` that stores geographic point coordinates using geodetic (spherical) calculations.
+
+- **Base Type**: `geography(Point, 4326)`
+- **Use Case**: Real-world GPS data where distances should be in meters and account for Earth's curvature
+- **SRID**: 4326 (WGS84)
+
+#### geography_polygon
+
+A PostgreSQL domain based on `geography(Polygon, 4326)` that stores geographic polygon areas using geodetic calculations.
+
+- **Base Type**: `geography(Polygon, 4326)`
+- **Use Case**: Real-world geographic boundaries where area/distance calculations need to account for Earth's curvature
+- **SRID**: 4326 (WGS84)
 
 ## Dependencies
 
@@ -153,9 +189,10 @@ pnpm test
 ```
 
 The test suite validates:
-- Successful insertion of valid points and polygons
+- Successful insertion of valid geometry and geography points and polygons
 - SRID validation and rejection of incorrect coordinate systems
 - Polygon geometry validation
+- Geography distance calculations return values in meters
 
 ## Related Tooling
 
