@@ -3,5 +3,7 @@
 %uri=pgpm-geo-types
   
 schemas/public/schema 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/public/schema
-schemas/public/domains/geolocation [schemas/public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/public/domains/geolocation
-schemas/public/domains/geopolygon [schemas/public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/public/domains/geopolygon
+schemas/public/domains/geo_point [schemas/public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/public/domains/geo_point
+schemas/public/domains/geo_polygon [schemas/public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/public/domains/geo_polygon
+schemas/public/domains/geography_point [schemas/public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/public/domains/geography_point
+schemas/public/domains/geography_polygon [schemas/public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/public/domains/geography_polygon
