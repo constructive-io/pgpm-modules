@@ -8,7 +8,7 @@
 BEGIN;
 
 CREATE TABLE metaschema_public.enum (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
   database_id uuid NOT NULL,
   schema_id uuid NOT NULL,
   name text NOT NULL,
@@ -32,8 +32,6 @@ CREATE TABLE metaschema_public.enum (
   UNIQUE (schema_id, name)
 );
 
-COMMENT ON CONSTRAINT db_fkey ON metaschema_public.enum IS E'@omit manyToMany';
-COMMENT ON CONSTRAINT schema_fkey ON metaschema_public.enum IS E'@omit manyToMany';
 
 CREATE INDEX enum_schema_id_idx ON metaschema_public.enum ( schema_id );
 CREATE INDEX enum_database_id_idx ON metaschema_public.enum ( database_id );

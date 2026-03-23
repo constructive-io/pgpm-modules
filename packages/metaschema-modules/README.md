@@ -1,4 +1,4 @@
-# @pgpm/metaschema-modules
+# @pgpm/db-meta-modules
 
 <p align="center" width="100%">
   <img height="250" src="https://raw.githubusercontent.com/constructive-io/constructive/refs/heads/main/assets/outline-logo.svg" />
@@ -9,14 +9,14 @@
     <img height="20" src="https://github.com/constructive-io/pgpm-modules/actions/workflows/ci.yml/badge.svg" />
   </a>
    <a href="https://github.com/constructive-io/pgpm-modules/blob/main/LICENSE"><img height="20" src="https://img.shields.io/badge/license-MIT-blue.svg"/></a>
-   <a href="https://www.npmjs.com/package/@pgpm/metaschema-modules"><img height="20" src="https://img.shields.io/github/package-json/v/constructive-io/pgpm-modules?filename=packages%2Fmetaschema-modules%2Fpackage.json"/></a>
+   <a href="https://www.npmjs.com/package/@pgpm/db-meta-modules"><img height="20" src="https://img.shields.io/github/package-json/v/constructive-io/pgpm-modules?filename=packages%2Fdb-meta-modules%2Fpackage.json"/></a>
 </p>
 
 Module metadata handling and dependency tracking.
 
 ## Overview
 
-`@pgpm/metaschema-modules` extends the `@pgpm/metaschema-schema` package with module-specific metadata tables. This package provides tables for tracking various pgpm modules including authentication, permissions, memberships, encrypted secrets, and more. It enables configuration and metadata storage for modular application features.
+`@pgpm/db-meta-modules` extends the `@pgpm/db-meta-schema` package with module-specific metadata tables. This package provides tables for tracking various pgpm modules including authentication, permissions, memberships, encrypted secrets, and more. It enables configuration and metadata storage for modular application features.
 
 ## Features
 
@@ -33,7 +33,7 @@ Module metadata handling and dependency tracking.
 If you have `pgpm` installed:
 
 ```bash
-pgpm install @pgpm/metaschema-modules
+pgpm install @pgpm/db-meta-modules
 pgpm deploy
 ```
 
@@ -56,7 +56,7 @@ eval "$(pgpm env)"
 
 ```bash
 # 1. Install the package
-pgpm install @pgpm/metaschema-modules
+pgpm install @pgpm/db-meta-modules
 
 # 2. Deploy locally
 pgpm deploy 
@@ -74,7 +74,7 @@ pgpm init
 
 # 3. Install a package
 cd packages/my-module
-pgpm install @pgpm/metaschema-modules
+pgpm install @pgpm/db-meta-modules
 
 # 4. Deploy everything
 pgpm deploy --createdb --database mydb1
@@ -213,7 +213,7 @@ Use module tables as feature flags:
 
 ## Dependencies
 
-- `@pgpm/metaschema-schema`: Core metadata management
+- `@pgpm/db-meta-schema`: Core metadata management
 - `@pgpm/verify`: Verification utilities
 
 ## Testing
