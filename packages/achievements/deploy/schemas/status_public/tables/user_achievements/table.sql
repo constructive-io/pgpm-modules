@@ -5,7 +5,7 @@
 BEGIN;
 
 CREATE TABLE status_public.user_achievements (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    id uuid PRIMARY KEY DEFAULT uuidv7(),
     user_id uuid NOT NULL,
     name text NOT NULL, -- relates to level_requirements.name
     count int NOT NULL DEFAULT 0,

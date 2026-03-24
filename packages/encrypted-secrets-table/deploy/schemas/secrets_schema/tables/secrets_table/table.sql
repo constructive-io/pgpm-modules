@@ -5,7 +5,7 @@
 BEGIN;
 
 CREATE TABLE secrets_schema.secrets_table (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
   secrets_owned_field uuid NOT NULL,
   name text NOT NULL,
   secrets_value_field bytea NULL,
