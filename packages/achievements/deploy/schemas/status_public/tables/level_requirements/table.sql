@@ -6,7 +6,7 @@
 BEGIN;
 
 CREATE TABLE status_public.level_requirements (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
   name text NOT NULL,
   level text NOT NULL,
   required_count int DEFAULT 1,

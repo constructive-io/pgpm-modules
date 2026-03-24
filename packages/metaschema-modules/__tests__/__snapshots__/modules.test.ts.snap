@@ -22,18 +22,16 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "rls_module",
     "secrets_module",
     "sessions_module",
-    "table_module",
     "table_template_module",
     "user_auth_module",
     "users_module",
-    "uuid_module",
   ],
 }
 `;
 
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
-  "moduleTablesCount": 24,
+  "moduleTablesCount": 22,
   "totalTables": 27,
 }
 `;
@@ -42,7 +40,7 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
 {
   "columns": [
     {
-      "column_default": "uuid_generate_v4()",
+      "column_default": "uuidv7()",
       "column_name": "id",
       "data_type": "uuid",
       "is_nullable": "NO",
@@ -91,7 +89,7 @@ exports[`db_meta_modules should verify field_module table structure 1`] = `
 {
   "columns": [
     {
-      "column_default": "uuid_generate_v4()",
+      "column_default": "uuidv7()",
       "column_name": "id",
       "data_type": "uuid",
       "is_nullable": "NO",
@@ -150,15 +148,14 @@ exports[`db_meta_modules should verify field_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 72600,
+  "constraintCount": 64152,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 104821,
+  "constraintCount": 91658,
   "foreignTables": [
-    "apis",
     "database",
     "field",
     "schema",
@@ -171,7 +168,7 @@ exports[`db_meta_modules should verify sessions_module table structure 1`] = `
 {
   "columns": [
     {
-      "column_default": "uuid_generate_v4()",
+      "column_default": "uuidv7()",
       "column_name": "id",
       "data_type": "uuid",
       "is_nullable": "NO",
@@ -252,7 +249,7 @@ exports[`db_meta_modules should verify specific module table column defaults 1`]
       "column_name": "auth_settings_table_id",
     },
     {
-      "column_default": "uuid_generate_v4()",
+      "column_default": "uuidv7()",
       "column_name": "id",
     },
     {
@@ -286,7 +283,7 @@ exports[`db_meta_modules should verify specific module table column defaults 1`]
   ],
   "usersDefaults": [
     {
-      "column_default": "uuid_generate_v4()",
+      "column_default": "uuidv7()",
       "column_name": "id",
     },
     {
@@ -313,72 +310,11 @@ exports[`db_meta_modules should verify specific module table column defaults 1`]
 }
 `;
 
-exports[`db_meta_modules should verify table_module table structure 1`] = `
-{
-  "columns": [
-    {
-      "column_default": "uuid_generate_v4()",
-      "column_name": "id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": null,
-      "column_name": "database_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "uuid_nil()",
-      "column_name": "schema_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "uuid_nil()",
-      "column_name": "table_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": null,
-      "column_name": "table_name",
-      "data_type": "text",
-      "is_nullable": "YES",
-    },
-    {
-      "column_default": null,
-      "column_name": "node_type",
-      "data_type": "text",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "true",
-      "column_name": "use_rls",
-      "data_type": "boolean",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "'{}'::jsonb",
-      "column_name": "data",
-      "data_type": "jsonb",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": null,
-      "column_name": "fields",
-      "data_type": "ARRAY",
-      "is_nullable": "YES",
-    },
-  ],
-}
-`;
-
 exports[`db_meta_modules should verify table_template_module table structure 1`] = `
 {
   "columns": [
     {
-      "column_default": "uuid_generate_v4()",
+      "column_default": "uuidv7()",
       "column_name": "id",
       "data_type": "uuid",
       "is_nullable": "NO",
@@ -439,7 +375,7 @@ exports[`db_meta_modules should verify users_module table structure 1`] = `
 {
   "columns": [
     {
-      "column_default": "uuid_generate_v4()",
+      "column_default": "uuidv7()",
       "column_name": "id",
       "data_type": "uuid",
       "is_nullable": "NO",

@@ -7,7 +7,7 @@ BEGIN;
 -- NOT using yet, so commented it out for simplicity
 
 -- CREATE TABLE status_public.user_levels (
---     id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+--     id uuid PRIMARY KEY DEFAULT uuidv7(),
 --     user_id uuid NOT NULL,
 --     name text NOT NULL, -- references levels
 --     created_at timestamptz NOT NULL DEFAULT current_timestamp  

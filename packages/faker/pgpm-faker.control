@@ -1,8 +1,8 @@
 # pgpm-faker extension
 comment = 'pgpm-faker extension'
-default_version = '0.15.3'
+default_version = '0.15.5'
 module_pathname = '$libdir/pgpm-faker'
-requires = 'citext,pgcrypto,plpgsql,uuid-ossp,pgpm-types,pgpm-verify'
+requires = 'citext,pgcrypto,plpgsql,pgpm-types,pgpm-verify'
 relocatable = false
 superuser = false
   

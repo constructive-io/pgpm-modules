@@ -5,7 +5,7 @@
 BEGIN;
 
 CREATE TABLE faker.cities (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
   city text,
   state text,
   zips int[],

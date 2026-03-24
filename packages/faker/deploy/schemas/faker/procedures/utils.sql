@@ -420,7 +420,7 @@ LANGUAGE 'sql';
 
 CREATE FUNCTION faker.uuid() returns uuid as $$
 SELECT
-  uuid_generate_v4();
+  uuidv7();
 $$
 LANGUAGE 'sql';
 

@@ -5,7 +5,7 @@
 BEGIN;
 
 CREATE TABLE faker.dictionary (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    id uuid PRIMARY KEY DEFAULT uuidv7(),
     type text,
     word text
 );

@@ -41,11 +41,11 @@ jobs:
       PGPORT: 5432
       PGUSER: postgres
       PGPASSWORD: password
-      PGPM_VERSION: 2.7.9
+      PGPM_VERSION: 4.7.4
 
     services:
       pg_db:
-        image: pyramation/pgvector:13.3-alpine
+        image: constructiveio/postgres-plus:18
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
