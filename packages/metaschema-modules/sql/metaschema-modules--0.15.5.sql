@@ -421,7 +421,7 @@ COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.node_data IS 
 
 COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.grant_roles IS 'Database roles to grant privileges to. Supports multiple roles, e.g. ARRAY[''authenticated'', ''admin'']. Each role receives all privileges defined in grant_privileges. Defaults to ARRAY[''authenticated''].';
 
-COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.grant_privileges IS 'Array of [privilege, columns] tuples defining table grants. Examples: [["select","*"],["insert","*"]] for full access, or [["update",["name","bio"]]] for column-level grants. "*" means all columns; an array means column-level grant. Defaults to ''[]'' (no grants). The trigger validates this is a proper jsonb array.';
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.grant_privileges IS 'Array of [privilege, columns] tuples defining table grants. Examples: [["select","*"],["insert","*"]] for full access, or [["update",["name","bio"]]] for column-level grants. "*" means all columns; an array means column-level grant. Defaults to ''[]'' (no grants — callers must explicitly specify privileges). The trigger validates this is a proper jsonb array.';
 
 COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.policy_type IS 'Policy generator type, e.g. ''AuthzEntityMembership'', ''AuthzMembership'', ''AuthzAllowAll''. NULL means no policy is created. When set, the trigger automatically enables RLS on the target table.';
 
