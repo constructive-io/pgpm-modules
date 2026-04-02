@@ -66,12 +66,10 @@ CREATE TABLE metaschema_modules_public.relation_provision (
     expose_in_api boolean NOT NULL DEFAULT true,
 
     -- =========================================================================
-    -- ManyToMany: field creation (forwarded to secure_table_provision)
+    -- ManyToMany: field creation (forwarded to provision_table)
     -- =========================================================================
 
-    node_type text DEFAULT NULL,
-
-    node_data jsonb NOT NULL DEFAULT '{}',
+    nodes jsonb NOT NULL DEFAULT '[]',
 
     -- =========================================================================
     -- ManyToMany: grants (forwarded to secure_table_provision)
@@ -139,7 +137,7 @@ COMMENT ON COLUMN metaschema_modules_public.relation_provision.database_id IS
     'The database this relation belongs to. Required. Must match the database of both source_table_id and target_table_id.';
 
 COMMENT ON COLUMN metaschema_modules_public.relation_provision.relation_type IS
-    'The type of relation to create. Uses SuperCase naming matching the node_type_registry:
+    'The type of relation to create. Uses SuperCase naming:
      - RelationBelongsTo: creates a FK field on source_table referencing target_table (e.g., tasks belongs to projects -> tasks.project_id). Field name auto-derived from target table.
      - RelationHasMany: creates a FK field on target_table referencing source_table (e.g., projects has many tasks -> tasks.project_id). Field name auto-derived from source table. Inverse of BelongsTo — same FK, different perspective.
      - RelationHasOne: creates a FK field + unique constraint on source_table referencing target_table (e.g., user_settings has one user -> user_settings.user_id with UNIQUE). Also supports shared-primary-key patterns (e.g., user_profiles.id = users.id) by setting field_name to the existing PK field.
@@ -246,20 +244,11 @@ COMMENT ON COLUMN metaschema_modules_public.relation_provision.expose_in_api IS
 -- ManyToMany: field creation (forwarded to secure_table_provision)
 -- =============================================================================
 
-COMMENT ON COLUMN metaschema_modules_public.relation_provision.node_type IS
-    'For RelationManyToMany: which generator to invoke for field creation on the junction table. Forwarded to secure_table_provision as-is. The trigger does not interpret or validate this value.
-     Examples: DataId (creates UUID primary key), DataDirectOwner (creates owner_id field), DataEntityMembership (creates entity_id field), DataOwnershipInEntity (creates both owner_id and entity_id), DataTimestamps, DataPeoplestamps, DataPublishable, DataSoftDelete.
-     NULL means no field creation beyond the FK fields (and composite key if use_composite_key is true).
-     Ignored for RelationBelongsTo/RelationHasOne.';
-
-COMMENT ON COLUMN metaschema_modules_public.relation_provision.node_data IS
-    'For RelationManyToMany: configuration passed to the generator function for field creation on the junction table. Forwarded to secure_table_provision as-is. The trigger does not interpret or validate this value.
-     Only used when node_type is set. Structure varies by node_type. Examples:
-     - DataId: {"field_name": "id"} (default field name is ''id'')
-     - DataEntityMembership: {"entity_field_name": "entity_id", "include_id": false, "include_user_fk": true}
-     - DataDirectOwner: {"owner_field_name": "owner_id"}
-     Defaults to ''{}'' (empty object).
-     Ignored for RelationBelongsTo/RelationHasOne.';
+COMMENT ON COLUMN metaschema_modules_public.relation_provision.nodes IS
+    'For RelationManyToMany: array of node objects to apply to the junction table. Each element is a jsonb object with a required "$type" key and an optional "data" key. Forwarded to provision_table as-is. The trigger does not interpret or validate this value.
+     Examples: [{"$type": "DataId"}, {"$type": "DataTimestamps"}, {"$type": "DataDirectOwner", "data": {"owner_field_name": "author_id"}}].
+     Defaults to ''[]'' (no node processing beyond the FK fields and composite key if use_composite_key is true).
+     Ignored for RelationBelongsTo/RelationHasOne/RelationHasMany.';
 
 -- =============================================================================
 -- ManyToMany: grants (forwarded to secure_table_provision)

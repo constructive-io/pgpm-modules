@@ -16,7 +16,7 @@ CREATE TABLE metaschema_modules_public.table_template_module (
 
     table_name text NOT NULL,
 
-    -- Node type from node_type_registry (e.g., 'TableUserProfiles', 'TableOrganizationSettings', 'TableUserSettings')
+    -- Node type (e.g., 'TableUserProfiles', 'TableOrganizationSettings', 'TableUserSettings')
     node_type text NOT NULL,
 
     -- Type-specific parameters as jsonb
