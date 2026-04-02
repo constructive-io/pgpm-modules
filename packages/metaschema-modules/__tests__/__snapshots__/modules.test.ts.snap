@@ -9,7 +9,6 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "default_ids_module",
     "emails_module",
     "encrypted_secrets_module",
-    "field_module",
     "hierarchy_module",
     "invites_module",
     "levels_module",
@@ -22,6 +21,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "rls_module",
     "secrets_module",
     "sessions_module",
+    "storage_module",
     "table_template_module",
     "user_auth_module",
     "users_module",
@@ -32,7 +32,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
   "moduleTablesCount": 22,
-  "totalTables": 27,
+  "totalTables": 28,
 }
 `;
 
@@ -85,67 +85,6 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
 }
 `;
 
-exports[`db_meta_modules should verify field_module table structure 1`] = `
-{
-  "columns": [
-    {
-      "column_default": "uuidv7()",
-      "column_name": "id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": null,
-      "column_name": "database_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "uuid_nil()",
-      "column_name": "private_schema_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "uuid_nil()",
-      "column_name": "table_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "uuid_nil()",
-      "column_name": "field_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": null,
-      "column_name": "node_type",
-      "data_type": "text",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "'{}'::jsonb",
-      "column_name": "data",
-      "data_type": "jsonb",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": null,
-      "column_name": "triggers",
-      "data_type": "ARRAY",
-      "is_nullable": "YES",
-    },
-    {
-      "column_default": null,
-      "column_name": "functions",
-      "data_type": "ARRAY",
-      "is_nullable": "YES",
-    },
-  ],
-}
-`;
-
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
   "constraintCount": 64152,
@@ -154,7 +93,7 @@ exports[`db_meta_modules should verify module table structures have database_id 
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 91658,
+  "constraintCount": 92266,
   "foreignTables": [
     "database",
     "field",

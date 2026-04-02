@@ -15,11 +15,9 @@ CREATE TABLE metaschema_modules_public.secure_table_provision (
 
     table_name text DEFAULT NULL,
 
-    node_type text DEFAULT NULL,
+    nodes jsonb NOT NULL DEFAULT '[]',
 
     use_rls boolean NOT NULL DEFAULT true,
-
-    node_data jsonb NOT NULL DEFAULT '{}',
 
     fields jsonb[] NOT NULL DEFAULT '{}',
 
@@ -47,7 +45,7 @@ CREATE TABLE metaschema_modules_public.secure_table_provision (
 );
 
 COMMENT ON TABLE metaschema_modules_public.secure_table_provision IS
-    'Provisions security, fields, grants, and policies onto a table. Each row can independently: (1) create fields via node_type, (2) grant privileges via grant_privileges, (3) create RLS policies via policy_type. Multiple rows can target the same table to compose different concerns. All three concerns are optional and independent.';
+    'Provisions security, fields, grants, and policies onto a table. Each row can independently: (1) create fields via nodes[] array (supporting multiple Data* modules per row), (2) grant privileges via grant_privileges, (3) create RLS policies via policy_type. Multiple rows can target the same table to compose different concerns. All three concerns are optional and independent.';
 
 COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.id IS
     'Unique identifier for this provision row.';
@@ -64,14 +62,12 @@ COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.table_id IS
 COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.table_name IS
     'Name of the target table. Used to create or look up the table when table_id is not provided. If omitted, it is backfilled from the resolved table.';
 
-COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.node_type IS
-    'Which generator to invoke for field creation. One of: DataId, DataDirectOwner, DataEntityMembership, DataOwnershipInEntity, DataTimestamps, DataPeoplestamps, DataPublishable, DataSoftDelete. NULL means no field creation — the row only provisions grants and/or policies.';
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.nodes IS
+    'Array of node objects to apply to the table. Each element is a jsonb object with a required "$type" key (one of: DataId, DataDirectOwner, DataEntityMembership, DataOwnershipInEntity, DataTimestamps, DataPeoplestamps, DataPublishable, DataSoftDelete, DataEmbedding, DataFullTextSearch, DataSlug, etc.) and an optional "data" key containing generator-specific configuration. Supports multiple nodes per row, matching the blueprint definition format. Example: [{"$type": "DataId"}, {"$type": "DataTimestamps"}, {"$type": "DataDirectOwner", "data": {"owner_field_name": "author_id"}}]. Defaults to ''[]'' (no node processing).';
 
 COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.use_rls IS
     'If true and Row Level Security is not yet enabled on the target table, enable it. Automatically set to true by the trigger when policy_type is provided. Defaults to true.';
 
-COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.node_data IS
-    'Configuration passed to the generator function for field creation (only used when node_type is set). Known keys include: field_name (text, default ''id'') for DataId, owner_field_name (text, default ''owner_id'') for DataDirectOwner/DataOwnershipInEntity, entity_field_name (text, default ''entity_id'') for DataEntityMembership/DataOwnershipInEntity, include_id (boolean, default true) for most node_types, include_user_fk (boolean, default true) to add FK to users table, create_index (boolean, default true) to create btree indexes on FK fields for join and cascade performance. Defaults to ''{}''.';
 
 COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.fields IS
     'PostgreSQL array of jsonb field definition objects to create on the target table. Each object has keys: "name" (text, required), "type" (text, required), "default" (text, optional), "is_required" (boolean, optional, defaults to false), "min" (float, optional), "max" (float, optional), "regexp" (text, optional), "index" (boolean, optional, defaults to false — creates a btree index on the field). min/max generate CHECK constraints: for text/citext they constrain character_length, for integer/float types they constrain the value. regexp generates a CHECK (col ~ pattern) constraint for text/citext. Fields are created via metaschema.create_field() after any node_type generator runs, and their IDs are appended to out_fields. Example: ARRAY[''{"name":"username","type":"citext","max":256,"regexp":"^[a-z0-9_]+$"}''::jsonb, ''{"name":"score","type":"integer","min":0,"max":100}''::jsonb]. Defaults to ''{}'' (no additional fields).';
@@ -101,11 +97,10 @@ COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.policy_data I
     'Opaque configuration passed through to metaschema.create_policy(). Structure varies by policy_type and is not interpreted by this trigger. Defaults to ''{}''.';
 
 COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.out_fields IS
-    'Output column populated by the trigger after field creation. Contains the UUIDs of the metaschema fields created on the target table by this provision row''s generator. NULL when node_type is NULL or before the trigger runs. Callers should not set this directly.';
+    'Output column populated by the trigger after field creation. Contains the UUIDs of the metaschema fields created on the target table by this provision row''s nodes. NULL when nodes is empty or before the trigger runs. Callers should not set this directly.';
 
 
 CREATE INDEX secure_table_provision_database_id_idx ON metaschema_modules_public.secure_table_provision ( database_id );
 CREATE INDEX secure_table_provision_table_id_idx ON metaschema_modules_public.secure_table_provision ( table_id );
-CREATE INDEX secure_table_provision_node_type_idx ON metaschema_modules_public.secure_table_provision ( node_type );
 
 COMMIT;
