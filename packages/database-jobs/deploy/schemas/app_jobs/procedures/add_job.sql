@@ -19,6 +19,9 @@ CREATE FUNCTION app_jobs.add_job (
 DECLARE
   v_job app_jobs.jobs;
 BEGIN
+  -- Bake actor_id into payload
+  payload := (coalesce(payload, '{}'::json)::jsonb || jsonb_build_object('actor_id', jwt_public.current_user_id()))::json;
+
   IF job_key IS NOT NULL THEN
     -- Upsert job	
     INSERT INTO app_jobs.jobs (
