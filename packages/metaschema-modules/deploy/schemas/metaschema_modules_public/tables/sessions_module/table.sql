@@ -18,7 +18,7 @@ CREATE TABLE metaschema_modules_public.sessions_module (
     sessions_default_expiration interval NOT NULL DEFAULT '30 days'::interval,
     sessions_table text NOT NULL DEFAULT 'sessions',
     session_credentials_table text NOT NULL DEFAULT 'session_credentials',
-    auth_settings_table text NOT NULL DEFAULT 'app_auth_settings',
+    auth_settings_table text NOT NULL DEFAULT 'app_settings_auth',
     --
 
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
