@@ -18,6 +18,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "permissions_module",
     "phone_numbers_module",
     "profiles_module",
+    "rate_limits_module",
     "rls_module",
     "secrets_module",
     "sessions_module",
@@ -31,8 +32,8 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
-  "moduleTablesCount": 22,
-  "totalTables": 28,
+  "moduleTablesCount": 23,
+  "totalTables": 29,
 }
 `;
 
@@ -87,13 +88,13 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 64152,
+  "constraintCount": 69575,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 92266,
+  "constraintCount": 99730,
   "foreignTables": [
     "database",
     "field",
@@ -167,7 +168,7 @@ exports[`db_meta_modules should verify sessions_module table structure 1`] = `
       "is_nullable": "NO",
     },
     {
-      "column_default": "'app_auth_settings'::text",
+      "column_default": "'app_settings_auth'::text",
       "column_name": "auth_settings_table",
       "data_type": "text",
       "is_nullable": "NO",
@@ -180,7 +181,7 @@ exports[`db_meta_modules should verify specific module table column defaults 1`]
 {
   "sessionsDefaults": [
     {
-      "column_default": "'app_auth_settings'::text",
+      "column_default": "'app_settings_auth'::text",
       "column_name": "auth_settings_table",
     },
     {

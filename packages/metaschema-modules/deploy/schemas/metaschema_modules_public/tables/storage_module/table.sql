@@ -25,6 +25,14 @@ CREATE TABLE metaschema_modules_public.storage_module (
     -- Entity table for RLS (users table, since users and orgs share it)
     entity_table_id uuid NULL,
 
+    -- S3 connection config (NULL = use global env/plugin defaults)
+    endpoint text NULL,                          -- S3-compatible API endpoint URL (MinIO, R2, DO Spaces, GCS, etc.)
+    public_url_prefix text NULL,                 -- Public URL prefix for generating download URLs (e.g., CDN domain)
+    provider text NULL,                          -- Storage provider type: 'minio', 's3', 'gcs', etc.
+
+    -- CORS configuration (NULL = use plugin defaults)
+    allowed_origins text[] NULL,                 -- Default CORS origins for all buckets in this database (e.g., ARRAY['https://app.example.com']). ['*'] = open/CDN mode.
+
     -- Per-database configurable settings (NULL = use plugin defaults)
     upload_url_expiry_seconds integer NULL,      -- Presigned PUT URL expiry (default: 900 = 15 min)
     download_url_expiry_seconds integer NULL,    -- Presigned GET URL expiry (default: 3600 = 1 hour)
