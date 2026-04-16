@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/stamps",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "description": "Timestamp utilities and audit trail functions for PostgreSQL",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
