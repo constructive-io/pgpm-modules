@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/metaschema-modules",
-  "version": "0.21.0",
+  "version": "0.21.1",
   "description": "Module metadata handling and dependency tracking",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
