@@ -18,11 +18,14 @@ CREATE TABLE metaschema_modules_public.storage_module (
     upload_requests_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- Table names (input to the generator)
-    buckets_table_name text NOT NULL DEFAULT 'buckets',
-    files_table_name text NOT NULL DEFAULT 'files',
-    upload_requests_table_name text NOT NULL DEFAULT 'upload_requests',
+    buckets_table_name text NOT NULL DEFAULT 'app_buckets',
+    files_table_name text NOT NULL DEFAULT 'app_files',
+    upload_requests_table_name text NOT NULL DEFAULT 'app_upload_requests',
 
-    -- Entity table for RLS (users table, since users and orgs share it)
+    -- Multi-tenant storage identity
+    membership_type int DEFAULT NULL,              -- NULL = global gate (AuthzMembership via app_sprt), non-NULL = entity-scoped (AuthzEntityMembership)
+
+    -- Entity table for RLS (NULL for app-level storage, entity table for entity-scoped storage)
     entity_table_id uuid NULL,
 
     -- S3 connection config (NULL = use global env/plugin defaults)
@@ -51,5 +54,9 @@ CREATE TABLE metaschema_modules_public.storage_module (
 );
 
 CREATE INDEX storage_module_database_id_idx ON metaschema_modules_public.storage_module ( database_id );
+
+-- Unique constraint on (database_id, membership_type) using COALESCE to handle NULLs.
+-- NULL membership_type = app-level (only one per database), non-NULL = entity-scoped (one per membership_type per database).
+CREATE UNIQUE INDEX storage_module_unique_scope ON metaschema_modules_public.storage_module ( database_id, COALESCE(membership_type, -1) );
 
 COMMIT;
