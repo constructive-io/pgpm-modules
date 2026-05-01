@@ -1,0 +1,37 @@
+{
+  "name": "@pgpm/database-jobs-v2",
+  "version": "0.22.0",
+  "description": "High-performance database-specific job handling and queue management (v2)",
+  "author": "Dan Lynch <pyramation@gmail.com>",
+  "contributors": [
+    "Constructive <developers@constructive.io>"
+  ],
+  "keywords": [
+    "postgresql",
+    "pgpm",
+    "jobs",
+    "queue"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "bundle": "pgpm package",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "devDependencies": {
+    "pgpm": "^4.16.6"
+  },
+  "dependencies": {
+    "@pgpm/verify": "workspace:*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/constructive-io/pgpm-modules"
+  },
+  "homepage": "https://github.com/constructive-io/pgpm-modules",
+  "bugs": {
+    "url": "https://github.com/constructive-io/pgpm-modules/issues"
+  }
+}
