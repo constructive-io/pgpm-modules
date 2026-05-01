@@ -31,6 +31,7 @@ jobs:
           - services
           - jobs
           - database-jobs
+          - database-jobs-v2
           - uuid
           - types
           - stamps
