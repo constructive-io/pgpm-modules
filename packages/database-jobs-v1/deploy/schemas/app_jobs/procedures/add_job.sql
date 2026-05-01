@@ -23,7 +23,7 @@ BEGIN
   payload := (coalesce(payload, '{}'::json)::jsonb || jsonb_build_object('actor_id', jwt_public.current_user_id()))::json;
 
   IF job_key IS NOT NULL THEN
-    -- Upsert job
+    -- Upsert job	
     INSERT INTO app_jobs.jobs (
       database_id,
       task_identifier,
@@ -36,43 +36,46 @@ BEGIN
     ) VALUES (
         db_id,
         identifier,
-        coalesce(payload, '{}'::json),
+        coalesce(payload,
+        '{}'::json),
         queue_name,
         coalesce(run_at, now()),
         coalesce(max_attempts, 25),
         job_key,
         coalesce(priority, 0)
-    )
-    ON CONFLICT (key)
-      DO UPDATE SET
+    )	
+    ON CONFLICT (key)	
+      DO UPDATE SET	
         task_identifier = EXCLUDED.task_identifier,
         payload = EXCLUDED.payload,
         queue_name = EXCLUDED.queue_name,
         max_attempts = EXCLUDED.max_attempts,
         run_at = EXCLUDED.run_at,
-        priority = EXCLUDED.priority,
-        -- always reset error/retry state
-        attempts = 0, last_error = NULL
-      WHERE
-        jobs.locked_at IS NULL
-      RETURNING
-        * INTO v_job;
+        priority = EXCLUDED.priority,	
+        -- always reset error/retry state	
+        attempts = 0, last_error = NULL	
+      WHERE	
+        jobs.locked_at IS NULL	
+      RETURNING	
+        * INTO v_job;	
 
-    -- If upsert succeeded (insert or update), return early
-    IF NOT (v_job IS NULL) THEN
-      RETURN v_job;
-    END IF;
+    -- If upsert succeeded (insert or update), return early	
+    
+    IF NOT (v_job IS NULL) THEN	
+      RETURN v_job;	
+    END IF;	
 
-    -- Upsert failed -> there must be an existing job that is locked. Remove
-    -- existing key to allow a new one to be inserted, and prevent any
+    -- Upsert failed -> there must be an existing job that is locked. Remove	
+    -- existing key to allow a new one to be inserted, and prevent any	
     -- subsequent retries by bumping attempts to the max allowed.
-    UPDATE
-      app_jobs.jobs
-    SET
-      key = NULL,
-      attempts = jobs.max_attempts
-    WHERE
-      key = job_key;
+
+    UPDATE	
+      app_jobs.jobs	
+    SET	
+      KEY = NULL,	
+      attempts = jobs.max_attempts	
+    WHERE	
+      KEY = job_key;	
   END IF;
 
   INSERT INTO app_jobs.jobs (
@@ -100,3 +103,4 @@ $$
 LANGUAGE 'plpgsql' VOLATILE SECURITY DEFINER;
 
 COMMIT;
+

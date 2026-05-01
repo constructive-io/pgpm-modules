@@ -5,7 +5,7 @@ BEGIN;
 CREATE TABLE app_jobs.jobs (
   id bigserial PRIMARY KEY,
   database_id uuid NOT NULL,
-  queue_name text DEFAULT NULL,
+  queue_name text DEFAULT (public.gen_random_uuid ()) ::text,
   task_identifier text NOT NULL,
   payload json DEFAULT '{}' ::json NOT NULL,
   priority integer DEFAULT 0 NOT NULL,
@@ -16,10 +16,9 @@ CREATE TABLE app_jobs.jobs (
   last_error text,
   locked_at timestamptz,
   locked_by text,
-  is_available boolean GENERATED ALWAYS AS ((locked_at IS NULL) AND (attempts < max_attempts)) STORED NOT NULL,
   CHECK (length(key) < 513),
   CHECK (length(task_identifier) < 127),
-  CHECK (max_attempts >= 1),
+  CHECK (max_attempts > 0),
   CHECK (length(queue_name) < 127),
   CHECK (length(locked_by) > 3),
   UNIQUE (key)
@@ -39,7 +38,6 @@ COMMENT ON COLUMN app_jobs.jobs.key IS 'Optional unique deduplication key; preve
 COMMENT ON COLUMN app_jobs.jobs.last_error IS 'Error message from the most recent failed attempt';
 COMMENT ON COLUMN app_jobs.jobs.locked_at IS 'Timestamp when a worker locked this job for processing';
 COMMENT ON COLUMN app_jobs.jobs.locked_by IS 'Identifier of the worker that currently holds the lock';
-COMMENT ON COLUMN app_jobs.jobs.is_available IS 'Generated column: true when job is unlocked and has remaining attempts';
 
 COMMIT;
 

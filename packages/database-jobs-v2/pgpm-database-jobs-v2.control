@@ -1,8 +1,0 @@
-# pgpm-database-jobs-v2 extension
-comment = 'pgpm-database-jobs-v2 extension'
-default_version = '0.22.0'
-module_pathname = '$libdir/pgpm-database-jobs-v2'
-requires = 'plpgsql,pgcrypto,pgpm-verify'
-relocatable = false
-superuser = false
-  

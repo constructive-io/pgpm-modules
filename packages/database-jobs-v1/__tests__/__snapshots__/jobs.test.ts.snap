@@ -5,7 +5,6 @@ exports[`scheduled jobs schedule jobs 1`] = `
   "attempts": 0,
   "database_id": "5b720132-17d5-424d-9bcb-ee7b17c13d43",
   "id": "1",
-  "is_available": true,
   "key": null,
   "last_error": null,
   "locked_at": null,
