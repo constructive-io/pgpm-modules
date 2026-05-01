@@ -7,8 +7,7 @@ BEGIN;
 CREATE FUNCTION app_jobs.get_job (
   worker_id text,
   task_identifiers text[] DEFAULT NULL,
-  job_expiry interval DEFAULT '4 hours',
-  forbidden_flags text[] DEFAULT NULL
+  job_expiry interval DEFAULT '4 hours'
 )
   RETURNS app_jobs.jobs
   LANGUAGE plpgsql
@@ -41,8 +40,6 @@ BEGIN
     AND attempts < max_attempts
     AND (task_identifiers IS NULL
       OR task_identifier = ANY (task_identifiers))
-    AND (forbidden_flags IS NULL
-      OR (flags ?| forbidden_flags) IS NOT TRUE)
   ORDER BY priority ASC, run_at ASC, id ASC
   LIMIT 1
   FOR UPDATE SKIP LOCKED;

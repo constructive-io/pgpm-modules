@@ -16,8 +16,6 @@ CREATE TABLE app_jobs.jobs (
   last_error text,
   locked_at timestamptz,
   locked_by text,
-  revision integer DEFAULT 0 NOT NULL,
-  flags jsonb,
   is_available boolean GENERATED ALWAYS AS ((locked_at IS NULL) AND (attempts < max_attempts)) STORED NOT NULL,
   CHECK (length(key) < 513),
   CHECK (length(task_identifier) < 127),
@@ -41,8 +39,6 @@ COMMENT ON COLUMN app_jobs.jobs.key IS 'Optional unique deduplication key; preve
 COMMENT ON COLUMN app_jobs.jobs.last_error IS 'Error message from the most recent failed attempt';
 COMMENT ON COLUMN app_jobs.jobs.locked_at IS 'Timestamp when a worker locked this job for processing';
 COMMENT ON COLUMN app_jobs.jobs.locked_by IS 'Identifier of the worker that currently holds the lock';
-COMMENT ON COLUMN app_jobs.jobs.revision IS 'Incremented on each upsert via job key; used for change detection';
-COMMENT ON COLUMN app_jobs.jobs.flags IS 'JSONB object of boolean flags for filtering (e.g. forbidden_flags)';
 COMMENT ON COLUMN app_jobs.jobs.is_available IS 'Generated column: true when job is unlocked and has remaining attempts';
 
 COMMIT;

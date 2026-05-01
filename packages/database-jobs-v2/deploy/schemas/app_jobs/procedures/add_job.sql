@@ -12,8 +12,7 @@ CREATE FUNCTION app_jobs.add_job (
   queue_name text DEFAULT NULL,
   run_at timestamptz DEFAULT now(),
   max_attempts integer DEFAULT 25,
-  priority integer DEFAULT 0,
-  flags text[] DEFAULT NULL
+  priority integer DEFAULT 0
 )
   RETURNS app_jobs.jobs
   AS $$
@@ -33,8 +32,7 @@ BEGIN
       run_at,
       max_attempts,
       key,
-      priority,
-      flags
+      priority
     ) VALUES (
         db_id,
         identifier,
@@ -43,11 +41,7 @@ BEGIN
         coalesce(run_at, now()),
         coalesce(max_attempts, 25),
         job_key,
-        coalesce(priority, 0),
-        (
-          SELECT jsonb_object_agg(flag, true)
-          FROM unnest(flags) AS item(flag)
-        )
+        coalesce(priority, 0)
     )
     ON CONFLICT (key)
       DO UPDATE SET
@@ -57,8 +51,6 @@ BEGIN
         max_attempts = EXCLUDED.max_attempts,
         run_at = EXCLUDED.run_at,
         priority = EXCLUDED.priority,
-        flags = EXCLUDED.flags,
-        revision = jobs.revision + 1,
         -- always reset error/retry state
         attempts = 0, last_error = NULL
       WHERE
@@ -90,8 +82,7 @@ BEGIN
     queue_name,
     run_at,
     max_attempts,
-    priority,
-    flags
+    priority
   ) VALUES (
     db_id,
     identifier,
@@ -99,11 +90,7 @@ BEGIN
     queue_name,
     run_at,
     max_attempts,
-    priority,
-    (
-      SELECT jsonb_object_agg(flag, true)
-      FROM unnest(flags) AS item(flag)
-    )
+    priority
   )
   RETURNING * INTO v_job;
 
