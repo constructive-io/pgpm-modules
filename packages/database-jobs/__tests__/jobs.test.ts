@@ -65,6 +65,9 @@ describe('scheduled jobs', () => {
     const start = new Date(Date.now() + 10000); // 10s
     const end = new Date(start.getTime() + 180000); // +3min
 
+    // Set JWT claims for the session (required by add_scheduled_job)
+    await pg.any(`SELECT set_config('jwt.claims.database_id', $1, false)`, [database_id]);
+
     const [result] = await pg.any(
       `SELECT * FROM app_jobs.add_scheduled_job(
         identifier := $1::text,
