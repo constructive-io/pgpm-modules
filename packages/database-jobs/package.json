@@ -24,6 +24,7 @@
     "pgpm": "^4.16.6"
   },
   "dependencies": {
+    "@pgpm/jwt-claims": "workspace:*",
     "@pgpm/verify": "workspace:*"
   },
   "repository": {

@@ -88,6 +88,9 @@ importers:
 
   packages/database-jobs:
     dependencies:
+      '@pgpm/jwt-claims':
+        specifier: workspace:*
+        version: link:../jwt-claims
       '@pgpm/verify':
         specifier: workspace:*
         version: link:../verify

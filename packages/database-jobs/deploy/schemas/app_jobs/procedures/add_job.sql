@@ -2,10 +2,11 @@
 -- requires: schemas/app_jobs/schema
 -- requires: schemas/app_jobs/tables/jobs/table
 -- requires: schemas/app_jobs/tables/job_queues/table
+-- requires: pgpm-jwt-claims:schemas/jwt_private/procedures/current_database_id
+-- requires: pgpm-jwt-claims:schemas/jwt_public/procedures/current_user_id
 
 BEGIN;
 CREATE FUNCTION app_jobs.add_job (
-  db_id uuid,
   identifier text,
   payload json DEFAULT '{}' ::json,
   job_key text DEFAULT NULL,
@@ -18,14 +19,18 @@ CREATE FUNCTION app_jobs.add_job (
   AS $$
 DECLARE
   v_job app_jobs.jobs;
+  v_database_id uuid;
+  v_actor_id uuid;
 BEGIN
-  -- Bake actor_id into payload
-  payload := (coalesce(payload, '{}'::json)::jsonb || jsonb_build_object('actor_id', jwt_public.current_user_id()))::json;
+  -- Read context from JWT claims
+  v_database_id := jwt_private.current_database_id();
+  v_actor_id := jwt_public.current_user_id();
 
   IF job_key IS NOT NULL THEN
     -- Upsert job
     INSERT INTO app_jobs.jobs (
       database_id,
+      actor_id,
       task_identifier,
       payload,
       queue_name,
@@ -34,7 +39,8 @@ BEGIN
       key,
       priority
     ) VALUES (
-        db_id,
+        v_database_id,
+        v_actor_id,
         identifier,
         coalesce(payload, '{}'::json),
         queue_name,
@@ -77,6 +83,7 @@ BEGIN
 
   INSERT INTO app_jobs.jobs (
     database_id,
+    actor_id,
     task_identifier,
     payload,
     queue_name,
@@ -84,7 +91,8 @@ BEGIN
     max_attempts,
     priority
   ) VALUES (
-    db_id,
+    v_database_id,
+    v_actor_id,
     identifier,
     payload,
     queue_name,

@@ -67,17 +67,15 @@ describe('scheduled jobs', () => {
 
     const [result] = await pg.any(
       `SELECT * FROM app_jobs.add_scheduled_job(
-        db_id := $1::uuid,
-        identifier := $2::text,
-        payload := $3::json,
-        schedule_info := $4::json,
-        job_key := $5::text,
-        queue_name := $6::text,
-        max_attempts := $7::integer,
-        priority := $8::integer
+        identifier := $1::text,
+        payload := $2::json,
+        schedule_info := $3::json,
+        job_key := $4::text,
+        queue_name := $5::text,
+        max_attempts := $6::integer,
+        priority := $7::integer
       )`,
       [
-        database_id,
         'my_job',
         { just: 'run it' },
         { start, end, rule: '*/1 * * * *' },
@@ -101,17 +99,15 @@ describe('scheduled jobs', () => {
 
     const [result2] = await pg.any(
       `SELECT * FROM app_jobs.add_scheduled_job(
-        db_id := $1,
-        identifier := $2,
-        payload := $3,
-        schedule_info := $4,
-        job_key := $5,
-        queue_name := $6,
-        max_attempts := $7,
-        priority := $8
+        identifier := $1,
+        payload := $2,
+        schedule_info := $3,
+        job_key := $4,
+        queue_name := $5,
+        max_attempts := $6,
+        priority := $7
       )`,
       [
-        database_id,
         'my_job',
         { just: 'run it' },
         { start, end, rule: '*/1 * * * *' },
