@@ -4,7 +4,7 @@
 BEGIN;
 CREATE TABLE app_jobs.scheduled_jobs (
   id bigserial PRIMARY KEY,
-  database_id uuid NOT NULL,
+  database_id uuid,
   queue_name text DEFAULT NULL,
   task_identifier text NOT NULL,
   payload json DEFAULT '{}' ::json NOT NULL,
@@ -24,9 +24,9 @@ CREATE TABLE app_jobs.scheduled_jobs (
   UNIQUE (key)
 );
 
-COMMENT ON TABLE app_jobs.scheduled_jobs IS 'Recurring/cron-style job definitions with database scoping: each row spawns jobs on a schedule for a specific database';
+COMMENT ON TABLE app_jobs.scheduled_jobs IS 'Recurring/cron-style job definitions: each row spawns jobs on a schedule, optionally scoped to a database';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.id IS 'Auto-incrementing scheduled job identifier';
-COMMENT ON COLUMN app_jobs.scheduled_jobs.database_id IS 'Database this scheduled job belongs to, for multi-tenant isolation';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.database_id IS 'Database this scheduled job belongs to (nullable for system-level schedules without tenant context)';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.queue_name IS 'Name of the queue spawned jobs are placed into';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.task_identifier IS 'Task type identifier for spawned jobs';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.payload IS 'JSON payload passed to each spawned job';

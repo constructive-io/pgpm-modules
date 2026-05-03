@@ -4,7 +4,7 @@
 BEGIN;
 CREATE TABLE app_jobs.jobs (
   id bigserial PRIMARY KEY,
-  database_id uuid NOT NULL,
+  database_id uuid,
   actor_id uuid,
   queue_name text DEFAULT NULL,
   task_identifier text NOT NULL,
@@ -26,9 +26,9 @@ CREATE TABLE app_jobs.jobs (
   UNIQUE (key)
 );
 
-COMMENT ON TABLE app_jobs.jobs IS 'Background job queue with database scoping: each row is a pending or in-progress task for a specific database';
+COMMENT ON TABLE app_jobs.jobs IS 'Background job queue: each row is a pending or in-progress task, optionally scoped to a database';
 COMMENT ON COLUMN app_jobs.jobs.id IS 'Auto-incrementing job identifier';
-COMMENT ON COLUMN app_jobs.jobs.database_id IS 'Database this job belongs to, for multi-tenant job isolation';
+COMMENT ON COLUMN app_jobs.jobs.database_id IS 'Database this job belongs to (nullable for system-level jobs without tenant context)';
 COMMENT ON COLUMN app_jobs.jobs.actor_id IS 'User who triggered this job, read from JWT claims at enqueue time';
 COMMENT ON COLUMN app_jobs.jobs.queue_name IS 'Name of the queue this job belongs to; used for worker routing and concurrency control';
 COMMENT ON COLUMN app_jobs.jobs.task_identifier IS 'Identifier for the task type (maps to a worker handler function)';
