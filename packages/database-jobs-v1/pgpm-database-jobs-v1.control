@@ -1,8 +1,0 @@
-# pgpm-database-jobs-v1 extension
-comment = 'pgpm-database-jobs-v1 extension'
-default_version = '0.15.5'
-module_pathname = '$libdir/pgpm-database-jobs-v1'
-requires = 'plpgsql,pgcrypto,pgpm-verify'
-relocatable = false
-superuser = false
-  
