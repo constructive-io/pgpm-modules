@@ -4,8 +4,9 @@
 BEGIN;
 CREATE TABLE app_jobs.jobs (
   id bigserial PRIMARY KEY,
-  database_id uuid NOT NULL,
-  queue_name text DEFAULT (public.gen_random_uuid ()) ::text,
+  database_id uuid,
+  actor_id uuid,
+  queue_name text DEFAULT NULL,
   task_identifier text NOT NULL,
   payload json DEFAULT '{}' ::json NOT NULL,
   priority integer DEFAULT 0 NOT NULL,
@@ -16,17 +17,19 @@ CREATE TABLE app_jobs.jobs (
   last_error text,
   locked_at timestamptz,
   locked_by text,
+  is_available boolean GENERATED ALWAYS AS ((locked_at IS NULL) AND (attempts < max_attempts)) STORED NOT NULL,
   CHECK (length(key) < 513),
   CHECK (length(task_identifier) < 127),
-  CHECK (max_attempts > 0),
+  CHECK (max_attempts >= 1),
   CHECK (length(queue_name) < 127),
   CHECK (length(locked_by) > 3),
   UNIQUE (key)
 );
 
-COMMENT ON TABLE app_jobs.jobs IS 'Background job queue with database scoping: each row is a pending or in-progress task for a specific database';
+COMMENT ON TABLE app_jobs.jobs IS 'Background job queue: each row is a pending or in-progress task, optionally scoped to a database';
 COMMENT ON COLUMN app_jobs.jobs.id IS 'Auto-incrementing job identifier';
-COMMENT ON COLUMN app_jobs.jobs.database_id IS 'Database this job belongs to, for multi-tenant job isolation';
+COMMENT ON COLUMN app_jobs.jobs.database_id IS 'Database this job belongs to (nullable for system-level jobs without tenant context)';
+COMMENT ON COLUMN app_jobs.jobs.actor_id IS 'User who triggered this job, read from JWT claims at enqueue time';
 COMMENT ON COLUMN app_jobs.jobs.queue_name IS 'Name of the queue this job belongs to; used for worker routing and concurrency control';
 COMMENT ON COLUMN app_jobs.jobs.task_identifier IS 'Identifier for the task type (maps to a worker handler function)';
 COMMENT ON COLUMN app_jobs.jobs.payload IS 'JSON payload of arguments passed to the task handler';
@@ -38,6 +41,7 @@ COMMENT ON COLUMN app_jobs.jobs.key IS 'Optional unique deduplication key; preve
 COMMENT ON COLUMN app_jobs.jobs.last_error IS 'Error message from the most recent failed attempt';
 COMMENT ON COLUMN app_jobs.jobs.locked_at IS 'Timestamp when a worker locked this job for processing';
 COMMENT ON COLUMN app_jobs.jobs.locked_by IS 'Identifier of the worker that currently holds the lock';
+COMMENT ON COLUMN app_jobs.jobs.is_available IS 'Generated column: true when job is unlocked and has remaining attempts';
 
 COMMIT;
 

@@ -41,6 +41,7 @@ BEGIN
   -- insert new job
   INSERT INTO app_jobs.jobs (
     database_id,
+    actor_id,
     queue_name,
     task_identifier,
     payload,
@@ -49,6 +50,7 @@ BEGIN
     key
   ) SELECT
     database_id,
+    actor_id,
     queue_name,
     task_identifier,
     payload,
