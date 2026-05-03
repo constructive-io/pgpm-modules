@@ -3,6 +3,7 @@
 -- requires: schemas/app_jobs/schema
 -- requires: schemas/app_jobs/tables/scheduled_jobs/table
 -- requires: pgpm-jwt-claims:schemas/jwt_private/procedures/current_database_id
+-- requires: pgpm-jwt-claims:schemas/jwt_public/procedures/current_user_id
 
 BEGIN;
 
@@ -20,14 +21,17 @@ CREATE FUNCTION app_jobs.add_scheduled_job(
 DECLARE
   v_job app_jobs.scheduled_jobs;
   v_database_id uuid;
+  v_actor_id uuid;
 BEGIN
   v_database_id := jwt_private.current_database_id();
+  v_actor_id := jwt_public.current_user_id();
 
   IF job_key IS NOT NULL THEN
 
     -- Upsert job
     INSERT INTO app_jobs.scheduled_jobs (
       database_id,
+      actor_id,
       task_identifier,
       payload,
       queue_name,
@@ -37,6 +41,7 @@ BEGIN
       priority
       ) VALUES (
         v_database_id,
+        v_actor_id,
         identifier,
         coalesce(payload, '{}'::json),
         queue_name,
@@ -75,6 +80,7 @@ BEGIN
 
   INSERT INTO app_jobs.scheduled_jobs (
     database_id,
+    actor_id,
     task_identifier,
     payload,
     queue_name,
@@ -83,6 +89,7 @@ BEGIN
     priority
     ) VALUES (
     v_database_id,
+    v_actor_id,
     identifier,
     payload,
     queue_name,
