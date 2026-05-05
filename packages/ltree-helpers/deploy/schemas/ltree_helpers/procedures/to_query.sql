@@ -5,13 +5,21 @@
 BEGIN;
 
 -- Convert a glob-style path to an lquery value.
--- '/projects/*/docs'  => 'projects.*.docs'
--- '/projects/**'      => 'projects.*{1,}'
+-- Glob semantics: * = single level, ** = recursive descent
+-- '/projects/*/docs'  => 'projects.*{1}.docs'
+-- '/projects/**'      => 'projects.*'
+-- '/projects/*'       => 'projects.*{1}'
 CREATE FUNCTION ltree_helpers.to_query(
   glob text
 ) RETURNS lquery AS $$
   SELECT replace(
-    replace(ltrim(glob, '/'), '**', '*{1,}'),
+    replace(
+      replace(
+        replace(ltrim(glob, '/'), '**', '__DSTAR__'),
+        '*', '*{1}'
+      ),
+      '__DSTAR__', '*'
+    ),
     '/', '.'
   )::lquery;
 $$ LANGUAGE sql IMMUTABLE STRICT;

@@ -16,7 +16,13 @@ $EOFCODE$ LANGUAGE sql IMMUTABLE STRICT;
 
 CREATE FUNCTION ltree_helpers.to_query(glob text) RETURNS lquery AS $EOFCODE$
   SELECT replace(
-    replace(ltrim(glob, '/'), '**', '*{1,}'),
+    replace(
+      replace(
+        replace(ltrim(glob, '/'), '**', '__DSTAR__'),
+        '*', '*{1}'
+      ),
+      '__DSTAR__', '*'
+    ),
     '/', '.'
   )::lquery;
 $EOFCODE$ LANGUAGE sql IMMUTABLE STRICT;
