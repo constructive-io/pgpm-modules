@@ -1,0 +1,38 @@
+{
+  "name": "@pgpm/ltree-helpers",
+  "version": "0.21.0",
+  "description": "Slash-path to ltree/lquery conversion helpers for PostgreSQL",
+  "author": "Dan Lynch <pyramation@gmail.com>",
+  "contributors": [
+    "Constructive <developers@constructive.io>"
+  ],
+  "keywords": [
+    "postgresql",
+    "pgpm",
+    "ltree",
+    "filesystem",
+    "paths"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "bundle": "pgpm package",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "@pgpm/verify": "workspace:*"
+  },
+  "devDependencies": {
+    "pgpm": "^4.16.6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/constructive-io/pgpm-modules"
+  },
+  "homepage": "https://github.com/constructive-io/pgpm-modules",
+  "bugs": {
+    "url": "https://github.com/constructive-io/pgpm-modules/issues"
+  }
+}
