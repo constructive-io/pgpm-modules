@@ -5,10 +5,11 @@ BEGIN;
 
 CREATE SCHEMA ltree_helpers;
 
-GRANT USAGE ON SCHEMA ltree_helpers TO public;
+GRANT USAGE ON SCHEMA ltree_helpers
+TO authenticated, anonymous;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA ltree_helpers
 GRANT EXECUTE ON FUNCTIONS
-TO public;
+TO authenticated;
 
 COMMIT;

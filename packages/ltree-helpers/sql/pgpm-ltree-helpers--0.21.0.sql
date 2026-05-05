@@ -1,10 +1,10 @@
 \echo Use "CREATE EXTENSION pgpm-ltree-helpers" to load this file. \quit
 CREATE SCHEMA ltree_helpers;
 
-GRANT USAGE ON SCHEMA ltree_helpers TO PUBLIC;
+GRANT USAGE ON SCHEMA ltree_helpers TO authenticated, anonymous;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA ltree_helpers
-  GRANT EXECUTE ON FUNCTIONS TO PUBLIC;
+  GRANT EXECUTE ON FUNCTIONS TO authenticated;
 
 CREATE FUNCTION ltree_helpers.to_path(slash_path text) RETURNS ltree AS $EOFCODE$
   SELECT replace(ltrim(slash_path, '/'), '/', '.')::ltree;
