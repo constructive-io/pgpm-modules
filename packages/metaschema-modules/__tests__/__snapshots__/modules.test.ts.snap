@@ -7,6 +7,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "crypto_addresses_module",
     "crypto_auth_module",
     "default_ids_module",
+    "devices_module",
     "emails_module",
     "encrypted_secrets_module",
     "hierarchy_module",
@@ -23,7 +24,6 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "secrets_module",
     "sessions_module",
     "storage_module",
-    "table_template_module",
     "user_auth_module",
     "users_module",
   ],
@@ -33,7 +33,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
   "moduleTablesCount": 23,
-  "totalTables": 29,
+  "totalTables": 30,
 }
 `;
 
@@ -94,7 +94,7 @@ exports[`db_meta_modules should verify module table structures have database_id 
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 99730,
+  "constraintCount": 97962,
   "foreignTables": [
     "database",
     "field",
@@ -245,67 +245,6 @@ exports[`db_meta_modules should verify specific module table column defaults 1`]
     {
       "column_default": "'role_types'::text",
       "column_name": "type_table_name",
-    },
-  ],
-}
-`;
-
-exports[`db_meta_modules should verify table_template_module table structure 1`] = `
-{
-  "columns": [
-    {
-      "column_default": "uuidv7()",
-      "column_name": "id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": null,
-      "column_name": "database_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "uuid_nil()",
-      "column_name": "schema_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "uuid_nil()",
-      "column_name": "private_schema_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "uuid_nil()",
-      "column_name": "table_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "uuid_nil()",
-      "column_name": "owner_table_id",
-      "data_type": "uuid",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": null,
-      "column_name": "table_name",
-      "data_type": "text",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": null,
-      "column_name": "node_type",
-      "data_type": "text",
-      "is_nullable": "NO",
-    },
-    {
-      "column_default": "'{}'::jsonb",
-      "column_name": "data",
-      "data_type": "jsonb",
-      "is_nullable": "NO",
     },
   ],
 }

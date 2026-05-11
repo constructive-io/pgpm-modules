@@ -20,6 +20,10 @@ CREATE TABLE metaschema_modules_public.memberships_module (
     membership_defaults_table_id uuid NOT NULL DEFAULT uuid_nil(),
     membership_defaults_table_name text NOT NULL DEFAULT '',
 
+    -- Nullable: only created when entity_table_id IS NOT NULL (entity-scoped membership types)
+    membership_settings_table_id uuid NULL,
+    membership_settings_table_name text NOT NULL DEFAULT '',
+
     grants_table_id uuid NOT NULL DEFAULT uuid_nil(),
     grants_table_name text NOT NULL DEFAULT '',
 
@@ -54,6 +58,8 @@ CREATE TABLE metaschema_modules_public.memberships_module (
     entity_ids_by_perm text NULL,
     entity_ids_function text NULL,
 
+    member_profiles_table_id uuid NULL,
+
     -- 
      
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
@@ -62,6 +68,7 @@ CREATE TABLE metaschema_modules_public.memberships_module (
 
     CONSTRAINT memberships_table_fkey FOREIGN KEY (memberships_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT membership_defaults_table_fkey FOREIGN KEY (membership_defaults_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT membership_settings_table_fkey FOREIGN KEY (membership_settings_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT members_table_fkey FOREIGN KEY (members_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT grants_table_fkey FOREIGN KEY (grants_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT sprt_table_fkey FOREIGN KEY (sprt_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,

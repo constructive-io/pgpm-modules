@@ -26,6 +26,10 @@ CREATE TABLE metaschema_modules_public.profiles_module (
     -- Profile definition grants audit table
     profile_definition_grants_table_id uuid NOT NULL DEFAULT uuid_nil(),
     profile_definition_grants_table_name text NOT NULL DEFAULT '',
+
+    -- Profile templates table (for seeding profiles into new entities)
+    profile_templates_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    profile_templates_table_name text NOT NULL DEFAULT '',
     
     membership_type int NOT NULL,
     
@@ -47,6 +51,7 @@ CREATE TABLE metaschema_modules_public.profiles_module (
     CONSTRAINT profile_permissions_table_fkey FOREIGN KEY (profile_permissions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT profile_grants_table_fkey FOREIGN KEY (profile_grants_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT profile_definition_grants_table_fkey FOREIGN KEY (profile_definition_grants_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT profile_templates_table_fkey FOREIGN KEY (profile_templates_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT actor_table_fkey FOREIGN KEY (actor_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT permissions_table_fkey FOREIGN KEY (permissions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,

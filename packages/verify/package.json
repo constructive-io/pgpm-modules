@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/verify",
-  "version": "0.21.2",
+  "version": "0.15.5",
   "description": "Verification utilities for PGPM deploy/verify/revert workflow",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
@@ -21,7 +21,7 @@
     "test:watch": "jest --watch"
   },
   "devDependencies": {
-    "pgpm": "^4.16.6"
+    "pgpm": "^4.23.2"
   },
   "repository": {
     "type": "git",
