@@ -72,28 +72,16 @@ CREATE TABLE metaschema_modules_public.relation_provision (
     nodes jsonb NOT NULL DEFAULT '[]',
 
     -- =========================================================================
-    -- ManyToMany: grants (forwarded to secure_table_provision)
+    -- ManyToMany: grants (forwarded to provision_table)
     -- =========================================================================
 
-    grant_roles text[] NOT NULL DEFAULT ARRAY['authenticated'],
-
-    grant_privileges jsonb[] NOT NULL DEFAULT '{}',
+    grants jsonb NOT NULL DEFAULT '[]',
 
     -- =========================================================================
     -- ManyToMany: RLS policies (forwarded to secure_table_provision)
     -- =========================================================================
 
-    policy_type text DEFAULT NULL,
-
-    policy_privileges text[] DEFAULT NULL,
-
-    policy_role text DEFAULT NULL,
-
-    policy_permissive boolean NOT NULL DEFAULT true,
-
-    policy_name text DEFAULT NULL,
-
-    policy_data jsonb NOT NULL DEFAULT '{}',
+    policies jsonb NOT NULL DEFAULT '[]',
 
     -- =========================================================================
     -- Output columns (populated by the trigger, not set by callers)
@@ -254,41 +242,18 @@ COMMENT ON COLUMN metaschema_modules_public.relation_provision.nodes IS
 -- ManyToMany: grants (forwarded to secure_table_provision)
 -- =============================================================================
 
-COMMENT ON COLUMN metaschema_modules_public.relation_provision.grant_roles IS
-    'For RelationManyToMany: database roles to grant privileges to on the junction table. Forwarded to secure_table_provision as-is. Supports multiple roles, e.g. ARRAY[''authenticated'', ''admin'']. Each role receives all privileges defined in grant_privileges. Defaults to ARRAY[''authenticated'']. Ignored for RelationBelongsTo/RelationHasOne.';
-
-COMMENT ON COLUMN metaschema_modules_public.relation_provision.grant_privileges IS
-    'For RelationManyToMany: privilege grants for the junction table. Forwarded to secure_table_provision as-is. Format: PostgreSQL array of jsonb [privilege, columns] tuples. Examples: ARRAY[''["select","*"]''::jsonb, ''["insert","*"]''::jsonb] for full access, or ARRAY[''["update",["name","bio"]]''::jsonb] for column-level grants. "*" means all columns. Defaults to ''{}'' (no grants — callers must explicitly specify privileges). Ignored for RelationBelongsTo/RelationHasOne.';
+COMMENT ON COLUMN metaschema_modules_public.relation_provision.grants IS
+    'For RelationManyToMany: array of grant objects for the junction table. Forwarded to provision_table as-is. Each element is a jsonb object with keys: "roles" (text[], required), "privileges" (jsonb[], required — array of [privilege, columns] tuples). Example: [{"roles":["authenticated"],"privileges":[["select","*"],["insert","*"],["delete","*"]]}]. Defaults to ''[]'' (no grants). Ignored for RelationBelongsTo/RelationHasOne.';
 
 -- =============================================================================
 -- ManyToMany: RLS policies (forwarded to secure_table_provision)
 -- =============================================================================
 
-COMMENT ON COLUMN metaschema_modules_public.relation_provision.policy_type IS
-    'For RelationManyToMany: RLS policy type for the junction table. Forwarded to secure_table_provision as-is. The trigger does not interpret or validate this value.
-     Examples: AuthzEntityMembership, AuthzMembership, AuthzAllowAll, AuthzDirectOwner, AuthzOrgHierarchy.
-     NULL means no policy is created — the junction table will have RLS enabled but no policies (unless added separately via secure_table_provision).
-     Ignored for RelationBelongsTo/RelationHasOne.';
-
-COMMENT ON COLUMN metaschema_modules_public.relation_provision.policy_privileges IS
-    'For RelationManyToMany: privileges the policy applies to, e.g. ARRAY[''select'',''insert'',''delete'']. Forwarded to secure_table_provision as-is. NULL means privileges are derived from the grant_privileges verbs by secure_table_provision. Ignored for RelationBelongsTo/RelationHasOne.';
-
-COMMENT ON COLUMN metaschema_modules_public.relation_provision.policy_role IS
-    'For RelationManyToMany: database role the policy targets, e.g. ''authenticated''. Forwarded to secure_table_provision as-is. NULL means secure_table_provision falls back to the first role in grant_roles. Ignored for RelationBelongsTo/RelationHasOne.';
-
-COMMENT ON COLUMN metaschema_modules_public.relation_provision.policy_permissive IS
-    'For RelationManyToMany: whether the policy is PERMISSIVE (true) or RESTRICTIVE (false). Forwarded to secure_table_provision as-is. Defaults to true. Ignored for RelationBelongsTo/RelationHasOne.';
-
-COMMENT ON COLUMN metaschema_modules_public.relation_provision.policy_name IS
-    'For RelationManyToMany: custom suffix for the generated policy name. Forwarded to secure_table_provision as-is. When NULL and policy_type is set, secure_table_provision auto-derives a suffix from policy_type (e.g. AuthzDirectOwner becomes direct_owner, producing policy names like auth_sel_direct_owner). When explicitly set, used as-is. This ensures multiple policies on the same junction table do not collide. Ignored for RelationBelongsTo/RelationHasOne.';
-
-COMMENT ON COLUMN metaschema_modules_public.relation_provision.policy_data IS
-    'For RelationManyToMany: opaque policy configuration forwarded to secure_table_provision as-is. The trigger does not interpret or validate this value. Structure varies by policy_type. Examples:
-     - AuthzEntityMembership: {"entity_field": "entity_id", "membership_type": 2}
-     - AuthzDirectOwner: {"owner_field": "owner_id"}
-     - AuthzMembership: {"membership_type": 2}
-     Defaults to ''{}'' (empty object).
-     Ignored for RelationBelongsTo/RelationHasOne.';
+COMMENT ON COLUMN metaschema_modules_public.relation_provision.policies IS
+    'For RelationManyToMany: array of policy objects for the junction table. Forwarded to provision_table as-is. Each element is a jsonb object with keys: "$type" (text, required — the Authz* policy generator type), "data" (jsonb, optional — opaque config), "privileges" (text[], optional — e.g. ["select","insert"]; if omitted, derived from grants[] privilege verbs), "policy_role" (text, optional — falls back to first role in first grants[] entry, or ''authenticated''), "permissive" (boolean, optional, defaults to true), "policy_name" (text, optional). Supports multiple policies per row.
+     Example: [{"$type": "AuthzEntityMembership", "data": {"entity_field": "entity_id", "membership_type": 2}, "privileges": ["select", "insert", "delete"]}].
+     Defaults to ''[]'' (no policies — the junction table will have RLS enabled but no policies unless added separately).
+     Ignored for RelationBelongsTo/RelationHasOne/RelationHasMany.';
 
 -- =============================================================================
 -- Output columns

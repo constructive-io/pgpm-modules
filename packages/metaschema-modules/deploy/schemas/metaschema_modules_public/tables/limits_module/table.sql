@@ -24,7 +24,35 @@ CREATE TABLE metaschema_modules_public.limits_module (
     limit_decrement_trigger text NOT NULL DEFAULT '',
     limit_update_trigger text NOT NULL DEFAULT '',
     limit_check_function text NOT NULL DEFAULT '',
-    
+
+    -- Credit grants ledger table
+    limit_credits_table_id uuid NULL,
+
+    -- Events audit trail table
+    events_table_id uuid NULL,
+
+    -- Credit codes table (app-level only, database-wide)
+    credit_codes_table_id uuid NULL,
+
+    -- Credit code items table (app-level only, database-wide)
+    credit_code_items_table_id uuid NULL,
+
+    -- Credit redemptions table (app-level only, database-wide)
+    credit_redemptions_table_id uuid NULL,
+
+    -- Aggregate entity limits (org-level caps, no actor_id)
+    aggregate_table_id uuid NULL,
+
+    -- Cap tables (static config limits, no metering)
+    limit_caps_table_id uuid NULL,
+    limit_caps_defaults_table_id uuid NULL,
+
+    -- Cap check trigger function (gates inserts behind cap/feature flag values)
+    cap_check_trigger text NOT NULL DEFAULT '',
+
+    -- Resolve cap function (COALESCE lookup: per-entity → default → 0)
+    resolve_cap_function text NOT NULL DEFAULT '',
+
     prefix text NULL,
 
     membership_type int NOT NULL,
@@ -41,7 +69,15 @@ CREATE TABLE metaschema_modules_public.limits_module (
     CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT default_table_fkey FOREIGN KEY (default_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT actor_table_fkey FOREIGN KEY (actor_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
+    CONSTRAINT actor_table_fkey FOREIGN KEY (actor_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT aggregate_table_fkey FOREIGN KEY (aggregate_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT limit_credits_table_fkey FOREIGN KEY (limit_credits_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT events_table_fkey FOREIGN KEY (events_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT credit_codes_table_fkey FOREIGN KEY (credit_codes_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT credit_code_items_table_fkey FOREIGN KEY (credit_code_items_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT credit_redemptions_table_fkey FOREIGN KEY (credit_redemptions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT limit_caps_table_fkey FOREIGN KEY (limit_caps_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT limit_caps_defaults_table_fkey FOREIGN KEY (limit_caps_defaults_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 
 );
 

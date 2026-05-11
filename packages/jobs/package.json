@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/jobs",
-  "version": "0.21.2",
+  "version": "0.15.5",
   "description": "Core job system for background task processing in PostgreSQL",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
@@ -24,7 +24,7 @@
     "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {
-    "pgpm": "^4.16.6"
+    "pgpm": "^4.23.2"
   },
   "repository": {
     "type": "git",

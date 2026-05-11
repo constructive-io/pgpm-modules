@@ -38,8 +38,8 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
     send_account_deletion_email_function text NOT NULL DEFAULT 'send_account_deletion_email',
     delete_account_function text NOT NULL DEFAULT 'confirm_delete_account',
 
-    sign_in_one_time_token_function text NOT NULL DEFAULT 'sign_in_one_time_token',
-    one_time_token_function text NOT NULL DEFAULT 'one_time_token',
+    sign_in_cross_origin_function text NOT NULL DEFAULT 'sign_in_cross_origin',
+    request_cross_origin_token_function text NOT NULL DEFAULT 'request_cross_origin_token',
     extend_token_expires text NOT NULL DEFAULT 'extend_token_expires',
 
     -- UNIQUE(api_id),

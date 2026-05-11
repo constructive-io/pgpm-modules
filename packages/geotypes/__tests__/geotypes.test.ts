@@ -12,15 +12,9 @@ beforeAll(async () => {
     CREATE TABLE places (
       id serial PRIMARY KEY,
       loc geo_point,
-      area geo_polygon
-    );
-  `);
-
-  await pg.any(`
-    CREATE TABLE places_geo (
-      id serial PRIMARY KEY,
-      loc geography_point,
-      area geography_polygon
+      area geo_polygon,
+      loc_earth geography_point,
+      area_earth geography_polygon
     );
   `);
 });
@@ -65,7 +59,7 @@ describe('geometry domains (geo_point, geo_polygon)', () => {
 describe('geography domains (geography_point, geography_polygon)', () => {
   it('inserts valid geography point and polygon', async () => {
     await expect(pg.any(`
-      INSERT INTO places_geo (loc, area)
+      INSERT INTO places (loc_earth, area_earth)
       VALUES (
         ST_SetSRID(ST_MakePoint(-122.4194, 37.7749), 4326)::geography,
         ST_GeogFromText('POLYGON((-122.5 37.7, -122.4 37.7, -122.4 37.8, -122.5 37.8, -122.5 37.7))')
@@ -74,20 +68,20 @@ describe('geography domains (geography_point, geography_polygon)', () => {
   });
 
   it('computes distance in meters for geography_point', async () => {
-    const result = await pg.one(`
+    const result = await pg.one<{ dist: number }>(`
       SELECT ST_Distance(
         ST_SetSRID(ST_MakePoint(-122.4194, 37.7749), 4326)::geography,
         ST_SetSRID(ST_MakePoint(-73.9857, 40.7484), 4326)::geography
-      ) AS dist_meters;
+      ) as dist;
     `);
-    // SF to NYC is approximately 4,000 km
-    expect(result.dist_meters).toBeGreaterThan(4000000);
-    expect(result.dist_meters).toBeLessThan(5000000);
+    // ST_Distance on geography returns meters; SF to NYC is ~4,000 km
+    expect(result.dist).toBeGreaterThan(4000000);
+    expect(result.dist).toBeLessThan(5000000);
   });
 
   it('fails if geography point SRID is incorrect', async () => {
     await expect(pg.any(`
-      INSERT INTO places_geo (loc)
+      INSERT INTO places (loc_earth)
       VALUES (
         ST_SetSRID(ST_MakePoint(-122.4194, 37.7749), 3857)::geography
       );

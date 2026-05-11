@@ -41,4 +41,12 @@ CREATE TABLE metaschema_modules_public.invites_module (
 
 CREATE INDEX invites_module_database_id_idx ON metaschema_modules_public.invites_module ( database_id );
 
+-- Unique constraint on (database_id, membership_type) so the
+-- entity_type_provision fan-out can use ON CONFLICT DO NOTHING for idempotent
+-- re-provisioning. invites_module is always entity-scoped (membership_type
+-- is NOT NULL on this table), so no COALESCE-NULL trick is needed here,
+-- unlike storage_module which supports an app-level singleton row.
+CREATE UNIQUE INDEX invites_module_unique_scope
+    ON metaschema_modules_public.invites_module (database_id, membership_type);
+
 COMMIT;

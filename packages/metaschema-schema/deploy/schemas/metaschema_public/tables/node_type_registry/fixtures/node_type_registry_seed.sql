@@ -1,0 +1,1475 @@
+-- Deploy schemas/metaschema_public/tables/node_type_registry/fixtures/node_type_registry_seed to pg
+--
+-- GENERATED FILE — DO NOT EDIT
+-- Regenerate with: cd packages/node-type-registry && pnpm generate
+--
+-- Node types: 61
+
+-- requires: schemas/metaschema_public/schema
+-- requires: schemas/metaschema_public/tables/node_type_registry/table
+
+BEGIN;
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzAllowAll',
+  'authz_allow_all',
+  'authz',
+  'Public Access',
+  'Allows all access. Generates TRUE expression.',
+  '{"type":"object","properties":{}}'::jsonb,
+  '{"authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzAppMembership',
+  'authz_app_membership_check',
+  'authz',
+  'App Membership Check',
+  'App-level membership check (hardcoded membership_type=1). Verifies the user has app membership (optionally with specific permission) without binding to any entity from the row. Uses EXISTS subquery against SPRT table. For entity-scoped checks (org, channel, etc.), use AuthzEntityMembership instead.',
+  '{"type":"object","properties":{"permission":{"type":"string","description":"Single permission name to check (resolved to bitstring mask)"},"permissions":{"type":"array","items":{"type":"string"},"description":"Multiple permission names to check (ORed together into mask)"},"is_admin":{"type":"boolean","description":"If true, require is_admin flag"},"is_owner":{"type":"boolean","description":"If true, require is_owner flag"}},"required":[]}'::jsonb,
+  '{"membership","authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzComposite',
+  'authz_composite',
+  'authz',
+  'Composite Policy',
+  'Composite authorization policy that combines multiple authorization nodes using boolean logic (AND/OR). The data field contains a JSONB AST with nested authorization nodes.',
+  '{"type":"object","description":"A composite policy containing nested authorization nodes combined with boolean logic","properties":{"BoolExpr":{"type":"object","description":"Boolean expression combining multiple authorization nodes","properties":{"boolop":{"type":"string","enum":["AND_EXPR","OR_EXPR","NOT_EXPR"],"description":"Boolean operator: AND_EXPR, OR_EXPR, or NOT_EXPR"},"args":{"type":"array","description":"Array of authorization nodes to combine","items":{"type":"object"}}}}}}'::jsonb,
+  '{"composite","authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzDenyAll',
+  'authz_deny_all',
+  'authz',
+  'No Access',
+  'Denies all access. Generates FALSE expression.',
+  '{"type":"object","properties":{}}'::jsonb,
+  '{"authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzDirectOwner',
+  'authz_direct_owner',
+  'authz',
+  'Direct Ownership',
+  'Direct equality comparison between a table column and the current user ID. Simplest authorization pattern with no subqueries.',
+  '{"type":"object","properties":{"entity_field":{"type":"string","format":"column-ref","description":"Column name containing the owner user ID (e.g., owner_id)"}},"required":["entity_field"]}'::jsonb,
+  '{"ownership","authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzDirectOwnerAny',
+  'authz_direct_owner_any',
+  'authz',
+  'Multi-Owner Access',
+  'OR logic for multiple ownership fields. Checks if current user matches any of the specified fields.',
+  '{"type":"object","properties":{"entity_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Array of column names to check for ownership"}},"required":["entity_fields"]}'::jsonb,
+  '{"ownership","authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzEntityMembership',
+  'authz_entity_membership',
+  'authz',
+  'Entity Membership',
+  'Membership check scoped by a field on the row through the SPRT table. Verifies user has membership in the entity referenced by the row.',
+  '{"type":"object","properties":{"entity_field":{"type":"string","format":"column-ref","description":"Column name referencing the entity (e.g., entity_id, org_id)"},"sel_field":{"type":"string","description":"SPRT column to select for the entity match","default":"entity_id"},"membership_type":{"type":["integer","string"],"description":"Scope: 1=app, 2=org, 3+=dynamic entity types (or string name resolved via membership_types_module)"},"entity_type":{"type":"string","description":"Entity type prefix (e.g. ''channel'', ''department''). Resolved to membership_type integer via memberships_module lookup. Use instead of membership_type for readability."},"permission":{"type":"string","description":"Single permission name to check (resolved to bitstring mask)"},"permissions":{"type":"array","items":{"type":"string"},"description":"Multiple permission names to check (ORed together into mask)"},"is_admin":{"type":"boolean","description":"If true, require is_admin flag"},"is_owner":{"type":"boolean","description":"If true, require is_owner flag"}},"required":["entity_field"]}'::jsonb,
+  '{"membership","authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzFilePath',
+  'authz_file_path',
+  'authz',
+  'File Path Share',
+  'Path-scoped file sharing via ltree containment. Grants access when a path_shares row matches the current user, bucket, and an ancestor path with the required permission.',
+  '{"type":"object","properties":{"shares_schema":{"type":"string","description":"Schema of the path_shares table"},"shares_table":{"type":"string","description":"Name of the path_shares table"},"files_schema":{"type":"string","description":"Schema of the files table (used to qualify column references inside the EXISTS subquery)"},"files_table":{"type":"string","description":"Name of the files table (used to qualify column references inside the EXISTS subquery)"},"permission_field":{"type":"string","format":"column-ref","description":"Boolean column on the path_shares table that grants the required permission (e.g. can_read, can_write)"},"bucket_field":{"type":"string","format":"column-ref","description":"Column on the files table referencing the bucket","default":"bucket_id"},"path_field":{"type":"string","format":"column-ref","description":"Ltree column on the files table representing the file path","default":"path"}},"required":["shares_schema","shares_table","files_table","permission_field"]}'::jsonb,
+  '{"storage","authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzMemberList',
+  'authz_member_list',
+  'authz',
+  'Member List',
+  'Check if current user is in an array column on the same row.',
+  '{"type":"object","properties":{"array_field":{"type":"string","format":"column-ref","description":"Column name containing the array of user IDs"}},"required":["array_field"]}'::jsonb,
+  '{"ownership","authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzNotReadOnly',
+  'authz_not_read_only',
+  'authz',
+  'Not Read-Only',
+  'Restrictive policy that blocks read-only members from mutations. Checks actor_id + is_read_only IS NOT TRUE on the SPRT. Designed to run as a restrictive counterpart after a permissive AuthzEntityMembership policy has already verified membership.',
+  '{"type":"object","properties":{"entity_field":{"type":"string","format":"column-ref","description":"Column name referencing the entity (e.g., entity_id, org_id)"},"membership_type":{"type":["integer","string"],"description":"Scope: 2=org, 3+=dynamic entity types. Must be >= 2 (entity-scoped)."}},"required":["entity_field"]}'::jsonb,
+  '{"membership","authz","restrictive"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzOrgHierarchy',
+  'authz_org_hierarchy',
+  'authz',
+  'Org Hierarchy',
+  'Organizational hierarchy visibility using closure table. Managers can see subordinate data or subordinates can see manager data.',
+  '{"type":"object","properties":{"direction":{"type":"string","enum":["up","down"],"description":"down=manager sees subordinates, up=subordinate sees managers"},"entity_field":{"type":"string","format":"column-ref","description":"Field referencing the org entity","default":"entity_id"},"anchor_field":{"type":"string","format":"column-ref","description":"Field referencing the user (e.g., owner_id)"},"max_depth":{"type":"integer","description":"Optional max depth to limit visibility"}},"required":["direction","anchor_field"]}'::jsonb,
+  '{"membership","hierarchy","authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzPeerOwnership',
+  'authz_peer_ownership',
+  'authz',
+  'Peer Ownership',
+  'Peer visibility through shared entity membership. Authorizes access to user-owned rows when the owner and current user are both members of the same entity. Self-joins the SPRT table to find peers.',
+  '{"type":"object","properties":{"owner_field":{"type":"string","format":"column-ref","description":"Column name on protected table referencing the owning user (e.g., owner_id)"},"membership_type":{"type":["integer","string"],"description":"Scope: 1=app, 2=org, 3+=dynamic entity types (or string name resolved via membership_types_module)"},"entity_type":{"type":"string","description":"Entity type prefix (e.g. ''channel'', ''department''). Resolved to membership_type integer via memberships_module lookup. Use instead of membership_type for readability."},"permission":{"type":"string","description":"Single permission name to check on the current user membership (resolved to bitstring mask)"},"permissions":{"type":"array","items":{"type":"string"},"description":"Multiple permission names to check on the current user membership (ORed together into mask)"},"is_admin":{"type":"boolean","description":"If true, require is_admin flag on current user membership"},"is_owner":{"type":"boolean","description":"If true, require is_owner flag on current user membership"}},"required":["owner_field"]}'::jsonb,
+  '{"membership","peer","authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzPublishable',
+  'authz_publishable',
+  'authz',
+  'Published Content',
+  'Published state access control. Restricts access to records that are published.',
+  '{"type":"object","properties":{"is_published_field":{"type":"string","format":"column-ref","description":"Boolean field indicating published state","default":"is_published"},"published_at_field":{"type":"string","format":"column-ref","description":"Timestamp field for publish time","default":"published_at"},"require_published_at":{"type":"boolean","description":"Require published_at to be non-null and <= now()","default":true}}}'::jsonb,
+  '{"temporal","publishing","authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzRelatedEntityMembership',
+  'authz_related_entity_membership',
+  'authz',
+  'Related Entity Membership',
+  'JOIN-based membership verification through related tables. Joins SPRT table with another table to verify membership.',
+  '{"type":"object","properties":{"entity_field":{"type":"string","format":"column-ref","description":"Column name on protected table referencing the join table"},"sel_field":{"type":"string","description":"SPRT column to select for the entity match","default":"entity_id"},"sprt_join_field":{"type":"string","description":"SPRT column to join on with the related table","default":"entity_id"},"membership_type":{"type":["integer","string"],"description":"Scope: 1=app, 2=org, 3+=dynamic entity types (or string name resolved via membership_types_module)"},"entity_type":{"type":"string","description":"Entity type prefix (e.g. ''channel'', ''department''). Resolved to membership_type integer via memberships_module lookup. Use instead of membership_type for readability."},"obj_table_id":{"type":"string","format":"uuid","description":"UUID of the join table (alternative to obj_schema/obj_table)"},"obj_schema":{"type":"string","description":"Schema of the join table (or use obj_table_id)"},"obj_table":{"type":"string","description":"Name of the join table (or use obj_table_id)"},"obj_field_id":{"type":"string","format":"uuid","description":"UUID of field on join table (alternative to obj_field)"},"obj_field":{"type":"string","format":"column-ref","description":"Field name on join table to match against SPRT entity_id"},"permission":{"type":"string","description":"Single permission name to check (resolved to bitstring mask)"},"permissions":{"type":"array","items":{"type":"string"},"description":"Multiple permission names to check (ORed together into mask)"},"is_admin":{"type":"boolean","description":"If true, require is_admin flag"},"is_owner":{"type":"boolean","description":"If true, require is_owner flag"}},"required":["entity_field"]}'::jsonb,
+  '{"membership","authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzRelatedMemberList',
+  'authz_related_member_list',
+  'authz',
+  'Related Member List',
+  'Array membership check in a related table.',
+  '{"type":"object","properties":{"owned_schema":{"type":"string","description":"Schema of the related table"},"owned_table":{"type":"string","description":"Name of the related table"},"owned_table_key":{"type":"string","format":"column-ref","description":"Array column in related table"},"owned_table_ref_key":{"type":"string","format":"column-ref","description":"FK column in related table"},"this_object_key":{"type":"string","format":"column-ref","description":"PK column in protected table"}},"required":["owned_schema","owned_table","owned_table_key","owned_table_ref_key","this_object_key"]}'::jsonb,
+  '{"ownership","authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzRelatedPeerOwnership',
+  'authz_related_peer_ownership',
+  'authz',
+  'Related Peer Ownership',
+  'Peer visibility through shared entity membership via a related table. Like AuthzPeerOwnership but the owning user is resolved through a FK JOIN to a related table. Combines SPRT self-join with object table JOIN.',
+  '{"type":"object","properties":{"entity_field":{"type":"string","format":"column-ref","description":"Column name on protected table referencing the related table (e.g., message_id)"},"membership_type":{"type":["integer","string"],"description":"Scope: 1=app, 2=org, 3+=dynamic entity types (or string name resolved via membership_types_module)"},"entity_type":{"type":"string","description":"Entity type prefix (e.g. ''channel'', ''department''). Resolved to membership_type integer via memberships_module lookup. Use instead of membership_type for readability."},"obj_table_id":{"type":"string","format":"uuid","description":"UUID of the related table (alternative to obj_schema/obj_table)"},"obj_schema":{"type":"string","description":"Schema of the related table (or use obj_table_id)"},"obj_table":{"type":"string","description":"Name of the related table (or use obj_table_id)"},"obj_field_id":{"type":"string","format":"uuid","description":"UUID of field on related table containing the owner user ID (alternative to obj_field)"},"obj_field":{"type":"string","format":"column-ref","description":"Field name on related table containing the owner user ID (e.g., sender_id)"},"obj_ref_field":{"type":"string","format":"column-ref","description":"Field on related table to select for matching entity_field","default":"id"},"permission":{"type":"string","description":"Single permission name to check on the current user membership (resolved to bitstring mask)"},"permissions":{"type":"array","items":{"type":"string"},"description":"Multiple permission names to check on the current user membership (ORed together into mask)"},"is_admin":{"type":"boolean","description":"If true, require is_admin flag on current user membership"},"is_owner":{"type":"boolean","description":"If true, require is_owner flag on current user membership"}},"required":["entity_field"]}'::jsonb,
+  '{"membership","peer","authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'AuthzTemporal',
+  'authz_temporal',
+  'authz',
+  'Temporal Access',
+  'Time-window based access control. Restricts access based on valid_from and/or valid_until timestamps. At least one of valid_from_field or valid_until_field must be provided.',
+  '{"type":"object","properties":{"valid_from_field":{"type":"string","format":"column-ref","description":"Column for start time (at least one of valid_from_field or valid_until_field required)"},"valid_until_field":{"type":"string","format":"column-ref","description":"Column for end time (at least one of valid_from_field or valid_until_field required)"},"valid_from_inclusive":{"type":"boolean","description":"Include start boundary","default":true},"valid_until_inclusive":{"type":"boolean","description":"Include end boundary","default":false}},"anyOf":[{"required":["valid_from_field"]},{"required":["valid_until_field"]}]}'::jsonb,
+  '{"temporal","authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataChunks',
+  'data_chunks',
+  'data',
+  'Chunks',
+  'Creates a chunked-embedding child table for any parent table. Provisions the chunks table with content, chunk_index, embedding vector, metadata, HNSW index, inherited RLS, and optional job trigger for automatic text splitting. Composed internally by DataFileEmbedding (enabled by default in extract mode) but can also be used standalone.',
+  '{"type":"object","properties":{"content_field_name":{"type":"string","format":"column-ref","description":"Name of the text content column in the chunks table","default":"content"},"chunk_size":{"type":"integer","description":"Maximum number of characters per chunk","default":1000},"chunk_overlap":{"type":"integer","description":"Number of overlapping characters between consecutive chunks","default":200},"chunk_strategy":{"type":"string","enum":["fixed","sentence","paragraph","semantic"],"description":"Strategy for splitting text into chunks","default":"paragraph"},"dimensions":{"type":"integer","description":"Vector dimensions for per-chunk embeddings","default":768},"metric":{"type":"string","enum":["cosine","l2","ip"],"description":"Distance metric for the HNSW index on chunk embeddings","default":"cosine"},"chunks_table_name":{"type":"string","description":"Override the chunks table name. Defaults to {parent_table}_chunks."},"metadata_fields":{"type":"array","items":{"type":"string"},"description":"Field names from the parent table to copy into chunk metadata"},"enqueue_chunking_job":{"type":"boolean","description":"Whether to create a job trigger that auto-enqueues chunking on parent INSERT/UPDATE","default":true},"chunking_task_name":{"type":"string","description":"Task identifier for the chunking job queue","default":"generate_chunks"}}}'::jsonb,
+  '{"embedding","chunks","vector","ai","rag"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataCompositeField',
+  'data_composite_field',
+  'data',
+  'Composite Field',
+  'Creates a derived text field that automatically concatenates multiple source fields via BEFORE INSERT/UPDATE triggers. Used to produce a unified text representation (e.g., embedding_text) from multiple columns on a table. The trigger fires with ''_000'' prefix to run before Search* triggers alphabetically.',
+  '{"type":"object","properties":{"target":{"type":"string","format":"column-ref","description":"Name of the derived text field to create (default: ''embedding_text'')"},"source_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Array of source field names to concatenate into the target field"},"format":{"type":"string","enum":["labeled","plain"],"description":"Output format: ''labeled'' (field_name: value) or ''plain'' (values only). Default: ''labeled''"}},"required":["source_fields"]}'::jsonb,
+  '{"transform","behavior"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataDirectOwner',
+  'data_direct_owner',
+  'data',
+  'Ownership',
+  'Adds ownership column for direct user ownership. Enables AuthzDirectOwner authorization.',
+  '{"type":"object","properties":{"owner_field_name":{"type":"string","format":"column-ref","description":"Column name for owner ID","default":"owner_id"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true},"include_user_fk":{"type":"boolean","description":"If true, adds a foreign key constraint from owner_id to the users table","default":true}}}'::jsonb,
+  '{"ownership","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataEntityMembership',
+  'data_entity_membership',
+  'data',
+  'Entity Membership',
+  'Adds entity reference for organization/group scoping. Enables AuthzEntityMembership, AuthzMembership, AuthzOrgHierarchy authorization.',
+  '{"type":"object","properties":{"entity_field_name":{"type":"string","format":"column-ref","description":"Column name for entity ID","default":"entity_id"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true},"include_user_fk":{"type":"boolean","description":"If true, adds a foreign key constraint from entity_id to the users table","default":true}}}'::jsonb,
+  '{"membership","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataFeatureFlag',
+  'data_feature_flag',
+  'data',
+  'Feature Flag',
+  'Gates a table behind a feature flag backed by the cap tables. Attaches a BEFORE INSERT trigger that checks whether the named feature cap value is > 0. Features are modeled as caps with max=0 (disabled) or max=1 (enabled) in limit_caps / limit_caps_defaults tables. Resolution: COALESCE(per-entity cap, scope default, 0).',
+  '{"type":"object","properties":{"feature_name":{"type":"string","description":"Cap name representing this feature (must match a limit_caps_defaults entry with max=0 or max=1)"},"scope":{"type":"string","enum":["app","org"],"description":"Feature scope: \"app\" (membership_type=1, app-level caps) or \"org\" (membership_type=2, per-entity caps)","default":"app"},"entity_field":{"type":"string","format":"column-ref","description":"Column on the target table that holds the entity id for per-entity cap lookups (only used for org scope)","default":"entity_id"}},"required":["feature_name"]}'::jsonb,
+  '{"limits","triggers","feature-flags","billing","caps"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataFileEmbedding',
+  'data_file_embedding',
+  'data',
+  'File Embedding',
+  'Generic, MIME-scoped embedding node for file tables. Supports two modes: direct (whole-file to single vector, e.g. CLIP for images) when extraction is omitted, or extract (file to text to chunks to per-chunk vectors) when extraction config is provided. Composes SearchVector + DataJobTrigger + DataChunks (enabled by default in extract mode) internally. Multiple instances can coexist on the same table with different MIME scopes, field names, and embedding strategies.',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the vector embedding column","default":"embedding"},"dimensions":{"type":"integer","description":"Vector dimensions (e.g. 512 for CLIP, 768 for nomic, 1536 for ada-002)","default":768},"index_method":{"type":"string","enum":["hnsw","ivfflat"],"description":"Index type for similarity search","default":"hnsw"},"metric":{"type":"string","enum":["cosine","l2","ip"],"description":"Distance metric","default":"cosine"},"index_options":{"type":"object","description":"Index-specific options. HNSW: {m, ef_construction}. IVFFlat: {lists}.","default":{}},"mime_patterns":{"type":"array","items":{"type":"string"},"description":"MIME type LIKE patterns to match. Multiple patterns are OR''d together. Examples: [''image/%''], [''application/pdf'', ''text/%''], [''audio/%''].","default":["image/%"]},"task_identifier":{"type":"string","description":"Job task identifier for the worker. In direct mode this is the embedding worker; in extract mode this is the extraction worker.","default":"process_file_embedding"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","UPDATE"]},"description":"Trigger events that fire the job","default":["INSERT"]},"payload_custom":{"type":"object","additionalProperties":{"type":"string","format":"column-ref"},"description":"Custom payload key-to-column mapping for the job trigger","default":{"file_id":"id","key":"key","mime_type":"mime_type","bucket_id":"bucket_id"}},"trigger_conditions":{"description":"Additional compound conditions beyond MIME filtering. Merged with the auto-generated MIME conditions via AND. Use this to add status checks, field guards, etc.","x-codegen-type":"TriggerCondition | TriggerCondition[]","oneOf":[{"$ref":"#/$defs/triggerCondition"},{"type":"array","items":{"$ref":"#/$defs/triggerCondition"}}]},"extraction":{"type":"object","description":"Text extraction configuration. When present, the generator creates extraction output fields on the table and configures SearchVector with source_fields + stale tracking. When absent, the node operates in direct mode (single vector per file, no text extraction).","properties":{"text_field":{"type":"string","format":"column-ref","description":"Field to store extracted text/markdown","default":"extracted_text"},"metadata_field":{"type":"string","format":"column-ref","description":"JSONB field for extraction metadata (page count, language, etc.)","default":"extracted_metadata"},"status_field":{"type":"string","format":"column-ref","description":"Extraction lifecycle status field","default":"extraction_status"}}},"include_chunks":{"type":"boolean","description":"Whether to create a chunks table via DataChunks. Defaults to true when extraction is provided, false in direct mode. Set explicitly to override."},"chunks":{"type":"object","description":"Chunking configuration passed through to DataChunks. When include_chunks is true (or defaults to true in extract mode), these params configure the chunks table, embedding dimensions, strategy, etc.","properties":{"content_field_name":{"type":"string","format":"column-ref","description":"Name of the text content column in the chunks table","default":"content"},"chunk_size":{"type":"integer","description":"Maximum number of characters per chunk","default":1000},"chunk_overlap":{"type":"integer","description":"Number of overlapping characters between consecutive chunks","default":200},"chunk_strategy":{"type":"string","enum":["fixed","sentence","paragraph","semantic"],"description":"Strategy for splitting text into chunks","default":"paragraph"},"metadata_fields":{"type":"array","items":{"type":"string"},"description":"Field names from parent to copy into chunk metadata"},"enqueue_chunking_job":{"type":"boolean","description":"Whether to auto-enqueue a chunking job on insert/update","default":true},"chunking_task_name":{"type":"string","description":"Task identifier for the chunking job queue","default":"generate_chunks"}}},"stale_strategy":{"type":"string","enum":["column","null","hash"],"description":"Strategy for tracking embedding staleness when extraction is enabled. column: embedding_stale boolean. null: set embedding to NULL. hash: md5 hash.","default":"column"},"include_stale_field":{"type":"boolean","description":"Whether to include the embedding_stale boolean field (extract mode)","default":true}}}'::jsonb,
+  '{"embedding","vector","ai","composition","jobs","multimodal","files"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataForceCurrentUser',
+  'data_force_current_user',
+  'data',
+  'Force Current User',
+  'BEFORE INSERT trigger that forces a field to the value of jwt_public.current_user_id(). Prevents clients from spoofing the actor/uploader identity. The field value is always overwritten regardless of what the client provides.',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the field to force to current_user_id()","default":"actor_id"}}}'::jsonb,
+  '{"trigger","security","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataId',
+  'data_id',
+  'data',
+  'Primary Key ID',
+  'Adds a UUID primary key column with auto-generation default (uuidv7). This is the standard primary key pattern for all tables.',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Column name for the primary key","default":"id"}}}'::jsonb,
+  '{"primary_key","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataImageEmbedding',
+  'data_image_embedding',
+  'data',
+  'Image Embedding',
+  'Image-specific preset of DataFileEmbedding. Delegates to DataFileEmbedding with image-oriented defaults: dimensions=512 (CLIP), mime_patterns=[''image/%''], task_identifier=''process_image_embedding'', direct mode (no extraction). Accepts all DataFileEmbedding parameters — any overrides are forwarded through.',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the vector embedding column","default":"embedding"},"dimensions":{"type":"integer","description":"Vector dimensions (default 512 for CLIP-style image embeddings)","default":512},"index_method":{"type":"string","enum":["hnsw","ivfflat"],"description":"Index type for similarity search","default":"hnsw"},"metric":{"type":"string","enum":["cosine","l2","ip"],"description":"Distance metric","default":"cosine"},"index_options":{"type":"object","description":"Index-specific options. HNSW: {m, ef_construction}. IVFFlat: {lists}.","default":{}},"mime_patterns":{"type":"array","items":{"type":"string"},"description":"MIME type LIKE patterns to match. Multiple patterns are OR''d together.","default":["image/%"]},"task_identifier":{"type":"string","description":"Job task identifier for the image embedding worker","default":"process_image_embedding"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","UPDATE"]},"description":"Trigger events that fire the job","default":["INSERT"]},"payload_custom":{"type":"object","additionalProperties":{"type":"string","format":"column-ref"},"description":"Custom payload key-to-column mapping for the job trigger","default":{"file_id":"id","key":"key","mime_type":"mime_type","bucket_id":"bucket_id"}},"trigger_conditions":{"description":"Additional compound conditions beyond MIME filtering. Merged with the auto-generated MIME conditions via AND.","x-codegen-type":"TriggerCondition | TriggerCondition[]","oneOf":[{"$ref":"#/$defs/triggerCondition"},{"type":"array","items":{"$ref":"#/$defs/triggerCondition"}}]},"extraction":{"type":"object","description":"Text extraction configuration. Forwarded to DataFileEmbedding. When present, enables extract mode (e.g., OCR for images).","properties":{"text_field":{"type":"string","format":"column-ref","description":"Field to store extracted text","default":"extracted_text"},"metadata_field":{"type":"string","format":"column-ref","description":"JSONB field for extraction metadata","default":"extracted_metadata"},"status_field":{"type":"string","format":"column-ref","description":"Extraction lifecycle status field","default":"extraction_status"}}},"chunks":{"type":"object","description":"Chunking configuration. Forwarded to DataFileEmbedding. Only meaningful when extraction is also provided.","properties":{"content_field_name":{"type":"string","format":"column-ref","default":"content"},"chunk_size":{"type":"integer","default":1000},"chunk_overlap":{"type":"integer","default":200},"chunk_strategy":{"type":"string","enum":["fixed","sentence","paragraph","semantic"],"default":"paragraph"},"metadata_fields":{"type":"object"},"enqueue_chunking_job":{"type":"boolean","default":true},"chunking_task_name":{"type":"string","default":"generate_chunks"}}},"stale_strategy":{"type":"string","enum":["column","null","hash"],"description":"Strategy for tracking embedding staleness in extract mode","default":"column"},"include_stale_field":{"type":"boolean","description":"Whether to include the embedding_stale boolean field","default":true}}}'::jsonb,
+  '{"embedding","image","vector","ai","composition","jobs"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataImmutableFields',
+  'data_immutable_fields',
+  'data',
+  'Immutable Fields',
+  'BEFORE UPDATE trigger that prevents changes to a list of specified fields after INSERT. Raises an exception if any of the listed fields have changed. Unlike FieldImmutable (single-field), this handles multiple fields in a single trigger for efficiency.',
+  '{"type":"object","properties":{"fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Field names that cannot be modified after INSERT (e.g. [\"key\", \"bucket_id\", \"owner_id\"])"}},"required":["fields"]}'::jsonb,
+  '{"trigger","constraint","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataInflection',
+  'data_inflection',
+  'data',
+  'Inflection',
+  'Transforms field values using inflection operations (snake_case, camelCase, slugify, plural, singular, etc). Attaches BEFORE INSERT and BEFORE UPDATE triggers. References fields by name in data jsonb.',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the field to transform"},"ops":{"type":"array","items":{"type":"string","enum":["plural","singular","camel","pascal","dashed","slugify","underscore","lower","upper"]},"description":"Inflection operations to apply in order"}},"required":["field_name","ops"]}'::jsonb,
+  '{"transform","behavior"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataInheritFromParent',
+  'data_inherit_from_parent',
+  'data',
+  'Inherit From Parent',
+  'BEFORE INSERT trigger that copies specified fields from a parent table via a foreign key. The parent row is looked up through RLS (SECURITY INVOKER), so the insert fails if the caller cannot see the parent. Used by the storage module to inherit owner_id and is_public from buckets to files.',
+  '{"type":"object","properties":{"parent_fk_field":{"type":"string","format":"column-ref","description":"Name of the FK field on this table that references the parent (e.g. bucket_id)"},"fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Field names to copy from the parent row (e.g. [\"owner_id\", \"is_public\"])"},"parent_table":{"type":"string","description":"Parent table name (optional fallback if FK not yet registered in metaschema)"},"parent_schema":{"type":"string","description":"Parent table schema (optional, defaults to same schema as child table)"}},"required":["parent_fk_field","fields"]}'::jsonb,
+  '{"trigger","inheritance","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataJobTrigger',
+  'data_job_trigger',
+  'data',
+  'Job Trigger',
+  'Dynamically creates PostgreSQL triggers that enqueue jobs via app_jobs.add_job() when table rows are inserted, updated, or deleted. Supports configurable payload strategies (full row, row ID, selected fields, or custom mapping), conditional firing via WHEN clauses, watched field changes, and extended job options (queue, priority, delay, max attempts).',
+  '{"type":"object","$defs":{"triggerCondition":{"type":"object","description":"A leaf condition ({field, op, value?, row?, ref?}) or a combinator ({AND, OR, NOT}).","properties":{"field":{"type":"string","format":"column-ref","description":"Column name (validated against the table)."},"op":{"type":"string","enum":["=","!=",">","<",">=","<=","LIKE","NOT LIKE","IS NULL","IS NOT NULL","IS DISTINCT FROM"],"description":"Comparison operator."},"value":{"description":"Comparison value. Type is resolved from the column definition. Omit for IS NULL, IS NOT NULL, IS DISTINCT FROM."},"row":{"type":"string","enum":["NEW","OLD"],"default":"NEW","description":"Row reference (default: NEW)."},"ref":{"type":"object","description":"Column reference for field-to-field comparison (alternative to value).","properties":{"field":{"type":"string","format":"column-ref"},"row":{"type":"string","enum":["NEW","OLD"],"default":"NEW"}}},"AND":{"type":"array","description":"Array of conditions combined with AND.","items":{"$ref":"#/$defs/triggerCondition"}},"OR":{"type":"array","description":"Array of conditions combined with OR.","items":{"$ref":"#/$defs/triggerCondition"}},"NOT":{"$ref":"#/$defs/triggerCondition","description":"Negated condition."}}}},"properties":{"task_identifier":{"type":"string","description":"Job task identifier passed to add_job (e.g., process_invoice, sync_to_stripe)"},"payload_strategy":{"type":"string","enum":["row","row_id","fields","custom"],"description":"How to build the job payload: row (full NEW/OLD), row_id (just id), fields (selected columns), custom (mapped columns)","default":"row_id"},"payload_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Column names to include in payload (only for fields strategy)"},"payload_custom":{"type":"object","additionalProperties":{"type":"string","format":"column-ref"},"description":"Key-to-column mapping for custom payload (e.g., {\"invoice_id\": \"id\", \"total\": \"amount\"})"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","UPDATE","DELETE"]},"description":"Trigger events to create","default":["INSERT","UPDATE"]},"include_old":{"type":"boolean","description":"Include OLD row in payload (for UPDATE triggers)","default":false},"include_meta":{"type":"boolean","description":"Include table/schema metadata in payload","default":false},"condition_field":{"type":"string","format":"column-ref","description":"Column name for conditional WHEN clause (fires only when field equals condition_value)"},"condition_value":{"type":"string","description":"Value to compare against condition_field in WHEN clause"},"conditions":{"description":"Compound conditions for the trigger WHEN clause. Accepts a single leaf condition, an array of conditions (implicitly AND), or a nested combinator tree ({AND: [...], OR: [...], NOT: {...}}). Each leaf is {field, op, value?, row?, ref?}. Column types are resolved automatically from the table schema. Cannot be combined with condition_field or watch_fields.","x-codegen-type":"TriggerCondition | TriggerCondition[]","oneOf":[{"$ref":"#/$defs/triggerCondition"},{"type":"array","items":{"$ref":"#/$defs/triggerCondition"}}]},"watch_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"For UPDATE triggers, only fire when these fields change (uses DISTINCT FROM)"},"job_key":{"type":"string","description":"Static job key for upsert semantics (prevents duplicate jobs)"},"queue_name":{"type":"string","description":"Job queue name for routing to specific workers"},"priority":{"type":"integer","description":"Job priority (lower = higher priority)","default":0},"run_at_delay":{"type":"string","description":"Delay before job runs as PostgreSQL interval (e.g., 30 seconds, 5 minutes)"},"max_attempts":{"type":"integer","description":"Maximum retry attempts for the job","default":25}},"required":["task_identifier"]}'::jsonb,
+  '{"jobs","triggers","async"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataJsonb',
+  'data_jsonb',
+  'data',
+  'JSONB Field',
+  'Adds a JSONB column with optional GIN index for containment queries (@>, ?, ?|, ?&). Standard pattern for semi-structured metadata.',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Column name for the JSONB field","default":"metadata"},"default_value":{"type":"string","description":"Default value expression"},"is_required":{"type":"boolean","description":"Whether the column has a NOT NULL constraint","default":false},"create_index":{"type":"boolean","description":"Whether to create a GIN index","default":true}}}'::jsonb,
+  '{"jsonb","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataLimitCounter',
+  'data_limit_counter',
+  'data',
+  'Limit Counter',
+  'Declaratively attaches limit-tracking triggers to a table. On INSERT the named limit is incremented; on DELETE it is decremented. Requires a provisioned limits_module for the target scope.',
+  '{"type":"object","properties":{"limit_name":{"type":"string","description":"Name of the limit to track (must match a default_limits entry, e.g. \"projects\", \"members\")"},"scope":{"type":"string","enum":["app","org"],"description":"Limit scope: \"app\" (membership_type=1, user-level) or \"org\" (membership_type=2, entity-level)","default":"app"},"actor_field":{"type":"string","format":"column-ref","description":"Column on the target table that holds the actor or entity id used for limit lookup","default":"owner_id"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","DELETE","UPDATE"]},"description":"Which DML events to attach triggers for","default":["INSERT","DELETE"]}},"required":["limit_name"]}'::jsonb,
+  '{"limits","triggers","billing"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataOwnedFields',
+  'data_owned_fields',
+  'data',
+  'Owned Fields',
+  'Restricts which user can modify specific columns in shared objects. Creates an AFTER UPDATE trigger that throws OWNED_PROPS when a non-owner tries to change protected fields. References fields by name in data jsonb.',
+  '{"type":"object","properties":{"role_key_field_name":{"type":"string","format":"column-ref","description":"Name of the field identifying the owner (e.g. sender_id)"},"protected_field_names":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Names of fields only this owner can modify"}},"required":["role_key_field_name","protected_field_names"]}'::jsonb,
+  '{"ownership","constraint","behavior"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataOwnershipInEntity',
+  'data_ownership_in_entity',
+  'data',
+  'Ownership In Entity',
+  'Combines direct ownership with entity scoping. Adds both owner_id and entity_id columns. Enables AuthzDirectOwner, AuthzEntityMembership, and AuthzOrgHierarchy authorization. Particularly useful for OrgHierarchy where a user owns a row (owner_id) within an entity (entity_id), and managers above can see subordinate-owned records via the hierarchy closure table.',
+  '{"type":"object","properties":{"owner_field_name":{"type":"string","format":"column-ref","description":"Column name for the owner reference","default":"owner_id"},"entity_field_name":{"type":"string","format":"column-ref","description":"Column name for the entity reference","default":"entity_id"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true},"include_user_fk":{"type":"boolean","description":"If true, adds foreign key constraints from owner_id and entity_id to the users table","default":true}}}'::jsonb,
+  '{"ownership","membership","hierarchy","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataPeoplestamps',
+  'data_peoplestamps',
+  'data',
+  'Peoplestamps',
+  'Adds user tracking for creates/updates with created_by and updated_by columns.',
+  '{"type":"object","properties":{"created_by_field":{"type":"string","format":"column-ref","description":"Column name for the creating user reference","default":"created_by"},"updated_by_field":{"type":"string","format":"column-ref","description":"Column name for the last-updating user reference","default":"updated_by"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true},"include_user_fk":{"type":"boolean","description":"If true, adds foreign key constraints from created_by and updated_by to the users table","default":false}}}'::jsonb,
+  '{"timestamps","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataPublishable',
+  'data_publishable',
+  'data',
+  'Publishable',
+  'Adds publish state columns (is_published, published_at) for content visibility. Enables AuthzPublishable and AuthzTemporal authorization.',
+  '{"type":"object","properties":{"is_published_field":{"type":"string","format":"column-ref","description":"Column name for the published boolean flag","default":"is_published"},"published_at_field":{"type":"string","format":"column-ref","description":"Column name for the publish timestamp","default":"published_at"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true}}}'::jsonb,
+  '{"publishing","temporal","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataSlug',
+  'data_slug',
+  'data',
+  'Slug',
+  'Auto-generates URL-friendly slugs from field values on insert/update. Attaches BEFORE INSERT and BEFORE UPDATE triggers that call inflection.slugify() on the target field. References fields by name in data jsonb.',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the field to slugify"},"source_field_name":{"type":"string","format":"column-ref","description":"Optional source field name (defaults to field_name)"}},"required":["field_name"]}'::jsonb,
+  '{"transform","behavior"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataSoftDelete',
+  'data_soft_delete',
+  'data',
+  'Soft Delete',
+  'Adds soft delete support with deleted_at and is_deleted columns.',
+  '{"type":"object","properties":{"deleted_at_field":{"type":"string","format":"column-ref","description":"Column name for the soft-delete timestamp","default":"deleted_at"},"is_deleted_field":{"type":"string","format":"column-ref","description":"Column name for the soft-delete boolean flag","default":"is_deleted"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true}}}'::jsonb,
+  '{"schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataStatusField',
+  'data_status_field',
+  'data',
+  'Status Field',
+  'Adds a status column with B-tree index for efficient equality filtering and sorting. Optionally constrains values via CHECK constraint when allowed_values is provided.',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Column name for the status field","default":"status"},"type":{"type":"string","description":"Column type (text or citext)","default":"text"},"default_value":{"type":"string","description":"Default value expression (e.g., active)"},"is_required":{"type":"boolean","description":"Whether the column has a NOT NULL constraint","default":true},"allowed_values":{"type":"array","items":{"type":"string"},"description":"If provided, creates a CHECK constraint restricting the column to these values"}}}'::jsonb,
+  '{"status","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataTags',
+  'data_tags',
+  'data',
+  'Tags',
+  'Adds a citext[] tags column with GIN index for efficient array containment queries (@>, &&). Standard tagging pattern for categorization and filtering.',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Column name for the tags array","default":"tags"},"default_value":{"type":"string","description":"Default value expression for the tags column"},"is_required":{"type":"boolean","description":"Whether the column has a NOT NULL constraint","default":false}}}'::jsonb,
+  '{"tags","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataTimestamps',
+  'data_timestamps',
+  'data',
+  'Timestamps',
+  'Adds automatic timestamp tracking with created_at and updated_at columns.',
+  '{"type":"object","properties":{"created_at_field":{"type":"string","format":"column-ref","description":"Column name for the creation timestamp","default":"created_at"},"updated_at_field":{"type":"string","format":"column-ref","description":"Column name for the last-updated timestamp","default":"updated_at"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true}}}'::jsonb,
+  '{"timestamps","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'RelationBelongsTo',
+  'relation_belongs_to',
+  'relation',
+  'Belongs To',
+  'Creates a foreign key field on the source table referencing the target table. Auto-derives the FK field name from the target table name using inflection (e.g., projects derives project_id). delete_action is required and must be explicitly provided by the caller.',
+  '{"type":"object","properties":{"source_table_id":{"type":"string","format":"uuid","description":"Table that will have the FK field added"},"target_table_id":{"type":"string","format":"uuid","description":"Table being referenced by the FK"},"field_name":{"type":"string","format":"column-ref","description":"FK field name on the source table. Auto-derived from target table name if omitted (e.g., projects → project_id)"},"delete_action":{"type":"string","enum":["c","r","n","d","a"],"description":"FK delete action: c=CASCADE, r=RESTRICT, n=SET NULL, d=SET DEFAULT, a=NO ACTION. Required."},"is_required":{"type":"boolean","description":"Whether the FK field is NOT NULL","default":true}},"required":["source_table_id","target_table_id","delete_action"]}'::jsonb,
+  '{"relation","foreign_key","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'RelationHasMany',
+  'relation_has_many',
+  'relation',
+  'Has Many',
+  'Creates a foreign key field on the target table referencing the source table. Inverse of RelationBelongsTo — same FK, different perspective. "projects has many tasks" creates tasks.project_id. Auto-derives the FK field name from the source table name using inflection. delete_action is required and must be explicitly provided by the caller.',
+  '{"type":"object","properties":{"source_table_id":{"type":"string","format":"uuid","description":"Parent table being referenced by the FK (e.g., projects in projects has many tasks)"},"target_table_id":{"type":"string","format":"uuid","description":"Child table that receives the FK field (e.g., tasks in projects has many tasks)"},"field_name":{"type":"string","format":"column-ref","description":"FK field name on the target table. Auto-derived from source table name if omitted (e.g., projects derives project_id)"},"delete_action":{"type":"string","enum":["c","r","n","d","a"],"description":"FK delete action: c=CASCADE, r=RESTRICT, n=SET NULL, d=SET DEFAULT, a=NO ACTION. Required."},"is_required":{"type":"boolean","description":"Whether the FK field is NOT NULL","default":true}},"required":["source_table_id","target_table_id","delete_action"]}'::jsonb,
+  '{"relation","foreign_key","has_many","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'RelationHasOne',
+  'relation_has_one',
+  'relation',
+  'Has One',
+  'Creates a foreign key field with a unique constraint on the source table referencing the target table. Enforces 1:1 cardinality. Auto-derives the FK field name from the target table name using inflection. delete_action is required and must be explicitly provided by the caller.',
+  '{"type":"object","properties":{"source_table_id":{"type":"string","format":"uuid","description":"Table that will have the FK field and unique constraint"},"target_table_id":{"type":"string","format":"uuid","description":"Table being referenced by the FK"},"field_name":{"type":"string","format":"column-ref","description":"FK field name on the source table. Auto-derived from target table name if omitted (e.g., users → user_id)"},"delete_action":{"type":"string","enum":["c","r","n","d","a"],"description":"FK delete action: c=CASCADE, r=RESTRICT, n=SET NULL, d=SET DEFAULT, a=NO ACTION. Required."},"is_required":{"type":"boolean","description":"Whether the FK field is NOT NULL","default":true}},"required":["source_table_id","target_table_id","delete_action"]}'::jsonb,
+  '{"relation","foreign_key","unique","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'RelationManyToMany',
+  'relation_many_to_many',
+  'relation',
+  'Many to Many',
+  'Creates a junction table between source and target tables with auto-derived naming and FK fields. The trigger creates a bare table (no implicit DataId), adds FK fields to both tables, optionally creates a composite PK (use_composite_key), then forwards all security config to secure_table_provision as-is. The trigger never injects values the caller did not provide. Junction table FKs always CASCADE on delete.',
+  '{"type":"object","properties":{"source_table_id":{"type":"string","format":"uuid","description":"First table in the M:N relationship"},"target_table_id":{"type":"string","format":"uuid","description":"Second table in the M:N relationship"},"junction_table_id":{"type":"string","format":"uuid","description":"Existing junction table to use. If uuid_nil(), a new bare table is created"},"junction_table_name":{"type":"string","description":"Junction table name. Auto-derived from both table names if omitted (e.g., projects + tags derives project_tags)"},"source_field_name":{"type":"string","format":"column-ref","description":"FK field name on junction for source table. Auto-derived if omitted (e.g., projects derives project_id)"},"target_field_name":{"type":"string","format":"column-ref","description":"FK field name on junction for target table. Auto-derived if omitted (e.g., tags derives tag_id)"},"use_composite_key":{"type":"boolean","description":"When true, creates a composite PK from the two FK fields. When false, no PK is created by the trigger (use nodes with DataId for UUID PK). Mutually exclusive with nodes containing DataId.","default":false},"nodes":{"type":"array","items":{"type":"object"},"description":"Array of node objects for field creation on junction table. Each object has a $type key (e.g. DataId, DataEntityMembership) and optional data keys. Forwarded to secure_table_provision as-is. Empty array means no additional fields."},"grants":{"type":"array","items":{"type":"object","properties":{"roles":{"type":"array","items":{"type":"string"}},"privileges":{"type":"array","items":{"type":"array","items":{"type":"string"}}}},"required":["roles","privileges"]},"description":"Unified grant objects for the junction table. Each entry is { roles: string[], privileges: string[][] }. Forwarded to secure_table_provision as-is. Default: []"},"policies":{"type":"array","items":{"type":"object","properties":{"$type":{"type":"string"},"data":{"type":"object"},"privileges":{"type":"array","items":{"type":"string"}},"policy_role":{"type":"string"},"permissive":{"type":"boolean"},"policy_name":{"type":"string"}},"required":["$type"]},"description":"RLS policy objects for the junction table. Each entry has $type (Authz* generator), optional data, privileges, policy_role, permissive, policy_name. Forwarded to secure_table_provision as-is. Default: []"}},"required":["source_table_id","target_table_id"]}'::jsonb,
+  '{"relation","junction","many_to_many","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'RelationSpatial',
+  'relation_spatial',
+  'relation',
+  'Spatial Relation',
+  'Declares a spatial predicate between two existing geometry/geography columns. Inserts a metaschema_public.spatial_relation row; the sync_spatial_relation_tags trigger then projects a @spatialRelation smart tag onto the owner column so graphile-postgis'' PostgisSpatialRelationsPlugin can expose it as a cross-table filter in GraphQL. Metadata-only: both source_field and target_field must already exist on their tables. Idempotent on (source_table_id, name). One direction per tag — author two RelationSpatial entries if symmetry is desired.',
+  '{"type":"object","properties":{"source_table_id":{"type":"string","format":"uuid","description":"Table that owns the relation (the @spatialRelation tag is emitted on the owner column of this table)"},"source_field_id":{"type":"string","format":"uuid","description":"Geometry/geography column on source_table that carries the @spatialRelation smart tag"},"target_table_id":{"type":"string","format":"uuid","description":"Table being referenced by the spatial predicate"},"target_field_id":{"type":"string","format":"uuid","description":"Geometry/geography column on target_table that the predicate is evaluated against"},"name":{"type":"string","description":"Relation name (stable, snake_case). Becomes the generated filter field name in GraphQL (e.g. nearby_clinic). Unique per (source_table_id, name) — idempotency key."},"operator":{"type":"string","enum":["st_contains","st_within","st_intersects","st_covers","st_coveredby","st_overlaps","st_touches","st_dwithin"],"description":"PostGIS spatial predicate. One of the 8 whitelisted operators. st_dwithin requires param_name."},"param_name":{"type":"string","description":"Parameter name for parametric operators (currently only st_dwithin, which needs a distance argument). Must be NULL for all other operators. Enforced by table CHECK."}},"required":["source_table_id","source_field_id","target_table_id","target_field_id","name","operator"]}'::jsonb,
+  '{"relation","spatial","postgis","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'SearchBm25',
+  'search_bm25',
+  'search',
+  'BM25 Search',
+  'Creates a BM25 index on an existing text column using pg_textsearch. Enables statistical relevance ranking with configurable k1 and b parameters. The BM25 index is auto-detected by graphile-search.',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of existing text column to index with BM25"},"text_config":{"type":"string","description":"PostgreSQL text search configuration for BM25","default":"english"},"k1":{"type":"number","description":"BM25 k1 parameter: term frequency saturation (typical: 1.2-2.0)","default":null},"b":{"type":"number","description":"BM25 b parameter: document length normalization (0=none, 1=full, typical: 0.75)","default":null},"search_score_weight":{"type":"number","description":"Weight for this algorithm in composite searchScore","default":1}},"required":["field_name"]}'::jsonb,
+  '{"search","bm25","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'SearchFullText',
+  'search_full_text',
+  'search',
+  'Full-Text Search',
+  'Adds a tsvector column with GIN index and automatic trigger population from source fields. Enables PostgreSQL full-text search with configurable weights and language support. Leverages the existing metaschema full_text_search infrastructure.',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the tsvector column","default":"search"},"source_fields":{"type":"array","items":{"type":"object","properties":{"field":{"type":"string","format":"column-ref","description":"Name of the source column"},"weight":{"type":"string","enum":["A","B","C","D"],"description":"tsvector weight class (A=highest, D=lowest)","default":"D"},"lang":{"type":"string","description":"PostgreSQL text search configuration","default":"english"}},"required":["field"]},"description":"Source columns that feed the tsvector. Each has a field name, weight (A-D), and language config."},"search_score_weight":{"type":"number","description":"Weight for this algorithm in composite searchScore","default":1}},"required":["source_fields"]}'::jsonb,
+  '{"search","fts","tsvector","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'SearchSpatial',
+  'search_spatial',
+  'search',
+  'Spatial Search',
+  'Adds a PostGIS geometry or geography column with a spatial index (GiST or SP-GiST). Supports configurable geometry types (Point, Polygon, etc.), SRID, and dimensionality. The graphile-postgis plugin auto-detects geometry/geography columns by codec type for spatial filtering (ST_Contains, ST_DWithin, bbox operators).',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the geometry/geography column","default":"geom"},"geometry_type":{"type":"string","enum":["Point","LineString","Polygon","MultiPoint","MultiLineString","MultiPolygon","GeometryCollection","Geometry"],"description":"PostGIS geometry type constraint","default":"Point"},"srid":{"type":"integer","description":"Spatial Reference System Identifier (e.g. 4326 for WGS84)","default":4326},"dimension":{"type":"integer","enum":[2,3,4],"description":"Coordinate dimension (2=XY, 3=XYZ, 4=XYZM)","default":2},"use_geography":{"type":"boolean","description":"Use geography type instead of geometry (for geodetic calculations on the sphere)","default":false},"index_method":{"type":"string","enum":["gist","spgist"],"description":"Spatial index method","default":"gist"}}}'::jsonb,
+  '{"spatial","postgis","geometry","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'SearchSpatialAggregate',
+  'search_spatial_aggregate',
+  'search',
+  'Spatial Aggregate Search',
+  'Creates a derived/materialized geometry field on the parent table that automatically aggregates geometries from a source (child) table via triggers. When child rows are inserted/updated/deleted, the parent aggregate field is recalculated using the specified PostGIS aggregation function (ST_Union, ST_Collect, ST_ConvexHull, ST_ConcaveHull). Useful for materializing spatial boundaries from collections of points or polygons.',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the aggregate geometry column on the parent table","default":"geom_aggregate"},"source_table_id":{"type":"string","format":"uuid","description":"UUID of the source (child) table containing individual geometries"},"source_geom_field":{"type":"string","format":"column-ref","description":"Name of the geometry column on the source table","default":"geom"},"source_fk_field":{"type":"string","format":"column-ref","description":"Name of the foreign key column on the source table pointing to the parent"},"aggregate_function":{"type":"string","enum":["union","collect","convex_hull","concave_hull"],"description":"PostGIS aggregation function: union (ST_Union, merges overlapping), collect (ST_Collect, groups without merging), convex_hull (smallest convex polygon), concave_hull (tighter boundary)","default":"union"},"geometry_type":{"type":"string","enum":["Point","LineString","Polygon","MultiPoint","MultiLineString","MultiPolygon","GeometryCollection","Geometry"],"description":"Output geometry type constraint for the aggregate field","default":"MultiPolygon"},"srid":{"type":"integer","description":"Spatial Reference System Identifier (e.g. 4326 for WGS84)","default":4326},"dimension":{"type":"integer","enum":[2,3,4],"description":"Coordinate dimension (2=XY, 3=XYZ, 4=XYZM)","default":2},"use_geography":{"type":"boolean","description":"Use geography type instead of geometry","default":false},"index_method":{"type":"string","enum":["gist","spgist"],"description":"Spatial index method for the aggregate field","default":"gist"}},"required":["source_table_id","source_fk_field"]}'::jsonb,
+  '{"spatial","postgis","geometry","aggregate","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'SearchTrgm',
+  'search_trgm',
+  'search',
+  'Trigram Search',
+  'Creates GIN trigram indexes (gin_trgm_ops) on specified text/citext fields for fuzzy LIKE/ILIKE/similarity search. Adds @trgmSearch smart tag for PostGraphile integration. Fields must already exist on the table.',
+  '{"type":"object","properties":{"fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Field names to create trigram indexes on (fields must already exist on the table)"}},"required":["fields"]}'::jsonb,
+  '{"search","trigram","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'SearchUnified',
+  'search_unified',
+  'search',
+  'Unified Search',
+  'Composite node type that orchestrates multiple search modalities (full-text search, BM25, embeddings, trigram) on a single table. Configures per-table search score weights, normalization strategy, and recency boost via the @searchConfig smart tag.',
+  '{"type":"object","properties":{"full_text_search":{"type":"object","description":"SearchFullText parameters. Omit to skip FTS setup.","properties":{"field_name":{"type":"string","format":"column-ref","default":"search"},"source_fields":{"type":"array","items":{"type":"object","properties":{"field":{"type":"string","format":"column-ref"},"weight":{"type":"string","enum":["A","B","C","D"]},"lang":{"type":"string"}},"required":["field"]}},"search_score_weight":{"type":"number","default":1}}},"bm25":{"type":"object","description":"SearchBm25 parameters. Omit to skip BM25 setup.","properties":{"field_name":{"type":"string","format":"column-ref"},"text_config":{"type":"string","default":"english"},"k1":{"type":"number"},"b":{"type":"number"},"search_score_weight":{"type":"number","default":1}}},"embedding":{"type":"object","description":"SearchVector parameters. Omit to skip embedding setup.","properties":{"field_name":{"type":"string","format":"column-ref","default":"embedding"},"dimensions":{"type":"integer","default":768},"index_method":{"type":"string","enum":["hnsw","ivfflat"]},"metric":{"type":"string","enum":["cosine","l2","ip"]},"source_fields":{"type":"array","items":{"type":"string","format":"column-ref"}},"search_score_weight":{"type":"number","default":1},"chunks":{"type":"object","description":"Chunking configuration for long-text embedding. Creates an embedding_chunks record that drives automatic text splitting and per-chunk embedding. Omit to skip chunking.","properties":{"content_field_name":{"type":"string","format":"column-ref","description":"Name of the text content column in the chunks table","default":"content"},"chunk_size":{"type":"integer","description":"Maximum number of characters per chunk","default":1000},"chunk_overlap":{"type":"integer","description":"Number of overlapping characters between consecutive chunks","default":200},"chunk_strategy":{"type":"string","enum":["fixed","sentence","paragraph","semantic"],"description":"Strategy for splitting text into chunks","default":"fixed"},"metadata_fields":{"type":"object","description":"Metadata fields from parent to copy into chunks"},"enqueue_chunking_job":{"type":"boolean","description":"Whether to auto-enqueue a chunking job on insert/update","default":true},"chunking_task_name":{"type":"string","description":"Task identifier for the chunking job queue","default":"generate_chunks"}}}}},"trgm_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Field names to tag with @trgmSearch for fuzzy/typo-tolerant matching"},"search_config":{"type":"object","description":"Unified search score configuration written to @searchConfig smart tag","properties":{"weights":{"type":"object","description":"Per-algorithm weights: {tsv: 1.5, bm25: 1.0, pgvector: 0.8, trgm: 0.3}"},"normalization":{"type":"string","enum":["linear","sigmoid"],"description":"Score normalization strategy","default":"linear"},"boost_recent":{"type":"boolean","description":"Enable recency boost for search results","default":false},"boost_recency_field":{"type":"string","format":"column-ref","description":"Timestamp field for recency boost (e.g. created_at, updated_at)"},"boost_recency_decay":{"type":"number","description":"Decay rate for recency boost (0-1, lower = faster decay)","default":0.5}}}}}'::jsonb,
+  '{"search","composite","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'SearchVector',
+  'search_vector',
+  'search',
+  'Vector Search',
+  'Adds a vector embedding column with HNSW or IVFFlat index for similarity search. Supports configurable dimensions, distance metrics (cosine, l2, ip), stale tracking strategies (column, null, hash), and automatic job enqueue triggers for embedding generation.',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the vector column","default":"embedding"},"dimensions":{"type":"integer","description":"Vector dimensions (e.g. 384, 768, 1536, 3072)","default":768},"index_method":{"type":"string","enum":["hnsw","ivfflat"],"description":"Index type for similarity search","default":"hnsw"},"metric":{"type":"string","enum":["cosine","l2","ip"],"description":"Distance metric (cosine, l2, ip)","default":"cosine"},"index_options":{"type":"object","description":"Index-specific options. HNSW: {m, ef_construction}. IVFFlat: {lists}.","default":{}},"include_stale_field":{"type":"boolean","description":"When stale_strategy is column, adds an embedding_stale boolean field","default":true},"source_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Column names that feed the embedding. Used by stale trigger to detect content changes."},"enqueue_job":{"type":"boolean","description":"Auto-create trigger that enqueues embedding generation jobs","default":true},"job_task_name":{"type":"string","description":"Task identifier for the job queue","default":"generate_embedding"},"stale_strategy":{"type":"string","enum":["column","null","hash"],"description":"Strategy for tracking embedding staleness. column: embedding_stale boolean. null: set embedding to NULL. hash: md5 hash of source fields.","default":"column"},"chunks":{"type":"object","description":"Chunking configuration for long-text embedding. Creates an embedding_chunks record that drives automatic text splitting and per-chunk embedding. Omit to skip chunking.","properties":{"content_field_name":{"type":"string","format":"column-ref","description":"Name of the text content column in the chunks table","default":"content"},"chunk_size":{"type":"integer","description":"Maximum number of characters per chunk","default":1000},"chunk_overlap":{"type":"integer","description":"Number of overlapping characters between consecutive chunks","default":200},"chunk_strategy":{"type":"string","enum":["fixed","sentence","paragraph","semantic"],"description":"Strategy for splitting text into chunks","default":"fixed"},"metadata_fields":{"type":"object","description":"Metadata fields from parent to copy into chunks"},"enqueue_chunking_job":{"type":"boolean","description":"Whether to auto-enqueue a chunking job on insert/update","default":true},"chunking_task_name":{"type":"string","description":"Task identifier for the chunking job queue","default":"generate_chunks"}}}}}'::jsonb,
+  '{"embedding","vector","ai","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'TableOrganizationSettings',
+  'table_organization_settings',
+  'data',
+  'Organization Settings',
+  'Creates an organization settings table with standard business fields (legal_name, address fields). Uses AuthzEntityMembership for access control.',
+  '{"type":"object","properties":{}}'::jsonb,
+  '{"template","settings","membership","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'TableUserProfiles',
+  'table_user_profiles',
+  'data',
+  'User Profiles',
+  'Creates a user profiles table with standard profile fields (profile_picture, bio, first_name, last_name, tags, desired). Uses AuthzDirectOwner for edit access and AuthzAllowAll for select.',
+  '{"type":"object","properties":{}}'::jsonb,
+  '{"template","settings","ownership","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'TableUserSettings',
+  'table_user_settings',
+  'data',
+  'User Settings',
+  'Creates a user settings table for user-specific configuration. Uses AuthzDirectOwner for access control.',
+  '{"type":"object","properties":{}}'::jsonb,
+  '{"template","settings","ownership","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'ViewAggregated',
+  'view_aggregated',
+  'view',
+  'Aggregated View',
+  'View with GROUP BY and aggregate functions. Useful for summary/reporting views.',
+  '{"type":"object","properties":{"source_table_id":{"type":"string","format":"uuid","description":"UUID of the source table"},"group_by_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Field names to group by"},"aggregates":{"type":"array","items":{"type":"object","properties":{"function":{"type":"string","enum":["COUNT","SUM","AVG","MIN","MAX"]},"field":{"type":"string","format":"column-ref","description":"Field to aggregate (or * for COUNT)"},"alias":{"type":"string","format":"column-ref","description":"Output column name"}},"required":["function","alias"]},"description":"Array of aggregate specifications"}},"required":["source_table_id","group_by_fields","aggregates"]}'::jsonb,
+  '{"view","aggregate","reporting"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'ViewComposite',
+  'view_composite',
+  'view',
+  'Composite View',
+  'Advanced view using composite AST for the query. Use when other node types are insufficient (CTEs, UNIONs, complex subqueries, etc.).',
+  '{"type":"object","properties":{"query_ast":{"type":"object","description":"Composite SELECT query AST (JSONB)"}},"required":["query_ast"]}'::jsonb,
+  '{"view","advanced","composite","ast"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'ViewFilteredTable',
+  'view_filtered_table',
+  'view',
+  'Filtered Table',
+  'Table projection with an Authz* filter baked into the view definition. The view only returns records matching the filter.',
+  '{"type":"object","properties":{"source_table_id":{"type":"string","format":"uuid","description":"UUID of the source table"},"filter_type":{"type":"string","description":"Authz* node type name (e.g., AuthzDirectOwner, AuthzPublishable)"},"filter_data":{"type":"object","description":"Parameters for the Authz* filter type"},"field_ids":{"type":"array","items":{"type":"string","format":"uuid"},"description":"Optional array of field UUIDs to include (alternative to field_names)"},"field_names":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Optional array of field names to include (alternative to field_ids)"}},"required":["source_table_id","filter_type"]}'::jsonb,
+  '{"view","filter","authz"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'ViewJoinedTables',
+  'view_joined_tables',
+  'view',
+  'Joined Tables',
+  'View that joins multiple tables together. Supports INNER, LEFT, RIGHT, and FULL joins.',
+  '{"type":"object","properties":{"primary_table_id":{"type":"string","format":"uuid","description":"UUID of the primary (left-most) table"},"primary_columns":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Optional array of column names to include from the primary table"},"joins":{"type":"array","items":{"type":"object","properties":{"table_id":{"type":"string","format":"uuid","description":"UUID of the joined table"},"join_type":{"type":"string","enum":["INNER","LEFT","RIGHT","FULL"]},"primary_field":{"type":"string","format":"column-ref","description":"Field on primary table"},"join_field":{"type":"string","format":"column-ref","description":"Field on joined table"},"columns":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Optional column names to include from this joined table"}},"required":["table_id","primary_field","join_field"]},"description":"Array of join specifications"},"field_ids":{"type":"array","items":{"type":"string","format":"uuid"},"description":"Optional array of field UUIDs to include (alternative to per-table columns)"}},"required":["primary_table_id","joins"]}'::jsonb,
+  '{"view","join"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'ViewTableProjection',
+  'view_table_projection',
+  'view',
+  'Table Projection',
+  'Simple column selection from a single source table. Projects all or specific fields.',
+  '{"type":"object","properties":{"source_table_id":{"type":"string","format":"uuid","description":"UUID of the source table to project from"},"field_ids":{"type":"array","items":{"type":"string","format":"uuid"},"description":"Optional array of field UUIDs to include (all fields if omitted)"},"field_names":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Optional array of field names to include (alternative to field_ids)"}},"required":["source_table_id"]}'::jsonb,
+  '{"view","projection"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+COMMIT;

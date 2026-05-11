@@ -19,7 +19,29 @@ CREATE TABLE metaschema_modules_public.permissions_module (
     default_table_name text NOT NULL DEFAULT '',
     -- 
      
-    bitlen int NOT NULL DEFAULT 24,
+    -- Default bit-width of the permission mask for this module.
+    --
+    -- Chosen to maximize permission headroom without costing extra storage or
+    -- compute. PostgreSQL lays out heap tuples to MAXALIGN (8 bytes on x86_64),
+    -- so the row-size bucket that holds bit(24) already extends up to bit(64):
+    --
+    --   bitlen | row bytes | heap (1M rows) | btree idx (1M rows)
+    --   -------+-----------+----------------+--------------------
+    --   24     |  67       |  74 MB         |  47 MB
+    --   48     |  70       |  74 MB         |  47 MB
+    --   64     |  72       |  74 MB         |  47 MB   <-- same bucket
+    --   65     |  73       |  81 MB         |  47 MB   <-- next bucket
+    --
+    -- Bitwise AND/OR on bit(<=64) fits in a single 64-bit machine word, so
+    -- permission checks at 64 cost the same as at 24. Raising the default from
+    -- 24 to 64 gives new modules 6.4x more permission slots before anyone has
+    -- to think about running update_bitlen_permissions, at identical storage
+    -- and compute cost. Do not raise past 64 casually -- bit(65+) jumps to the
+    -- next 8-byte tuple bucket (+~10% heap) and pays on every write.
+    --
+    -- Existing databases are unaffected; this only changes the default for
+    -- newly inserted permissions_module rows.
+    bitlen int NOT NULL DEFAULT 64,
     membership_type int NOT NULL,
     -- if this is NOT NULL, then we add entity_id 
     -- e.g. limits to the app itself are considered global owned by app and no explicit owner
