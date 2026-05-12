@@ -100,7 +100,6 @@ Stores database structure metadata:
 - **procedure**: Stored procedure definitions
 - **policy**: Row-level security policies
 - **extension**: PostgreSQL extensions
-- **database_extension**: Extension installations per database
 
 ### metaschema_private Schema
 
