@@ -12,7 +12,7 @@
    <a href="https://www.npmjs.com/package/@pgpm/object-store"><img height="20" src="https://img.shields.io/github/package-json/v/constructive-io/pgpm-modules?filename=packages%2Fobject-store%2Fpackage.json"/></a>
 </p>
 
-A content-addressable, immutable object store for PostgreSQL — Merkle trees, all the way down.
+A content-addressable, immutable object store for PostgreSQL — Merkle trees, all the way down. Pair with [`@pgpm/object-tree`](https://www.npmjs.com/package/@pgpm/object-tree) for Git-like version control.
 
 ## Overview
 

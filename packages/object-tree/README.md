@@ -12,7 +12,7 @@
    <a href="https://www.npmjs.com/package/@pgpm/object-tree"><img height="20" src="https://img.shields.io/github/package-json/v/constructive-io/pgpm-modules?filename=packages%2Fobject-tree%2Fpackage.json"/></a>
 </p>
 
-Git-like version control for database objects, built on immutable Merkle trees.
+Git-like version control for database objects, built on [`@pgpm/object-store`](https://www.npmjs.com/package/@pgpm/object-store)'s immutable Merkle trees.
 
 ## Overview
 
