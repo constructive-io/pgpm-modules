@@ -473,7 +473,11 @@ pnpm test
 
 ## Dependencies
 
-- `@pgpm/verify`: Verification utilities
+- [`@pgpm/verify`](https://www.npmjs.com/package/@pgpm/verify): Verification utilities
+
+## See Also
+
+- [`@pgpm/object-tree`](https://www.npmjs.com/package/@pgpm/object-tree): Git-like version control layer built on top of this package — adds commits, refs, and stores for full history tracking
 
 ## Related Tooling
 

@@ -356,8 +356,8 @@ pnpm test
 
 ## Dependencies
 
-- `@pgpm/object-store`: Content-addressable Merkle tree storage
-- `@pgpm/verify`: Verification utilities
+- [`@pgpm/object-store`](https://www.npmjs.com/package/@pgpm/object-store): Content-addressable Merkle tree storage — the immutable foundation this package builds on
+- [`@pgpm/verify`](https://www.npmjs.com/package/@pgpm/verify): Verification utilities
 
 ## Related Tooling
 
