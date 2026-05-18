@@ -1,0 +1,68 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`create a page 1`] = `
+[
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "db79a681-8d96-59af-b090-79d6b49598ed",
+    ],
+    "ktree": [
+      "page1",
+    ],
+    "scope_id": "[ID]",
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "__type": "PageComponent",
+      "title": "My Page",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "62274c8e-cede-517b-8503-20df50b7f2f7",
+    ],
+    "ktree": [
+      "section1",
+    ],
+    "scope_id": "[ID]",
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "__type": "SectionComponent",
+      "color": "green",
+      "tint": true,
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "c8890581-47c2-58d0-b5d0-120bb97abab4",
+    ],
+    "ktree": [
+      "container1",
+    ],
+    "scope_id": "[ID]",
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "__type": "ContainerComponent",
+      "color": "#343434",
+      "style": {
+        "fontSize": "1px",
+      },
+      "tint": true,
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [],
+    "ktree": [],
+    "scope_id": "[ID]",
+  },
+]
+`;

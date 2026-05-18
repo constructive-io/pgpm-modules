@@ -1,0 +1,292 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Object Tree Time Travel demonstrates time travel through 3 periods of page evolution: commit-history 1`] = `
+"[
+  {
+    "message": "first commit",
+    "hasParent": false
+  },
+  {
+    "message": "Period 1: Add header",
+    "hasParent": true
+  },
+  {
+    "message": "Period 1: Add logo to header",
+    "hasParent": true
+  },
+  {
+    "message": "Period 1: Create initial page",
+    "hasParent": true
+  },
+  {
+    "message": "Period 2: Add CTA button",
+    "hasParent": true
+  },
+  {
+    "message": "Period 2: Add hero section",
+    "hasParent": true
+  },
+  {
+    "message": "Period 2: Add hero title",
+    "hasParent": true
+  },
+  {
+    "message": "Period 3: Add features grid",
+    "hasParent": true
+  },
+  {
+    "message": "Period 3: Add features section",
+    "hasParent": true
+  },
+  {
+    "message": "Period 3: Add first feature",
+    "hasParent": true
+  },
+  {
+    "message": "Period 3: Add second feature",
+    "hasParent": true
+  },
+  {
+    "message": "Period 3: Add third feature",
+    "hasParent": true
+  }
+]"
+`;
+
+exports[`Object Tree Time Travel demonstrates time travel through 3 periods of page evolution: period-1-header-only 1`] = `
+"{
+  "type": "Fragment",
+  "props": {},
+  "children": [
+    {
+      "type": "Page",
+      "key": "page",
+      "props": {
+        "title": "My App"
+      },
+      "children": [
+        {
+          "type": "Header",
+          "key": "header",
+          "props": {
+            "className": "bg-white shadow"
+          },
+          "children": [
+            {
+              "type": "Logo",
+              "key": "logo",
+              "props": {
+                "alt": "My App",
+                "src": "/logo.svg"
+              },
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"
+`;
+
+exports[`Object Tree Time Travel demonstrates time travel through 3 periods of page evolution: period-2-with-hero 1`] = `
+"{
+  "type": "Fragment",
+  "props": {},
+  "children": [
+    {
+      "type": "Page",
+      "key": "page",
+      "props": {
+        "title": "My App"
+      },
+      "children": [
+        {
+          "type": "Section",
+          "key": "hero",
+          "props": {
+            "className": "bg-gradient-to-r from-blue-500 to-purple-600"
+          },
+          "children": [
+            {
+              "type": "Button",
+              "key": "cta",
+              "props": {
+                "className": "bg-white text-blue-600 px-6 py-3 rounded-lg",
+                "text": "Get Started"
+              },
+              "children": []
+            },
+            {
+              "type": "Heading",
+              "key": "title",
+              "props": {
+                "className": "text-4xl font-bold text-white",
+                "level": 1,
+                "text": "Welcome to My App"
+              },
+              "children": []
+            }
+          ]
+        },
+        {
+          "type": "Header",
+          "key": "header",
+          "props": {
+            "className": "bg-white shadow"
+          },
+          "children": [
+            {
+              "type": "Logo",
+              "key": "logo",
+              "props": {
+                "alt": "My App",
+                "src": "/logo.svg"
+              },
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"
+`;
+
+exports[`Object Tree Time Travel demonstrates time travel through 3 periods of page evolution: period-3-with-features 1`] = `
+"{
+  "type": "Fragment",
+  "props": {},
+  "children": [
+    {
+      "type": "Page",
+      "key": "page",
+      "props": {
+        "title": "My App"
+      },
+      "children": [
+        {
+          "type": "Section",
+          "key": "hero",
+          "props": {
+            "className": "bg-gradient-to-r from-blue-500 to-purple-600"
+          },
+          "children": [
+            {
+              "type": "Button",
+              "key": "cta",
+              "props": {
+                "className": "bg-white text-blue-600 px-6 py-3 rounded-lg",
+                "text": "Get Started"
+              },
+              "children": []
+            },
+            {
+              "type": "Heading",
+              "key": "title",
+              "props": {
+                "className": "text-4xl font-bold text-white",
+                "level": 1,
+                "text": "Welcome to My App"
+              },
+              "children": []
+            }
+          ]
+        },
+        {
+          "type": "Header",
+          "key": "header",
+          "props": {
+            "className": "bg-white shadow"
+          },
+          "children": [
+            {
+              "type": "Logo",
+              "key": "logo",
+              "props": {
+                "alt": "My App",
+                "src": "/logo.svg"
+              },
+              "children": []
+            }
+          ]
+        },
+        {
+          "type": "Section",
+          "key": "features",
+          "props": {
+            "className": "py-16 bg-gray-50"
+          },
+          "children": [
+            {
+              "type": "Grid",
+              "key": "grid",
+              "props": {
+                "columns": 3,
+                "gap": 8
+              },
+              "children": [
+                {
+                  "type": "FeatureCard",
+                  "key": "feature1",
+                  "props": {
+                    "description": "Lightning fast performance",
+                    "icon": "rocket",
+                    "title": "Fast"
+                  },
+                  "children": []
+                },
+                {
+                  "type": "FeatureCard",
+                  "key": "feature2",
+                  "props": {
+                    "description": "Enterprise-grade security",
+                    "icon": "shield",
+                    "title": "Secure"
+                  },
+                  "children": []
+                },
+                {
+                  "type": "FeatureCard",
+                  "key": "feature3",
+                  "props": {
+                    "description": "Trusted by thousands",
+                    "icon": "heart",
+                    "title": "Loved"
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}"
+`;
+
+exports[`Object Tree Time Travel shows how content changes are tracked through commits: counter-history 1`] = `
+"[
+  {
+    "message": "first commit",
+    "hasParent": false
+  },
+  {
+    "message": "Increment counter to 1",
+    "hasParent": true
+  },
+  {
+    "message": "Increment counter to 10",
+    "hasParent": true
+  },
+  {
+    "message": "Increment counter to 5",
+    "hasParent": true
+  },
+  {
+    "message": "Initialize counter at 0",
+    "hasParent": true
+  }
+]"
+`;

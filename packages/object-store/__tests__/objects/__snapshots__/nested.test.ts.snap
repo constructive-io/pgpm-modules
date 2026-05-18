@@ -1,0 +1,60 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`insert 1`] = `
+[
+  {
+    "data": null,
+    "frzn": true,
+    "id": "e02a0950-2324-5a98-8cc5-2dc81780f2e0",
+    "kids": [
+      "f40b1c60-a235-509f-8821-2d4f90088eb5",
+    ],
+    "ktree": [
+      "a",
+    ],
+  },
+  {
+    "data": null,
+    "frzn": true,
+    "id": "f40b1c60-a235-509f-8821-2d4f90088eb5",
+    "kids": [
+      "bca2f0c7-081a-5f27-b72f-d1bc2841fab7",
+    ],
+    "ktree": [
+      "b",
+    ],
+  },
+  {
+    "data": {
+      "hello there": 23,
+    },
+    "frzn": true,
+    "id": "bca2f0c7-081a-5f27-b72f-d1bc2841fab7",
+    "kids": [],
+    "ktree": [],
+  },
+]
+`;
+
+exports[`remove 1`] = `
+[
+  {
+    "data": null,
+    "frzn": false,
+    "id": "f764bc06-f1fc-5d6a-9acf-8cf042e5c703",
+    "kids": [
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+    ],
+    "ktree": [
+      "a",
+    ],
+  },
+  {
+    "data": null,
+    "frzn": false,
+    "id": "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+    "kids": null,
+    "ktree": null,
+  },
+]
+`;
