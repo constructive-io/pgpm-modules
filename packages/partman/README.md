@@ -12,7 +12,7 @@
    <a href="https://www.npmjs.com/package/@pgpm/partman"><img height="20" src="https://img.shields.io/github/package-json/v/constructive-io/pgpm-modules?filename=packages%2Fpartman%2Fpackage.json"/></a>
 </p>
 
-pg_partman wrapper for pgpm — installs `pg_partman` into the `partman` schema
+pg_partman wrapper for pgpm — installs `pg_partman` into the `partman` schema.
 
 ## Overview
 
@@ -125,9 +125,9 @@ pnpm test
 
 ## Related Tooling
 
-* [pgpm](https://github.com/constructive-io/constructive/tree/main/packages/pgpm): PostgreSQL Package Manager for modular Postgres development
-* [pgsql-test](https://github.com/constructive-io/constructive/tree/main/packages/pgsql-test): Isolated testing environments with per-test transaction rollbacks
-* [pg_partman](https://github.com/pgpartman/pg_partman): PostgreSQL Partition Manager
+* [pgpm](https://github.com/constructive-io/constructive/tree/main/packages/pgpm): **PostgreSQL Package Manager** for modular Postgres development. Works with database workspaces, scaffolding, migrations, seeding, and installing database packages.
+* [pgsql-test](https://github.com/constructive-io/constructive/tree/main/packages/pgsql-test): **Isolated testing environments** with per-test transaction rollbacks — ideal for integration tests, complex migrations, and RLS simulation.
+* [pg_partman](https://github.com/pgpartman/pg_partman): **PostgreSQL Partition Manager** for automated partition creation and maintenance.
 
 ## Disclaimer
 
