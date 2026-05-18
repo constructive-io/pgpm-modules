@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`create a ref 1`] = `
+[
+  {
+    "set_and_commit": "9f405c5f-8a48-5de8-afdb-1b7e9cc1ea40",
+  },
+]
+`;
+
+exports[`create a ref 2`] = `
+[
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "content": "
+          type: hi
+        ",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [],
+    "ktree": [],
+    "scope_id": "[ID]",
+  },
+]
+`;

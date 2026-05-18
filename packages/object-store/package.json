@@ -1,0 +1,39 @@
+{
+  "name": "@pgpm/object-store",
+  "version": "0.15.5",
+  "description": "Immutable versioned object storage with content-addressable IDs",
+  "author": "Dan Lynch <pyramation@gmail.com>",
+  "contributors": [
+    "Constructive <developers@constructive.io>"
+  ],
+  "keywords": [
+    "postgresql",
+    "pgpm",
+    "object-store",
+    "merkle-tree",
+    "content-addressable",
+    "immutable"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "bundle": "pgpm package",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "@pgpm/verify": "workspace:*"
+  },
+  "devDependencies": {
+    "pgpm": "^4.24.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/constructive-io/pgpm-modules"
+  },
+  "homepage": "https://github.com/constructive-io/pgpm-modules",
+  "bugs": {
+    "url": "https://github.com/constructive-io/pgpm-modules/issues"
+  }
+}

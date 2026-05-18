@@ -1,0 +1,103 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`custom objects deploy example 1`] = `
+[
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "39918f3b-ced4-5d02-ba98-b5af1e73360c",
+      "6a28d24d-defd-5819-9672-3bed186c9dab",
+    ],
+    "ktree": [
+      "fns",
+      "k8s",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "8b150e91-f05d-5544-a762-d16b74123cef",
+    ],
+    "ktree": [
+      "launchql",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "98314576-b4dc-564b-b0cc-5c12d2ce9f96",
+    ],
+    "ktree": [
+      "email-fn",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "5616a146-e76c-54d8-b7cc-6e78905454de",
+    ],
+    "ktree": [
+      "service.yaml",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "0f49ad72-7f10-593e-b2d4-bf7055aa4bd9",
+    ],
+    "ktree": [
+      "index.js",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "content": "apiVersion: v1
+kind: Service
+metadata:
+    name: launchql-service
+    namespace: webinc
+spec:
+    type: NodePort
+    ports:
+    - name: launchql
+        port: 7777
+        targetPort: 7777
+        protocol: TCP
+    selector:
+    app: constructive",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [],
+    "ktree": [],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "content": "export default (req, context) => {
+            return true;
+        });",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [],
+    "ktree": [],
+  },
+]
+`;

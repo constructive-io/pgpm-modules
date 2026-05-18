@@ -1,0 +1,9 @@
+%syntax-version=1.0.0
+%project=pgpm-partman
+%uri=pgpm-partman
+
+extensions/pg_partman 2026-05-09T00:00:00Z devin <devin@constructive.io> # add pg_partman extension in partman schema
+schemas/partman/procedures/create_parent_by_id [extensions/pg_partman] 2026-05-16T00:00:00Z devin <devin@cognition.ai> # metaschema-aware wrapper for partman.create_parent
+schemas/partman/procedures/remove_parent_by_id [extensions/pg_partman] 2026-05-16T00:00:01Z devin <devin@cognition.ai> # metaschema-aware wrapper for partman remove
+schemas/partman/procedures/verify_parent_by_id [extensions/pg_partman] 2026-05-16T00:00:02Z devin <devin@cognition.ai> # metaschema-aware wrapper for partman verify
+schemas/partman/procedures/run_maintenance_by_id [extensions/pg_partman] 2026-05-16T00:00:03Z devin <devin@cognition.ai> # metaschema-aware wrapper for partman run_maintenance

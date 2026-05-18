@@ -1,0 +1,14 @@
+%syntax-version=1.0.0
+%project=object-tree
+%uri=object-tree
+  
+schemas/object_tree_private/schema [object-store:schemas/object_store_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/object_tree_private/schema
+schemas/object_tree_public/schema 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/object_tree_public/schema
+schemas/object_tree_public/tables/commit/table [schemas/object_tree_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/object_tree_public/tables/commit/table
+schemas/object_tree_public/tables/ref/table [schemas/object_tree_public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/object_tree_public/tables/ref/table
+schemas/object_tree_public/procedures/rev_parse [schemas/object_tree_public/schema schemas/object_tree_public/tables/commit/table schemas/object_tree_public/tables/ref/table] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/object_tree_public/procedures/rev_parse
+schemas/object_tree_public/procedures/get_object_at_path [schemas/object_tree_public/schema schemas/object_tree_public/tables/commit/table schemas/object_tree_public/tables/ref/table schemas/object_tree_public/procedures/rev_parse] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/object_tree_public/procedures/get_object_at_path
+schemas/object_tree_public/procedures/init_empty_repo [schemas/object_tree_public/schema schemas/object_tree_public/tables/commit/table schemas/object_tree_public/tables/ref/table] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/object_tree_public/procedures/init_empty_repo
+schemas/object_tree_public/procedures/set_and_commit [schemas/object_tree_public/schema schemas/object_tree_public/tables/commit/table schemas/object_tree_public/tables/ref/table] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/object_tree_public/procedures/set_and_commit
+schemas/object_tree_public/tables/ref/indexes/idx_unique_object_ref_name [schemas/object_tree_public/schema schemas/object_tree_public/tables/ref/table] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/object_tree_public/tables/ref/indexes/idx_unique_object_ref_name
+schemas/object_tree_public/tables/store/table [schemas/object_tree_public/schema] 2026-01-06T12:00:00Z devin <devin@cognition.ai> # add store table for multi-repo support

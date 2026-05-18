@@ -1,0 +1,1076 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`flow-graph creates a deeply nested subgraph (subnet within subnet) 1`] = `
+"{
+  "edges": [
+    {
+      "dst": {
+        "node": "pipeline",
+        "port": "input"
+      },
+      "src": {
+        "node": "input_value",
+        "port": "value"
+      }
+    },
+    {
+      "dst": {
+        "node": "output_final",
+        "port": "value"
+      },
+      "src": {
+        "node": "pipeline",
+        "port": "output"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "name": "value",
+      "type": "number"
+    }
+  ],
+  "name": "deeply-nested-pipeline",
+  "nodes": [
+    {
+      "meta": {
+        "x": 0,
+        "y": 50
+      },
+      "name": "input_value",
+      "props": [
+        {
+          "name": "dataType",
+          "value": "number"
+        },
+        {
+          "name": "portName",
+          "value": "value"
+        }
+      ],
+      "type": "graphInput"
+    },
+    {
+      "meta": {
+        "x": 300,
+        "y": 50
+      },
+      "name": "output_final",
+      "props": [
+        {
+          "name": "dataType",
+          "value": "number"
+        },
+        {
+          "name": "portName",
+          "value": "final"
+        }
+      ],
+      "type": "graphOutput"
+    },
+    {
+      "edges": [
+        {
+          "dst": {
+            "node": "stage",
+            "port": "data"
+          },
+          "src": {
+            "node": "input_input",
+            "port": "value"
+          }
+        },
+        {
+          "dst": {
+            "node": "output_output",
+            "port": "value"
+          },
+          "src": {
+            "node": "stage",
+            "port": "result"
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "name": "input",
+          "type": "number"
+        }
+      ],
+      "meta": {
+        "x": 150,
+        "y": 50
+      },
+      "name": "pipeline",
+      "nodes": [
+        {
+          "meta": {
+            "x": 0,
+            "y": 0
+          },
+          "name": "input_input",
+          "props": [
+            {
+              "name": "dataType",
+              "value": "number"
+            },
+            {
+              "name": "portName",
+              "value": "input"
+            }
+          ],
+          "type": "graphInput"
+        },
+        {
+          "meta": {
+            "x": 200,
+            "y": 0
+          },
+          "name": "output_output",
+          "props": [
+            {
+              "name": "dataType",
+              "value": "number"
+            },
+            {
+              "name": "portName",
+              "value": "output"
+            }
+          ],
+          "type": "graphOutput"
+        },
+        {
+          "meta": {
+            "x": 0,
+            "y": 50
+          },
+          "name": "prop_iterations",
+          "props": [
+            {
+              "name": "dataType",
+              "value": "number"
+            },
+            {
+              "name": "default",
+              "value": 3
+            },
+            {
+              "name": "propName",
+              "value": "iterations"
+            }
+          ],
+          "type": "graphProp"
+        },
+        {
+          "edges": [
+            {
+              "dst": {
+                "node": "multiply",
+                "port": "a"
+              },
+              "src": {
+                "node": "input_data",
+                "port": "value"
+              }
+            },
+            {
+              "dst": {
+                "node": "output_result",
+                "port": "value"
+              },
+              "src": {
+                "node": "multiply",
+                "port": "result"
+              }
+            }
+          ],
+          "inputs": [
+            {
+              "name": "data",
+              "type": "number"
+            }
+          ],
+          "meta": {
+            "x": 100,
+            "y": 0
+          },
+          "name": "stage",
+          "nodes": [
+            {
+              "meta": {
+                "x": 0,
+                "y": 0
+              },
+              "name": "input_data",
+              "props": [
+                {
+                  "name": "dataType",
+                  "value": "number"
+                },
+                {
+                  "name": "portName",
+                  "value": "data"
+                }
+              ],
+              "type": "graphInput"
+            },
+            {
+              "meta": {
+                "x": 100,
+                "y": 0
+              },
+              "name": "multiply",
+              "props": [
+                {
+                  "name": "b",
+                  "ref": true,
+                  "value": "prop_factor"
+                }
+              ],
+              "type": "math/multiply"
+            },
+            {
+              "meta": {
+                "x": 200,
+                "y": 0
+              },
+              "name": "output_result",
+              "props": [
+                {
+                  "name": "dataType",
+                  "value": "number"
+                },
+                {
+                  "name": "portName",
+                  "value": "result"
+                }
+              ],
+              "type": "graphOutput"
+            },
+            {
+              "meta": {
+                "x": 0,
+                "y": 50
+              },
+              "name": "prop_factor",
+              "props": [
+                {
+                  "name": "dataType",
+                  "value": "number"
+                },
+                {
+                  "name": "default",
+                  "value": 2
+                },
+                {
+                  "name": "propName",
+                  "value": "factor"
+                }
+              ],
+              "type": "graphProp"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "result",
+              "type": "number"
+            }
+          ],
+          "properties": [
+            {
+              "default": 2,
+              "name": "factor",
+              "type": "number"
+            }
+          ],
+          "type": "subnet"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "number"
+        }
+      ],
+      "properties": [
+        {
+          "default": 3,
+          "name": "iterations",
+          "type": "number"
+        }
+      ],
+      "type": "subnet"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "final",
+      "type": "number"
+    }
+  ],
+  "properties": []
+}"
+`;
+
+exports[`flow-graph creates a graph with multiple subnets and shared properties 1`] = `
+"{
+  "edges": [
+    {
+      "dst": {
+        "node": "adder",
+        "port": "a"
+      },
+      "src": {
+        "node": "input_x",
+        "port": "value"
+      }
+    },
+    {
+      "dst": {
+        "node": "adder",
+        "port": "b"
+      },
+      "src": {
+        "node": "input_y",
+        "port": "value"
+      }
+    },
+    {
+      "dst": {
+        "node": "rounder",
+        "port": "value"
+      },
+      "src": {
+        "node": "adder",
+        "port": "sum"
+      }
+    },
+    {
+      "dst": {
+        "node": "output_result",
+        "port": "value"
+      },
+      "src": {
+        "node": "rounder",
+        "port": "rounded"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "name": "x",
+      "type": "number"
+    },
+    {
+      "name": "y",
+      "type": "number"
+    }
+  ],
+  "name": "multi-subnet-pipeline",
+  "nodes": [
+    {
+      "edges": [
+        {
+          "dst": {
+            "node": "add",
+            "port": "a"
+          },
+          "src": {
+            "node": "input_a",
+            "port": "value"
+          }
+        },
+        {
+          "dst": {
+            "node": "add",
+            "port": "b"
+          },
+          "src": {
+            "node": "input_b",
+            "port": "value"
+          }
+        },
+        {
+          "dst": {
+            "node": "output_sum",
+            "port": "value"
+          },
+          "src": {
+            "node": "add",
+            "port": "result"
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "name": "a",
+          "type": "number"
+        },
+        {
+          "name": "b",
+          "type": "number"
+        }
+      ],
+      "meta": {
+        "x": 150,
+        "y": 50
+      },
+      "name": "adder",
+      "nodes": [
+        {
+          "meta": {
+            "x": 100,
+            "y": 25
+          },
+          "name": "add",
+          "type": "math/add"
+        },
+        {
+          "meta": {
+            "x": 0,
+            "y": 0
+          },
+          "name": "input_a",
+          "props": [
+            {
+              "name": "dataType",
+              "value": "number"
+            },
+            {
+              "name": "portName",
+              "value": "a"
+            }
+          ],
+          "type": "graphInput"
+        },
+        {
+          "meta": {
+            "x": 0,
+            "y": 50
+          },
+          "name": "input_b",
+          "props": [
+            {
+              "name": "dataType",
+              "value": "number"
+            },
+            {
+              "name": "portName",
+              "value": "b"
+            }
+          ],
+          "type": "graphInput"
+        },
+        {
+          "meta": {
+            "x": 200,
+            "y": 25
+          },
+          "name": "output_sum",
+          "props": [
+            {
+              "name": "dataType",
+              "value": "number"
+            },
+            {
+              "name": "portName",
+              "value": "sum"
+            }
+          ],
+          "type": "graphOutput"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "sum",
+          "type": "number"
+        }
+      ],
+      "properties": [],
+      "type": "subnet"
+    },
+    {
+      "meta": {
+        "x": 0,
+        "y": 50
+      },
+      "name": "input_x",
+      "props": [
+        {
+          "name": "dataType",
+          "value": "number"
+        },
+        {
+          "name": "portName",
+          "value": "x"
+        }
+      ],
+      "type": "graphInput"
+    },
+    {
+      "meta": {
+        "x": 0,
+        "y": 150
+      },
+      "name": "input_y",
+      "props": [
+        {
+          "name": "dataType",
+          "value": "number"
+        },
+        {
+          "name": "portName",
+          "value": "y"
+        }
+      ],
+      "type": "graphInput"
+    },
+    {
+      "meta": {
+        "x": 450,
+        "y": 50
+      },
+      "name": "output_result",
+      "props": [
+        {
+          "name": "dataType",
+          "value": "number"
+        },
+        {
+          "name": "portName",
+          "value": "result"
+        }
+      ],
+      "type": "graphOutput"
+    },
+    {
+      "meta": {
+        "x": 200,
+        "y": 0
+      },
+      "name": "prop_precision",
+      "props": [
+        {
+          "name": "dataType",
+          "value": "number"
+        },
+        {
+          "name": "default",
+          "value": 2
+        },
+        {
+          "name": "propName",
+          "value": "precision"
+        }
+      ],
+      "type": "graphProp"
+    },
+    {
+      "edges": [
+        {
+          "dst": {
+            "node": "round",
+            "port": "input"
+          },
+          "src": {
+            "node": "input_value",
+            "port": "value"
+          }
+        },
+        {
+          "dst": {
+            "node": "output_rounded",
+            "port": "value"
+          },
+          "src": {
+            "node": "round",
+            "port": "output"
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "name": "value",
+          "type": "number"
+        }
+      ],
+      "meta": {
+        "x": 300,
+        "y": 50
+      },
+      "name": "rounder",
+      "nodes": [
+        {
+          "meta": {
+            "x": 0,
+            "y": 0
+          },
+          "name": "input_value",
+          "props": [
+            {
+              "name": "dataType",
+              "value": "number"
+            },
+            {
+              "name": "portName",
+              "value": "value"
+            }
+          ],
+          "type": "graphInput"
+        },
+        {
+          "meta": {
+            "x": 200,
+            "y": 0
+          },
+          "name": "output_rounded",
+          "props": [
+            {
+              "name": "dataType",
+              "value": "number"
+            },
+            {
+              "name": "portName",
+              "value": "rounded"
+            }
+          ],
+          "type": "graphOutput"
+        },
+        {
+          "meta": {
+            "x": 0,
+            "y": 50
+          },
+          "name": "prop_decimals",
+          "props": [
+            {
+              "name": "dataType",
+              "value": "number"
+            },
+            {
+              "name": "default",
+              "value": 0
+            },
+            {
+              "name": "propName",
+              "value": "decimals"
+            }
+          ],
+          "type": "graphProp"
+        },
+        {
+          "meta": {
+            "x": 100,
+            "y": 0
+          },
+          "name": "round",
+          "props": [
+            {
+              "name": "decimals",
+              "ref": true,
+              "value": "prop_decimals"
+            }
+          ],
+          "type": "math/round"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "rounded",
+          "type": "number"
+        }
+      ],
+      "properties": [
+        {
+          "default": 0,
+          "name": "decimals",
+          "type": "number"
+        }
+      ],
+      "type": "subnet"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "number"
+    }
+  ],
+  "properties": [
+    {
+      "default": 2,
+      "name": "precision",
+      "type": "number"
+    }
+  ]
+}"
+`;
+
+exports[`flow-graph creates a nested subgraph with boundary nodes and properties 1`] = `
+"{
+  "edges": [
+    {
+      "dst": {
+        "node": "processor",
+        "port": "x"
+      },
+      "src": {
+        "node": "input_data",
+        "port": "value"
+      }
+    },
+    {
+      "dst": {
+        "node": "output_processed",
+        "port": "value"
+      },
+      "src": {
+        "node": "processor",
+        "port": "result"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "name": "data",
+      "type": "number"
+    }
+  ],
+  "name": "nested-processor",
+  "nodes": [
+    {
+      "meta": {
+        "x": 0,
+        "y": 100
+      },
+      "name": "input_data",
+      "props": [
+        {
+          "name": "dataType",
+          "value": "number"
+        },
+        {
+          "name": "portName",
+          "value": "data"
+        }
+      ],
+      "type": "graphInput"
+    },
+    {
+      "meta": {
+        "x": 400,
+        "y": 100
+      },
+      "name": "output_processed",
+      "props": [
+        {
+          "name": "dataType",
+          "value": "number"
+        },
+        {
+          "name": "portName",
+          "value": "processed"
+        }
+      ],
+      "type": "graphOutput"
+    },
+    {
+      "edges": [
+        {
+          "dst": {
+            "node": "normalize",
+            "port": "input"
+          },
+          "src": {
+            "node": "input_x",
+            "port": "value"
+          }
+        },
+        {
+          "dst": {
+            "node": "transform",
+            "port": "input"
+          },
+          "src": {
+            "node": "normalize",
+            "port": "output"
+          }
+        },
+        {
+          "dst": {
+            "node": "output_result",
+            "port": "value"
+          },
+          "src": {
+            "node": "transform",
+            "port": "output"
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "name": "x",
+          "type": "number"
+        }
+      ],
+      "meta": {
+        "x": 200,
+        "y": 100
+      },
+      "name": "processor",
+      "nodes": [
+        {
+          "meta": {
+            "x": 0,
+            "y": 0
+          },
+          "name": "input_x",
+          "props": [
+            {
+              "name": "dataType",
+              "value": "number"
+            },
+            {
+              "name": "portName",
+              "value": "x"
+            }
+          ],
+          "type": "graphInput"
+        },
+        {
+          "meta": {
+            "x": 100,
+            "y": 0
+          },
+          "name": "normalize",
+          "type": "math/normalize"
+        },
+        {
+          "meta": {
+            "x": 300,
+            "y": 0
+          },
+          "name": "output_result",
+          "props": [
+            {
+              "name": "dataType",
+              "value": "number"
+            },
+            {
+              "name": "portName",
+              "value": "result"
+            }
+          ],
+          "type": "graphOutput"
+        },
+        {
+          "meta": {
+            "x": 0,
+            "y": 50
+          },
+          "name": "prop_mode",
+          "props": [
+            {
+              "name": "dataType",
+              "value": "string"
+            },
+            {
+              "name": "default",
+              "value": "normal"
+            },
+            {
+              "name": "propName",
+              "value": "mode"
+            }
+          ],
+          "type": "graphProp"
+        },
+        {
+          "meta": {
+            "x": 200,
+            "y": 0
+          },
+          "name": "transform",
+          "props": [
+            {
+              "name": "mode",
+              "ref": true,
+              "value": "prop_mode"
+            }
+          ],
+          "type": "math/transform"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "type": "number"
+        }
+      ],
+      "properties": [
+        {
+          "default": "normal",
+          "name": "mode",
+          "type": "string"
+        }
+      ],
+      "type": "subnet"
+    },
+    {
+      "meta": {
+        "x": 0,
+        "y": 0
+      },
+      "name": "prop_scale",
+      "props": [
+        {
+          "name": "dataType",
+          "value": "number"
+        },
+        {
+          "name": "default",
+          "value": 1
+        },
+        {
+          "name": "propName",
+          "value": "scale"
+        }
+      ],
+      "type": "graphProp"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "processed",
+      "type": "number"
+    }
+  ],
+  "properties": [
+    {
+      "default": 1,
+      "name": "scale",
+      "type": "number"
+    }
+  ]
+}"
+`;
+
+exports[`flow-graph creates a simple math graph with derived ports 1`] = `
+"{
+  "edges": [
+    {
+      "dst": {
+        "node": "add1",
+        "port": "a"
+      },
+      "src": {
+        "node": "input_a",
+        "port": "value"
+      }
+    },
+    {
+      "dst": {
+        "node": "add1",
+        "port": "b"
+      },
+      "src": {
+        "node": "input_b",
+        "port": "value"
+      }
+    },
+    {
+      "dst": {
+        "node": "output_result",
+        "port": "value"
+      },
+      "src": {
+        "node": "add1",
+        "port": "result"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "name": "a",
+      "type": "number"
+    },
+    {
+      "name": "b",
+      "type": "number"
+    }
+  ],
+  "name": "simple-add",
+  "nodes": [
+    {
+      "meta": {
+        "x": 200,
+        "y": 50
+      },
+      "name": "add1",
+      "type": "math/add"
+    },
+    {
+      "meta": {
+        "x": 0,
+        "y": 0
+      },
+      "name": "input_a",
+      "props": [
+        {
+          "name": "dataType",
+          "value": "number"
+        },
+        {
+          "name": "portName",
+          "value": "a"
+        }
+      ],
+      "type": "graphInput"
+    },
+    {
+      "meta": {
+        "x": 0,
+        "y": 100
+      },
+      "name": "input_b",
+      "props": [
+        {
+          "name": "dataType",
+          "value": "number"
+        },
+        {
+          "name": "portName",
+          "value": "b"
+        }
+      ],
+      "type": "graphInput"
+    },
+    {
+      "meta": {
+        "x": 400,
+        "y": 50
+      },
+      "name": "output_result",
+      "props": [
+        {
+          "name": "dataType",
+          "value": "number"
+        },
+        {
+          "name": "portName",
+          "value": "result"
+        }
+      ],
+      "type": "graphOutput"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "number"
+    }
+  ],
+  "properties": []
+}"
+`;
+

@@ -1,0 +1,531 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`custom objects basic structure 1`] = `
+[
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "4a0b959d-c7df-5e59-8c9a-e523286aeed0",
+      "717f4116-2a88-5529-a751-25d7d4ed943f",
+    ],
+    "ktree": [
+      "a",
+      "b",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "child1",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "bc886f67-5b5c-531b-81d2-1849a416eebc",
+      "bf336c01-b6ee-5b04-8dcb-64b67973cc4d",
+    ],
+    "ktree": [
+      "c",
+      "d",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "child2",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "bc886f67-5b5c-531b-81d2-1849a416eebc",
+      "bf336c01-b6ee-5b04-8dcb-64b67973cc4d",
+    ],
+    "ktree": [
+      "e",
+      "f",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "grandchild1",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": null,
+    "ktree": null,
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "grandchild2",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+    ],
+    "ktree": [
+      "x",
+      "y",
+      "z",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": null,
+    "ktree": null,
+  },
+]
+`;
+
+exports[`custom objects basic structure 2`] = `
+[
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "4a0b959d-c7df-5e59-8c9a-e523286aeed0",
+      "717f4116-2a88-5529-a751-25d7d4ed943f",
+    ],
+    "ktree": [
+      "a",
+      "b",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "child1",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "bc886f67-5b5c-531b-81d2-1849a416eebc",
+      "bf336c01-b6ee-5b04-8dcb-64b67973cc4d",
+    ],
+    "ktree": [
+      "c",
+      "d",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "grandchild1",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": null,
+    "ktree": null,
+  },
+]
+`;
+
+exports[`custom objects basic structure 3`] = `
+[
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "4a0b959d-c7df-5e59-8c9a-e523286aeed0",
+      "717f4116-2a88-5529-a751-25d7d4ed943f",
+    ],
+    "ktree": [
+      "a",
+      "b",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "child2",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "bc886f67-5b5c-531b-81d2-1849a416eebc",
+      "bf336c01-b6ee-5b04-8dcb-64b67973cc4d",
+    ],
+    "ktree": [
+      "e",
+      "f",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "grandchild2",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+    ],
+    "ktree": [
+      "x",
+      "y",
+      "z",
+    ],
+  },
+]
+`;
+
+exports[`custom objects basic structure 4`] = `
+[
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "4a0b959d-c7df-5e59-8c9a-e523286aeed0",
+      "717f4116-2a88-5529-a751-25d7d4ed943f",
+    ],
+    "ktree": [
+      "a",
+      "b",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "child2",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "bc886f67-5b5c-531b-81d2-1849a416eebc",
+      "bf336c01-b6ee-5b04-8dcb-64b67973cc4d",
+    ],
+    "ktree": [
+      "e",
+      "f",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "grandchild1",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": null,
+    "ktree": null,
+  },
+]
+`;
+
+exports[`custom objects basic structure 5`] = `
+[
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "4a0b959d-c7df-5e59-8c9a-e523286aeed0",
+      "717f4116-2a88-5529-a751-25d7d4ed943f",
+    ],
+    "ktree": [
+      "a",
+      "b",
+    ],
+  },
+]
+`;
+
+exports[`custom objects basic structure 6`] = `
+[
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "grandchild1",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": null,
+    "ktree": null,
+  },
+]
+`;
+
+exports[`custom objects basic structure 7`] = `
+[
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "4a0b959d-c7df-5e59-8c9a-e523286aeed0",
+      "3bf2e1f7-96b2-5617-9467-887ab5a28732",
+    ],
+    "ktree": [
+      "a",
+      "b",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "child1",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "bc886f67-5b5c-531b-81d2-1849a416eebc",
+      "bf336c01-b6ee-5b04-8dcb-64b67973cc4d",
+    ],
+    "ktree": [
+      "c",
+      "d",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "child2",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "bc886f67-5b5c-531b-81d2-1849a416eebc",
+      "0c345b88-a206-5f69-a511-96e56b9cf13d",
+    ],
+    "ktree": [
+      "e",
+      "f",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "grandchild1",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": null,
+    "ktree": null,
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "grandchild2",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+    ],
+    "ktree": [
+      "x",
+      "y",
+      "z",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "grandchild2",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+      "bca2f0c7-081a-5f27-b72f-d1bc2841fab7",
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+    ],
+    "ktree": [
+      "x",
+      "y",
+      "z",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": null,
+    "ktree": null,
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "hello there": 23,
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [],
+    "ktree": [],
+  },
+]
+`;
+
+exports[`custom objects basic structure 8`] = `
+[
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "4a0b959d-c7df-5e59-8c9a-e523286aeed0",
+      "df8223b1-d48d-5f91-b045-9045b797e166",
+    ],
+    "ktree": [
+      "a",
+      "b",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "child1",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "bc886f67-5b5c-531b-81d2-1849a416eebc",
+      "bf336c01-b6ee-5b04-8dcb-64b67973cc4d",
+    ],
+    "ktree": [
+      "c",
+      "d",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "child2",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "bc886f67-5b5c-531b-81d2-1849a416eebc",
+      "540cd467-a511-5cd7-b602-7b272ccf6787",
+    ],
+    "ktree": [
+      "e",
+      "f",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "grandchild1",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": null,
+    "ktree": null,
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "grandchild2",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+    ],
+    "ktree": [
+      "x",
+      "y",
+      "z",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "name": "grandchild2",
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+      "419e7438-ecba-5e8f-9a08-35e1926d3c24",
+      "1b4db7eb-4057-5ddf-91e0-36dec72071f5",
+    ],
+    "ktree": [
+      "x",
+      "y",
+      "z",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": null,
+    "ktree": null,
+  },
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "fbe37f83-2059-569b-aba7-8b93f163cc27",
+    ],
+    "ktree": [
+      "z",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "6b2072a6-dace-5686-ae05-9fac6d953dd2",
+    ],
+    "ktree": [
+      "x",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": null,
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [
+      "bca2f0c7-081a-5f27-b72f-d1bc2841fab7",
+    ],
+    "ktree": [
+      "deployment.yaml",
+    ],
+  },
+  {
+    "created_at": "[DATE]",
+    "data": {
+      "hello there": 23,
+    },
+    "frzn": false,
+    "id": "[ID]",
+    "kids": [],
+    "ktree": [],
+  },
+]
+`;
