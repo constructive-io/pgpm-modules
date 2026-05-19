@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/object-tree",
-  "version": "0.25.0",
+  "version": "0.26.0",
   "description": "Git-like version control for database objects with commits and refs",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
