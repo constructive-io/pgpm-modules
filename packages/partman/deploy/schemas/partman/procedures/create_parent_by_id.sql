@@ -1,6 +1,7 @@
 -- Deploy schemas/partman/procedures/create_parent_by_id to pg
 
 -- requires: extensions/pg_partman
+-- requires: schemas/partman/procedures/create_parent_with_retention
 
 BEGIN;
 
@@ -9,7 +10,9 @@ CREATE FUNCTION partman.create_parent_by_id(
   v_control text,
   v_type text DEFAULT 'range',
   partition_interval text DEFAULT '1 day',
-  v_premake int DEFAULT 2
+  v_premake int DEFAULT 2,
+  v_retention text DEFAULT NULL,
+  v_retention_keep_table boolean DEFAULT true
 ) RETURNS void AS $$
 DECLARE
   v_parent_table text;
@@ -24,12 +27,14 @@ BEGIN
     RAISE EXCEPTION 'partman.create_parent_by_id: table_id % not found', v_table_id;
   END IF;
 
-  PERFORM partman.create_parent(
-    p_parent_table := v_parent_table,
-    p_control := v_control,
-    p_type := v_type,
-    p_interval := partition_interval,
-    p_premake := v_premake
+  PERFORM partman.create_parent_with_retention(
+    v_parent_table := v_parent_table,
+    v_control := v_control,
+    v_type := v_type,
+    partition_interval := partition_interval,
+    v_premake := v_premake,
+    v_retention := v_retention,
+    v_retention_keep_table := v_retention_keep_table
   );
 END;
 $$

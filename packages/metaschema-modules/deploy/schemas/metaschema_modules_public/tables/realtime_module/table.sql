@@ -20,8 +20,8 @@ CREATE TABLE metaschema_modules_public.realtime_module (
 
     -- Partition lifecycle configuration for change_log
     retention_hours integer NOT NULL DEFAULT 168,
-    lookahead_hours integer NOT NULL DEFAULT 24,
-    partition_interval text NOT NULL DEFAULT 'hourly',
+    premake int NOT NULL DEFAULT 7,
+    "interval" text NOT NULL DEFAULT '1 day',
 
     -- NOTIFY hybrid wake-up channel name (NULL = use default)
     notify_channel text NULL,

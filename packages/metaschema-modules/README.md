@@ -95,7 +95,7 @@ The package provides metadata tables for the following modules:
 - **permissions_module**: Permission system configuration
 - **memberships_module**: Membership management settings
 - **membership_types_module**: Membership type definitions
-- **levels_module**: User level configurations
+- **events_module**: User level configurations
 
 ### Security
 - **encrypted_secrets_module**: Encrypted secrets configuration

@@ -33,6 +33,11 @@ CREATE TABLE metaschema_public.table (
 
   tags citext[] NOT NULL DEFAULT '{}',
 
+  partitioned boolean NOT NULL DEFAULT false,
+  partition_strategy text DEFAULT NULL,
+  partition_key_names text[] DEFAULT NULL,
+  partition_key_types text[] DEFAULT NULL,
+
   CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
   CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
   

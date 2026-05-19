@@ -20,6 +20,7 @@ CREATE TABLE services_public.database_settings (
     enable_ltree boolean NOT NULL DEFAULT true,
     enable_llm boolean NOT NULL DEFAULT false,
     enable_realtime boolean NOT NULL DEFAULT false,
+    enable_bulk boolean NOT NULL DEFAULT false,
 
     -- Extensible JSON for future settings that don't warrant their own column
     options jsonb NOT NULL DEFAULT '{}'::jsonb,
@@ -42,6 +43,7 @@ COMMENT ON COLUMN services_public.database_settings.enable_connection_filter IS 
 COMMENT ON COLUMN services_public.database_settings.enable_ltree IS 'Enable ltree hierarchical data type support in the GraphQL API';
 COMMENT ON COLUMN services_public.database_settings.enable_llm IS 'Enable LLM/AI integration features in the GraphQL API';
 COMMENT ON COLUMN services_public.database_settings.enable_realtime IS 'Enable realtime subscriptions (cursor-tracked change delivery) in the GraphQL API';
+COMMENT ON COLUMN services_public.database_settings.enable_bulk IS 'Enable bulk mutation operations (insert, upsert, update, delete) in the GraphQL API';
 COMMENT ON COLUMN services_public.database_settings.options IS 'Extensible JSON for additional settings that do not have dedicated columns';
 
 CREATE INDEX database_settings_database_id_idx ON services_public.database_settings (database_id);

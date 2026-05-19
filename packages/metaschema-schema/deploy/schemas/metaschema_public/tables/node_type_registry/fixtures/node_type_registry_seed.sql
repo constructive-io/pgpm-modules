@@ -3,7 +3,7 @@
 -- GENERATED FILE — DO NOT EDIT
 -- Regenerate with: cd packages/node-type-registry && pnpm generate
 --
--- Node types: 61
+-- Node types: 73
 
 -- requires: schemas/metaschema_public/schema
 -- requires: schemas/metaschema_public/tables/node_type_registry/table
@@ -426,13 +426,133 @@ INSERT INTO metaschema_public.node_type_registry (
   parameter_schema,
   tags
 ) VALUES (
-  'DataChunks',
-  'data_chunks',
+  'LimitTrackUsage',
+  'limit_track_usage',
+  'limit_track',
+  'Track Usage',
+  'Declaratively attaches billing usage-recording triggers to a table. On INSERT the named meter is incremented via record_usage; on DELETE it is decremented (reversal). On UPDATE, if the entity_field changes, the old entity is decremented and the new entity is incremented. Requires a provisioned billing_module for the target database.',
+  '{"type":"object","properties":{"meter_slug":{"type":"string","description":"Slug of the billing meter to record usage against (must match a meters table entry, e.g. \"databases\", \"seats\")"},"entity_field":{"type":"string","format":"column-ref","description":"Column on the target table that holds the entity id for billing","default":"entity_id"},"quantity":{"type":"integer","description":"Units to record per event (default 1)","default":1},"events":{"type":"array","items":{"type":"string","enum":["INSERT","DELETE","UPDATE"]},"description":"Which DML events to attach triggers for","default":["INSERT","DELETE"]}},"required":["meter_slug"]}'::jsonb,
+  '{"billing","triggers","metering","usage","track"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'CheckGreaterThan',
+  'check_greater_than',
+  'check',
+  'Check Greater Than',
+  'Adds a CHECK constraint that validates a column value is greater than a threshold (single-column: column > value) or that one column is greater than another (cross-column: columns[0] > columns[1]). Compiled via AST helpers.',
+  '{"type":"object","properties":{"column":{"type":"string","format":"column-ref","description":"Single column to compare against value (mutually exclusive with columns)"},"value":{"type":"number","description":"Threshold value for single-column comparison (column > value)","default":0},"columns":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Two columns for cross-column comparison (columns[0] > columns[1])","minItems":2,"maxItems":2}}}'::jsonb,
+  '{"check","constraint","validation","comparison"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'CheckLessThan',
+  'check_less_than',
+  'check',
+  'Check Less Than',
+  'Adds a CHECK constraint that validates a column value is less than a threshold (single-column: column < value) or that one column is less than another (cross-column: columns[0] < columns[1]). Compiled via AST helpers.',
+  '{"type":"object","properties":{"column":{"type":"string","format":"column-ref","description":"Single column to compare against value (mutually exclusive with columns)"},"value":{"type":"number","description":"Threshold value for single-column comparison (column < value)"},"columns":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Two columns for cross-column comparison (columns[0] < columns[1])","minItems":2,"maxItems":2}}}'::jsonb,
+  '{"check","constraint","validation","comparison"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'CheckNotEqual',
+  'check_not_equal',
+  'check',
+  'Check Not Equal',
+  'Adds a CHECK constraint that validates two columns are not equal (columns[0] != columns[1]). Useful for preventing self-referencing rows. Compiled via AST helpers.',
+  '{"type":"object","properties":{"columns":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Two columns that must not be equal","minItems":2,"maxItems":2}},"required":["columns"]}'::jsonb,
+  '{"check","constraint","validation","inequality"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'CheckOneOf',
+  'check_one_of',
+  'check',
+  'Check One Of',
+  'Adds a CHECK constraint that validates a column value is one of an allowed set (e.g. tier IN (''free'', ''paid'', ''custom'')). Compiled to column = ANY(ARRAY[...]) via AST helpers.',
+  '{"type":"object","properties":{"column":{"type":"string","format":"column-ref","description":"Column to validate against the allowed values"},"values":{"type":"array","items":{"type":"string"},"description":"Array of allowed values for the column"}},"required":["column","values"]}'::jsonb,
+  '{"check","constraint","validation","enum"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataBulk',
+  'data_bulk',
   'data',
-  'Chunks',
-  'Creates a chunked-embedding child table for any parent table. Provisions the chunks table with content, chunk_index, embedding vector, metadata, HNSW index, inherited RLS, and optional job trigger for automatic text splitting. Composed internally by DataFileEmbedding (enabled by default in extract mode) but can also be used standalone.',
-  '{"type":"object","properties":{"content_field_name":{"type":"string","format":"column-ref","description":"Name of the text content column in the chunks table","default":"content"},"chunk_size":{"type":"integer","description":"Maximum number of characters per chunk","default":1000},"chunk_overlap":{"type":"integer","description":"Number of overlapping characters between consecutive chunks","default":200},"chunk_strategy":{"type":"string","enum":["fixed","sentence","paragraph","semantic"],"description":"Strategy for splitting text into chunks","default":"paragraph"},"dimensions":{"type":"integer","description":"Vector dimensions for per-chunk embeddings","default":768},"metric":{"type":"string","enum":["cosine","l2","ip"],"description":"Distance metric for the HNSW index on chunk embeddings","default":"cosine"},"chunks_table_name":{"type":"string","description":"Override the chunks table name. Defaults to {parent_table}_chunks."},"metadata_fields":{"type":"array","items":{"type":"string"},"description":"Field names from the parent table to copy into chunk metadata"},"enqueue_chunking_job":{"type":"boolean","description":"Whether to create a job trigger that auto-enqueues chunking on parent INSERT/UPDATE","default":true},"chunking_task_name":{"type":"string","description":"Task identifier for the chunking job queue","default":"generate_chunks"}}}'::jsonb,
-  '{"embedding","chunks","vector","ai","rag"}'::text[]
+  'Bulk Operations',
+  'Enables bulk mutation smart tags on a table. When provisioned, adds @behavior tags for the selected bulk operations (insert, upsert, update, delete). Requires the graphile-bulk-mutations plugin.',
+  '{"type":"object","properties":{"insert":{"type":"boolean","description":"Enable bulk insert (+bulkInsert)","default":true},"upsert":{"type":"boolean","description":"Enable bulk upsert (+bulkUpsert)","default":false},"update":{"type":"boolean","description":"Enable bulk update (+bulkUpdate)","default":false},"delete":{"type":"boolean","description":"Enable bulk delete (+bulkDelete)","default":false}}}'::jsonb,
+  '{"bulk","mutations","graphile"}'::text[]
 ) ON CONFLICT (name) DO UPDATE SET
   slug = EXCLUDED.slug,
   category = EXCLUDED.category,
@@ -455,7 +575,7 @@ INSERT INTO metaschema_public.node_type_registry (
   'data',
   'Composite Field',
   'Creates a derived text field that automatically concatenates multiple source fields via BEFORE INSERT/UPDATE triggers. Used to produce a unified text representation (e.g., embedding_text) from multiple columns on a table. The trigger fires with ''_000'' prefix to run before Search* triggers alphabetically.',
-  '{"type":"object","properties":{"target":{"type":"string","format":"column-ref","description":"Name of the derived text field to create (default: ''embedding_text'')"},"source_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Array of source field names to concatenate into the target field"},"format":{"type":"string","enum":["labeled","plain"],"description":"Output format: ''labeled'' (field_name: value) or ''plain'' (values only). Default: ''labeled''"}},"required":["source_fields"]}'::jsonb,
+  '{"type":"object","properties":{"target":{"type":"string","format":"column-ref","description":"Name of the derived text field to create","default":"embedding_text"},"source_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Array of source field names to concatenate into the target field"},"format":{"type":"string","enum":["labeled","plain"],"description":"Output format: ''labeled'' (field_name: value) or ''plain'' (values only)","default":"labeled"}},"required":["source_fields"]}'::jsonb,
   '{"transform","behavior"}'::text[]
 ) ON CONFLICT (name) DO UPDATE SET
   slug = EXCLUDED.slug,
@@ -479,7 +599,7 @@ INSERT INTO metaschema_public.node_type_registry (
   'data',
   'Ownership',
   'Adds ownership column for direct user ownership. Enables AuthzDirectOwner authorization.',
-  '{"type":"object","properties":{"owner_field_name":{"type":"string","format":"column-ref","description":"Column name for owner ID","default":"owner_id"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true},"include_user_fk":{"type":"boolean","description":"If true, adds a foreign key constraint from owner_id to the users table","default":true}}}'::jsonb,
+  '{"type":"object","properties":{"owner_field_name":{"type":"string","format":"column-ref","description":"Column name for owner ID","default":"owner_id"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true},"include_user_fk":{"type":"boolean","description":"If true, adds a foreign key constraint from owner_id to the users table","default":true},"create_index":{"type":"boolean","description":"If true, creates a B-tree index on the owner column","default":true}}}'::jsonb,
   '{"ownership","schema"}'::text[]
 ) ON CONFLICT (name) DO UPDATE SET
   slug = EXCLUDED.slug,
@@ -503,56 +623,8 @@ INSERT INTO metaschema_public.node_type_registry (
   'data',
   'Entity Membership',
   'Adds entity reference for organization/group scoping. Enables AuthzEntityMembership, AuthzMembership, AuthzOrgHierarchy authorization.',
-  '{"type":"object","properties":{"entity_field_name":{"type":"string","format":"column-ref","description":"Column name for entity ID","default":"entity_id"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true},"include_user_fk":{"type":"boolean","description":"If true, adds a foreign key constraint from entity_id to the users table","default":true}}}'::jsonb,
+  '{"type":"object","properties":{"entity_field_name":{"type":"string","format":"column-ref","description":"Column name for entity ID","default":"entity_id"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true},"include_user_fk":{"type":"boolean","description":"If true, adds a foreign key constraint from entity_id to the users table","default":true},"create_index":{"type":"boolean","description":"If true, creates a B-tree index on the entity column","default":true}}}'::jsonb,
   '{"membership","schema"}'::text[]
-) ON CONFLICT (name) DO UPDATE SET
-  slug = EXCLUDED.slug,
-  category = EXCLUDED.category,
-  display_name = EXCLUDED.display_name,
-  description = EXCLUDED.description,
-  parameter_schema = EXCLUDED.parameter_schema,
-  tags = EXCLUDED.tags;
-
-INSERT INTO metaschema_public.node_type_registry (
-  name,
-  slug,
-  category,
-  display_name,
-  description,
-  parameter_schema,
-  tags
-) VALUES (
-  'DataFeatureFlag',
-  'data_feature_flag',
-  'data',
-  'Feature Flag',
-  'Gates a table behind a feature flag backed by the cap tables. Attaches a BEFORE INSERT trigger that checks whether the named feature cap value is > 0. Features are modeled as caps with max=0 (disabled) or max=1 (enabled) in limit_caps / limit_caps_defaults tables. Resolution: COALESCE(per-entity cap, scope default, 0).',
-  '{"type":"object","properties":{"feature_name":{"type":"string","description":"Cap name representing this feature (must match a limit_caps_defaults entry with max=0 or max=1)"},"scope":{"type":"string","enum":["app","org"],"description":"Feature scope: \"app\" (membership_type=1, app-level caps) or \"org\" (membership_type=2, per-entity caps)","default":"app"},"entity_field":{"type":"string","format":"column-ref","description":"Column on the target table that holds the entity id for per-entity cap lookups (only used for org scope)","default":"entity_id"}},"required":["feature_name"]}'::jsonb,
-  '{"limits","triggers","feature-flags","billing","caps"}'::text[]
-) ON CONFLICT (name) DO UPDATE SET
-  slug = EXCLUDED.slug,
-  category = EXCLUDED.category,
-  display_name = EXCLUDED.display_name,
-  description = EXCLUDED.description,
-  parameter_schema = EXCLUDED.parameter_schema,
-  tags = EXCLUDED.tags;
-
-INSERT INTO metaschema_public.node_type_registry (
-  name,
-  slug,
-  category,
-  display_name,
-  description,
-  parameter_schema,
-  tags
-) VALUES (
-  'DataFileEmbedding',
-  'data_file_embedding',
-  'data',
-  'File Embedding',
-  'Generic, MIME-scoped embedding node for file tables. Supports two modes: direct (whole-file to single vector, e.g. CLIP for images) when extraction is omitted, or extract (file to text to chunks to per-chunk vectors) when extraction config is provided. Composes SearchVector + DataJobTrigger + DataChunks (enabled by default in extract mode) internally. Multiple instances can coexist on the same table with different MIME scopes, field names, and embedding strategies.',
-  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the vector embedding column","default":"embedding"},"dimensions":{"type":"integer","description":"Vector dimensions (e.g. 512 for CLIP, 768 for nomic, 1536 for ada-002)","default":768},"index_method":{"type":"string","enum":["hnsw","ivfflat"],"description":"Index type for similarity search","default":"hnsw"},"metric":{"type":"string","enum":["cosine","l2","ip"],"description":"Distance metric","default":"cosine"},"index_options":{"type":"object","description":"Index-specific options. HNSW: {m, ef_construction}. IVFFlat: {lists}.","default":{}},"mime_patterns":{"type":"array","items":{"type":"string"},"description":"MIME type LIKE patterns to match. Multiple patterns are OR''d together. Examples: [''image/%''], [''application/pdf'', ''text/%''], [''audio/%''].","default":["image/%"]},"task_identifier":{"type":"string","description":"Job task identifier for the worker. In direct mode this is the embedding worker; in extract mode this is the extraction worker.","default":"process_file_embedding"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","UPDATE"]},"description":"Trigger events that fire the job","default":["INSERT"]},"payload_custom":{"type":"object","additionalProperties":{"type":"string","format":"column-ref"},"description":"Custom payload key-to-column mapping for the job trigger","default":{"file_id":"id","key":"key","mime_type":"mime_type","bucket_id":"bucket_id"}},"trigger_conditions":{"description":"Additional compound conditions beyond MIME filtering. Merged with the auto-generated MIME conditions via AND. Use this to add status checks, field guards, etc.","x-codegen-type":"TriggerCondition | TriggerCondition[]","oneOf":[{"$ref":"#/$defs/triggerCondition"},{"type":"array","items":{"$ref":"#/$defs/triggerCondition"}}]},"extraction":{"type":"object","description":"Text extraction configuration. When present, the generator creates extraction output fields on the table and configures SearchVector with source_fields + stale tracking. When absent, the node operates in direct mode (single vector per file, no text extraction).","properties":{"text_field":{"type":"string","format":"column-ref","description":"Field to store extracted text/markdown","default":"extracted_text"},"metadata_field":{"type":"string","format":"column-ref","description":"JSONB field for extraction metadata (page count, language, etc.)","default":"extracted_metadata"},"status_field":{"type":"string","format":"column-ref","description":"Extraction lifecycle status field","default":"extraction_status"}}},"include_chunks":{"type":"boolean","description":"Whether to create a chunks table via DataChunks. Defaults to true when extraction is provided, false in direct mode. Set explicitly to override."},"chunks":{"type":"object","description":"Chunking configuration passed through to DataChunks. When include_chunks is true (or defaults to true in extract mode), these params configure the chunks table, embedding dimensions, strategy, etc.","properties":{"content_field_name":{"type":"string","format":"column-ref","description":"Name of the text content column in the chunks table","default":"content"},"chunk_size":{"type":"integer","description":"Maximum number of characters per chunk","default":1000},"chunk_overlap":{"type":"integer","description":"Number of overlapping characters between consecutive chunks","default":200},"chunk_strategy":{"type":"string","enum":["fixed","sentence","paragraph","semantic"],"description":"Strategy for splitting text into chunks","default":"paragraph"},"metadata_fields":{"type":"array","items":{"type":"string"},"description":"Field names from parent to copy into chunk metadata"},"enqueue_chunking_job":{"type":"boolean","description":"Whether to auto-enqueue a chunking job on insert/update","default":true},"chunking_task_name":{"type":"string","description":"Task identifier for the chunking job queue","default":"generate_chunks"}}},"stale_strategy":{"type":"string","enum":["column","null","hash"],"description":"Strategy for tracking embedding staleness when extraction is enabled. column: embedding_stale boolean. null: set embedding to NULL. hash: md5 hash.","default":"column"},"include_stale_field":{"type":"boolean","description":"Whether to include the embedding_stale boolean field (extract mode)","default":true}}}'::jsonb,
-  '{"embedding","vector","ai","composition","jobs","multimodal","files"}'::text[]
 ) ON CONFLICT (name) DO UPDATE SET
   slug = EXCLUDED.slug,
   category = EXCLUDED.category,
@@ -601,30 +673,6 @@ INSERT INTO metaschema_public.node_type_registry (
   'Adds a UUID primary key column with auto-generation default (uuidv7). This is the standard primary key pattern for all tables.',
   '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Column name for the primary key","default":"id"}}}'::jsonb,
   '{"primary_key","schema"}'::text[]
-) ON CONFLICT (name) DO UPDATE SET
-  slug = EXCLUDED.slug,
-  category = EXCLUDED.category,
-  display_name = EXCLUDED.display_name,
-  description = EXCLUDED.description,
-  parameter_schema = EXCLUDED.parameter_schema,
-  tags = EXCLUDED.tags;
-
-INSERT INTO metaschema_public.node_type_registry (
-  name,
-  slug,
-  category,
-  display_name,
-  description,
-  parameter_schema,
-  tags
-) VALUES (
-  'DataImageEmbedding',
-  'data_image_embedding',
-  'data',
-  'Image Embedding',
-  'Image-specific preset of DataFileEmbedding. Delegates to DataFileEmbedding with image-oriented defaults: dimensions=512 (CLIP), mime_patterns=[''image/%''], task_identifier=''process_image_embedding'', direct mode (no extraction). Accepts all DataFileEmbedding parameters — any overrides are forwarded through.',
-  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the vector embedding column","default":"embedding"},"dimensions":{"type":"integer","description":"Vector dimensions (default 512 for CLIP-style image embeddings)","default":512},"index_method":{"type":"string","enum":["hnsw","ivfflat"],"description":"Index type for similarity search","default":"hnsw"},"metric":{"type":"string","enum":["cosine","l2","ip"],"description":"Distance metric","default":"cosine"},"index_options":{"type":"object","description":"Index-specific options. HNSW: {m, ef_construction}. IVFFlat: {lists}.","default":{}},"mime_patterns":{"type":"array","items":{"type":"string"},"description":"MIME type LIKE patterns to match. Multiple patterns are OR''d together.","default":["image/%"]},"task_identifier":{"type":"string","description":"Job task identifier for the image embedding worker","default":"process_image_embedding"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","UPDATE"]},"description":"Trigger events that fire the job","default":["INSERT"]},"payload_custom":{"type":"object","additionalProperties":{"type":"string","format":"column-ref"},"description":"Custom payload key-to-column mapping for the job trigger","default":{"file_id":"id","key":"key","mime_type":"mime_type","bucket_id":"bucket_id"}},"trigger_conditions":{"description":"Additional compound conditions beyond MIME filtering. Merged with the auto-generated MIME conditions via AND.","x-codegen-type":"TriggerCondition | TriggerCondition[]","oneOf":[{"$ref":"#/$defs/triggerCondition"},{"type":"array","items":{"$ref":"#/$defs/triggerCondition"}}]},"extraction":{"type":"object","description":"Text extraction configuration. Forwarded to DataFileEmbedding. When present, enables extract mode (e.g., OCR for images).","properties":{"text_field":{"type":"string","format":"column-ref","description":"Field to store extracted text","default":"extracted_text"},"metadata_field":{"type":"string","format":"column-ref","description":"JSONB field for extraction metadata","default":"extracted_metadata"},"status_field":{"type":"string","format":"column-ref","description":"Extraction lifecycle status field","default":"extraction_status"}}},"chunks":{"type":"object","description":"Chunking configuration. Forwarded to DataFileEmbedding. Only meaningful when extraction is also provided.","properties":{"content_field_name":{"type":"string","format":"column-ref","default":"content"},"chunk_size":{"type":"integer","default":1000},"chunk_overlap":{"type":"integer","default":200},"chunk_strategy":{"type":"string","enum":["fixed","sentence","paragraph","semantic"],"default":"paragraph"},"metadata_fields":{"type":"object"},"enqueue_chunking_job":{"type":"boolean","default":true},"chunking_task_name":{"type":"string","default":"generate_chunks"}}},"stale_strategy":{"type":"string","enum":["column","null","hash"],"description":"Strategy for tracking embedding staleness in extract mode","default":"column"},"include_stale_field":{"type":"boolean","description":"Whether to include the embedding_stale boolean field","default":true}}}'::jsonb,
-  '{"embedding","image","vector","ai","composition","jobs"}'::text[]
 ) ON CONFLICT (name) DO UPDATE SET
   slug = EXCLUDED.slug,
   category = EXCLUDED.category,
@@ -714,61 +762,13 @@ INSERT INTO metaschema_public.node_type_registry (
   parameter_schema,
   tags
 ) VALUES (
-  'DataJobTrigger',
-  'data_job_trigger',
-  'data',
-  'Job Trigger',
-  'Dynamically creates PostgreSQL triggers that enqueue jobs via app_jobs.add_job() when table rows are inserted, updated, or deleted. Supports configurable payload strategies (full row, row ID, selected fields, or custom mapping), conditional firing via WHEN clauses, watched field changes, and extended job options (queue, priority, delay, max attempts).',
-  '{"type":"object","$defs":{"triggerCondition":{"type":"object","description":"A leaf condition ({field, op, value?, row?, ref?}) or a combinator ({AND, OR, NOT}).","properties":{"field":{"type":"string","format":"column-ref","description":"Column name (validated against the table)."},"op":{"type":"string","enum":["=","!=",">","<",">=","<=","LIKE","NOT LIKE","IS NULL","IS NOT NULL","IS DISTINCT FROM"],"description":"Comparison operator."},"value":{"description":"Comparison value. Type is resolved from the column definition. Omit for IS NULL, IS NOT NULL, IS DISTINCT FROM."},"row":{"type":"string","enum":["NEW","OLD"],"default":"NEW","description":"Row reference (default: NEW)."},"ref":{"type":"object","description":"Column reference for field-to-field comparison (alternative to value).","properties":{"field":{"type":"string","format":"column-ref"},"row":{"type":"string","enum":["NEW","OLD"],"default":"NEW"}}},"AND":{"type":"array","description":"Array of conditions combined with AND.","items":{"$ref":"#/$defs/triggerCondition"}},"OR":{"type":"array","description":"Array of conditions combined with OR.","items":{"$ref":"#/$defs/triggerCondition"}},"NOT":{"$ref":"#/$defs/triggerCondition","description":"Negated condition."}}}},"properties":{"task_identifier":{"type":"string","description":"Job task identifier passed to add_job (e.g., process_invoice, sync_to_stripe)"},"payload_strategy":{"type":"string","enum":["row","row_id","fields","custom"],"description":"How to build the job payload: row (full NEW/OLD), row_id (just id), fields (selected columns), custom (mapped columns)","default":"row_id"},"payload_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Column names to include in payload (only for fields strategy)"},"payload_custom":{"type":"object","additionalProperties":{"type":"string","format":"column-ref"},"description":"Key-to-column mapping for custom payload (e.g., {\"invoice_id\": \"id\", \"total\": \"amount\"})"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","UPDATE","DELETE"]},"description":"Trigger events to create","default":["INSERT","UPDATE"]},"include_old":{"type":"boolean","description":"Include OLD row in payload (for UPDATE triggers)","default":false},"include_meta":{"type":"boolean","description":"Include table/schema metadata in payload","default":false},"condition_field":{"type":"string","format":"column-ref","description":"Column name for conditional WHEN clause (fires only when field equals condition_value)"},"condition_value":{"type":"string","description":"Value to compare against condition_field in WHEN clause"},"conditions":{"description":"Compound conditions for the trigger WHEN clause. Accepts a single leaf condition, an array of conditions (implicitly AND), or a nested combinator tree ({AND: [...], OR: [...], NOT: {...}}). Each leaf is {field, op, value?, row?, ref?}. Column types are resolved automatically from the table schema. Cannot be combined with condition_field or watch_fields.","x-codegen-type":"TriggerCondition | TriggerCondition[]","oneOf":[{"$ref":"#/$defs/triggerCondition"},{"type":"array","items":{"$ref":"#/$defs/triggerCondition"}}]},"watch_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"For UPDATE triggers, only fire when these fields change (uses DISTINCT FROM)"},"job_key":{"type":"string","description":"Static job key for upsert semantics (prevents duplicate jobs)"},"queue_name":{"type":"string","description":"Job queue name for routing to specific workers"},"priority":{"type":"integer","description":"Job priority (lower = higher priority)","default":0},"run_at_delay":{"type":"string","description":"Delay before job runs as PostgreSQL interval (e.g., 30 seconds, 5 minutes)"},"max_attempts":{"type":"integer","description":"Maximum retry attempts for the job","default":25}},"required":["task_identifier"]}'::jsonb,
-  '{"jobs","triggers","async"}'::text[]
-) ON CONFLICT (name) DO UPDATE SET
-  slug = EXCLUDED.slug,
-  category = EXCLUDED.category,
-  display_name = EXCLUDED.display_name,
-  description = EXCLUDED.description,
-  parameter_schema = EXCLUDED.parameter_schema,
-  tags = EXCLUDED.tags;
-
-INSERT INTO metaschema_public.node_type_registry (
-  name,
-  slug,
-  category,
-  display_name,
-  description,
-  parameter_schema,
-  tags
-) VALUES (
   'DataJsonb',
   'data_jsonb',
   'data',
   'JSONB Field',
   'Adds a JSONB column with optional GIN index for containment queries (@>, ?, ?|, ?&). Standard pattern for semi-structured metadata.',
-  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Column name for the JSONB field","default":"metadata"},"default_value":{"type":"string","description":"Default value expression"},"is_required":{"type":"boolean","description":"Whether the column has a NOT NULL constraint","default":false},"create_index":{"type":"boolean","description":"Whether to create a GIN index","default":true}}}'::jsonb,
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Column name for the JSONB field","default":"metadata"},"default_value":{"type":"string","description":"Default value expression","default":"''{}''::jsonb"},"is_required":{"type":"boolean","description":"Whether the column has a NOT NULL constraint","default":false},"create_index":{"type":"boolean","description":"Whether to create a GIN index","default":true}}}'::jsonb,
   '{"jsonb","schema"}'::text[]
-) ON CONFLICT (name) DO UPDATE SET
-  slug = EXCLUDED.slug,
-  category = EXCLUDED.category,
-  display_name = EXCLUDED.display_name,
-  description = EXCLUDED.description,
-  parameter_schema = EXCLUDED.parameter_schema,
-  tags = EXCLUDED.tags;
-
-INSERT INTO metaschema_public.node_type_registry (
-  name,
-  slug,
-  category,
-  display_name,
-  description,
-  parameter_schema,
-  tags
-) VALUES (
-  'DataLimitCounter',
-  'data_limit_counter',
-  'data',
-  'Limit Counter',
-  'Declaratively attaches limit-tracking triggers to a table. On INSERT the named limit is incremented; on DELETE it is decremented. Requires a provisioned limits_module for the target scope.',
-  '{"type":"object","properties":{"limit_name":{"type":"string","description":"Name of the limit to track (must match a default_limits entry, e.g. \"projects\", \"members\")"},"scope":{"type":"string","enum":["app","org"],"description":"Limit scope: \"app\" (membership_type=1, user-level) or \"org\" (membership_type=2, entity-level)","default":"app"},"actor_field":{"type":"string","format":"column-ref","description":"Column on the target table that holds the actor or entity id used for limit lookup","default":"owner_id"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","DELETE","UPDATE"]},"description":"Which DML events to attach triggers for","default":["INSERT","DELETE"]}},"required":["limit_name"]}'::jsonb,
-  '{"limits","triggers","billing"}'::text[]
 ) ON CONFLICT (name) DO UPDATE SET
   slug = EXCLUDED.slug,
   category = EXCLUDED.category,
@@ -815,7 +815,7 @@ INSERT INTO metaschema_public.node_type_registry (
   'data',
   'Ownership In Entity',
   'Combines direct ownership with entity scoping. Adds both owner_id and entity_id columns. Enables AuthzDirectOwner, AuthzEntityMembership, and AuthzOrgHierarchy authorization. Particularly useful for OrgHierarchy where a user owns a row (owner_id) within an entity (entity_id), and managers above can see subordinate-owned records via the hierarchy closure table.',
-  '{"type":"object","properties":{"owner_field_name":{"type":"string","format":"column-ref","description":"Column name for the owner reference","default":"owner_id"},"entity_field_name":{"type":"string","format":"column-ref","description":"Column name for the entity reference","default":"entity_id"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true},"include_user_fk":{"type":"boolean","description":"If true, adds foreign key constraints from owner_id and entity_id to the users table","default":true}}}'::jsonb,
+  '{"type":"object","properties":{"owner_field_name":{"type":"string","format":"column-ref","description":"Column name for the owner reference","default":"owner_id"},"entity_field_name":{"type":"string","format":"column-ref","description":"Column name for the entity reference","default":"entity_id"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true},"include_user_fk":{"type":"boolean","description":"If true, adds foreign key constraints from owner_id and entity_id to the users table","default":true},"create_index":{"type":"boolean","description":"If true, creates B-tree indexes on the owner and entity columns","default":true}}}'::jsonb,
   '{"ownership","membership","hierarchy","schema"}'::text[]
 ) ON CONFLICT (name) DO UPDATE SET
   slug = EXCLUDED.slug,
@@ -839,7 +839,7 @@ INSERT INTO metaschema_public.node_type_registry (
   'data',
   'Peoplestamps',
   'Adds user tracking for creates/updates with created_by and updated_by columns.',
-  '{"type":"object","properties":{"created_by_field":{"type":"string","format":"column-ref","description":"Column name for the creating user reference","default":"created_by"},"updated_by_field":{"type":"string","format":"column-ref","description":"Column name for the last-updating user reference","default":"updated_by"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true},"include_user_fk":{"type":"boolean","description":"If true, adds foreign key constraints from created_by and updated_by to the users table","default":false}}}'::jsonb,
+  '{"type":"object","properties":{"created_by_field":{"type":"string","format":"column-ref","description":"Column name for the creating user reference","default":"created_by"},"updated_by_field":{"type":"string","format":"column-ref","description":"Column name for the last-updating user reference","default":"updated_by"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true},"include_user_fk":{"type":"boolean","description":"If true, adds foreign key constraints from created_by and updated_by to the users table","default":false},"create_index":{"type":"boolean","description":"If true, creates B-tree indexes on the peoplestamp columns","default":true}}}'::jsonb,
   '{"timestamps","schema"}'::text[]
 ) ON CONFLICT (name) DO UPDATE SET
   slug = EXCLUDED.slug,
@@ -863,8 +863,32 @@ INSERT INTO metaschema_public.node_type_registry (
   'data',
   'Publishable',
   'Adds publish state columns (is_published, published_at) for content visibility. Enables AuthzPublishable and AuthzTemporal authorization.',
-  '{"type":"object","properties":{"is_published_field":{"type":"string","format":"column-ref","description":"Column name for the published boolean flag","default":"is_published"},"published_at_field":{"type":"string","format":"column-ref","description":"Column name for the publish timestamp","default":"published_at"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true}}}'::jsonb,
+  '{"type":"object","properties":{"is_published_field_name":{"type":"string","format":"column-ref","description":"Column name for the published boolean flag","default":"is_published"},"published_at_field_name":{"type":"string","format":"column-ref","description":"Column name for the publish timestamp","default":"published_at"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true}}}'::jsonb,
   '{"publishing","temporal","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'DataRealtime',
+  'data_realtime',
+  'data',
+  'Realtime Subscriptions',
+  'Creates per-table subscriber tables in subscriptions_public with RLS policies derived from source table SELECT policies. Attaches statement-level triggers to emit changes to subscribers.',
+  '{"type":"object","properties":{"operations":{"type":"array","items":{"type":"string","enum":["INSERT","UPDATE","DELETE"]},"description":"Which DML operations to track with emit_change triggers","default":["INSERT","UPDATE","DELETE"]},"subscriber_table_name":{"type":"string","description":"Custom name for the subscriber table (defaults to {source_table}_subscriber)"}}}'::jsonb,
+  '{"realtime","subscriptions","triggers"}'::text[]
 ) ON CONFLICT (name) DO UPDATE SET
   slug = EXCLUDED.slug,
   category = EXCLUDED.category,
@@ -887,7 +911,7 @@ INSERT INTO metaschema_public.node_type_registry (
   'data',
   'Slug',
   'Auto-generates URL-friendly slugs from field values on insert/update. Attaches BEFORE INSERT and BEFORE UPDATE triggers that call inflection.slugify() on the target field. References fields by name in data jsonb.',
-  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the field to slugify"},"source_field_name":{"type":"string","format":"column-ref","description":"Optional source field name (defaults to field_name)"}},"required":["field_name"]}'::jsonb,
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the field to slugify","default":"slug"},"source_field_name":{"type":"string","format":"column-ref","description":"Optional source field name (defaults to field_name)"}},"required":[]}'::jsonb,
   '{"transform","behavior"}'::text[]
 ) ON CONFLICT (name) DO UPDATE SET
   slug = EXCLUDED.slug,
@@ -959,7 +983,7 @@ INSERT INTO metaschema_public.node_type_registry (
   'data',
   'Tags',
   'Adds a citext[] tags column with GIN index for efficient array containment queries (@>, &&). Standard tagging pattern for categorization and filtering.',
-  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Column name for the tags array","default":"tags"},"default_value":{"type":"string","description":"Default value expression for the tags column"},"is_required":{"type":"boolean","description":"Whether the column has a NOT NULL constraint","default":false}}}'::jsonb,
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Column name for the tags array","default":"tags"},"default_value":{"type":"string","description":"Default value expression for the tags column","default":"ARRAY[]::citext[]"},"is_required":{"type":"boolean","description":"Whether the column has a NOT NULL constraint","default":false}}}'::jsonb,
   '{"tags","schema"}'::text[]
 ) ON CONFLICT (name) DO UPDATE SET
   slug = EXCLUDED.slug,
@@ -985,6 +1009,270 @@ INSERT INTO metaschema_public.node_type_registry (
   'Adds automatic timestamp tracking with created_at and updated_at columns.',
   '{"type":"object","properties":{"created_at_field":{"type":"string","format":"column-ref","description":"Column name for the creation timestamp","default":"created_at"},"updated_at_field":{"type":"string","format":"column-ref","description":"Column name for the last-updated timestamp","default":"updated_at"},"include_id":{"type":"boolean","description":"If true, also adds a UUID primary key column with auto-generation","default":true}}}'::jsonb,
   '{"timestamps","schema"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'EventReferral',
+  'event_referral',
+  'event',
+  'Event Referral',
+  'Creates triggers that record events for the referrer (inviter) when their invitees perform actions on a watched table. Resolves the referrer automatically via the invites module''s claimed_invites table using the membership_type context. Supports the same compound condition system as EventTracker. Use with achievements to unlock levels and grant credits based on invitee activity.',
+  '{"type":"object","$defs":{"triggerCondition":{"type":"object","description":"A leaf condition ({field, op, value?, row?, ref?}) or a combinator ({AND, OR, NOT}).","properties":{"field":{"type":"string","format":"column-ref","description":"Column name (validated against the table)."},"op":{"type":"string","enum":["=","!=",">","<",">=","<=","LIKE","NOT LIKE","IS NULL","IS NOT NULL","IS DISTINCT FROM"],"description":"Comparison operator."},"value":{"description":"Comparison value. Type is resolved from the column definition. Omit for IS NULL, IS NOT NULL, IS DISTINCT FROM."},"row":{"type":"string","enum":["NEW","OLD"],"default":"NEW","description":"Row reference (default: NEW)."},"ref":{"type":"object","description":"Column reference for field-to-field comparison (alternative to value).","properties":{"field":{"type":"string","format":"column-ref"},"row":{"type":"string","enum":["NEW","OLD"],"default":"NEW"}}},"AND":{"type":"array","description":"Array of conditions combined with AND.","items":{"$ref":"#/$defs/triggerCondition"}},"OR":{"type":"array","description":"Array of conditions combined with OR.","items":{"$ref":"#/$defs/triggerCondition"}},"NOT":{"$ref":"#/$defs/triggerCondition","description":"Negated condition."}}}},"properties":{"event_name":{"type":"string","description":"Event type name to record for the referrer (e.g., \"invitee_uploaded_avatar\", \"invitee_completed_onboarding\")"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","UPDATE","DELETE"]},"description":"DML events that trigger recording","default":["INSERT"]},"actor_field":{"type":"string","format":"column-ref","description":"Column containing the invitee (actor) ID on the source table — used to look up the referrer via claimed_invites.receiver_id","default":"owner_id"},"entity_field":{"type":"string","format":"column-ref","description":"Column containing the entity ID (org/group) for entity-scoped referral events. Omit for user-only events."},"auto_register_type":{"type":"boolean","description":"Automatically register the event_name in event_types during provisioning","default":true},"condition_field":{"type":"string","format":"column-ref","description":"Column name for conditional WHEN clause (fires only when field equals condition_value)"},"condition_value":{"type":"string","description":"Value to compare against condition_field in WHEN clause"},"conditions":{"description":"Compound conditions for the trigger WHEN clause.","x-codegen-type":"TriggerCondition | TriggerCondition[]","oneOf":[{"$ref":"#/$defs/triggerCondition"},{"type":"array","items":{"$ref":"#/$defs/triggerCondition"}}]},"watch_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"For UPDATE triggers, only fire when these fields change (uses DISTINCT FROM)"}},"required":["event_name"]}'::jsonb,
+  '{"events","referral","invites","analytics","tracking"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'EventTracker',
+  'event_tracker',
+  'event',
+  'Event Tracker',
+  'Creates triggers that record events via the events module when table rows change. Supports the same compound condition system as JobTrigger (condition_field, watch_fields, or full AND/OR/NOT conditions). Events are recorded to app_events and aggregated automatically. Use with achievements (blueprint-level) to unlock levels and grant credits based on event accumulation.',
+  '{"type":"object","$defs":{"triggerCondition":{"type":"object","description":"A leaf condition ({field, op, value?, row?, ref?}) or a combinator ({AND, OR, NOT}).","properties":{"field":{"type":"string","format":"column-ref","description":"Column name (validated against the table)."},"op":{"type":"string","enum":["=","!=",">","<",">=","<=","LIKE","NOT LIKE","IS NULL","IS NOT NULL","IS DISTINCT FROM"],"description":"Comparison operator."},"value":{"description":"Comparison value. Type is resolved from the column definition. Omit for IS NULL, IS NOT NULL, IS DISTINCT FROM."},"row":{"type":"string","enum":["NEW","OLD"],"default":"NEW","description":"Row reference (default: NEW)."},"ref":{"type":"object","description":"Column reference for field-to-field comparison (alternative to value).","properties":{"field":{"type":"string","format":"column-ref"},"row":{"type":"string","enum":["NEW","OLD"],"default":"NEW"}}},"AND":{"type":"array","description":"Array of conditions combined with AND.","items":{"$ref":"#/$defs/triggerCondition"}},"OR":{"type":"array","description":"Array of conditions combined with OR.","items":{"$ref":"#/$defs/triggerCondition"}},"NOT":{"$ref":"#/$defs/triggerCondition","description":"Negated condition."}}}},"properties":{"event_name":{"type":"string","description":"Event type name to record (e.g., \"avatar_uploaded\", \"order_completed\")"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","UPDATE","DELETE"]},"description":"DML events that trigger recording","default":["INSERT"]},"count":{"type":"integer","description":"Number of events to record per trigger fire","default":1},"toggle":{"type":"boolean","description":"Toggle mode: records event when condition is met, removes when condition is unmet","default":false},"actor_field":{"type":"string","format":"column-ref","description":"Column containing the actor (user) ID to attribute the event to","default":"owner_id"},"entity_field":{"type":"string","format":"column-ref","description":"Column containing the entity ID (org/group) for entity-scoped events. Omit for user-only events."},"auto_register_type":{"type":"boolean","description":"Automatically register the event_name in event_types during provisioning","default":true},"condition_field":{"type":"string","format":"column-ref","description":"Column name for conditional WHEN clause (fires only when field equals condition_value)"},"condition_value":{"type":"string","description":"Value to compare against condition_field in WHEN clause"},"conditions":{"description":"Compound conditions for the trigger WHEN clause.","x-codegen-type":"TriggerCondition | TriggerCondition[]","oneOf":[{"$ref":"#/$defs/triggerCondition"},{"type":"array","items":{"$ref":"#/$defs/triggerCondition"}}]},"watch_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"For UPDATE triggers, only fire when these fields change (uses DISTINCT FROM)"}},"required":["event_name"]}'::jsonb,
+  '{"events","triggers","analytics","tracking"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'JobTrigger',
+  'data_job_trigger',
+  'job',
+  'Job Trigger',
+  'Dynamically creates PostgreSQL triggers that enqueue jobs via app_jobs.add_job() when table rows are inserted, updated, or deleted. Supports configurable payload strategies (full row, row ID, selected fields, or custom mapping), conditional firing via WHEN clauses, watched field changes, and extended job options (queue, priority, delay, max attempts).',
+  '{"type":"object","$defs":{"triggerCondition":{"type":"object","description":"A leaf condition ({field, op, value?, row?, ref?}) or a combinator ({AND, OR, NOT}).","properties":{"field":{"type":"string","format":"column-ref","description":"Column name (validated against the table)."},"op":{"type":"string","enum":["=","!=",">","<",">=","<=","LIKE","NOT LIKE","IS NULL","IS NOT NULL","IS DISTINCT FROM"],"description":"Comparison operator."},"value":{"description":"Comparison value. Type is resolved from the column definition. Omit for IS NULL, IS NOT NULL, IS DISTINCT FROM."},"row":{"type":"string","enum":["NEW","OLD"],"default":"NEW","description":"Row reference (default: NEW)."},"ref":{"type":"object","description":"Column reference for field-to-field comparison (alternative to value).","properties":{"field":{"type":"string","format":"column-ref"},"row":{"type":"string","enum":["NEW","OLD"],"default":"NEW"}}},"AND":{"type":"array","description":"Array of conditions combined with AND.","items":{"$ref":"#/$defs/triggerCondition"}},"OR":{"type":"array","description":"Array of conditions combined with OR.","items":{"$ref":"#/$defs/triggerCondition"}},"NOT":{"$ref":"#/$defs/triggerCondition","description":"Negated condition."}}}},"properties":{"task_identifier":{"type":"string","description":"Job task identifier passed to add_job (e.g., process_invoice, sync_to_stripe)"},"payload_strategy":{"type":"string","enum":["row","row_id","fields","custom"],"description":"How to build the job payload: row (full NEW/OLD), row_id (just id), fields (selected columns), custom (mapped columns)","default":"row_id"},"payload_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Column names to include in payload (only for fields strategy)"},"payload_custom":{"type":"object","additionalProperties":{"type":"string","format":"column-ref"},"description":"Key-to-column mapping for custom payload (e.g., {\"invoice_id\": \"id\", \"total\": \"amount\"})"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","UPDATE","DELETE"]},"description":"Trigger events to create","default":["INSERT","UPDATE"]},"include_old":{"type":"boolean","description":"Include OLD row in payload (for UPDATE triggers)","default":false},"include_meta":{"type":"boolean","description":"Include table/schema metadata in payload","default":false},"condition_field":{"type":"string","format":"column-ref","description":"Column name for conditional WHEN clause (fires only when field equals condition_value)"},"condition_value":{"type":"string","description":"Value to compare against condition_field in WHEN clause"},"conditions":{"description":"Compound conditions for the trigger WHEN clause. Accepts a single leaf condition, an array of conditions (implicitly AND), or a nested combinator tree ({AND: [...], OR: [...], NOT: {...}}). Each leaf is {field, op, value?, row?, ref?}. Column types are resolved automatically from the table schema. Cannot be combined with condition_field or watch_fields.","x-codegen-type":"TriggerCondition | TriggerCondition[]","oneOf":[{"$ref":"#/$defs/triggerCondition"},{"type":"array","items":{"$ref":"#/$defs/triggerCondition"}}]},"watch_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"For UPDATE triggers, only fire when these fields change (uses DISTINCT FROM)"},"job_key":{"type":"string","description":"Static job key for upsert semantics (prevents duplicate jobs)"},"queue_name":{"type":"string","description":"Job queue name for routing to specific workers"},"priority":{"type":"integer","description":"Job priority (lower = higher priority)","default":0},"run_at_delay":{"type":"string","description":"Delay before job runs as PostgreSQL interval (e.g., 30 seconds, 5 minutes)"},"max_attempts":{"type":"integer","description":"Maximum retry attempts for the job","default":25}},"required":["task_identifier"]}'::jsonb,
+  '{"jobs","triggers","async"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'LimitEnforceAggregate',
+  'limit_enforce_aggregate',
+  'limit_enforce',
+  'Aggregate Limit Counter',
+  'Declaratively attaches aggregate limit-tracking triggers to a table. On INSERT the named limit is incremented per entity; on DELETE it is decremented. Uses org_limit_aggregates_inc/dec for per-entity (org-level) aggregate limits rather than per-user limits. Requires a provisioned limits_module for the target database.',
+  '{"type":"object","properties":{"limit_name":{"type":"string","description":"Name of the aggregate limit to track (must match a default_limits entry, e.g. \"databases\", \"members\")"},"entity_field":{"type":"string","format":"column-ref","description":"Column on the target table that holds the entity id for aggregate limit lookup","default":"entity_id"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","DELETE","UPDATE"]},"description":"Which DML events to attach triggers for","default":["INSERT","DELETE"]}},"required":["limit_name"]}'::jsonb,
+  '{"limits","triggers","aggregates","billing"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'LimitEnforceCounter',
+  'limit_enforce_counter',
+  'limit_enforce',
+  'Enforce Counter',
+  'Declaratively attaches limit-tracking triggers to a table. On INSERT the named limit is incremented; on DELETE it is decremented. Requires a provisioned limits_module for the target scope.',
+  '{"type":"object","properties":{"limit_name":{"type":"string","description":"Name of the limit to track (must match a default_limits entry, e.g. \"projects\", \"members\")"},"scope":{"type":"string","enum":["app","org"],"description":"Limit scope: \"app\" (membership_type=1, user-level) or \"org\" (membership_type=2, entity-level)","default":"app"},"actor_field":{"type":"string","format":"column-ref","description":"Column on the target table that holds the actor or entity id used for limit lookup","default":"owner_id"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","DELETE","UPDATE"]},"description":"Which DML events to attach triggers for","default":["INSERT","DELETE"]}},"required":["limit_name"]}'::jsonb,
+  '{"limits","triggers","enforce"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'LimitEnforceFeature',
+  'limit_enforce_feature',
+  'limit_enforce',
+  'Feature Flag',
+  'Gates a table behind a feature flag backed by the cap tables. Attaches a BEFORE INSERT trigger that checks whether the named feature cap value is > 0. Features are modeled as caps with max=0 (disabled) or max=1 (enabled) in limit_caps / limit_caps_defaults tables. Resolution: COALESCE(per-entity cap, scope default, 0).',
+  '{"type":"object","properties":{"feature_name":{"type":"string","description":"Cap name representing this feature (must match a limit_caps_defaults entry with max=0 or max=1)"},"scope":{"type":"string","enum":["app","org"],"description":"Feature scope: \"app\" (membership_type=1, app-level caps) or \"org\" (membership_type=2, per-entity caps)","default":"app"},"entity_field":{"type":"string","format":"column-ref","description":"Column on the target table that holds the entity id for per-entity cap lookups (only used for org scope)","default":"entity_id"}},"required":["feature_name"]}'::jsonb,
+  '{"limits","triggers","feature-flags","billing","caps"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'ProcessChunks',
+  'data_chunks',
+  'process',
+  'Chunks',
+  'Creates a chunked-embedding child table for any parent table. Provisions the chunks table with content, chunk_index, embedding vector, metadata, HNSW index, inherited RLS, and optional job trigger for automatic text splitting. Composed internally by ProcessFileEmbedding (enabled by default in extract mode) but can also be used standalone.',
+  '{"type":"object","properties":{"content_field_name":{"type":"string","format":"column-ref","description":"Name of the text content column in the chunks table","default":"content"},"chunk_size":{"type":"integer","description":"Maximum number of characters per chunk","default":1000},"chunk_overlap":{"type":"integer","description":"Number of overlapping characters between consecutive chunks","default":200},"chunk_strategy":{"type":"string","enum":["fixed","sentence","paragraph","semantic"],"description":"Strategy for splitting text into chunks","default":"paragraph"},"dimensions":{"type":"integer","description":"Vector dimensions for per-chunk embeddings","default":768},"metric":{"type":"string","enum":["cosine","l2","ip"],"description":"Distance metric for the HNSW index on chunk embeddings","default":"cosine"},"chunks_table_name":{"type":"string","description":"Override the chunks table name. Defaults to {parent_table}_chunks."},"metadata_fields":{"type":"array","items":{"type":"string"},"description":"Field names from the parent table to copy into chunk metadata"},"enqueue_chunking_job":{"type":"boolean","description":"Whether to create a job trigger that auto-enqueues chunking on parent INSERT/UPDATE","default":true}  ,"chunking_task_name":{"type":"string","description":"Task identifier for the chunking job queue","default":"generate_chunks"},"embedding_model":{"type":"string","description":"Embedding model identifier for per-chunk embeddings. When null, the worker falls back to runtime config (llm_module / env vars)."},"embedding_provider":{"type":"string","description":"Embedding provider name (e.g. \"ollama\", \"openai\"). When null, the worker falls back to runtime config."}}}'::jsonb,
+    '{"embedding","chunks","vector","ai","rag"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'ProcessExtraction',
+  'process_extraction',
+  'process',
+  'File Extraction',
+  'Creates extraction output fields and a job trigger for file text extraction. Fires when a file is uploaded (status = ''uploaded'') or on INSERT. The external worker extracts text/metadata from the file (PDF, DOCX, HTML, etc.) and writes the result back to the configured output fields. Typically used upstream of ProcessFileEmbedding or ProcessChunks.',
+  '{"type":"object","properties":{"text_field":{"type":"string","format":"column-ref","description":"Field to store extracted text/markdown","default":"extracted_text"},"metadata_field":{"type":"string","format":"column-ref","description":"JSONB field for extraction metadata (page count, language, etc.)","default":"extracted_metadata"},"mime_patterns":{"type":"array","items":{"type":"string"},"description":"MIME type LIKE patterns to match. Multiple patterns are OR''d together. Examples: [''application/pdf'', ''text/%''], [''application/vnd.openxmlformats%''].","default":["application/pdf","text/%"]},"task_identifier":{"type":"string","description":"Job task identifier for the extraction worker","default":"extract_file_text"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","UPDATE"]},"description":"Trigger events that fire the job","default":["INSERT"]},"payload_custom":{"type":"object","additionalProperties":{"type":"string","format":"column-ref"},"description":"Custom payload key-to-column mapping for the job trigger","default":{"file_id":"id","key":"key","mime_type":"mime_type","bucket_id":"bucket_id"}},"trigger_conditions":{"description":"Additional compound conditions beyond MIME filtering. Merged with the auto-generated MIME conditions via AND. Use this to add status checks (e.g., status = ''uploaded'').","x-codegen-type":"TriggerCondition | TriggerCondition[]","oneOf":[{"$ref":"#/$defs/triggerCondition"},{"type":"array","items":{"$ref":"#/$defs/triggerCondition"}}]},"queue_name":{"type":"string","description":"Job queue name for extraction tasks","default":"extraction"},"max_attempts":{"type":"integer","description":"Maximum number of retry attempts","default":5}  ,"priority":{"type":"integer","description":"Job priority (lower = higher priority)","default":0},"extraction_model":{"type":"string","description":"Extraction model identifier (e.g. a vision model for OCR, an LLM for structured extraction). Included in the job payload so the worker knows which model to use. When null, the worker falls back to runtime config."},"extraction_provider":{"type":"string","description":"Extraction provider name (e.g. \"ollama\", \"openai\"). When null, the worker falls back to runtime config."}}}'::jsonb,
+    '{"extraction","files","processing","jobs","text"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'ProcessFileEmbedding',
+  'data_file_embedding',
+  'process',
+  'File Embedding',
+  'Generic, MIME-scoped embedding node for file tables. Supports two modes: direct (whole-file to single vector, e.g. CLIP for images) when extraction is omitted, or extract (file to text to chunks to per-chunk vectors) when extraction config is provided. Composes SearchVector + JobTrigger + ProcessChunks (enabled by default in extract mode) internally. Multiple instances can coexist on the same table with different MIME scopes, field names, and embedding strategies.',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the vector embedding column","default":"embedding"},"dimensions":{"type":"integer","description":"Vector dimensions (e.g. 512 for CLIP, 768 for nomic, 1536 for ada-002)","default":768},"index_method":{"type":"string","enum":["hnsw","ivfflat"],"description":"Index type for similarity search","default":"hnsw"},"metric":{"type":"string","enum":["cosine","l2","ip"],"description":"Distance metric","default":"cosine"},"index_options":{"type":"object","description":"Index-specific options. HNSW: {m, ef_construction}. IVFFlat: {lists}.","default":{}},"mime_patterns":{"type":"array","items":{"type":"string"},"description":"MIME type LIKE patterns to match. Multiple patterns are OR''d together. Examples: [''image/%''], [''application/pdf'', ''text/%''], [''audio/%''].","default":["image/%"]},"task_identifier":{"type":"string","description":"Job task identifier for the worker. In direct mode this is the embedding worker; in extract mode this is the extraction worker.","default":"process_file_embedding"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","UPDATE"]},"description":"Trigger events that fire the job","default":["INSERT"]},"payload_custom":{"type":"object","additionalProperties":{"type":"string","format":"column-ref"},"description":"Custom payload key-to-column mapping for the job trigger","default":{"file_id":"id","key":"key","mime_type":"mime_type","bucket_id":"bucket_id"}},"trigger_conditions":{"description":"Additional compound conditions beyond MIME filtering. Merged with the auto-generated MIME conditions via AND. Use this to add status checks, field guards, etc.","x-codegen-type":"TriggerCondition | TriggerCondition[]","oneOf":[{"$ref":"#/$defs/triggerCondition"},{"type":"array","items":{"$ref":"#/$defs/triggerCondition"}}]},"extraction":{"type":"object","description":"Text extraction configuration. When present, the generator creates extraction output fields on the table and configures SearchVector with source_fields + stale tracking. When absent, the node operates in direct mode (single vector per file, no text extraction).","properties":{"text_field":{"type":"string","format":"column-ref","description":"Field to store extracted text/markdown","default":"extracted_text"},"metadata_field":{"type":"string","format":"column-ref","description":"JSONB field for extraction metadata (page count, language, etc.)","default":"extracted_metadata"}}},"include_chunks":{"type":"boolean","description":"Whether to create a chunks table via ProcessChunks. Defaults to true when extraction is provided, false in direct mode. Set explicitly to override."},"chunks":{"type":"object","description":"Chunking configuration passed through to ProcessChunks. When include_chunks is true (or defaults to true in extract mode), these params configure the chunks table, embedding dimensions, strategy, etc.","default":{},"properties":{"content_field_name":{"type":"string","format":"column-ref","description":"Name of the text content column in the chunks table","default":"content"},"chunk_size":{"type":"integer","description":"Maximum number of characters per chunk","default":1000},"chunk_overlap":{"type":"integer","description":"Number of overlapping characters between consecutive chunks","default":200},"chunk_strategy":{"type":"string","enum":["fixed","sentence","paragraph","semantic"],"description":"Strategy for splitting text into chunks","default":"paragraph"},"metadata_fields":{"type":"array","items":{"type":"string"},"description":"Field names from parent to copy into chunk metadata"},"enqueue_chunking_job":{"type":"boolean","description":"Whether to auto-enqueue a chunking job on insert/update","default":true}  ,"chunking_task_name":{"type":"string","description":"Task identifier for the chunking job queue","default":"generate_chunks"}}},"embedding_model":{"type":"string","description":"Embedding model identifier (e.g. \"nomic-embed-text\", \"text-embedding-3-small\", \"clip-vit-base-patch32\"). Included in the job payload so the worker knows which model to use. When null, the worker falls back to runtime config (llm_module / env vars)."},"embedding_provider":{"type":"string","description":"Embedding provider name (e.g. \"ollama\", \"openai\"). When null, the worker falls back to runtime config."}}}'::jsonb,
+    '{"embedding","vector","ai","composition","jobs","multimodal","files"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'ProcessImageEmbedding',
+  'data_image_embedding',
+  'process',
+  'Image Embedding',
+  'Image-specific preset of ProcessFileEmbedding. Delegates to ProcessFileEmbedding with image-oriented defaults: dimensions=512 (CLIP), mime_patterns=[''image/%''], task_identifier=''process_image_embedding'', direct mode (no extraction). Accepts all ProcessFileEmbedding parameters — any overrides are forwarded through.',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the vector embedding column","default":"embedding"},"dimensions":{"type":"integer","description":"Vector dimensions (default 512 for CLIP-style image embeddings)","default":512},"index_method":{"type":"string","enum":["hnsw","ivfflat"],"description":"Index type for similarity search","default":"hnsw"},"metric":{"type":"string","enum":["cosine","l2","ip"],"description":"Distance metric","default":"cosine"},"index_options":{"type":"object","description":"Index-specific options. HNSW: {m, ef_construction}. IVFFlat: {lists}.","default":{}},"mime_patterns":{"type":"array","items":{"type":"string"},"description":"MIME type LIKE patterns to match. Multiple patterns are OR''d together.","default":["image/%"]},"task_identifier":{"type":"string","description":"Job task identifier for the image embedding worker","default":"process_image_embedding"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","UPDATE"]},"description":"Trigger events that fire the job","default":["INSERT"]},"payload_custom":{"type":"object","additionalProperties":{"type":"string","format":"column-ref"},"description":"Custom payload key-to-column mapping for the job trigger","default":{"file_id":"id","key":"key","mime_type":"mime_type","bucket_id":"bucket_id"}},"trigger_conditions":{"description":"Additional compound conditions beyond MIME filtering. Merged with the auto-generated MIME conditions via AND.","x-codegen-type":"TriggerCondition | TriggerCondition[]","oneOf":[{"$ref":"#/$defs/triggerCondition"},{"type":"array","items":{"$ref":"#/$defs/triggerCondition"}}]},"extraction":{"type":"object","description":"Text extraction configuration. Forwarded to ProcessFileEmbedding. When present, enables extract mode (e.g., OCR for images).","properties":{"text_field":{"type":"string","format":"column-ref","description":"Field to store extracted text","default":"extracted_text"},"metadata_field":{"type":"string","format":"column-ref","description":"JSONB field for extraction metadata","default":"extracted_metadata"}}},"chunks":{"type":"object","description":"Chunking configuration. Forwarded to ProcessFileEmbedding. Only meaningful when extraction is also provided.","properties":{"content_field_name":{"type":"string","format":"column-ref","default":"content"},"chunk_size":{"type":"integer","default":1000},"chunk_overlap":{"type":"integer","default":200},"chunk_strategy":{"type":"string","enum":["fixed","sentence","paragraph","semantic"],"default":"paragraph"},"metadata_fields":{"type":"object"},"enqueue_chunking_job":{"type":"boolean","default":true}  ,"chunking_task_name":{"type":"string","default":"generate_chunks"}}},"embedding_model":{"type":"string","description":"Embedding model identifier (e.g. \"clip-vit-base-patch32\"). Included in the job payload so the worker knows which model to use. When null, the worker falls back to runtime config (llm_module / env vars)."},"embedding_provider":{"type":"string","description":"Embedding provider name (e.g. \"ollama\", \"openai\"). When null, the worker falls back to runtime config."}}}'::jsonb,
+    '{"embedding","image","vector","ai","composition","jobs"}'::text[]
+) ON CONFLICT (name) DO UPDATE SET
+  slug = EXCLUDED.slug,
+  category = EXCLUDED.category,
+  display_name = EXCLUDED.display_name,
+  description = EXCLUDED.description,
+  parameter_schema = EXCLUDED.parameter_schema,
+  tags = EXCLUDED.tags;
+
+INSERT INTO metaschema_public.node_type_registry (
+  name,
+  slug,
+  category,
+  display_name,
+  description,
+  parameter_schema,
+  tags
+) VALUES (
+  'ProcessImageVersions',
+  'process_image_versions',
+  'process',
+  'Image Versions',
+  'Creates a job trigger for image variant generation. Fires when an image file is uploaded (status = ''uploaded'') or on INSERT. The external worker generates resized, cropped, or reformatted versions (thumbnails, previews, WebP conversions, etc.) and stores them as new file records linked to the source image.',
+  '{"type":"object","required":["versions"],"properties":{"versions":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string","description":"Version identifier (e.g., \"thumb\", \"preview\", \"hero\")"},"width":{"type":"integer","description":"Target width in pixels"},"height":{"type":"integer","description":"Target height in pixels"},"fit":{"type":"string","enum":["cover","contain","fill","inside","outside"],"description":"Resize fitting strategy","default":"cover"},"format":{"type":"string","enum":["jpeg","png","webp","avif"],"description":"Output image format","default":"webp"},"quality":{"type":"integer","description":"Output quality (1-100)","default":80}},"required":["name"]},"description":"Array of version definitions. Each version specifies dimensions, format, and quality for a generated image variant. Required — the blueprint must explicitly define what variants to generate.","minItems":1},"mime_patterns":{"type":"array","items":{"type":"string"},"description":"MIME type LIKE patterns to match. Defaults to all image types.","default":["image/%"]},"task_identifier":{"type":"string","description":"Job task identifier for the image processing worker","default":"process_image_versions"},"events":{"type":"array","items":{"type":"string","enum":["INSERT","UPDATE"]},"description":"Trigger events that fire the job","default":["INSERT"]},"payload_custom":{"type":"object","additionalProperties":{"type":"string","format":"column-ref"},"description":"Custom payload key-to-column mapping for the job trigger","default":{"file_id":"id","key":"key","mime_type":"mime_type","bucket_id":"bucket_id"}},"trigger_conditions":{"description":"Additional compound conditions beyond MIME filtering. Merged with the auto-generated MIME conditions via AND.","x-codegen-type":"TriggerCondition | TriggerCondition[]","oneOf":[{"$ref":"#/$defs/triggerCondition"},{"type":"array","items":{"$ref":"#/$defs/triggerCondition"}}]},"queue_name":{"type":"string","description":"Job queue name for image processing tasks","default":"image_processing"},"max_attempts":{"type":"integer","description":"Maximum number of retry attempts","default":5},"priority":{"type":"integer","description":"Job priority (lower = higher priority)","default":0}}}'::jsonb,
+  '{"images","processing","jobs","resize","thumbnails","files"}'::text[]
 ) ON CONFLICT (name) DO UPDATE SET
   slug = EXCLUDED.slug,
   category = EXCLUDED.category,
@@ -1247,7 +1535,7 @@ INSERT INTO metaschema_public.node_type_registry (
   'search',
   'Unified Search',
   'Composite node type that orchestrates multiple search modalities (full-text search, BM25, embeddings, trigram) on a single table. Configures per-table search score weights, normalization strategy, and recency boost via the @searchConfig smart tag.',
-  '{"type":"object","properties":{"full_text_search":{"type":"object","description":"SearchFullText parameters. Omit to skip FTS setup.","properties":{"field_name":{"type":"string","format":"column-ref","default":"search"},"source_fields":{"type":"array","items":{"type":"object","properties":{"field":{"type":"string","format":"column-ref"},"weight":{"type":"string","enum":["A","B","C","D"]},"lang":{"type":"string"}},"required":["field"]}},"search_score_weight":{"type":"number","default":1}}},"bm25":{"type":"object","description":"SearchBm25 parameters. Omit to skip BM25 setup.","properties":{"field_name":{"type":"string","format":"column-ref"},"text_config":{"type":"string","default":"english"},"k1":{"type":"number"},"b":{"type":"number"},"search_score_weight":{"type":"number","default":1}}},"embedding":{"type":"object","description":"SearchVector parameters. Omit to skip embedding setup.","properties":{"field_name":{"type":"string","format":"column-ref","default":"embedding"},"dimensions":{"type":"integer","default":768},"index_method":{"type":"string","enum":["hnsw","ivfflat"]},"metric":{"type":"string","enum":["cosine","l2","ip"]},"source_fields":{"type":"array","items":{"type":"string","format":"column-ref"}},"search_score_weight":{"type":"number","default":1},"chunks":{"type":"object","description":"Chunking configuration for long-text embedding. Creates an embedding_chunks record that drives automatic text splitting and per-chunk embedding. Omit to skip chunking.","properties":{"content_field_name":{"type":"string","format":"column-ref","description":"Name of the text content column in the chunks table","default":"content"},"chunk_size":{"type":"integer","description":"Maximum number of characters per chunk","default":1000},"chunk_overlap":{"type":"integer","description":"Number of overlapping characters between consecutive chunks","default":200},"chunk_strategy":{"type":"string","enum":["fixed","sentence","paragraph","semantic"],"description":"Strategy for splitting text into chunks","default":"fixed"},"metadata_fields":{"type":"object","description":"Metadata fields from parent to copy into chunks"},"enqueue_chunking_job":{"type":"boolean","description":"Whether to auto-enqueue a chunking job on insert/update","default":true},"chunking_task_name":{"type":"string","description":"Task identifier for the chunking job queue","default":"generate_chunks"}}}}},"trgm_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Field names to tag with @trgmSearch for fuzzy/typo-tolerant matching"},"search_config":{"type":"object","description":"Unified search score configuration written to @searchConfig smart tag","properties":{"weights":{"type":"object","description":"Per-algorithm weights: {tsv: 1.5, bm25: 1.0, pgvector: 0.8, trgm: 0.3}"},"normalization":{"type":"string","enum":["linear","sigmoid"],"description":"Score normalization strategy","default":"linear"},"boost_recent":{"type":"boolean","description":"Enable recency boost for search results","default":false},"boost_recency_field":{"type":"string","format":"column-ref","description":"Timestamp field for recency boost (e.g. created_at, updated_at)"},"boost_recency_decay":{"type":"number","description":"Decay rate for recency boost (0-1, lower = faster decay)","default":0.5}}}}}'::jsonb,
+  '{"type":"object","properties":{"full_text_search":{"type":"object","description":"SearchFullText parameters. Omit to skip FTS setup.","properties":{"field_name":{"type":"string","format":"column-ref","default":"search"},"source_fields":{"type":"array","items":{"type":"object","properties":{"field":{"type":"string","format":"column-ref"},"weight":{"type":"string","enum":["A","B","C","D"]},"lang":{"type":"string"}},"required":["field"]}},"search_score_weight":{"type":"number","default":1}}},"bm25":{"type":"object","description":"SearchBm25 parameters. Omit to skip BM25 setup.","properties":{"field_name":{"type":"string","format":"column-ref"},"text_config":{"type":"string","default":"english"},"k1":{"type":"number"},"b":{"type":"number"},"search_score_weight":{"type":"number","default":1}}},"embedding":{"type":"object","description":"SearchVector parameters. Omit to skip embedding setup.","properties":{"field_name":{"type":"string","format":"column-ref","default":"embedding"},"dimensions":{"type":"integer","default":768},"index_method":{"type":"string","enum":["hnsw","ivfflat"]},"metric":{"type":"string","enum":["cosine","l2","ip"]},"source_fields":{"type":"array","items":{"type":"string","format":"column-ref"}},"search_score_weight":{"type":"number","default":1},"chunks":{"type":"object","description":"Chunking configuration for long-text embedding. Creates an embedding_chunks record that drives automatic text splitting and per-chunk embedding. Omit to skip chunking.","properties":{"content_field_name":{"type":"string","format":"column-ref","description":"Name of the text content column in the chunks table","default":"content"},"chunk_size":{"type":"integer","description":"Maximum number of characters per chunk","default":1000},"chunk_overlap":{"type":"integer","description":"Number of overlapping characters between consecutive chunks","default":200},"chunk_strategy":{"type":"string","enum":["fixed","sentence","paragraph","semantic"],"description":"Strategy for splitting text into chunks","default":"fixed"},"metadata_fields":{"type":"object","description":"Metadata fields from parent to copy into chunks"},"enqueue_chunking_job":{"type":"boolean","description":"Whether to auto-enqueue a chunking job on insert/update","default":true},"chunking_task_name":{"type":"string","description":"Task identifier for the chunking job queue","default":"generate_chunks"}}},"embedding_model":{"type":"string","description":"Embedding model identifier. When null, the worker falls back to runtime config."},"embedding_provider":{"type":"string","description":"Embedding provider name. When null, the worker falls back to runtime config."}}},"embedding_text_field":{"type":"string","format":"column-ref","description":"Name of the composite text field created for embedding input","default":"embedding_text"},"composite_format":{"type":"string","enum":["labeled","plain"],"description":"Output format for the composite text field","default":"labeled"},"trgm_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Field names to tag with @trgmSearch for fuzzy/typo-tolerant matching"},"search_config":{"type":"object","description":"Unified search score configuration written to @searchConfig smart tag","properties":{"weights":{"type":"object","description":"Per-algorithm weights: {tsv: 1.5, bm25: 1.0, pgvector: 0.8, trgm: 0.3}"},"normalization":{"type":"string","enum":["linear","sigmoid"],"description":"Score normalization strategy","default":"linear"},"boost_recent":{"type":"boolean","description":"Enable recency boost for search results","default":false},"boost_recency_field":{"type":"string","format":"column-ref","description":"Timestamp field for recency boost (e.g. created_at, updated_at)"},"boost_recency_decay":{"type":"number","description":"Decay rate for recency boost (0-1, lower = faster decay)","default":0.5}}}}}'::jsonb,
   '{"search","composite","schema"}'::text[]
 ) ON CONFLICT (name) DO UPDATE SET
   slug = EXCLUDED.slug,
@@ -1270,8 +1558,8 @@ INSERT INTO metaschema_public.node_type_registry (
   'search_vector',
   'search',
   'Vector Search',
-  'Adds a vector embedding column with HNSW or IVFFlat index for similarity search. Supports configurable dimensions, distance metrics (cosine, l2, ip), stale tracking strategies (column, null, hash), and automatic job enqueue triggers for embedding generation.',
-  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the vector column","default":"embedding"},"dimensions":{"type":"integer","description":"Vector dimensions (e.g. 384, 768, 1536, 3072)","default":768},"index_method":{"type":"string","enum":["hnsw","ivfflat"],"description":"Index type for similarity search","default":"hnsw"},"metric":{"type":"string","enum":["cosine","l2","ip"],"description":"Distance metric (cosine, l2, ip)","default":"cosine"},"index_options":{"type":"object","description":"Index-specific options. HNSW: {m, ef_construction}. IVFFlat: {lists}.","default":{}},"include_stale_field":{"type":"boolean","description":"When stale_strategy is column, adds an embedding_stale boolean field","default":true},"source_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Column names that feed the embedding. Used by stale trigger to detect content changes."},"enqueue_job":{"type":"boolean","description":"Auto-create trigger that enqueues embedding generation jobs","default":true},"job_task_name":{"type":"string","description":"Task identifier for the job queue","default":"generate_embedding"},"stale_strategy":{"type":"string","enum":["column","null","hash"],"description":"Strategy for tracking embedding staleness. column: embedding_stale boolean. null: set embedding to NULL. hash: md5 hash of source fields.","default":"column"},"chunks":{"type":"object","description":"Chunking configuration for long-text embedding. Creates an embedding_chunks record that drives automatic text splitting and per-chunk embedding. Omit to skip chunking.","properties":{"content_field_name":{"type":"string","format":"column-ref","description":"Name of the text content column in the chunks table","default":"content"},"chunk_size":{"type":"integer","description":"Maximum number of characters per chunk","default":1000},"chunk_overlap":{"type":"integer","description":"Number of overlapping characters between consecutive chunks","default":200},"chunk_strategy":{"type":"string","enum":["fixed","sentence","paragraph","semantic"],"description":"Strategy for splitting text into chunks","default":"fixed"},"metadata_fields":{"type":"object","description":"Metadata fields from parent to copy into chunks"},"enqueue_chunking_job":{"type":"boolean","description":"Whether to auto-enqueue a chunking job on insert/update","default":true},"chunking_task_name":{"type":"string","description":"Task identifier for the chunking job queue","default":"generate_chunks"}}}}}'::jsonb,
+  'Adds a vector embedding column with HNSW or IVFFlat index for similarity search. Supports configurable dimensions, distance metrics (cosine, l2, ip), per-field {field_name}_updated_at timestamp tracking (read-only in GraphQL), and automatic job enqueue triggers for embedding generation.',
+  '{"type":"object","properties":{"field_name":{"type":"string","format":"column-ref","description":"Name of the vector column","default":"embedding"},"dimensions":{"type":"integer","description":"Vector dimensions (e.g. 384, 768, 1536, 3072)","default":768},"index_method":{"type":"string","enum":["hnsw","ivfflat"],"description":"Index type for similarity search","default":"hnsw"},"metric":{"type":"string","enum":["cosine","l2","ip"],"description":"Distance metric (cosine, l2, ip)","default":"cosine"},"index_options":{"type":"object","description":"Index-specific options. HNSW: {m, ef_construction}. IVFFlat: {lists}.","default":{}},"source_fields":{"type":"array","items":{"type":"string","format":"column-ref"},"description":"Column names that feed the embedding. Used by stale trigger to detect content changes."},"enqueue_job":{"type":"boolean","description":"Auto-create trigger that enqueues embedding generation jobs","default":true},"job_task_name":{"type":"string","description":"Task identifier for the job queue","default":"generate_embedding"},"chunks":{"type":"object","description":"Chunking configuration for long-text embedding. Creates an embedding_chunks record that drives automatic text splitting and per-chunk embedding. Omit to skip chunking.","properties":{"content_field_name":{"type":"string","format":"column-ref","description":"Name of the text content column in the chunks table","default":"content"},"chunk_size":{"type":"integer","description":"Maximum number of characters per chunk","default":1000},"chunk_overlap":{"type":"integer","description":"Number of overlapping characters between consecutive chunks","default":200},"chunk_strategy":{"type":"string","enum":["fixed","sentence","paragraph","semantic"],"description":"Strategy for splitting text into chunks","default":"fixed"},"metadata_fields":{"type":"object","description":"Metadata fields from parent to copy into chunks"},"enqueue_chunking_job":{"type":"boolean","description":"Whether to auto-enqueue a chunking job on insert/update","default":true},"chunking_task_name":{"type":"string","description":"Task identifier for the chunking job queue","default":"generate_chunks"}}},"embedding_model":{"type":"string","description":"Embedding model identifier (e.g. \"nomic-embed-text\", \"text-embedding-3-small\"). Included in the job payload so the worker knows which model to use. When null, the worker falls back to runtime config (llm_module / env vars)."},"embedding_provider":{"type":"string","description":"Embedding provider name (e.g. \"ollama\", \"openai\"). When null, the worker falls back to runtime config."}}}'::jsonb,
   '{"embedding","vector","ai","schema"}'::text[]
 ) ON CONFLICT (name) DO UPDATE SET
   slug = EXCLUDED.slug,

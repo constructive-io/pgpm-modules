@@ -16,6 +16,7 @@ SELECT
     enable_ltree,
     enable_llm,
     enable_realtime,
+    enable_bulk,
     options
 FROM services_public.api_settings
 WHERE false;
