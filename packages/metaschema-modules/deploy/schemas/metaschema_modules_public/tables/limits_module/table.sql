@@ -53,6 +53,14 @@ CREATE TABLE metaschema_modules_public.limits_module (
     -- Resolve cap function (COALESCE lookup: per-entity → default → 0)
     resolve_cap_function text NOT NULL DEFAULT '',
 
+    -- Warning tables for soft-limit notifications
+    limit_warnings_table_id uuid NULL,
+    limit_warning_state_table_id uuid NULL,
+
+    -- Soft limit check functions
+    limit_check_soft_function text NOT NULL DEFAULT '',
+    limit_aggregate_check_soft_function text NOT NULL DEFAULT '',
+
     prefix text NULL,
 
     membership_type int NOT NULL,
@@ -77,7 +85,9 @@ CREATE TABLE metaschema_modules_public.limits_module (
     CONSTRAINT credit_code_items_table_fkey FOREIGN KEY (credit_code_items_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT credit_redemptions_table_fkey FOREIGN KEY (credit_redemptions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT limit_caps_table_fkey FOREIGN KEY (limit_caps_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT limit_caps_defaults_table_fkey FOREIGN KEY (limit_caps_defaults_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
+    CONSTRAINT limit_caps_defaults_table_fkey FOREIGN KEY (limit_caps_defaults_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT limit_warnings_table_fkey FOREIGN KEY (limit_warnings_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT limit_warning_state_table_fkey FOREIGN KEY (limit_warning_state_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 
 );
 

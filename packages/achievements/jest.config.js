@@ -1,5 +1,6 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
+  forceExit: true,
   preset: 'ts-jest',
   testEnvironment: 'node',
   maxWorkers: 1,

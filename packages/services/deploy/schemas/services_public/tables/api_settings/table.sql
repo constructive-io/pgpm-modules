@@ -23,6 +23,7 @@ CREATE TABLE services_public.api_settings (
     enable_ltree boolean,
     enable_llm boolean,
     enable_realtime boolean,
+    enable_bulk boolean,
 
     -- Extensible JSON for future settings that don't warrant their own column
     options jsonb NOT NULL DEFAULT '{}'::jsonb,
@@ -47,6 +48,7 @@ COMMENT ON COLUMN services_public.api_settings.enable_connection_filter IS 'Over
 COMMENT ON COLUMN services_public.api_settings.enable_ltree IS 'Override: enable ltree hierarchical data type (NULL = inherit from database_settings)';
 COMMENT ON COLUMN services_public.api_settings.enable_llm IS 'Override: enable LLM/AI integration features (NULL = inherit from database_settings)';
 COMMENT ON COLUMN services_public.api_settings.enable_realtime IS 'Override: enable realtime subscriptions (NULL = inherit from database_settings)';
+COMMENT ON COLUMN services_public.api_settings.enable_bulk IS 'Override: enable bulk mutations (NULL = inherit from database_settings)';
 COMMENT ON COLUMN services_public.api_settings.options IS 'Extensible JSON for additional per-API settings that do not have dedicated columns';
 
 CREATE INDEX api_settings_database_id_idx ON services_public.api_settings (database_id);

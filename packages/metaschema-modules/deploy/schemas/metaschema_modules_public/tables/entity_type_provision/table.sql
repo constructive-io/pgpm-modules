@@ -51,9 +51,13 @@ CREATE TABLE metaschema_modules_public.entity_type_provision (
 
     has_invites boolean NOT NULL DEFAULT false,
 
+    has_invite_achievements boolean NOT NULL DEFAULT false,
+
     -- =========================================================================
-    -- Storage configuration: module-level overrides + initial bucket defs.
-    -- Only used when has_storage = true. NULL = use defaults.
+    -- Storage configuration: JSON array of storage module definitions.
+    -- Each element provisions a separate storage module with its own tables,
+    -- RLS policies, and feature flags. Only used when has_storage = true.
+    -- NULL = provision a single default storage module with default settings.
     -- =========================================================================
 
     storage_config jsonb DEFAULT NULL,
@@ -197,7 +201,7 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.has_profiles I
      When true, creates profile tables and applies profiles security.';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.has_levels IS
-    'Whether to provision levels_module for this type. Defaults to false.
+    'Whether to provision events_module for this type. Defaults to false.
      Levels provide gamification/achievement tracking for members.
      When true, creates level steps, achievements, and level tables with security.';
 
@@ -215,6 +219,15 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.has_invites IS
      Symmetric counterpart of has_storage. Re-provisioning is idempotent: the
      UNIQUE (database_id, membership_type) constraint on invites_module combined with
      ON CONFLICT DO NOTHING in the fan-out makes repeated INSERTs safe.';
+
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.has_invite_achievements IS
+    'Whether to auto-attach an EventTracker to the claimed_invites table for invite-based
+     achievements. Defaults to false. Requires has_invites=true AND has_levels=true.
+     When true, the trigger calls event_tracker() on the claimed_invites table with
+     event_name=''invite_claimed'', actor_field=''sender_id'', events=[''INSERT''],
+     crediting the SENDER (inviter) when someone claims their invite code.
+     Developers can then define achievements in the blueprint achievements[] section
+     that reference the ''invite_claimed'' event (e.g., "Invite 5 friends" = count: 5).';
 
 -- =============================================================================
 -- Escape hatch
@@ -284,36 +297,34 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_installed_
      Populated by the trigger. Useful for verifying which modules were provisioned.';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage_config IS
-    'Optional jsonb object for storage module configuration and initial bucket seeding.
-     Only used when has_storage = true; ignored otherwise. NULL = use defaults.
-     Recognized keys (all optional):
-       - upload_url_expiry_seconds    (integer) presigned PUT URL expiry override
-       - download_url_expiry_seconds  (integer) presigned GET URL expiry override
-       - default_max_file_size        (bigint)  global max file size in bytes for this scope
-       - allowed_origins              (text[])  default CORS origins for all buckets in this scope
-       - buckets                      (jsonb[]) array of initial bucket definitions to seed
-     Each bucket in the buckets array recognizes:
-       - name               (text, required) bucket name e.g. ''documents''
-       - description         (text)           human-readable description
-       - is_public           (boolean)        whether files are publicly readable (default false)
-       - allowed_mime_types  (text[])         whitelist of MIME types (null = any)
-       - max_file_size       (bigint)         max file size in bytes (null = use scope default)
-       - allowed_origins     (text[])         per-bucket CORS override
-       - provisions (jsonb object) optional: customize storage tables
-                                  with additional nodes, fields, grants, and policies.
-                                  Keyed by table role: "files", "buckets".
-                                  Each value uses the same shape as table_provision:
-                                  { nodes, fields, grants, use_rls, policies }. Fanned out
-                                  to secure_table_provision targeting the corresponding table.
-                                  When a key includes policies[], those REPLACE the default
-                                  storage policies for that table; tables without a key still
-                                  get defaults. Missing "data" on policy entries is auto-populated
-                                  with storage-specific defaults (same as table_provision).
-                                  Example: add SearchBm25 for full-text search on files:
-                                  {"provisions": {"files": {"nodes": [{"$type":
-                                  "SearchBm25", "data": {"source_fields": ["description"]}}]}}}
-     Example:
-       storage_config := ''{"buckets": [{"name": "documents", "is_public": false, "allowed_mime_types": ["application/pdf"]}], "provisions": {"files": {"nodes": [{"$type": "SearchBm25", "data": {"source_fields": ["description"]}}]}}}''::jsonb';
+    'Optional JSON array of storage module definitions. Each element provisions a separate
+     storage module with its own tables ({prefix}_{storage_key}_buckets/files), RLS policies,
+     and feature flags. Only used when has_storage = true; ignored otherwise.
+     NULL = provision a single default storage module with all defaults.
+     Each array element recognizes (all optional):
+       - storage_key                   (text) module discriminator, max 16 chars, lowercase snake_case.
+                                              Defaults to ''default'' (omitted from table names).
+                                              Non-default keys become infixes: {prefix}_{key}_buckets.
+       - upload_url_expiry_seconds     (integer) presigned PUT URL expiry override
+       - download_url_expiry_seconds   (integer) presigned GET URL expiry override
+       - default_max_file_size         (bigint)  global max file size in bytes for this module
+       - allowed_origins               (text[])  default CORS origins for all buckets in this module
+       - restrict_reads                (boolean) require read_files permission for SELECT on files
+       - has_path_shares               (boolean) enable virtual filesystem + path share policies
+       - has_versioning                (boolean) enable file version chains
+       - has_content_hash              (boolean) enable content hash for dedup
+       - has_custom_keys               (boolean) allow client-provided S3 keys
+       - has_audit_log                 (boolean) enable file events audit table
+       - has_confirm_upload            (boolean) enable HeadObject confirmation flow
+       - confirm_upload_delay          (interval) delay before first confirmation attempt
+       - buckets                       (jsonb[]) array of initial bucket definitions to seed.
+         Each bucket: { name (required), description, is_public, allowed_mime_types, max_file_size, allowed_origins }
+       - provisions                    (jsonb object) per-table customization keyed by "files" or "buckets".
+                                              Each value: { nodes, fields, grants, use_rls, policies }.
+     Example (single module, backward compat):
+       storage_config := ''[{"buckets": [{"name": "documents"}]}]''::jsonb
+     Example (multi-module):
+       storage_config := ''[{"has_path_shares": true, "buckets": [{"name": "documents"}]}, {"storage_key": "fn", "has_custom_keys": true, "buckets": [{"name": "functions"}]}]''::jsonb';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_storage_module_id IS
     'Output: the UUID of the storage_module row created for this entity type. Populated by the trigger when has_storage=true.';
