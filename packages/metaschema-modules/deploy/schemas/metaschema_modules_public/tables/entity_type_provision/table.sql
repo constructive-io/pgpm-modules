@@ -60,7 +60,22 @@ CREATE TABLE metaschema_modules_public.entity_type_provision (
     -- NULL = provision a single default storage module with default settings.
     -- =========================================================================
 
-    storage_config jsonb DEFAULT NULL,
+    storage jsonb DEFAULT NULL,
+
+    -- =========================================================================
+    -- Module configuration arrays: presence triggers provisioning.
+    -- Each is a JSON array of module definitions (like storage).
+    -- NULL = do not provision. '[{}]' = provision one default instance.
+    -- Each element may include "key" (discriminator) and "policies" (override).
+    -- =========================================================================
+
+    namespaces jsonb DEFAULT NULL,
+
+    functions jsonb DEFAULT NULL,
+
+    graphs jsonb DEFAULT NULL,
+
+    agents jsonb DEFAULT NULL,
 
     -- =========================================================================
     -- Escape hatch: skip default entity table RLS policies
@@ -106,6 +121,24 @@ CREATE TABLE metaschema_modules_public.entity_type_provision (
     out_path_shares_table_id uuid DEFAULT NULL,
 
     out_invites_module_id uuid DEFAULT NULL,
+
+    out_namespace_module_id uuid DEFAULT NULL,
+
+    out_namespaces_table_id uuid DEFAULT NULL,
+
+    out_function_module_id uuid DEFAULT NULL,
+
+    out_definitions_table_id uuid DEFAULT NULL,
+
+    out_invocations_table_id uuid DEFAULT NULL,
+
+    out_execution_logs_table_id uuid DEFAULT NULL,
+
+    out_graph_module_id uuid DEFAULT NULL,
+
+    out_graphs_table_id uuid DEFAULT NULL,
+
+    out_agent_module_id uuid DEFAULT NULL,
 
     -- =========================================================================
     -- Constraints
@@ -296,7 +329,7 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_installed_
     'Output: array of installed module labels (e.g. ARRAY[''permissions_module:data_room'', ''memberships_module:data_room'', ''invites_module:data_room'']).
      Populated by the trigger. Useful for verifying which modules were provisioned.';
 
-COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage_config IS
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage IS
     'Optional JSON array of storage module definitions. Each element provisions a separate
      storage module with its own tables ({prefix}_{storage_key}_buckets/files), RLS policies,
      and feature flags. Only used when has_storage = true; ignored otherwise.
@@ -322,9 +355,9 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage_config
        - provisions                    (jsonb object) per-table customization keyed by "files" or "buckets".
                                               Each value: { nodes, fields, grants, use_rls, policies }.
      Example (single module, backward compat):
-       storage_config := ''[{"buckets": [{"name": "documents"}]}]''::jsonb
+       storage := ''[{"buckets": [{"name": "documents"}]}]''::jsonb
      Example (multi-module):
-       storage_config := ''[{"has_path_shares": true, "buckets": [{"name": "documents"}]}, {"storage_key": "fn", "has_custom_keys": true, "buckets": [{"name": "functions"}]}]''::jsonb';
+       storage := ''[{"has_path_shares": true, "buckets": [{"name": "documents"}]}, {"storage_key": "fn", "has_custom_keys": true, "buckets": [{"name": "functions"}]}]''::jsonb';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_storage_module_id IS
     'Output: the UUID of the storage_module row created for this entity type. Populated by the trigger when has_storage=true.';
@@ -339,5 +372,47 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_invites_mo
     'Output: the UUID of the invites_module row created for this entity type. Populated by the trigger when has_invites=true.
      NULL when has_invites=false, or when re-provisioning hits ON CONFLICT DO NOTHING
      (i.e. the invites_module row was created in a previous run).';
+
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.namespaces IS
+    'Optional JSON array of namespace module definitions. Presence triggers provisioning.
+     NULL = do not provision namespaces. ''[{}]'' = provision one default namespace module.
+     Each element recognizes (all optional):
+       - key       (text) module discriminator. Defaults to ''default''.
+       - policies  (jsonb array) RLS policy overrides. NULL = apply defaults from apply_namespace_security().
+     Creates {prefix}_namespaces (or {prefix}_{key}_namespaces for non-default keys)
+     with entity-scoped RLS (AuthzEntityMembership) and a rename proxy trigger.
+     Registers manage_namespaces permission bit on first provision.
+     Example: namespaces := ''[{}]''::jsonb';
+
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.functions IS
+    'Optional JSON array of function module definitions. Presence triggers provisioning.
+     NULL = do not provision functions. ''[{}]'' = provision one default function module.
+     Each element recognizes (all optional):
+       - key       (text) module discriminator. Defaults to ''default''.
+       - policies  (jsonb array) RLS policy overrides. NULL = apply defaults from apply_function_security().
+     Creates {prefix}_function_definitions (or {prefix}_{key}_function_definitions for non-default keys)
+     with entity-scoped RLS and a job trigger dispatching function:provision tasks.
+     Registers manage_functions + invoke_functions permission bits on first provision.
+     Example: functions := ''[{}]''::jsonb';
+
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.graphs IS
+    'Optional JSON array of graph module definitions. Presence triggers provisioning.
+     NULL = do not provision graphs. ''[{}]'' = provision one default graph module.
+     Each element recognizes (all optional):
+       - key       (text) module discriminator. Defaults to ''default''.
+       - policies  (jsonb array) RLS policy overrides. NULL = apply defaults from apply_graph_security().
+     Registers manage_graphs + execute_graphs permission bits on first provision.
+     Graph module requires a merkle_store_module_id dependency, so entity_type_provision
+     only registers permissions here. The graph module itself must be provisioned
+     separately with the merkle store dependency resolved.
+     Example: graphs := ''[{}]''::jsonb';
+
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_namespace_module_id IS
+    'Output: the UUID of the namespace_module row created (or found) for this entity type.
+     Populated by the trigger when namespaces is non-NULL. NULL otherwise.';
+
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_namespaces_table_id IS
+    'Output: the UUID of the generated namespaces table (e.g. data_room_namespaces).
+     Populated by the trigger when namespaces is non-NULL. NULL otherwise.';
 
 COMMIT;
