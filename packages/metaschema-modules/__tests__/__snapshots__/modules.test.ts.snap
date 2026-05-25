@@ -3,17 +3,22 @@
 exports[`db_meta_modules should have all expected module tables 1`] = `
 {
   "moduleNames": [
+    "agent_module",
     "billing_module",
     "billing_provider_module",
+    "compute_log_module",
     "config_secrets_org_module",
     "config_secrets_user_module",
     "connected_accounts_module",
     "crypto_addresses_module",
     "crypto_auth_module",
+    "db_usage_module",
     "default_ids_module",
     "devices_module",
     "emails_module",
     "events_module",
+    "function_module",
+    "graph_module",
     "hierarchy_module",
     "identity_providers_module",
     "inference_log_module",
@@ -21,6 +26,8 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "limits_module",
     "membership_types_module",
     "memberships_module",
+    "merkle_store_module",
+    "namespace_module",
     "notifications_module",
     "permissions_module",
     "phone_numbers_module",
@@ -32,7 +39,9 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "rls_module",
     "session_secrets_module",
     "sessions_module",
+    "storage_log_module",
     "storage_module",
+    "transfer_log_module",
     "user_auth_module",
     "user_state_module",
     "users_module",
@@ -44,8 +53,8 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
-  "moduleTablesCount": 35,
-  "totalTables": 42,
+  "moduleTablesCount": 44,
+  "totalTables": 51,
 }
 `;
 
@@ -100,16 +109,17 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 196875,
+  "constraintCount": 269004,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 286927,
+  "constraintCount": 394602,
   "foreignTables": [
     "database",
     "field",
+    "merkle_store_module",
     "schema",
     "table",
   ],
