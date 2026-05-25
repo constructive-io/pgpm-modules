@@ -3,7 +3,7 @@
 SELECT id, database_id, schema_id, private_schema_id,
        transfer_log_table_id, transfer_log_table_name,
        usage_daily_table_id, usage_daily_table_name,
-       "interval", retention, premake,
+       "interval", retention, premake, scope,
        actor_fk_table_id, entity_fk_table_id,
        prefix
 FROM metaschema_modules_public.transfer_log_module

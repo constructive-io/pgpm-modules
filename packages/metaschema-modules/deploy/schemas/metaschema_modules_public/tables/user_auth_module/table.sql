@@ -19,7 +19,7 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
     session_credentials_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     audits_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    audits_table_name text NOT NULL DEFAULT 'audit_log_auth',
+    audits_table_name text NOT NULL DEFAULT 'audit_logs',
 
     -- api_id uuid NOT NULL REFERENCES services_public.apis (id),
 
