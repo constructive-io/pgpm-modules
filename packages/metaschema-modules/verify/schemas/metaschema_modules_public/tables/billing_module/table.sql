@@ -15,6 +15,8 @@ SELECT
   ledger_table_name,
   balances_table_id,
   balances_table_name,
+  meter_sources_table_id,
+  meter_sources_table_name,
   record_usage_function,
   prefix
 FROM metaschema_modules_public.billing_module
