@@ -31,6 +31,10 @@ CREATE TABLE metaschema_modules_public.billing_module (
   meter_credits_table_id uuid NOT NULL DEFAULT uuid_nil(),
   meter_credits_table_name text NOT NULL DEFAULT '',
 
+  -- Meter sources table: maps billing meters to typed daily summary table columns
+  meter_sources_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  meter_sources_table_name text NOT NULL DEFAULT '',
+
   -- Generated functions
   record_usage_function text NOT NULL DEFAULT '',
 
@@ -44,6 +48,7 @@ CREATE TABLE metaschema_modules_public.billing_module (
   CONSTRAINT ledger_table_fkey FOREIGN KEY (ledger_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT balances_table_fkey FOREIGN KEY (balances_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT meter_credits_table_fkey FOREIGN KEY (meter_credits_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+  CONSTRAINT meter_sources_table_fkey FOREIGN KEY (meter_sources_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT billing_module_database_id_unique UNIQUE (database_id)
 );
 

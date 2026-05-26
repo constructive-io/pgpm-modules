@@ -21,8 +21,13 @@ CREATE TABLE metaschema_modules_public.inference_log_module (
 
   -- Partition lifecycle configuration
   "interval" text NOT NULL DEFAULT '1 month',
-  retention text NULL,
+  retention text NOT NULL DEFAULT '12 months',
   premake int NOT NULL DEFAULT 2,
+
+  -- Scope configuration: 'app' = per-app usage (actor_id RLS), 'platform' = tenant metering (database_id RLS)
+  scope text NOT NULL DEFAULT 'app',
+  actor_fk_table_id uuid NULL,
+  entity_fk_table_id uuid NULL,
 
   prefix text NULL,
 
@@ -31,7 +36,7 @@ CREATE TABLE metaschema_modules_public.inference_log_module (
   CONSTRAINT private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
   CONSTRAINT inference_log_table_fkey FOREIGN KEY (inference_log_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT usage_daily_table_fkey FOREIGN KEY (usage_daily_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-  CONSTRAINT inference_log_module_database_id_unique UNIQUE (database_id)
+  CONSTRAINT inference_log_module_database_id_prefix_unique UNIQUE NULLS NOT DISTINCT (database_id, prefix)
 );
 
 CREATE INDEX inference_log_module_database_id_idx ON metaschema_modules_public.inference_log_module ( database_id );

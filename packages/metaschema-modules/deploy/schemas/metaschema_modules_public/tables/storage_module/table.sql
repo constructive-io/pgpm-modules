@@ -35,12 +35,11 @@ CREATE TABLE metaschema_modules_public.storage_module (
     --   {"$type": "AuthzEntityMembership", "privileges": ["select", "update"], "data": {...}}
     policies jsonb NULL,
 
-    -- Per-table skip list for apply_storage_security default policies.
-    -- When a table role name ("files", "buckets") is listed here,
-    -- apply_storage_security skips its default policies for that table.
-    -- Used by entity_type_provision to mark tables whose policies are
-    -- supplied via provisions (secure_table_provision).
-    skip_default_policy_tables text[] NOT NULL DEFAULT '{}',
+    -- Per-table provisions overrides from blueprint config.
+    -- Keys are table keys (files, buckets).
+    -- When a key is present, the module trigger skips default security for that table;
+    -- secure_table_provision applies the custom grants/policies instead.
+    provisions jsonb NULL,
 
     -- Entity table for RLS (NULL for app-level storage, entity table for entity-scoped storage)
     entity_table_id uuid NULL,

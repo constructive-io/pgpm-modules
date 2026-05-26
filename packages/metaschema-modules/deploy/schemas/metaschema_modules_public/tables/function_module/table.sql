@@ -42,6 +42,12 @@ CREATE TABLE metaschema_modules_public.function_module (
     --   {"$type": "AuthzEntityMembership", "privileges": ["select", "update"], "data": {...}}
     policies jsonb NULL,
 
+    -- Per-table provisions overrides from blueprint config.
+    -- Keys are table keys (definitions, invocations, execution_logs).
+    -- When a key is present, the module trigger skips default security for that table;
+    -- secure_table_provision applies the custom grants/policies instead.
+    provisions jsonb NULL,
+
     -- Constraints
     CONSTRAINT function_module_db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
     CONSTRAINT function_module_schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,

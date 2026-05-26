@@ -16,11 +16,13 @@ CREATE TABLE metaschema_modules_public.namespace_module (
     public_schema_name text,
     private_schema_name text,
 
-    -- Generated table ID (populated by the generator)
+    -- Generated table IDs (populated by the generator)
     namespaces_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    namespace_events_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
-    -- Table name (input to the generator)
+    -- Table names (input to the generator)
     namespaces_table_name text NOT NULL DEFAULT 'namespaces',
+    namespace_events_table_name text NOT NULL DEFAULT 'namespace_events',
 
     -- API routing (get-or-create: if set, schema is added to this API; if NULL, no API is added)
     api_name text,
@@ -38,11 +40,18 @@ CREATE TABLE metaschema_modules_public.namespace_module (
     --   {"$type": "AuthzEntityMembership", "privileges": ["select", "update"], "data": {...}}
     policies jsonb NULL,
 
+    -- Per-table provisions overrides from blueprint config.
+    -- Keys are table keys (namespaces, namespace_events).
+    -- When a key is present, the module trigger skips default security for that table;
+    -- secure_table_provision applies the custom grants/policies instead.
+    provisions jsonb NULL,
+
     -- Constraints
     CONSTRAINT namespace_module_db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
     CONSTRAINT namespace_module_schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT namespace_module_private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT namespace_module_namespaces_table_fkey FOREIGN KEY (namespaces_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT namespace_module_events_table_fkey FOREIGN KEY (namespace_events_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT namespace_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 

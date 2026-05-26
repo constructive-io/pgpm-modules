@@ -41,6 +41,20 @@ CREATE TABLE metaschema_modules_public.agent_module (
   -- Configurable security policies (NULL = use defaults based on membership_type)
   policies jsonb NULL,
 
+  -- Knowledge RAG config (dimensions, chunk_size, chunk_strategy, search_indexes, etc.)
+  -- NULL = use sensible defaults (768d, 1000 chars, paragraph, bm25)
+  knowledge_config jsonb NULL,
+
+  -- Custom RLS policies for knowledge table (provisions.knowledge.policies)
+  -- NULL = use defaults (AuthzEntityMembership or AuthzAppMembership)
+  knowledge_policies jsonb NULL,
+
+  -- Per-table provisions overrides from blueprint config.
+  -- Keys are table keys (thread, message, task, prompt, knowledge).
+  -- When a key is present, the module trigger skips default security for that table;
+  -- secure_table_provision applies the custom grants/policies instead.
+  provisions jsonb NULL,
+
   -- Constraints
   CONSTRAINT agent_module_db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
   CONSTRAINT agent_module_schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
