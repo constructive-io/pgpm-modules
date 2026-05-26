@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/object-store",
-  "version": "0.26.0",
+  "version": "0.26.1",
   "description": "Immutable versioned object storage with content-addressable IDs",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
