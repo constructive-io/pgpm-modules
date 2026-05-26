@@ -894,7 +894,7 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
   sessions_table_id uuid NOT NULL DEFAULT uuid_nil(),
   session_credentials_table_id uuid NOT NULL DEFAULT uuid_nil(),
   audits_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  audits_table_name text NOT NULL DEFAULT 'audit_logs',
+  audits_table_name text NOT NULL DEFAULT 'audit_log_auth',
   sign_in_function text NOT NULL DEFAULT 'sign_in',
   sign_up_function text NOT NULL DEFAULT 'sign_up',
   sign_out_function text NOT NULL DEFAULT 'sign_out',
@@ -1459,7 +1459,7 @@ CREATE TABLE metaschema_modules_public.storage_module (
   membership_type int DEFAULT NULL,
   storage_key text NOT NULL DEFAULT 'default',
   policies jsonb NULL,
-  skip_default_policy_tables text[] NOT NULL DEFAULT '{}',
+  provisions jsonb NULL,
   entity_table_id uuid NULL,
   endpoint text NULL,
   public_url_prefix text NULL,
@@ -1532,10 +1532,13 @@ CREATE TABLE metaschema_modules_public.entity_type_provision (
   has_limits boolean NOT NULL DEFAULT false,
   has_profiles boolean NOT NULL DEFAULT false,
   has_levels boolean NOT NULL DEFAULT false,
-  has_storage boolean NOT NULL DEFAULT false,
   has_invites boolean NOT NULL DEFAULT false,
   has_invite_achievements boolean NOT NULL DEFAULT false,
-  storage_config jsonb DEFAULT NULL,
+  storage jsonb DEFAULT NULL,
+  namespaces jsonb DEFAULT NULL,
+  functions jsonb DEFAULT NULL,
+  graphs jsonb DEFAULT NULL,
+  agents jsonb DEFAULT NULL,
   skip_entity_policies boolean NOT NULL DEFAULT false,
   table_provision jsonb DEFAULT NULL,
   out_membership_type int DEFAULT NULL,
@@ -1547,6 +1550,16 @@ CREATE TABLE metaschema_modules_public.entity_type_provision (
   out_files_table_id uuid DEFAULT NULL,
   out_path_shares_table_id uuid DEFAULT NULL,
   out_invites_module_id uuid DEFAULT NULL,
+  out_namespace_module_id uuid DEFAULT NULL,
+  out_namespaces_table_id uuid DEFAULT NULL,
+  out_namespace_events_table_id uuid DEFAULT NULL,
+  out_function_module_id uuid DEFAULT NULL,
+  out_definitions_table_id uuid DEFAULT NULL,
+  out_invocations_table_id uuid DEFAULT NULL,
+  out_execution_logs_table_id uuid DEFAULT NULL,
+  out_graph_module_id uuid DEFAULT NULL,
+  out_graphs_table_id uuid DEFAULT NULL,
+  out_agent_module_id uuid DEFAULT NULL,
   CONSTRAINT entity_type_provision_unique_prefix 
     UNIQUE (database_id, prefix),
   CONSTRAINT entity_type_provision_db_fkey
@@ -1608,18 +1621,13 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.has_levels IS 
      Levels provide gamification/achievement tracking for members.
      When true, creates level steps, achievements, and level tables with security.';
 
-COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.has_storage IS 'Whether to provision storage_module for this type. Defaults to false.
-     When true, creates {prefix}_buckets and {prefix}_files tables
-     with entity-scoped RLS (AuthzEntityMembership) using the entity''s membership_type.
-     Storage tables get owner_id FK to the entity table, so files are owned by the entity.';
-
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.has_invites IS 'Whether to provision invites_module for this type. Defaults to false.
      When true, the trigger inserts a row into invites_module which in turn
      (via insert_invites_module BEFORE INSERT) creates {prefix}_invites and
      {prefix}_claimed_invites tables plus the submit_{prefix}_invite_code() function.
-     Symmetric counterpart of has_storage. Re-provisioning is idempotent: the
-     UNIQUE (database_id, membership_type) constraint on invites_module combined with
-     ON CONFLICT DO NOTHING in the fan-out makes repeated INSERTs safe.';
+     Re-provisioning is idempotent: the UNIQUE (database_id, membership_type) constraint
+     on invites_module combined with ON CONFLICT DO NOTHING in the fan-out makes
+     repeated INSERTs safe.';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.has_invite_achievements IS 'Whether to auto-attach an EventTracker to the claimed_invites table for invite-based
      achievements. Defaults to false. Requires has_invites=true AND has_levels=true.
@@ -1682,10 +1690,11 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_entity_tab
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_installed_modules IS 'Output: array of installed module labels (e.g. ARRAY[''permissions_module:data_room'', ''memberships_module:data_room'', ''invites_module:data_room'']).
      Populated by the trigger. Useful for verifying which modules were provisioned.';
 
-COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage_config IS 'Optional JSON array of storage module definitions. Each element provisions a separate
-     storage module with its own tables ({prefix}_{storage_key}_buckets/files), RLS policies,
-     and feature flags. Only used when has_storage = true; ignored otherwise.
-     NULL = provision a single default storage module with all defaults.
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage IS 'Optional JSON array of storage module definitions. Presence triggers provisioning
+     (same inference model as namespaces, functions, agents).
+     Each element provisions a separate storage module with its own tables
+     ({prefix}_{storage_key}_buckets/files), RLS policies, and feature flags.
+     NULL = do not provision storage. ''[{}]'' = provision one default storage module.
      Each array element recognizes (all optional):
        - storage_key                   (text) module discriminator, max 16 chars, lowercase snake_case.
                                               Defaults to ''default'' (omitted from table names).
@@ -1707,19 +1716,59 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage_config
        - provisions                    (jsonb object) per-table customization keyed by "files" or "buckets".
                                               Each value: { nodes, fields, grants, use_rls, policies }.
      Example (single module, backward compat):
-       storage_config := ''[{"buckets": [{"name": "documents"}]}]''::jsonb
+       storage := ''[{"buckets": [{"name": "documents"}]}]''::jsonb
      Example (multi-module):
-       storage_config := ''[{"has_path_shares": true, "buckets": [{"name": "documents"}]}, {"storage_key": "fn", "has_custom_keys": true, "buckets": [{"name": "functions"}]}]''::jsonb';
+       storage := ''[{"has_path_shares": true, "buckets": [{"name": "documents"}]}, {"storage_key": "fn", "has_custom_keys": true, "buckets": [{"name": "functions"}]}]''::jsonb';
 
-COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_storage_module_id IS 'Output: the UUID of the storage_module row created for this entity type. Populated by the trigger when has_storage=true.';
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_storage_module_id IS 'Output: the UUID of the storage_module row created for this entity type. Populated by the trigger when storage is non-NULL and non-empty.';
 
-COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_buckets_table_id IS 'Output: the UUID of the generated buckets table (e.g. data_room_buckets). Populated by the trigger when has_storage=true.';
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_buckets_table_id IS 'Output: the UUID of the generated buckets table (e.g. data_room_buckets). Populated by the trigger when storage is non-NULL and non-empty.';
 
-COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_files_table_id IS 'Output: the UUID of the generated files table (e.g. data_room_files). Populated by the trigger when has_storage=true.';
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_files_table_id IS 'Output: the UUID of the generated files table (e.g. data_room_files). Populated by the trigger when storage is non-NULL and non-empty.';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_invites_module_id IS 'Output: the UUID of the invites_module row created for this entity type. Populated by the trigger when has_invites=true.
      NULL when has_invites=false, or when re-provisioning hits ON CONFLICT DO NOTHING
      (i.e. the invites_module row was created in a previous run).';
+
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.namespaces IS 'Optional JSON array of namespace module definitions. Presence triggers provisioning.
+     NULL = do not provision namespaces. ''[{}]'' = provision one default namespace module.
+     Each element recognizes (all optional):
+       - key       (text) module discriminator. Defaults to ''default''.
+       - policies  (jsonb array) RLS policy overrides. NULL = apply defaults from apply_namespace_security().
+     Creates {prefix}_namespaces (or {prefix}_{key}_namespaces for non-default keys)
+     with entity-scoped RLS (AuthzEntityMembership) and a rename proxy trigger.
+     Registers manage_namespaces permission bit on first provision.
+     Example: namespaces := ''[{}]''::jsonb';
+
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.functions IS 'Optional JSON array of function module definitions. Presence triggers provisioning.
+     NULL = do not provision functions. ''[{}]'' = provision one default function module.
+     Each element recognizes (all optional):
+       - key       (text) module discriminator. Defaults to ''default''.
+       - policies  (jsonb array) RLS policy overrides. NULL = apply defaults from apply_function_security().
+     Creates {prefix}_function_definitions (or {prefix}_{key}_function_definitions for non-default keys)
+     with entity-scoped RLS and a job trigger dispatching function:provision tasks.
+     Registers manage_functions + invoke_functions permission bits on first provision.
+     Example: functions := ''[{}]''::jsonb';
+
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.graphs IS 'Optional JSON array of graph module definitions. Presence triggers provisioning.
+     NULL = do not provision graphs. ''[{}]'' = provision one default graph module.
+     Each element recognizes (all optional):
+       - key       (text) module discriminator. Defaults to ''default''.
+       - policies  (jsonb array) RLS policy overrides. NULL = apply defaults from apply_graph_security().
+     Registers manage_graphs + execute_graphs permission bits on first provision.
+     Graph module requires a merkle_store_module_id dependency, so entity_type_provision
+     only registers permissions here. The graph module itself must be provisioned
+     separately with the merkle store dependency resolved.
+     Example: graphs := ''[{}]''::jsonb';
+
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_namespace_module_id IS 'Output: the UUID of the namespace_module row created (or found) for this entity type.
+     Populated by the trigger when namespaces is non-NULL. NULL otherwise.';
+
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_namespaces_table_id IS 'Output: the UUID of the generated namespaces table (e.g. data_room_namespaces).
+     Populated by the trigger when namespaces is non-NULL. NULL otherwise.';
+
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_namespace_events_table_id IS 'Output: the UUID of the generated namespace_events partitioned table (e.g. data_room_namespace_events).
+     Monthly partitioned, 12-month retention. Populated by the trigger when namespaces is non-NULL. NULL otherwise.';
 
 CREATE TABLE metaschema_modules_public.rate_limits_module (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -2118,6 +2167,8 @@ CREATE TABLE metaschema_modules_public.billing_module (
   balances_table_name text NOT NULL DEFAULT '',
   meter_credits_table_id uuid NOT NULL DEFAULT uuid_nil(),
   meter_credits_table_name text NOT NULL DEFAULT '',
+  meter_sources_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  meter_sources_table_name text NOT NULL DEFAULT '',
   record_usage_function text NOT NULL DEFAULT '',
   prefix text NULL,
   CONSTRAINT db_fkey
@@ -2150,6 +2201,10 @@ CREATE TABLE metaschema_modules_public.billing_module (
     ON DELETE CASCADE,
   CONSTRAINT meter_credits_table_fkey
     FOREIGN KEY(meter_credits_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT meter_sources_table_fkey
+    FOREIGN KEY(meter_sources_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
   CONSTRAINT billing_module_database_id_unique 
@@ -2364,3 +2419,489 @@ CREATE INDEX config_secrets_org_module_schema_id_idx ON metaschema_modules_publi
 CREATE INDEX config_secrets_org_module_table_id_idx ON metaschema_modules_public.config_secrets_org_module (table_id);
 
 COMMENT ON TABLE metaschema_modules_public.config_secrets_org_module IS 'Config row for the config_secrets_org_module, which provisions an organization-scoped encrypted key-value secrets store with manage_secrets permission and entity-membership RLS.';
+
+CREATE TABLE metaschema_modules_public.inference_log_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  inference_log_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  inference_log_table_name text NOT NULL DEFAULT '',
+  usage_daily_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  usage_daily_table_name text NOT NULL DEFAULT '',
+  "interval" text NOT NULL DEFAULT '1 month',
+  retention text NOT NULL DEFAULT '12 months',
+  premake int NOT NULL DEFAULT 2,
+  scope text NOT NULL DEFAULT 'app',
+  actor_fk_table_id uuid NULL,
+  entity_fk_table_id uuid NULL,
+  prefix text NULL,
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT inference_log_table_fkey
+    FOREIGN KEY(inference_log_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT usage_daily_table_fkey
+    FOREIGN KEY(usage_daily_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT inference_log_module_database_id_prefix_unique 
+    UNIQUE NULLS NOT DISTINCT (database_id, prefix)
+);
+
+CREATE INDEX inference_log_module_database_id_idx ON metaschema_modules_public.inference_log_module (database_id);
+
+CREATE TABLE metaschema_modules_public.compute_log_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  compute_log_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  compute_log_table_name text NOT NULL DEFAULT '',
+  usage_daily_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  usage_daily_table_name text NOT NULL DEFAULT '',
+  "interval" text NOT NULL DEFAULT '1 month',
+  retention text NOT NULL DEFAULT '12 months',
+  premake int NOT NULL DEFAULT 2,
+  scope text NOT NULL DEFAULT 'app',
+  actor_fk_table_id uuid NULL,
+  entity_fk_table_id uuid NULL,
+  prefix text NULL,
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT compute_log_table_fkey
+    FOREIGN KEY(compute_log_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT usage_daily_table_fkey
+    FOREIGN KEY(usage_daily_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT compute_log_module_database_id_prefix_unique 
+    UNIQUE NULLS NOT DISTINCT (database_id, prefix)
+);
+
+CREATE INDEX compute_log_module_database_id_idx ON metaschema_modules_public.compute_log_module (database_id);
+
+CREATE TABLE metaschema_modules_public.transfer_log_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  transfer_log_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  transfer_log_table_name text NOT NULL DEFAULT '',
+  usage_daily_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  usage_daily_table_name text NOT NULL DEFAULT '',
+  "interval" text NOT NULL DEFAULT '1 month',
+  retention text NOT NULL DEFAULT '12 months',
+  premake int NOT NULL DEFAULT 2,
+  scope text NOT NULL DEFAULT 'app',
+  actor_fk_table_id uuid NULL,
+  entity_fk_table_id uuid NULL,
+  prefix text NULL,
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT transfer_log_table_fkey
+    FOREIGN KEY(transfer_log_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT usage_daily_table_fkey
+    FOREIGN KEY(usage_daily_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT transfer_log_module_database_id_prefix_unique 
+    UNIQUE NULLS NOT DISTINCT (database_id, prefix)
+);
+
+CREATE INDEX transfer_log_module_database_id_idx ON metaschema_modules_public.transfer_log_module (database_id);
+
+CREATE TABLE metaschema_modules_public.storage_log_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  storage_log_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  storage_log_table_name text NOT NULL DEFAULT '',
+  usage_daily_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  usage_daily_table_name text NOT NULL DEFAULT '',
+  "interval" text NOT NULL DEFAULT '1 month',
+  retention text NOT NULL DEFAULT '12 months',
+  premake int NOT NULL DEFAULT 2,
+  scope text NOT NULL DEFAULT 'app',
+  actor_fk_table_id uuid NULL,
+  entity_fk_table_id uuid NULL,
+  prefix text NULL,
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT storage_log_table_fkey
+    FOREIGN KEY(storage_log_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT usage_daily_table_fkey
+    FOREIGN KEY(usage_daily_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT storage_log_module_database_id_prefix_unique 
+    UNIQUE NULLS NOT DISTINCT (database_id, prefix)
+);
+
+CREATE INDEX storage_log_module_database_id_idx ON metaschema_modules_public.storage_log_module (database_id);
+
+CREATE TABLE metaschema_modules_public.db_usage_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_stats_log_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_stats_log_table_name text NOT NULL DEFAULT '',
+  table_stats_daily_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_stats_daily_table_name text NOT NULL DEFAULT '',
+  query_stats_log_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  query_stats_log_table_name text NOT NULL DEFAULT '',
+  query_stats_daily_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  query_stats_daily_table_name text NOT NULL DEFAULT '',
+  "interval" text NOT NULL DEFAULT '1 month',
+  retention text NOT NULL DEFAULT '12 months',
+  premake int NOT NULL DEFAULT 2,
+  scope text NOT NULL DEFAULT 'app',
+  prefix text NULL,
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT table_stats_log_table_fkey
+    FOREIGN KEY(table_stats_log_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT table_stats_daily_table_fkey
+    FOREIGN KEY(table_stats_daily_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT query_stats_log_table_fkey
+    FOREIGN KEY(query_stats_log_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT query_stats_daily_table_fkey
+    FOREIGN KEY(query_stats_daily_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT db_usage_module_database_id_prefix_unique 
+    UNIQUE NULLS NOT DISTINCT (database_id, prefix)
+);
+
+CREATE INDEX db_usage_module_database_id_idx ON metaschema_modules_public.db_usage_module (database_id);
+
+CREATE TABLE metaschema_modules_public.agent_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  thread_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  message_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  task_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  prompts_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  knowledge_table_id uuid DEFAULT NULL,
+  thread_table_name text NOT NULL DEFAULT 'agent_thread',
+  message_table_name text NOT NULL DEFAULT 'agent_message',
+  task_table_name text NOT NULL DEFAULT 'agent_task',
+  prompts_table_name text NOT NULL DEFAULT 'agent_prompt',
+  knowledge_table_name text NOT NULL DEFAULT 'agent_knowledge',
+  has_knowledge boolean NOT NULL DEFAULT false,
+  api_name text DEFAULT 'agent',
+  membership_type int DEFAULT NULL,
+  entity_table_id uuid NULL,
+  policies jsonb NULL,
+  knowledge_config jsonb NULL,
+  knowledge_policies jsonb NULL,
+  provisions jsonb NULL,
+  CONSTRAINT agent_module_db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT agent_module_schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT agent_module_private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT agent_module_thread_table_fkey
+    FOREIGN KEY(thread_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT agent_module_message_table_fkey
+    FOREIGN KEY(message_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT agent_module_task_table_fkey
+    FOREIGN KEY(task_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT agent_module_prompts_table_fkey
+    FOREIGN KEY(prompts_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT agent_module_knowledge_table_fkey
+    FOREIGN KEY(knowledge_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT agent_module_entity_table_fkey
+    FOREIGN KEY(entity_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX agent_module_database_id_idx ON metaschema_modules_public.agent_module (database_id);
+
+CREATE UNIQUE INDEX agent_module_unique_scope ON metaschema_modules_public.agent_module (database_id, (COALESCE(membership_type, -1)));
+
+CREATE TABLE metaschema_modules_public.merkle_store_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  public_schema_name text,
+  object_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  store_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  commit_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  ref_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  prefix text NOT NULL DEFAULT '',
+  api_name text,
+  scope_field text NOT NULL DEFAULT 'scope_id',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT object_table_fkey
+    FOREIGN KEY(object_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT store_table_fkey
+    FOREIGN KEY(store_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT commit_table_fkey
+    FOREIGN KEY(commit_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT ref_table_fkey
+    FOREIGN KEY(ref_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT merkle_store_module_database_prefix_unique 
+    UNIQUE (database_id, prefix)
+);
+
+CREATE INDEX merkle_store_module_database_id_idx ON metaschema_modules_public.merkle_store_module (database_id);
+
+CREATE TABLE metaschema_modules_public.graph_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  public_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  public_schema_name text,
+  private_schema_name text,
+  prefix text NOT NULL DEFAULT '',
+  merkle_store_module_id uuid NOT NULL,
+  graphs_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  executions_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  outputs_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  api_name text,
+  private_api_name text,
+  scope_field text NOT NULL DEFAULT 'scope_id',
+  membership_type int DEFAULT NULL,
+  entity_table_id uuid NULL,
+  policies jsonb NULL,
+  provisions jsonb NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT public_schema_fkey
+    FOREIGN KEY(public_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT merkle_store_fkey
+    FOREIGN KEY(merkle_store_module_id)
+    REFERENCES metaschema_modules_public.merkle_store_module (id)
+    ON DELETE CASCADE,
+  CONSTRAINT graphs_table_fkey
+    FOREIGN KEY(graphs_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT executions_table_fkey
+    FOREIGN KEY(executions_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT outputs_table_fkey
+    FOREIGN KEY(outputs_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT graph_module_entity_table_fkey
+    FOREIGN KEY(entity_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT graph_module_database_merkle_unique 
+    UNIQUE (database_id, merkle_store_module_id)
+);
+
+CREATE INDEX graph_module_database_id_idx ON metaschema_modules_public.graph_module (database_id);
+
+CREATE TABLE metaschema_modules_public.namespace_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  public_schema_name text,
+  private_schema_name text,
+  namespaces_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  namespace_events_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  namespaces_table_name text NOT NULL DEFAULT 'namespaces',
+  namespace_events_table_name text NOT NULL DEFAULT 'namespace_events',
+  api_name text,
+  private_api_name text,
+  membership_type int DEFAULT NULL,
+  entity_table_id uuid NULL,
+  policies jsonb NULL,
+  provisions jsonb NULL,
+  CONSTRAINT namespace_module_db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT namespace_module_schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT namespace_module_private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT namespace_module_namespaces_table_fkey
+    FOREIGN KEY(namespaces_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT namespace_module_events_table_fkey
+    FOREIGN KEY(namespace_events_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT namespace_module_entity_table_fkey
+    FOREIGN KEY(entity_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX namespace_module_database_id_idx ON metaschema_modules_public.namespace_module (database_id);
+
+CREATE UNIQUE INDEX namespace_module_unique_scope ON metaschema_modules_public.namespace_module (database_id, (COALESCE(membership_type, -1)));
+
+CREATE TABLE metaschema_modules_public.function_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  public_schema_name text,
+  private_schema_name text,
+  definitions_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  invocations_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  execution_logs_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  definitions_table_name text NOT NULL DEFAULT 'function_definitions',
+  invocations_table_name text NOT NULL DEFAULT 'function_invocations',
+  execution_logs_table_name text NOT NULL DEFAULT 'function_execution_logs',
+  api_name text,
+  private_api_name text,
+  membership_type int DEFAULT NULL,
+  entity_table_id uuid NULL,
+  policies jsonb NULL,
+  provisions jsonb NULL,
+  CONSTRAINT function_module_db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT function_module_schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT function_module_private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT function_module_definitions_table_fkey
+    FOREIGN KEY(definitions_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT function_module_invocations_table_fkey
+    FOREIGN KEY(invocations_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT function_module_execution_logs_table_fkey
+    FOREIGN KEY(execution_logs_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT function_module_entity_table_fkey
+    FOREIGN KEY(entity_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX function_module_database_id_idx ON metaschema_modules_public.function_module (database_id);
+
+CREATE UNIQUE INDEX function_module_unique_scope ON metaschema_modules_public.function_module (database_id, (COALESCE(membership_type, -1)));

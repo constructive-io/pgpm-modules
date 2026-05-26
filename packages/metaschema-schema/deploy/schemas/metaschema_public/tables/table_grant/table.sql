@@ -26,4 +26,11 @@ CREATE TABLE metaschema_public.table_grant (
 CREATE INDEX table_grant_table_id_idx ON metaschema_public.table_grant ( table_id );
 CREATE INDEX table_grant_database_id_idx ON metaschema_public.table_grant ( database_id );
 
+CREATE UNIQUE INDEX table_grant_unique_idx ON metaschema_public.table_grant (
+    table_id,
+    privilege,
+    grantee_name,
+    COALESCE(field_ids, '{}'::uuid[])
+);
+
 COMMIT;

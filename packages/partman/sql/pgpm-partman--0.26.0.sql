@@ -6,7 +6,22 @@ BEGIN
 END;
 $EOFCODE$;
 
-CREATE FUNCTION partman.create_parent_with_retention(v_parent_table text, v_control text, v_type text DEFAULT 'range', partition_interval text DEFAULT '1 day', v_premake int DEFAULT 2, v_retention text DEFAULT NULL, v_retention_keep_table boolean DEFAULT true) RETURNS void AS $EOFCODE$
+GRANT USAGE ON SCHEMA partman TO authenticated;
+
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA partman TO authenticated;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA partman
+  GRANT EXECUTE ON FUNCTIONS TO authenticated;
+
+CREATE FUNCTION partman.create_parent_with_retention(
+  v_parent_table text,
+  v_control text,
+  v_type text DEFAULT 'range',
+  partition_interval text DEFAULT '1 day',
+  v_premake int DEFAULT 2,
+  v_retention text DEFAULT NULL,
+  v_retention_keep_table boolean DEFAULT true
+) RETURNS void AS $EOFCODE$
 BEGIN
   PERFORM partman.create_parent(
     p_parent_table := v_parent_table,
@@ -25,7 +40,15 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-CREATE FUNCTION partman.create_parent_by_id(v_table_id uuid, v_control text, v_type text DEFAULT 'range', partition_interval text DEFAULT '1 day', v_premake int DEFAULT 2, v_retention text DEFAULT NULL, v_retention_keep_table boolean DEFAULT true) RETURNS void AS $EOFCODE$
+CREATE FUNCTION partman.create_parent_by_id(
+  v_table_id uuid,
+  v_control text,
+  v_type text DEFAULT 'range',
+  partition_interval text DEFAULT '1 day',
+  v_premake int DEFAULT 2,
+  v_retention text DEFAULT NULL,
+  v_retention_keep_table boolean DEFAULT true
+) RETURNS void AS $EOFCODE$
 DECLARE
   v_parent_table text;
 BEGIN
@@ -51,7 +74,9 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-CREATE FUNCTION partman.remove_parent_by_id(v_table_id uuid) RETURNS void AS $EOFCODE$
+CREATE FUNCTION partman.remove_parent_by_id(
+  v_table_id uuid
+) RETURNS void AS $EOFCODE$
 DECLARE
   v_parent_table text;
 BEGIN
@@ -70,7 +95,9 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-CREATE FUNCTION partman.verify_parent_by_id(v_table_id uuid) RETURNS boolean AS $EOFCODE$
+CREATE FUNCTION partman.verify_parent_by_id(
+  v_table_id uuid
+) RETURNS boolean AS $EOFCODE$
 DECLARE
   v_parent_table text;
   v_found boolean;
@@ -94,7 +121,10 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION partman.run_maintenance_by_id(v_table_id uuid DEFAULT NULL, v_analyze boolean DEFAULT true) RETURNS void AS $EOFCODE$
+CREATE FUNCTION partman.run_maintenance_by_id(
+  v_table_id uuid DEFAULT NULL,
+  v_analyze boolean DEFAULT true
+) RETURNS void AS $EOFCODE$
 DECLARE
   v_parent_table text;
 BEGIN

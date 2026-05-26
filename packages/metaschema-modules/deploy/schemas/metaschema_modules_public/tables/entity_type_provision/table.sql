@@ -47,8 +47,6 @@ CREATE TABLE metaschema_modules_public.entity_type_provision (
 
     has_levels boolean NOT NULL DEFAULT false,
 
-    has_storage boolean NOT NULL DEFAULT false,
-
     has_invites boolean NOT NULL DEFAULT false,
 
     has_invite_achievements boolean NOT NULL DEFAULT false,
@@ -56,8 +54,9 @@ CREATE TABLE metaschema_modules_public.entity_type_provision (
     -- =========================================================================
     -- Storage configuration: JSON array of storage module definitions.
     -- Each element provisions a separate storage module with its own tables,
-    -- RLS policies, and feature flags. Only used when has_storage = true.
-    -- NULL = provision a single default storage module with default settings.
+    -- RLS policies, and feature flags. Presence triggers provisioning
+    -- (same inference model as namespaces, functions, agents).
+    -- NULL = do not provision. '[{}]' = provision one default storage module.
     -- =========================================================================
 
     storage jsonb DEFAULT NULL,
@@ -125,6 +124,8 @@ CREATE TABLE metaschema_modules_public.entity_type_provision (
     out_namespace_module_id uuid DEFAULT NULL,
 
     out_namespaces_table_id uuid DEFAULT NULL,
+
+    out_namespace_events_table_id uuid DEFAULT NULL,
 
     out_function_module_id uuid DEFAULT NULL,
 
@@ -238,20 +239,14 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.has_levels IS
      Levels provide gamification/achievement tracking for members.
      When true, creates level steps, achievements, and level tables with security.';
 
-COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.has_storage IS
-    'Whether to provision storage_module for this type. Defaults to false.
-     When true, creates {prefix}_buckets and {prefix}_files tables
-     with entity-scoped RLS (AuthzEntityMembership) using the entity''s membership_type.
-     Storage tables get owner_id FK to the entity table, so files are owned by the entity.';
-
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.has_invites IS
     'Whether to provision invites_module for this type. Defaults to false.
      When true, the trigger inserts a row into invites_module which in turn
      (via insert_invites_module BEFORE INSERT) creates {prefix}_invites and
      {prefix}_claimed_invites tables plus the submit_{prefix}_invite_code() function.
-     Symmetric counterpart of has_storage. Re-provisioning is idempotent: the
-     UNIQUE (database_id, membership_type) constraint on invites_module combined with
-     ON CONFLICT DO NOTHING in the fan-out makes repeated INSERTs safe.';
+     Re-provisioning is idempotent: the UNIQUE (database_id, membership_type) constraint
+     on invites_module combined with ON CONFLICT DO NOTHING in the fan-out makes
+     repeated INSERTs safe.';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.has_invite_achievements IS
     'Whether to auto-attach an EventTracker to the claimed_invites table for invite-based
@@ -330,10 +325,11 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_installed_
      Populated by the trigger. Useful for verifying which modules were provisioned.';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage IS
-    'Optional JSON array of storage module definitions. Each element provisions a separate
-     storage module with its own tables ({prefix}_{storage_key}_buckets/files), RLS policies,
-     and feature flags. Only used when has_storage = true; ignored otherwise.
-     NULL = provision a single default storage module with all defaults.
+    'Optional JSON array of storage module definitions. Presence triggers provisioning
+     (same inference model as namespaces, functions, agents).
+     Each element provisions a separate storage module with its own tables
+     ({prefix}_{storage_key}_buckets/files), RLS policies, and feature flags.
+     NULL = do not provision storage. ''[{}]'' = provision one default storage module.
      Each array element recognizes (all optional):
        - storage_key                   (text) module discriminator, max 16 chars, lowercase snake_case.
                                               Defaults to ''default'' (omitted from table names).
@@ -360,13 +356,13 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage IS
        storage := ''[{"has_path_shares": true, "buckets": [{"name": "documents"}]}, {"storage_key": "fn", "has_custom_keys": true, "buckets": [{"name": "functions"}]}]''::jsonb';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_storage_module_id IS
-    'Output: the UUID of the storage_module row created for this entity type. Populated by the trigger when has_storage=true.';
+    'Output: the UUID of the storage_module row created for this entity type. Populated by the trigger when storage is non-NULL and non-empty.';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_buckets_table_id IS
-    'Output: the UUID of the generated buckets table (e.g. data_room_buckets). Populated by the trigger when has_storage=true.';
+    'Output: the UUID of the generated buckets table (e.g. data_room_buckets). Populated by the trigger when storage is non-NULL and non-empty.';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_files_table_id IS
-    'Output: the UUID of the generated files table (e.g. data_room_files). Populated by the trigger when has_storage=true.';
+    'Output: the UUID of the generated files table (e.g. data_room_files). Populated by the trigger when storage is non-NULL and non-empty.';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_invites_module_id IS
     'Output: the UUID of the invites_module row created for this entity type. Populated by the trigger when has_invites=true.
@@ -414,5 +410,9 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_namespace_
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_namespaces_table_id IS
     'Output: the UUID of the generated namespaces table (e.g. data_room_namespaces).
      Populated by the trigger when namespaces is non-NULL. NULL otherwise.';
+
+COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_namespace_events_table_id IS
+    'Output: the UUID of the generated namespace_events partitioned table (e.g. data_room_namespace_events).
+     Monthly partitioned, 12-month retention. Populated by the trigger when namespaces is non-NULL. NULL otherwise.';
 
 COMMIT;

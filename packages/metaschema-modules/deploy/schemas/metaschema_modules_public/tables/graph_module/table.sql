@@ -27,7 +27,7 @@ CREATE TABLE metaschema_modules_public.graph_module (
     -- Generated table IDs (populated by BEFORE INSERT trigger)
     graphs_table_id uuid NOT NULL DEFAULT uuid_nil(),
     executions_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    exec_object_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    outputs_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- API routing (get-or-create: if set, schema is added to this API; if NULL, no API is added)
     api_name text,
@@ -45,6 +45,12 @@ CREATE TABLE metaschema_modules_public.graph_module (
     --   {"$type": "AuthzEntityMembership", "privileges": ["select", "update"], "data": {...}}
     policies jsonb NULL,
 
+    -- Per-table provisions overrides from blueprint config.
+    -- Keys are table keys (graphs, executions, outputs).
+    -- When a key is present, the module trigger skips default security for that table;
+    -- secure_table_provision applies the custom grants/policies instead.
+    provisions jsonb NULL,
+
     -- Timestamps
     created_at timestamptz NOT NULL DEFAULT now(),
 
@@ -55,7 +61,7 @@ CREATE TABLE metaschema_modules_public.graph_module (
     CONSTRAINT merkle_store_fkey FOREIGN KEY (merkle_store_module_id) REFERENCES metaschema_modules_public.merkle_store_module (id) ON DELETE CASCADE,
     CONSTRAINT graphs_table_fkey FOREIGN KEY (graphs_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT executions_table_fkey FOREIGN KEY (executions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT exec_object_table_fkey FOREIGN KEY (exec_object_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT outputs_table_fkey FOREIGN KEY (outputs_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT graph_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
 
     -- Only one graph module per database + merkle store combination

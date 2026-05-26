@@ -1,6 +1,6 @@
 # metaschema-modules extension
 comment = 'metaschema-modules extension'
-default_version = '0.15.5'
+default_version = '0.26.0'
 module_pathname = '$libdir/metaschema-modules'
 requires = 'plpgsql,uuid-ossp,metaschema-schema,services,pgpm-verify'
 relocatable = false

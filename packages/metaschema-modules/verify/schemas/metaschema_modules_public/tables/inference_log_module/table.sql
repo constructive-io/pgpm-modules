@@ -11,9 +11,10 @@ SELECT
   inference_log_table_name,
   usage_daily_table_id,
   usage_daily_table_name,
-  "interval",
   retention,
-  premake,
+  scope,
+  actor_fk_table_id,
+  entity_fk_table_id,
   prefix
 FROM metaschema_modules_public.inference_log_module
 WHERE FALSE;

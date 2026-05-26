@@ -388,6 +388,8 @@ CREATE INDEX table_grant_table_id_idx ON metaschema_public.table_grant (table_id
 
 CREATE INDEX table_grant_database_id_idx ON metaschema_public.table_grant (database_id);
 
+CREATE UNIQUE INDEX table_grant_unique_idx ON metaschema_public.table_grant (table_id, privilege, grantee_name, (COALESCE(field_ids, CAST('{}' AS uuid[]))));
+
 CREATE FUNCTION metaschema_private.table_name_hash(
   name text
 ) RETURNS bytea AS $EOFCODE$
