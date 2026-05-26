@@ -53,7 +53,9 @@ $EOFCODE$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 
 COMMENT ON FUNCTION app_jobs.tg_add_job_with_row IS 'Useful shortcut to create a job on insert or update. Pass the task name as the trigger argument, and the record data will automatically be available on the JSON payload.';
 
-CREATE FUNCTION app_jobs.json_build_object_apply(arguments text[]) RETURNS pg_catalog.json AS $EOFCODE$
+CREATE FUNCTION app_jobs.json_build_object_apply(
+  arguments text[]
+) RETURNS pg_catalog.json AS $EOFCODE$
 DECLARE
   arg text;
   _sql text;
@@ -116,6 +118,7 @@ CREATE TABLE app_jobs.scheduled_jobs (
   id bigserial PRIMARY KEY,
   database_id uuid,
   actor_id uuid,
+  entity_id uuid,
   queue_name text DEFAULT NULL,
   task_identifier text NOT NULL,
   payload pg_catalog.json DEFAULT '{}'::json NOT NULL,
@@ -142,6 +145,8 @@ COMMENT ON COLUMN app_jobs.scheduled_jobs.id IS 'Auto-incrementing scheduled job
 COMMENT ON COLUMN app_jobs.scheduled_jobs.database_id IS 'Database this scheduled job belongs to (nullable for system-level schedules without tenant context)';
 
 COMMENT ON COLUMN app_jobs.scheduled_jobs.actor_id IS 'User who created this scheduled job, read from JWT claims at creation time';
+
+COMMENT ON COLUMN app_jobs.scheduled_jobs.entity_id IS 'Entity (org/team) this scheduled job is scoped to for billing; NULL means platform-level (resolved via database_id → owner_id)';
 
 COMMENT ON COLUMN app_jobs.scheduled_jobs.queue_name IS 'Name of the queue spawned jobs are placed into';
 
@@ -189,6 +194,7 @@ CREATE TABLE app_jobs.jobs (
   id bigserial PRIMARY KEY,
   database_id uuid,
   actor_id uuid,
+  entity_id uuid,
   queue_name text DEFAULT NULL,
   task_identifier text NOT NULL,
   payload pg_catalog.json DEFAULT '{}'::json NOT NULL,
@@ -217,6 +223,8 @@ COMMENT ON COLUMN app_jobs.jobs.id IS 'Auto-incrementing job identifier';
 COMMENT ON COLUMN app_jobs.jobs.database_id IS 'Database this job belongs to (nullable for system-level jobs without tenant context)';
 
 COMMENT ON COLUMN app_jobs.jobs.actor_id IS 'User who triggered this job, read from JWT claims at enqueue time';
+
+COMMENT ON COLUMN app_jobs.jobs.entity_id IS 'Entity (org/team) this job is scoped to for billing; NULL means platform-level (resolved via database_id → owner_id)';
 
 COMMENT ON COLUMN app_jobs.jobs.queue_name IS 'Name of the queue this job belongs to; used for worker routing and concurrency control';
 
@@ -366,7 +374,10 @@ CREATE INDEX job_queues_locked_by_idx ON app_jobs.job_queues (locked_by);
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON app_jobs.job_queues TO administrator;
 
-CREATE FUNCTION app_jobs.run_scheduled_job(id bigint, job_expiry interval DEFAULT '1 hours') RETURNS app_jobs.jobs AS $EOFCODE$
+CREATE FUNCTION app_jobs.run_scheduled_job(
+  id bigint,
+  job_expiry interval DEFAULT '1 hours'
+) RETURNS app_jobs.jobs AS $EOFCODE$
 DECLARE
   j app_jobs.jobs;
   last_id bigint;
@@ -402,6 +413,7 @@ BEGIN
   INSERT INTO app_jobs.jobs (
     database_id,
     actor_id,
+    entity_id,
     queue_name,
     task_identifier,
     payload,
@@ -411,6 +423,7 @@ BEGIN
   ) SELECT
     database_id,
     actor_id,
+    entity_id,
     queue_name,
     task_identifier,
     payload,
@@ -435,7 +448,13 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-CREATE FUNCTION app_jobs.reschedule_jobs(job_ids bigint[], run_at timestamptz DEFAULT NULL, priority int DEFAULT NULL, attempts int DEFAULT NULL, max_attempts int DEFAULT NULL) RETURNS SETOF app_jobs.jobs LANGUAGE sql AS $EOFCODE$
+CREATE FUNCTION app_jobs.reschedule_jobs(
+  job_ids bigint[],
+  run_at timestamptz DEFAULT NULL,
+  priority int DEFAULT NULL,
+  attempts int DEFAULT NULL,
+  max_attempts int DEFAULT NULL
+) RETURNS SETOF app_jobs.jobs LANGUAGE sql AS $EOFCODE$
   UPDATE
     app_jobs.jobs
   SET
@@ -451,7 +470,10 @@ CREATE FUNCTION app_jobs.reschedule_jobs(job_ids bigint[], run_at timestamptz DE
     *;
 $EOFCODE$;
 
-CREATE FUNCTION app_jobs.release_scheduled_jobs(worker_id text, ids bigint[] DEFAULT NULL) RETURNS void AS $EOFCODE$
+CREATE FUNCTION app_jobs.release_scheduled_jobs(
+  worker_id text,
+  ids bigint[] DEFAULT NULL
+) RETURNS void AS $EOFCODE$
 DECLARE
 BEGIN
   -- clear the scheduled job
@@ -467,7 +489,9 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-CREATE FUNCTION app_jobs.release_jobs(worker_id text) RETURNS void AS $EOFCODE$
+CREATE FUNCTION app_jobs.release_jobs(
+  worker_id text
+) RETURNS void AS $EOFCODE$
 DECLARE
 BEGIN
   -- clear the job
@@ -490,7 +514,10 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-CREATE FUNCTION app_jobs.permanently_fail_jobs(job_ids bigint[], error_message text DEFAULT NULL) RETURNS SETOF app_jobs.jobs LANGUAGE sql AS $EOFCODE$
+CREATE FUNCTION app_jobs.permanently_fail_jobs(
+  job_ids bigint[],
+  error_message text DEFAULT NULL
+) RETURNS SETOF app_jobs.jobs LANGUAGE sql AS $EOFCODE$
   UPDATE
     app_jobs.jobs
   SET
@@ -504,7 +531,10 @@ CREATE FUNCTION app_jobs.permanently_fail_jobs(job_ids bigint[], error_message t
     *;
 $EOFCODE$;
 
-CREATE FUNCTION app_jobs.get_scheduled_job(worker_id text, task_identifiers text[] DEFAULT NULL) RETURNS app_jobs.scheduled_jobs LANGUAGE plpgsql AS $EOFCODE$
+CREATE FUNCTION app_jobs.get_scheduled_job(
+  worker_id text,
+  task_identifiers text[] DEFAULT NULL
+) RETURNS app_jobs.scheduled_jobs LANGUAGE plpgsql AS $EOFCODE$
 DECLARE
   v_job_id bigint;
   v_row app_jobs.scheduled_jobs;
@@ -556,7 +586,11 @@ BEGIN
 END;
 $EOFCODE$;
 
-CREATE FUNCTION app_jobs.get_job(worker_id text, task_identifiers text[] DEFAULT NULL, job_expiry interval DEFAULT '4 hours') RETURNS app_jobs.jobs LANGUAGE plpgsql AS $EOFCODE$
+CREATE FUNCTION app_jobs.get_job(
+  worker_id text,
+  task_identifiers text[] DEFAULT NULL,
+  job_expiry interval DEFAULT '4 hours'
+) RETURNS app_jobs.jobs LANGUAGE plpgsql AS $EOFCODE$
 DECLARE
   v_job_id bigint;
   v_queue_name text;
@@ -611,7 +645,11 @@ BEGIN
 END;
 $EOFCODE$;
 
-CREATE FUNCTION app_jobs.fail_job(worker_id text, job_id bigint, error_message text) RETURNS app_jobs.jobs LANGUAGE plpgsql STRICT AS $EOFCODE$
+CREATE FUNCTION app_jobs.fail_job(
+  worker_id text,
+  job_id bigint,
+  error_message text
+) RETURNS app_jobs.jobs LANGUAGE plpgsql STRICT AS $EOFCODE$
 DECLARE
   v_row app_jobs.jobs;
 BEGIN
@@ -641,7 +679,9 @@ BEGIN
 END;
 $EOFCODE$;
 
-CREATE FUNCTION app_jobs.complete_jobs(job_ids bigint[]) RETURNS SETOF app_jobs.jobs LANGUAGE sql AS $EOFCODE$
+CREATE FUNCTION app_jobs.complete_jobs(
+  job_ids bigint[]
+) RETURNS SETOF app_jobs.jobs LANGUAGE sql AS $EOFCODE$
   DELETE FROM app_jobs.jobs
   WHERE id = ANY (job_ids)
     AND (locked_by IS NULL
@@ -650,7 +690,10 @@ CREATE FUNCTION app_jobs.complete_jobs(job_ids bigint[]) RETURNS SETOF app_jobs.
     *;
 $EOFCODE$;
 
-CREATE FUNCTION app_jobs.complete_job(worker_id text, job_id bigint) RETURNS app_jobs.jobs LANGUAGE plpgsql AS $EOFCODE$
+CREATE FUNCTION app_jobs.complete_job(
+  worker_id text,
+  job_id bigint
+) RETURNS app_jobs.jobs LANGUAGE plpgsql AS $EOFCODE$
 DECLARE
   v_row app_jobs.jobs;
 BEGIN
@@ -672,7 +715,16 @@ BEGIN
 END;
 $EOFCODE$;
 
-CREATE FUNCTION app_jobs.add_scheduled_job(identifier text, payload pg_catalog.json DEFAULT '{}'::json, schedule_info pg_catalog.json DEFAULT '{}'::json, job_key text DEFAULT NULL, queue_name text DEFAULT NULL, max_attempts int DEFAULT 25, priority int DEFAULT 0) RETURNS app_jobs.scheduled_jobs AS $EOFCODE$
+CREATE FUNCTION app_jobs.add_scheduled_job(
+  identifier text,
+  payload pg_catalog.json DEFAULT '{}'::json,
+  schedule_info pg_catalog.json DEFAULT '{}'::json,
+  job_key text DEFAULT NULL,
+  queue_name text DEFAULT NULL,
+  max_attempts int DEFAULT 25,
+  priority int DEFAULT 0,
+  entity_id uuid DEFAULT NULL
+) RETURNS app_jobs.scheduled_jobs AS $EOFCODE$
 DECLARE
   v_job app_jobs.scheduled_jobs;
   v_database_id uuid;
@@ -687,6 +739,7 @@ BEGIN
     INSERT INTO app_jobs.scheduled_jobs (
       database_id,
       actor_id,
+      entity_id,
       task_identifier,
       payload,
       queue_name,
@@ -697,6 +750,7 @@ BEGIN
       ) VALUES (
         v_database_id,
         v_actor_id,
+        add_scheduled_job.entity_id,
         identifier,
         coalesce(payload, '{}'::json),
         queue_name,
@@ -736,6 +790,7 @@ BEGIN
   INSERT INTO app_jobs.scheduled_jobs (
     database_id,
     actor_id,
+    entity_id,
     task_identifier,
     payload,
     queue_name,
@@ -745,6 +800,7 @@ BEGIN
     ) VALUES (
     v_database_id,
     v_actor_id,
+    add_scheduled_job.entity_id,
     identifier,
     payload,
     queue_name,
@@ -756,7 +812,16 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 
-CREATE FUNCTION app_jobs.add_job(identifier text, payload pg_catalog.json DEFAULT '{}'::json, job_key text DEFAULT NULL, queue_name text DEFAULT NULL, run_at timestamptz DEFAULT now(), max_attempts int DEFAULT 25, priority int DEFAULT 0) RETURNS app_jobs.jobs AS $EOFCODE$
+CREATE FUNCTION app_jobs.add_job(
+  identifier text,
+  payload pg_catalog.json DEFAULT '{}'::json,
+  job_key text DEFAULT NULL,
+  queue_name text DEFAULT NULL,
+  run_at timestamptz DEFAULT now(),
+  max_attempts int DEFAULT 25,
+  priority int DEFAULT 0,
+  entity_id uuid DEFAULT NULL
+) RETURNS app_jobs.jobs AS $EOFCODE$
 DECLARE
   v_job app_jobs.jobs;
   v_database_id uuid;
@@ -771,6 +836,7 @@ BEGIN
     INSERT INTO app_jobs.jobs (
       database_id,
       actor_id,
+      entity_id,
       task_identifier,
       payload,
       queue_name,
@@ -781,6 +847,7 @@ BEGIN
     ) VALUES (
         v_database_id,
         v_actor_id,
+        add_job.entity_id,
         identifier,
         coalesce(payload, '{}'::json),
         queue_name,
@@ -824,6 +891,7 @@ BEGIN
   INSERT INTO app_jobs.jobs (
     database_id,
     actor_id,
+    entity_id,
     task_identifier,
     payload,
     queue_name,
@@ -833,6 +901,7 @@ BEGIN
   ) VALUES (
     v_database_id,
     v_actor_id,
+    add_job.entity_id,
     identifier,
     payload,
     queue_name,
@@ -846,7 +915,9 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 
-CREATE FUNCTION app_jobs.remove_job(job_key text) RETURNS app_jobs.jobs LANGUAGE plpgsql STRICT AS $EOFCODE$
+CREATE FUNCTION app_jobs.remove_job(
+  job_key text
+) RETURNS app_jobs.jobs LANGUAGE plpgsql STRICT AS $EOFCODE$
 DECLARE
   v_job app_jobs.jobs;
 BEGIN
@@ -871,7 +942,9 @@ BEGIN
 END;
 $EOFCODE$;
 
-CREATE FUNCTION app_jobs.force_unlock_workers(worker_ids text[]) RETURNS void LANGUAGE sql VOLATILE AS $EOFCODE$
+CREATE FUNCTION app_jobs.force_unlock_workers(
+  worker_ids text[]
+) RETURNS void LANGUAGE sql VOLATILE AS $EOFCODE$
   UPDATE app_jobs.jobs
   SET locked_at = NULL, locked_by = NULL
   WHERE locked_by = ANY (worker_ids);

@@ -42,6 +42,7 @@ BEGIN
   INSERT INTO app_jobs.jobs (
     database_id,
     actor_id,
+    entity_id,
     queue_name,
     task_identifier,
     payload,
@@ -51,6 +52,7 @@ BEGIN
   ) SELECT
     database_id,
     actor_id,
+    entity_id,
     queue_name,
     task_identifier,
     payload,

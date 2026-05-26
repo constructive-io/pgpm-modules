@@ -14,7 +14,8 @@ CREATE FUNCTION app_jobs.add_scheduled_job(
   job_key text DEFAULT NULL,
   queue_name text DEFAULT NULL,
   max_attempts integer DEFAULT 25,
-  priority integer DEFAULT 0
+  priority integer DEFAULT 0,
+  entity_id uuid DEFAULT NULL
 )
   RETURNS app_jobs.scheduled_jobs
   AS $$
@@ -32,6 +33,7 @@ BEGIN
     INSERT INTO app_jobs.scheduled_jobs (
       database_id,
       actor_id,
+      entity_id,
       task_identifier,
       payload,
       queue_name,
@@ -42,6 +44,7 @@ BEGIN
       ) VALUES (
         v_database_id,
         v_actor_id,
+        add_scheduled_job.entity_id,
         identifier,
         coalesce(payload, '{}'::json),
         queue_name,
@@ -81,6 +84,7 @@ BEGIN
   INSERT INTO app_jobs.scheduled_jobs (
     database_id,
     actor_id,
+    entity_id,
     task_identifier,
     payload,
     queue_name,
@@ -90,6 +94,7 @@ BEGIN
     ) VALUES (
     v_database_id,
     v_actor_id,
+    add_scheduled_job.entity_id,
     identifier,
     payload,
     queue_name,

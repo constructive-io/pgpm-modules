@@ -1,5 +1,5 @@
 EXTENSION = pgpm-partman
-DATA = sql/pgpm-partman--0.0.1.sql
+DATA = sql/pgpm-partman--0.26.0.sql
 
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)

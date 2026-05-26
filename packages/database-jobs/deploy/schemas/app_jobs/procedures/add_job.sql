@@ -13,7 +13,8 @@ CREATE FUNCTION app_jobs.add_job (
   queue_name text DEFAULT NULL,
   run_at timestamptz DEFAULT now(),
   max_attempts integer DEFAULT 25,
-  priority integer DEFAULT 0
+  priority integer DEFAULT 0,
+  entity_id uuid DEFAULT NULL
 )
   RETURNS app_jobs.jobs
   AS $$
@@ -31,6 +32,7 @@ BEGIN
     INSERT INTO app_jobs.jobs (
       database_id,
       actor_id,
+      entity_id,
       task_identifier,
       payload,
       queue_name,
@@ -41,6 +43,7 @@ BEGIN
     ) VALUES (
         v_database_id,
         v_actor_id,
+        add_job.entity_id,
         identifier,
         coalesce(payload, '{}'::json),
         queue_name,
@@ -84,6 +87,7 @@ BEGIN
   INSERT INTO app_jobs.jobs (
     database_id,
     actor_id,
+    entity_id,
     task_identifier,
     payload,
     queue_name,
@@ -93,6 +97,7 @@ BEGIN
   ) VALUES (
     v_database_id,
     v_actor_id,
+    add_job.entity_id,
     identifier,
     payload,
     queue_name,

@@ -65,20 +65,19 @@ describe('scheduled jobs', () => {
     const start = new Date(Date.now() + 10000); // 10s
     const end = new Date(start.getTime() + 180000); // +3min
 
-    // Set JWT claims for the session (required by add_scheduled_job)
-    await pg.any(`SELECT set_config('jwt.claims.database_id', $1, false)`, [database_id]);
-
     const [result] = await pg.any(
       `SELECT * FROM app_jobs.add_scheduled_job(
-        identifier := $1::text,
-        payload := $2::json,
-        schedule_info := $3::json,
-        job_key := $4::text,
-        queue_name := $5::text,
-        max_attempts := $6::integer,
-        priority := $7::integer
+        db_id := $1::uuid,
+        identifier := $2::text,
+        payload := $3::json,
+        schedule_info := $4::json,
+        job_key := $5::text,
+        queue_name := $6::text,
+        max_attempts := $7::integer,
+        priority := $8::integer
       )`,
       [
+        database_id,
         'my_job',
         { just: 'run it' },
         { start, end, rule: '*/1 * * * *' },
@@ -102,15 +101,17 @@ describe('scheduled jobs', () => {
 
     const [result2] = await pg.any(
       `SELECT * FROM app_jobs.add_scheduled_job(
-        identifier := $1,
-        payload := $2,
-        schedule_info := $3,
-        job_key := $4,
-        queue_name := $5,
-        max_attempts := $6,
-        priority := $7
+        db_id := $1,
+        identifier := $2,
+        payload := $3,
+        schedule_info := $4,
+        job_key := $5,
+        queue_name := $6,
+        max_attempts := $7,
+        priority := $8
       )`,
       [
+        database_id,
         'my_job',
         { just: 'run it' },
         { start, end, rule: '*/1 * * * *' },

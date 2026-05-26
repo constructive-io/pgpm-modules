@@ -116,8 +116,8 @@ DECLARE
   tree_id uuid;
   obj object_store_public.object;
 BEGIN
-    tree_id = object_tree_public.rev_parse(s_id, store_id, refname);
-    SELECT * FROM object_store_public.get_node_at_path(s_id, tree_id, path)
+  tree_id = object_tree_public.rev_parse(s_id, store_id, refname);
+  SELECT * FROM object_store_public.get_node_at_path(s_id, tree_id, path)
   INTO obj;
   RETURN obj;
 END;
@@ -138,16 +138,16 @@ BEGIN
       RAISE EXCEPTION 'REPO_EXISTS';
   END IF;
 
-  INSERT INTO object_store_public.object (scope_id)
+    INSERT INTO object_store_public.object (scope_id)
       VALUES (s_id)
-    RETURNING id INTO vtree_id;
+  RETURNING id INTO vtree_id;
 
-  INSERT INTO object_tree_public.ref (scope_id, store_id, name)
-    VALUES (s_id, init_empty_repo.store_id, 'main')
+    INSERT INTO object_tree_public.ref (scope_id, store_id, name)
+      VALUES (s_id, init_empty_repo.store_id, 'main')
   RETURNING id INTO vref_id;
 
-  INSERT INTO object_tree_public.commit (scope_id, store_id, message, tree_id)
-    VALUES (s_id, init_empty_repo.store_id, 'first commit', vtree_id)
+    INSERT INTO object_tree_public.commit (scope_id, store_id, message, tree_id)
+      VALUES (s_id, init_empty_repo.store_id, 'first commit', vtree_id)
   RETURNING id into vcommit_id;
 
   UPDATE object_tree_public.ref SET commit_id = vcommit_id
