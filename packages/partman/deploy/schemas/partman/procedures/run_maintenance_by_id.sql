@@ -29,6 +29,10 @@ BEGIN
   );
 END;
 $$
-LANGUAGE 'plpgsql' VOLATILE;
+LANGUAGE 'plpgsql' VOLATILE SECURITY DEFINER;
+
+-- SECURITY DEFINER justification: same as create_parent_with_retention.
+-- partman.run_maintenance internally creates new partition tables and
+-- sets their owner to postgres, requiring SET ROLE. No user-data access.
 
 COMMIT;

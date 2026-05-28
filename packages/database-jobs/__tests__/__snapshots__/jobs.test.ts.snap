@@ -6,6 +6,7 @@ exports[`scheduled jobs schedule jobs 1`] = `
   "attempts": 0,
   "database_id": "5b720132-17d5-424d-9bcb-ee7b17c13d43",
   "entity_id": null,
+  "entity_type": null,
   "id": "1",
   "is_available": true,
   "key": null,
@@ -13,6 +14,7 @@ exports[`scheduled jobs schedule jobs 1`] = `
   "locked_at": null,
   "locked_by": null,
   "max_attempts": 25,
+  "organization_id": null,
   "payload": {
     "just": "run it",
   },

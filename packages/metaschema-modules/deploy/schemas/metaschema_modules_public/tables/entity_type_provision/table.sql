@@ -135,6 +135,12 @@ CREATE TABLE metaschema_modules_public.entity_type_provision (
 
     out_execution_logs_table_id uuid DEFAULT NULL,
 
+    out_secret_definitions_table_id uuid DEFAULT NULL,
+
+    out_requirements_table_id uuid DEFAULT NULL,
+
+    out_config_requirements_table_id uuid DEFAULT NULL,
+
     out_graph_module_id uuid DEFAULT NULL,
 
     out_graphs_table_id uuid DEFAULT NULL,
@@ -328,12 +334,13 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage IS
     'Optional JSON array of storage module definitions. Presence triggers provisioning
      (same inference model as namespaces, functions, agents).
      Each element provisions a separate storage module with its own tables
-     ({prefix}_{storage_key}_buckets/files), RLS policies, and feature flags.
+     ({prefix}_{key}_buckets/files), RLS policies, and feature flags.
      NULL = do not provision storage. ''[{}]'' = provision one default storage module.
      Each array element recognizes (all optional):
-       - storage_key                   (text) module discriminator, max 16 chars, lowercase snake_case.
+       - key                           (text) module discriminator, max 16 chars, lowercase snake_case.
                                               Defaults to ''default'' (omitted from table names).
                                               Non-default keys become infixes: {prefix}_{key}_buckets.
+                                              (storage_key accepted for backward compat)
        - upload_url_expiry_seconds     (integer) presigned PUT URL expiry override
        - download_url_expiry_seconds   (integer) presigned GET URL expiry override
        - default_max_file_size         (bigint)  global max file size in bytes for this module
@@ -353,7 +360,7 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage IS
      Example (single module, backward compat):
        storage := ''[{"buckets": [{"name": "documents"}]}]''::jsonb
      Example (multi-module):
-       storage := ''[{"has_path_shares": true, "buckets": [{"name": "documents"}]}, {"storage_key": "fn", "has_custom_keys": true, "buckets": [{"name": "functions"}]}]''::jsonb';
+       storage := ''[{"has_path_shares": true, "buckets": [{"name": "documents"}]}, {"key": "fn", "has_custom_keys": true, "buckets": [{"name": "functions"}]}]''::jsonb';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_storage_module_id IS
     'Output: the UUID of the storage_module row created for this entity type. Populated by the trigger when storage is non-NULL and non-empty.';

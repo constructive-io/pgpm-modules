@@ -7,6 +7,8 @@ CREATE TABLE app_jobs.jobs (
   database_id uuid,
   actor_id uuid,
   entity_id uuid,
+  organization_id uuid,
+  entity_type text,
   queue_name text DEFAULT NULL,
   task_identifier text NOT NULL,
   payload json DEFAULT '{}' ::json NOT NULL,
@@ -32,6 +34,8 @@ COMMENT ON COLUMN app_jobs.jobs.id IS 'Auto-incrementing job identifier';
 COMMENT ON COLUMN app_jobs.jobs.database_id IS 'Database this job belongs to (nullable for system-level jobs without tenant context)';
 COMMENT ON COLUMN app_jobs.jobs.actor_id IS 'User who triggered this job, read from JWT claims at enqueue time';
 COMMENT ON COLUMN app_jobs.jobs.entity_id IS 'Entity (org/team) this job is scoped to for billing; NULL means platform-level (resolved via database_id → owner_id)';
+COMMENT ON COLUMN app_jobs.jobs.organization_id IS 'Top-level organization for this entity; resolved at enqueue time via get_organization_id(entity_type, entity_id)';
+COMMENT ON COLUMN app_jobs.jobs.entity_type IS 'Entity type prefix (org, team, app, etc.) for interpreting entity_id';
 COMMENT ON COLUMN app_jobs.jobs.queue_name IS 'Name of the queue this job belongs to; used for worker routing and concurrency control';
 COMMENT ON COLUMN app_jobs.jobs.task_identifier IS 'Identifier for the task type (maps to a worker handler function)';
 COMMENT ON COLUMN app_jobs.jobs.payload IS 'JSON payload of arguments passed to the task handler';

@@ -69,11 +69,7 @@ COMMENT ON COLUMN object_tree_public.ref.id IS 'The primary unique identifier fo
 
 COMMENT ON COLUMN object_tree_public.ref.name IS 'The name of the ref or branch';
 
-CREATE FUNCTION object_tree_public.rev_parse(
-  s_id uuid,
-  store_id uuid,
-  refname text DEFAULT 'main'
-) RETURNS uuid AS $EOFCODE$
+CREATE FUNCTION object_tree_public.rev_parse(s_id uuid, store_id uuid, refname text DEFAULT 'main') RETURNS uuid AS $EOFCODE$
 DECLARE
   tree_id uuid;
   commit_id uuid;
@@ -106,12 +102,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION object_tree_public.get_object_at_path(
-  s_id uuid,
-  store_id uuid,
-  path text[],
-  refname text DEFAULT 'main'
-) RETURNS object_store_public.object AS $EOFCODE$
+CREATE FUNCTION object_tree_public.get_object_at_path(s_id uuid, store_id uuid, path text[], refname text DEFAULT 'main') RETURNS object_store_public.object AS $EOFCODE$
 DECLARE
   tree_id uuid;
   obj object_store_public.object;
@@ -123,10 +114,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION object_tree_public.init_empty_repo(
-  s_id uuid,
-  store_id uuid
-) RETURNS void AS $EOFCODE$
+CREATE FUNCTION object_tree_public.init_empty_repo(s_id uuid, store_id uuid) RETURNS void AS $EOFCODE$
 DECLARE
   vtree_id uuid;
   vcommit_id uuid;
@@ -156,15 +144,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-CREATE FUNCTION object_tree_public.set_and_commit(
-  s_id uuid,
-  store_id uuid,
-  refname text,
-  path text[],
-  data jsonb,
-  kids uuid[],
-  ktree text[]
-) RETURNS uuid AS $EOFCODE$
+CREATE FUNCTION object_tree_public.set_and_commit(s_id uuid, store_id uuid, refname text, path text[], data jsonb, kids uuid[], ktree text[]) RETURNS uuid AS $EOFCODE$
 DECLARE
   hash uuid;
 
@@ -224,13 +204,7 @@ RETURN hash;
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-CREATE FUNCTION object_tree_public.set_props_and_commit(
-  s_id uuid,
-  store_id uuid,
-  refname text,
-  path text[],
-  data jsonb
-) RETURNS uuid AS $EOFCODE$
+CREATE FUNCTION object_tree_public.set_props_and_commit(s_id uuid, store_id uuid, refname text, path text[], data jsonb) RETURNS uuid AS $EOFCODE$
 DECLARE
   hash uuid;
 

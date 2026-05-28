@@ -50,6 +50,9 @@ CREATE TABLE metaschema_modules_public.memberships_module (
 
     prefix text NULL,
 
+    -- Populated by memberships_module generator when get_organization_id is created
+    get_org_fn text NULL,
+
     --
 
     actor_mask_check text NOT NULL DEFAULT '',
