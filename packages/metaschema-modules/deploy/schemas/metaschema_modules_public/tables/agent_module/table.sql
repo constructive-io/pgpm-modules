@@ -35,6 +35,12 @@ CREATE TABLE metaschema_modules_public.agent_module (
   -- Multi-tenant scope
   membership_type int DEFAULT NULL,
 
+  -- Module key discriminator: allows multiple agent modules per scope.
+  -- 'default' is omitted from table names, any other value becomes
+  -- an infix: {prefix}_{key}_agent_thread.
+  -- Max 16 chars, lowercase snake_case.
+  key text NOT NULL DEFAULT 'default',
+
   -- Entity table for RLS (NULL for app-level, entity table for entity-scoped)
   entity_table_id uuid NULL,
 
@@ -69,9 +75,9 @@ CREATE TABLE metaschema_modules_public.agent_module (
 
 CREATE INDEX agent_module_database_id_idx ON metaschema_modules_public.agent_module ( database_id );
 
--- Unique constraint on (database_id, membership_type) using COALESCE to handle NULLs.
--- NULL membership_type = app-level, non-NULL = entity-scoped.
--- Only one agent module per scope.
-CREATE UNIQUE INDEX agent_module_unique_scope ON metaschema_modules_public.agent_module ( database_id, COALESCE(membership_type, -1) );
+-- Unique constraint on (database_id, membership_type, key) using COALESCE to handle NULLs.
+-- NULL membership_type = app-level, non-NULL = entity-scoped. key discriminates
+-- multiple agent modules for the same scope (e.g. 'support' + 'internal').
+CREATE UNIQUE INDEX agent_module_unique_scope ON metaschema_modules_public.agent_module ( database_id, COALESCE(membership_type, -1), key );
 
 COMMIT;

@@ -30,6 +30,16 @@ BEGIN
   END IF;
 END;
 $$
-LANGUAGE 'plpgsql' VOLATILE;
+LANGUAGE 'plpgsql' VOLATILE SECURITY DEFINER;
+
+-- SECURITY DEFINER justification:
+-- pg_partman 5.x create_parent runs as SECURITY INVOKER and internally
+-- executes "ALTER TABLE ... OWNER TO postgres" which requires SET ROLE.
+-- The authenticated role cannot SET ROLE to postgres.
+-- This function only performs DDL (creating partitions/templates) and
+-- writes to part_config (a system config table). It does NOT access any
+-- user-data tables, so RLS is irrelevant. This follows the same pattern
+-- as metaschema_private.create_database_trigger which is also SECURITY
+-- DEFINER for trigger-fired DDL that needs superuser privileges.
 
 COMMIT;

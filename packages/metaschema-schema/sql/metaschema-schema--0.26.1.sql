@@ -70,7 +70,7 @@ ALTER TABLE metaschema_public.schema
 
 CREATE INDEX schema_database_id_idx ON metaschema_public.schema (database_id);
 
-CREATE TABLE metaschema_public.table (
+CREATE TABLE metaschema_public."table" (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   database_id uuid NOT NULL DEFAULT uuid_nil(),
   schema_id uuid NOT NULL,
@@ -102,14 +102,14 @@ CREATE TABLE metaschema_public.table (
   UNIQUE (database_id, schema_id, name)
 );
 
-ALTER TABLE metaschema_public.table 
+ALTER TABLE metaschema_public."table" 
   ADD COLUMN inherits_id uuid
     NULL
-    REFERENCES metaschema_public.table (id);
+    REFERENCES metaschema_public."table" (id);
 
-CREATE INDEX table_schema_id_idx ON metaschema_public.table (schema_id);
+CREATE INDEX table_schema_id_idx ON metaschema_public."table" (schema_id);
 
-CREATE INDEX table_database_id_idx ON metaschema_public.table (database_id);
+CREATE INDEX table_database_id_idx ON metaschema_public."table" (database_id);
 
 CREATE TABLE metaschema_public.check_constraint (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -130,7 +130,7 @@ CREATE TABLE metaschema_public.check_constraint (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   UNIQUE (table_id, name),
   CHECK (field_ids <> '{}')
@@ -140,9 +140,7 @@ CREATE INDEX check_constraint_table_id_idx ON metaschema_public.check_constraint
 
 CREATE INDEX check_constraint_database_id_idx ON metaschema_public.check_constraint (database_id);
 
-CREATE FUNCTION metaschema_private.database_name_hash(
-  name text
-) RETURNS bytea AS $EOFCODE$
+CREATE FUNCTION metaschema_private.database_name_hash(name text) RETURNS bytea AS $EOFCODE$
   SELECT
     DECODE(MD5(LOWER(inflection.plural (name))), 'hex');
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
@@ -178,7 +176,7 @@ CREATE TABLE metaschema_public.field (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   UNIQUE (table_id, name)
 );
@@ -203,7 +201,7 @@ CREATE TABLE metaschema_public.foreign_key_constraint (
   smart_tags jsonb,
   type text,
   field_ids uuid[] NOT NULL,
-  ref_table_id uuid NOT NULL REFERENCES metaschema_public.table (id)
+  ref_table_id uuid NOT NULL REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   ref_field_ids uuid[] NOT NULL,
   delete_action char(1) DEFAULT 'c',
@@ -218,7 +216,7 @@ CREATE TABLE metaschema_public.foreign_key_constraint (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   UNIQUE (table_id, name),
   CHECK (field_ids <> '{}'),
@@ -243,7 +241,7 @@ CREATE TABLE metaschema_public.full_text_search (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CHECK (
     cardinality(field_ids) = cardinality(weights)
@@ -279,7 +277,7 @@ CREATE TABLE metaschema_public.index (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   UNIQUE (database_id, name)
 );
@@ -310,7 +308,7 @@ CREATE TABLE metaschema_public.policy (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   UNIQUE (table_id, name)
 );
@@ -337,7 +335,7 @@ CREATE TABLE metaschema_public.primary_key_constraint (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   UNIQUE (table_id, name),
   CHECK (field_ids <> '{}')
@@ -380,7 +378,7 @@ CREATE TABLE metaschema_public.table_grant (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE
 );
 
@@ -390,14 +388,12 @@ CREATE INDEX table_grant_database_id_idx ON metaschema_public.table_grant (datab
 
 CREATE UNIQUE INDEX table_grant_unique_idx ON metaschema_public.table_grant (table_id, privilege, grantee_name, (COALESCE(field_ids, CAST('{}' AS uuid[]))));
 
-CREATE FUNCTION metaschema_private.table_name_hash(
-  name text
-) RETURNS bytea AS $EOFCODE$
+CREATE FUNCTION metaschema_private.table_name_hash(name text) RETURNS bytea AS $EOFCODE$
   SELECT
     DECODE(MD5(LOWER(inflection.plural (name))), 'hex');
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
 
-CREATE UNIQUE INDEX databases_table_unique_name_idx ON metaschema_public.table (database_id, schema_id, (metaschema_private.table_name_hash(name)));
+CREATE UNIQUE INDEX databases_table_unique_name_idx ON metaschema_public."table" (database_id, schema_id, (metaschema_private.table_name_hash(name)));
 
 CREATE TABLE metaschema_public.trigger_function (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -431,7 +427,7 @@ CREATE TABLE metaschema_public.trigger (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   UNIQUE (table_id, name)
 );
@@ -459,7 +455,7 @@ CREATE TABLE metaschema_public.unique_constraint (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   UNIQUE (table_id, name),
   CHECK (field_ids <> '{}')
@@ -496,7 +492,7 @@ CREATE TABLE metaschema_public.view (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   UNIQUE (schema_id, name)
 );
@@ -518,7 +514,7 @@ CREATE TABLE metaschema_public.view_table (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   UNIQUE (view_id, table_id)
 );
@@ -610,7 +606,7 @@ CREATE TABLE metaschema_public.enum (
   name text NOT NULL,
   label text,
   description text,
-  "values" text[] NOT NULL DEFAULT '{}',
+  values text[] NOT NULL DEFAULT '{}',
   smart_tags jsonb,
   category metaschema_public.object_category NOT NULL DEFAULT 'app',
   module text NULL,
@@ -657,11 +653,11 @@ CREATE TABLE metaschema_public.embedding_chunks (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT chunks_table_fkey
     FOREIGN KEY(chunks_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE SET NULL,
   CONSTRAINT embedding_field_fkey
     FOREIGN KEY(embedding_field_id)
@@ -712,7 +708,7 @@ CREATE TABLE metaschema_public.spatial_relation (
     ON DELETE CASCADE,
   CONSTRAINT table_fkey
     FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT field_fkey
     FOREIGN KEY(field_id)
@@ -720,7 +716,7 @@ CREATE TABLE metaschema_public.spatial_relation (
     ON DELETE CASCADE,
   CONSTRAINT ref_table_fkey
     FOREIGN KEY(ref_table_id)
-    REFERENCES metaschema_public.table (id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT ref_field_fkey
     FOREIGN KEY(ref_field_id)
@@ -765,3 +761,32 @@ CREATE TABLE metaschema_public.function (
 CREATE INDEX function_database_id_idx ON metaschema_public.function (database_id);
 
 CREATE INDEX function_schema_id_idx ON metaschema_public.function (schema_id);
+
+CREATE TABLE metaschema_public.partition (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  database_id uuid NOT NULL,
+  table_id uuid NOT NULL,
+  strategy text NOT NULL CHECK (strategy IN ('range', 'list', 'hash')),
+  partition_key_id uuid NOT NULL,
+  interval text,
+  retention text,
+  retention_keep_table boolean NOT NULL DEFAULT true,
+  premake int NOT NULL DEFAULT 2,
+  naming_pattern text NOT NULL DEFAULT '{parent}_{bounds}',
+  is_parented boolean NOT NULL DEFAULT false,
+  CONSTRAINT partition_database_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT partition_table_fkey
+    FOREIGN KEY(table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT partition_key_field_fkey
+    FOREIGN KEY(partition_key_id)
+    REFERENCES metaschema_public.field (id),
+  CONSTRAINT partition_table_unique 
+    UNIQUE (table_id)
+);
+
+CREATE INDEX partition_database_id_idx ON metaschema_public.partition (database_id);

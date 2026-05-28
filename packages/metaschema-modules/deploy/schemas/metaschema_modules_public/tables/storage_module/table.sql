@@ -23,11 +23,11 @@ CREATE TABLE metaschema_modules_public.storage_module (
     -- Multi-tenant storage identity
     membership_type int DEFAULT NULL,              -- NULL = global gate (AuthzMembership via app_sprt), non-NULL = entity-scoped (AuthzEntityMembership)
 
-    -- Storage module discriminator: allows multiple storage modules per entity type.
+    -- Module key discriminator: allows multiple storage modules per entity type.
     -- 'default' is omitted from table names (backward compat), any other value becomes
-    -- an infix: {prefix}_{storage_key}_{buckets|files}.
+    -- an infix: {prefix}_{key}_{buckets|files}.
     -- Max 16 chars, lowercase snake_case, cannot be 'buckets'/'files'/'bucket'/'file'.
-    storage_key text NOT NULL DEFAULT 'default',
+    key text NOT NULL DEFAULT 'default',
 
     -- Configurable security policies (NULL = use defaults based on membership_type).
     -- When provided, replaces the default policy set in apply_storage_security.
@@ -100,9 +100,9 @@ CREATE TABLE metaschema_modules_public.storage_module (
 
 CREATE INDEX storage_module_database_id_idx ON metaschema_modules_public.storage_module ( database_id );
 
--- Unique constraint on (database_id, membership_type, storage_key) using COALESCE to handle NULLs.
--- NULL membership_type = app-level, non-NULL = entity-scoped. storage_key discriminates
+-- Unique constraint on (database_id, membership_type, key) using COALESCE to handle NULLs.
+-- NULL membership_type = app-level, non-NULL = entity-scoped. key discriminates
 -- multiple storage modules for the same entity type (e.g. 'default' + 'fn').
-CREATE UNIQUE INDEX storage_module_unique_scope ON metaschema_modules_public.storage_module ( database_id, COALESCE(membership_type, -1), storage_key );
+CREATE UNIQUE INDEX storage_module_unique_scope ON metaschema_modules_public.storage_module ( database_id, COALESCE(membership_type, -1), key );
 
 COMMIT;

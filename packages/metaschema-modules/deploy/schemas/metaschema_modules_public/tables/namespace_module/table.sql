@@ -31,6 +31,12 @@ CREATE TABLE metaschema_modules_public.namespace_module (
     -- Multi-tenant namespace identity
     membership_type int DEFAULT NULL,              -- NULL = database-root (AuthzMembership via app_sprt), non-NULL = entity-scoped (AuthzEntityMembership)
 
+    -- Module key discriminator: allows multiple namespace modules per scope.
+    -- 'default' is omitted from table names, any other value becomes
+    -- an infix: {prefix}_{key}_namespaces.
+    -- Max 16 chars, lowercase snake_case.
+    key text NOT NULL DEFAULT 'default',
+
     -- Entity table for RLS (NULL for app-level namespaces, entity table for entity-scoped namespaces)
     entity_table_id uuid NULL,
 
@@ -57,9 +63,9 @@ CREATE TABLE metaschema_modules_public.namespace_module (
 
 CREATE INDEX namespace_module_database_id_idx ON metaschema_modules_public.namespace_module ( database_id );
 
--- Unique constraint on (database_id, membership_type) using COALESCE to handle NULLs.
--- NULL membership_type = app-level, non-NULL = entity-scoped.
--- Only one namespace module per scope (unlike storage_module which has storage_key).
-CREATE UNIQUE INDEX namespace_module_unique_scope ON metaschema_modules_public.namespace_module ( database_id, COALESCE(membership_type, -1) );
+-- Unique constraint on (database_id, membership_type, key) using COALESCE to handle NULLs.
+-- NULL membership_type = app-level, non-NULL = entity-scoped. key discriminates
+-- multiple namespace modules for the same scope (e.g. 'config' + 'content').
+CREATE UNIQUE INDEX namespace_module_unique_scope ON metaschema_modules_public.namespace_module ( database_id, COALESCE(membership_type, -1), key );
 
 COMMIT;
