@@ -3,6 +3,8 @@ CREATE SCHEMA IF NOT EXISTS app_jobs;
 
 GRANT USAGE ON SCHEMA app_jobs TO administrator;
 
+GRANT USAGE ON SCHEMA app_jobs TO authenticated;
+
 ALTER DEFAULT PRIVILEGES IN SCHEMA app_jobs
   GRANT EXECUTE ON FUNCTIONS TO administrator;
 
@@ -875,6 +877,8 @@ BEGIN
   RETURN v_job;
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION app_jobs.add_job(text, pg_catalog.json, text, text, timestamptz, int, int, uuid, uuid, text) TO authenticated;
 
 CREATE FUNCTION app_jobs.remove_job(job_key text) RETURNS app_jobs.jobs LANGUAGE plpgsql STRICT AS $EOFCODE$
 DECLARE
