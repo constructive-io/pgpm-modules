@@ -38,6 +38,9 @@ CREATE TABLE metaschema_public.table (
   partition_key_names text[] DEFAULT NULL,
   partition_key_types text[] DEFAULT NULL,
 
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+
   CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
   CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
   

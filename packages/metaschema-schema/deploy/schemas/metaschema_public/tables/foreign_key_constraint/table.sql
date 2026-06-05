@@ -28,6 +28,9 @@ CREATE TABLE metaschema_public.foreign_key_constraint (
 
     tags citext[] NOT NULL DEFAULT '{}',
 
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now(),
+
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
     CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
 
