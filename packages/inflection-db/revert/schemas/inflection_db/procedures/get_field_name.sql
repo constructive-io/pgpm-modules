@@ -2,6 +2,7 @@
 
 BEGIN;
 
-DROP FUNCTION inflection_db.get_field_name;
+DROP FUNCTION inflection_db.get_field_name (text);
+DROP FUNCTION inflection_db.get_field_name (text[]);
 
 COMMIT;

@@ -2,6 +2,7 @@
 
 BEGIN;
 
-DROP FUNCTION inflection_db.get_identifier_name;
+DROP FUNCTION inflection_db.get_identifier_name (text);
+DROP FUNCTION inflection_db.get_identifier_name (text[]);
 
 COMMIT;
