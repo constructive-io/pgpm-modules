@@ -13,6 +13,10 @@ CREATE TABLE metaschema_public.database (
   label text,
   
   hash uuid,
+
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+
   unique(schema_hash)
 );
 

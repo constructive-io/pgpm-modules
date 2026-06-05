@@ -25,6 +25,9 @@ CREATE TABLE metaschema_public.schema (
 
     is_public boolean NOT NULL DEFAULT TRUE,
 
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now(),
+
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
 
     UNIQUE (database_id, name),

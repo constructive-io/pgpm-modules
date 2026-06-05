@@ -2,12 +2,14 @@
 
 exports[`services functionality should handle complete meta workflow with services 1`] = `
 {
+  "created_at": "[DATE]",
   "hash": null,
   "id": "[ID]",
   "label": null,
   "name": "my-meta-db",
   "owner_id": "[ID]",
   "schema_hash": null,
+  "updated_at": "[DATE]",
 }
 `;
 

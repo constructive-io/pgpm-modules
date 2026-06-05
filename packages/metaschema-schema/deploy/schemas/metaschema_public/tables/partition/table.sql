@@ -20,6 +20,9 @@ CREATE TABLE metaschema_public.partition (
   naming_pattern    text NOT NULL DEFAULT '{parent}_{bounds}',
   is_parented       boolean NOT NULL DEFAULT false,
 
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+
   CONSTRAINT partition_database_fkey
     FOREIGN KEY (database_id)
     REFERENCES metaschema_public.database (id)

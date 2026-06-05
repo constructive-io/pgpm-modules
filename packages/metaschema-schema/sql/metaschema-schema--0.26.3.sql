@@ -34,6 +34,8 @@ CREATE TABLE metaschema_public.database (
   name text,
   label text,
   hash uuid,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   UNIQUE (schema_hash)
 );
 
@@ -56,6 +58,8 @@ CREATE TABLE metaschema_public.schema (
   scope int NULL,
   tags citext[] NOT NULL DEFAULT '{}',
   is_public boolean NOT NULL DEFAULT true,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -91,6 +95,8 @@ CREATE TABLE metaschema_public."table" (
   partition_strategy text DEFAULT NULL,
   partition_key_names text[] DEFAULT NULL,
   partition_key_types text[] DEFAULT NULL,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -124,6 +130,8 @@ CREATE TABLE metaschema_public.check_constraint (
   module text NULL,
   scope int NULL,
   tags citext[] NOT NULL DEFAULT '{}',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -170,6 +178,8 @@ CREATE TABLE metaschema_public.field (
   category metaschema_public.object_category NOT NULL DEFAULT 'app',
   module text NULL,
   scope int NULL,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -210,6 +220,8 @@ CREATE TABLE metaschema_public.foreign_key_constraint (
   module text NULL,
   scope int NULL,
   tags citext[] NOT NULL DEFAULT '{}',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -235,6 +247,8 @@ CREATE TABLE metaschema_public.full_text_search (
   field_ids uuid[] NOT NULL,
   weights text[] NOT NULL,
   langs text[] NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -271,6 +285,8 @@ CREATE TABLE metaschema_public.index (
   module text NULL,
   scope int NULL,
   tags citext[] NOT NULL DEFAULT '{}',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -302,6 +318,8 @@ CREATE TABLE metaschema_public.policy (
   module text NULL,
   scope int NULL,
   tags citext[] NOT NULL DEFAULT '{}',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -329,6 +347,8 @@ CREATE TABLE metaschema_public.primary_key_constraint (
   module text NULL,
   scope int NULL,
   tags citext[] NOT NULL DEFAULT '{}',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -350,6 +370,8 @@ CREATE TABLE metaschema_public.schema_grant (
   database_id uuid NOT NULL DEFAULT uuid_nil(),
   schema_id uuid NOT NULL,
   grantee_name text NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -372,6 +394,8 @@ CREATE TABLE metaschema_public.table_grant (
   grantee_name text NOT NULL,
   field_ids uuid[],
   is_grant boolean NOT NULL DEFAULT true,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -400,6 +424,8 @@ CREATE TABLE metaschema_public.trigger_function (
   database_id uuid NOT NULL,
   name text NOT NULL,
   code text,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -421,6 +447,8 @@ CREATE TABLE metaschema_public.trigger (
   module text NULL,
   scope int NULL,
   tags citext[] NOT NULL DEFAULT '{}',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -449,6 +477,8 @@ CREATE TABLE metaschema_public.unique_constraint (
   module text NULL,
   scope int NULL,
   tags citext[] NOT NULL DEFAULT '{}',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -647,6 +677,8 @@ CREATE TABLE metaschema_public.embedding_chunks (
   embedding_model text,
   embedding_provider text,
   parent_fk_field_id uuid,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -702,6 +734,8 @@ CREATE TABLE metaschema_public.spatial_relation (
   module text NULL,
   scope int NULL,
   tags citext[] NOT NULL DEFAULT '{}',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -774,6 +808,8 @@ CREATE TABLE metaschema_public.partition (
   premake int NOT NULL DEFAULT 2,
   naming_pattern text NOT NULL DEFAULT '{parent}_{bounds}',
   is_parented boolean NOT NULL DEFAULT false,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
   CONSTRAINT partition_database_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
