@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP TABLE metaschema_modules_public.user_settings_module;
+DROP TABLE IF EXISTS metaschema_modules_public.user_settings_module;
 
 COMMIT;

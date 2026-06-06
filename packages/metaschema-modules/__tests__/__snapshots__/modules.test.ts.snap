@@ -1,0 +1,354 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`db_meta_modules should have all expected module tables 1`] = `
+{
+  "moduleNames": [
+    "agent_module",
+    "billing_module",
+    "billing_provider_module",
+    "compute_log_module",
+    "config_secrets_module",
+    "config_secrets_org_module",
+    "config_secrets_user_module",
+    "connected_accounts_module",
+    "crypto_addresses_module",
+    "crypto_auth_module",
+    "db_usage_module",
+    "default_ids_module",
+    "devices_module",
+    "emails_module",
+    "events_module",
+    "function_module",
+    "graph_module",
+    "hierarchy_module",
+    "i18n_module",
+    "identity_providers_module",
+    "inference_log_module",
+    "invites_module",
+    "limits_module",
+    "membership_types_module",
+    "memberships_module",
+    "merkle_store_module",
+    "namespace_module",
+    "notifications_module",
+    "permissions_module",
+    "phone_numbers_module",
+    "plans_module",
+    "profiles_module",
+    "rate_limit_meters_module",
+    "rate_limits_module",
+    "realtime_module",
+    "rls_module",
+    "session_secrets_module",
+    "sessions_module",
+    "storage_log_module",
+    "storage_module",
+    "transfer_log_module",
+    "user_auth_module",
+    "user_credentials_module",
+    "user_settings_module",
+    "user_state_module",
+    "users_module",
+    "webauthn_auth_module",
+    "webauthn_credentials_module",
+  ],
+}
+`;
+
+exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
+{
+  "moduleTablesCount": 48,
+  "totalTables": 55,
+}
+`;
+
+exports[`db_meta_modules should verify emails_module table structure 1`] = `
+{
+  "columns": [
+    {
+      "column_default": "uuidv7()",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": null,
+      "column_name": "database_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "schema_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "private_schema_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "table_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "owner_table_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": null,
+      "column_name": "table_name",
+      "data_type": "text",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "'auth'::text",
+      "column_name": "api_name",
+      "data_type": "text",
+      "is_nullable": "YES",
+    },
+    {
+      "column_default": null,
+      "column_name": "private_api_name",
+      "data_type": "text",
+      "is_nullable": "YES",
+    },
+  ],
+}
+`;
+
+exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
+{
+  "constraintCount": 303413,
+}
+`;
+
+exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
+{
+  "constraintCount": 452625,
+  "foreignTables": [
+    "database",
+    "field",
+    "merkle_store_module",
+    "schema",
+    "table",
+  ],
+}
+`;
+
+exports[`db_meta_modules should verify sessions_module table structure 1`] = `
+{
+  "columns": [
+    {
+      "column_default": "uuidv7()",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": null,
+      "column_name": "database_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "schema_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "sessions_table_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "session_credentials_table_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "auth_settings_table_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "users_table_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "'30 days'::interval",
+      "column_name": "sessions_default_expiration",
+      "data_type": "interval",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "'sessions'::text",
+      "column_name": "sessions_table",
+      "data_type": "text",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "'session_credentials'::text",
+      "column_name": "session_credentials_table",
+      "data_type": "text",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "'app_settings_auth'::text",
+      "column_name": "auth_settings_table",
+      "data_type": "text",
+      "is_nullable": "NO",
+    },
+  ],
+}
+`;
+
+exports[`db_meta_modules should verify specific module table column defaults 1`] = `
+{
+  "sessionsDefaults": [
+    {
+      "column_default": "'app_settings_auth'::text",
+      "column_name": "auth_settings_table",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "auth_settings_table_id",
+    },
+    {
+      "column_default": "uuidv7()",
+      "column_name": "id",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "schema_id",
+    },
+    {
+      "column_default": "'session_credentials'::text",
+      "column_name": "session_credentials_table",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "session_credentials_table_id",
+    },
+    {
+      "column_default": "'30 days'::interval",
+      "column_name": "sessions_default_expiration",
+    },
+    {
+      "column_default": "'sessions'::text",
+      "column_name": "sessions_table",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "sessions_table_id",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "users_table_id",
+    },
+  ],
+  "usersDefaults": [
+    {
+      "column_default": "'auth'::text",
+      "column_name": "api_name",
+    },
+    {
+      "column_default": "uuidv7()",
+      "column_name": "id",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "schema_id",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "table_id",
+    },
+    {
+      "column_default": "'users'::text",
+      "column_name": "table_name",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "type_table_id",
+    },
+    {
+      "column_default": "'role_types'::text",
+      "column_name": "type_table_name",
+    },
+  ],
+}
+`;
+
+exports[`db_meta_modules should verify users_module table structure 1`] = `
+{
+  "columns": [
+    {
+      "column_default": "uuidv7()",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": null,
+      "column_name": "database_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "schema_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "table_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "'users'::text",
+      "column_name": "table_name",
+      "data_type": "text",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "uuid_nil()",
+      "column_name": "type_table_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "'role_types'::text",
+      "column_name": "type_table_name",
+      "data_type": "text",
+      "is_nullable": "NO",
+    },
+    {
+      "column_default": "'auth'::text",
+      "column_name": "api_name",
+      "data_type": "text",
+      "is_nullable": "YES",
+    },
+    {
+      "column_default": null,
+      "column_name": "private_api_name",
+      "data_type": "text",
+      "is_nullable": "YES",
+    },
+  ],
+}
+`;

@@ -27,7 +27,6 @@ describe('db_meta_modules', () => {
           'crypto_auth_module',
           'default_ids_module',
           'emails_module',
-          'config_secrets_module',
           'config_secrets_user_module',
           'invites_module',
           'events_module',
@@ -40,7 +39,6 @@ describe('db_meta_modules', () => {
           'user_state_module',
           'sessions_module',
           'user_auth_module',
-          'user_credentials_module',
           'users_module'
         ];
 
