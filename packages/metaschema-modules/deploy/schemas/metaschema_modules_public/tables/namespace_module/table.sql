@@ -28,19 +28,18 @@ CREATE TABLE metaschema_modules_public.namespace_module (
     api_name text,
     private_api_name text,
 
-    -- Multi-tenant namespace identity
-    membership_type int DEFAULT NULL,              -- NULL = database-root (AuthzMembership via app_sprt), non-NULL = entity-scoped (AuthzEntityMembership)
+    -- Scope: determines the security level for this module instance.
+    -- Resolved to a membership_type integer at trigger time via membership_types table.
+    scope text NOT NULL DEFAULT 'app',
 
-    -- Module key discriminator: allows multiple namespace modules per scope.
-    -- 'default' is omitted from table names, any other value becomes
-    -- an infix: {prefix}_{key}_namespaces.
-    -- Max 16 chars, lowercase snake_case.
-    key text NOT NULL DEFAULT 'default',
+    -- Table name prefix. Auto-derived from scope by the trigger when empty.
+    -- Override to create multiple module instances at the same scope.
+    prefix text NOT NULL DEFAULT '',
 
     -- Entity table for RLS (NULL for app-level namespaces, entity table for entity-scoped namespaces)
     entity_table_id uuid NULL,
 
-    -- Configurable security policies (NULL = use defaults based on membership_type).
+    -- Configurable security policies (NULL = use defaults based on scope).
     -- When provided, replaces the default policy set in apply_namespace_security.
     -- Accepts a JSON array of policy objects:
     --   {"$type": "AuthzEntityMembership", "privileges": ["select", "update"], "data": {...}}
@@ -51,6 +50,10 @@ CREATE TABLE metaschema_modules_public.namespace_module (
     -- When a key is present, the module trigger skips default security for that table;
     -- secure_table_provision applies the custom grants/policies instead.
     provisions jsonb NULL,
+
+    -- Default permissions: permission names auto-granted to new members.
+    -- NULL uses the module's built-in defaults; explicit array overrides them.
+    default_permissions text[] DEFAULT NULL,
 
     -- Constraints
     CONSTRAINT namespace_module_db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
@@ -63,9 +66,7 @@ CREATE TABLE metaschema_modules_public.namespace_module (
 
 CREATE INDEX namespace_module_database_id_idx ON metaschema_modules_public.namespace_module ( database_id );
 
--- Unique constraint on (database_id, membership_type, key) using COALESCE to handle NULLs.
--- NULL membership_type = app-level, non-NULL = entity-scoped. key discriminates
--- multiple namespace modules for the same scope (e.g. 'config' + 'content').
-CREATE UNIQUE INDEX namespace_module_unique_scope ON metaschema_modules_public.namespace_module ( database_id, COALESCE(membership_type, -1), key );
+-- Unique constraint: one namespace module per database per scope per prefix.
+CREATE UNIQUE INDEX namespace_module_unique_scope ON metaschema_modules_public.namespace_module ( database_id, scope, prefix );
 
 COMMIT;

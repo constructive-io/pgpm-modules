@@ -17,19 +17,18 @@ CREATE TABLE metaschema_modules_public.storage_module (
     files_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- Table names (input to the generator)
-    buckets_table_name text NOT NULL DEFAULT 'app_buckets',
-    files_table_name text NOT NULL DEFAULT 'app_files',
+    buckets_table_name text NOT NULL DEFAULT 'buckets',
+    files_table_name text NOT NULL DEFAULT 'files',
 
-    -- Multi-tenant storage identity
-    membership_type int DEFAULT NULL,              -- NULL = global gate (AuthzMembership via app_sprt), non-NULL = entity-scoped (AuthzEntityMembership)
+    -- Scope: determines the security level for this module instance.
+    -- Resolved to a membership_type integer at trigger time via membership_types table.
+    scope text NOT NULL DEFAULT 'app',
 
-    -- Module key discriminator: allows multiple storage modules per entity type.
-    -- 'default' is omitted from table names (backward compat), any other value becomes
-    -- an infix: {prefix}_{key}_{buckets|files}.
-    -- Max 16 chars, lowercase snake_case, cannot be 'buckets'/'files'/'bucket'/'file'.
-    key text NOT NULL DEFAULT 'default',
+    -- Table name prefix. Auto-derived from scope by the trigger when empty.
+    -- Override to create multiple module instances at the same scope.
+    prefix text NOT NULL DEFAULT '',
 
-    -- Configurable security policies (NULL = use defaults based on membership_type).
+    -- Configurable security policies (NULL = use defaults based on scope).
     -- When provided, replaces the default policy set in apply_storage_security.
     -- Accepts a JSON array of policy objects:
     --   {"$type": "AuthzEntityMembership", "privileges": ["select", "update"], "data": {...}}
@@ -87,7 +86,15 @@ CREATE TABLE metaschema_modules_public.storage_module (
     -- Generated table ID for file_events (populated by the generator when has_audit_log=true)
     file_events_table_id uuid NULL DEFAULT NULL,
 
+    -- Default permissions: permission names auto-granted to new members.
+    -- NULL uses the module's built-in defaults; explicit array overrides them.
+    default_permissions text[] DEFAULT NULL,
+
     -- Constraints
+    -- API routing (configurable per-module)
+    api_name text DEFAULT 'admin',
+    private_api_name text DEFAULT NULL,
+
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
     CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
@@ -100,9 +107,7 @@ CREATE TABLE metaschema_modules_public.storage_module (
 
 CREATE INDEX storage_module_database_id_idx ON metaschema_modules_public.storage_module ( database_id );
 
--- Unique constraint on (database_id, membership_type, key) using COALESCE to handle NULLs.
--- NULL membership_type = app-level, non-NULL = entity-scoped. key discriminates
--- multiple storage modules for the same entity type (e.g. 'default' + 'fn').
-CREATE UNIQUE INDEX storage_module_unique_scope ON metaschema_modules_public.storage_module ( database_id, COALESCE(membership_type, -1), key );
+-- Unique constraint: one storage module per database per scope per prefix.
+CREATE UNIQUE INDEX storage_module_unique_scope ON metaschema_modules_public.storage_module ( database_id, scope, prefix );
 
 COMMIT;

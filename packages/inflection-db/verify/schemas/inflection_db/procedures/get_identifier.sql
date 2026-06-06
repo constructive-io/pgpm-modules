@@ -1,4 +1,4 @@
--- Verify schemas/inflection_db/procedures/get_identifier on pg
+-- Verify schemas/inflection_db/procedures/get_identifier  on pg
 
 BEGIN;
 

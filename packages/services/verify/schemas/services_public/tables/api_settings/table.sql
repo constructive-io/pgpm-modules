@@ -17,6 +17,7 @@ SELECT
     enable_llm,
     enable_realtime,
     enable_bulk,
+    enable_i18n,
     options
 FROM services_public.api_settings
 WHERE false;

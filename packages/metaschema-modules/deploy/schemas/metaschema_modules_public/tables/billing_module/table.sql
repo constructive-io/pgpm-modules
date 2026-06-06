@@ -35,10 +35,22 @@ CREATE TABLE metaschema_modules_public.billing_module (
   meter_sources_table_id uuid NOT NULL DEFAULT uuid_nil(),
   meter_sources_table_name text NOT NULL DEFAULT '',
 
+  -- Meter defaults table: app-scope default meter catalog seeded at provision time
+  meter_defaults_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  meter_defaults_table_name text NOT NULL DEFAULT '',
+
   -- Generated functions
   record_usage_function text NOT NULL DEFAULT '',
 
   prefix text NULL,
+
+  -- Default permissions: permission names auto-granted to new members.
+  -- NULL uses the module's built-in defaults; explicit array overrides them.
+  default_permissions text[] DEFAULT NULL,
+
+  -- API routing (configurable per-module)
+  api_name text DEFAULT 'usage',
+  private_api_name text DEFAULT NULL,
 
   CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
   CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
@@ -49,6 +61,7 @@ CREATE TABLE metaschema_modules_public.billing_module (
   CONSTRAINT balances_table_fkey FOREIGN KEY (balances_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT meter_credits_table_fkey FOREIGN KEY (meter_credits_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT meter_sources_table_fkey FOREIGN KEY (meter_sources_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+  CONSTRAINT meter_defaults_table_fkey FOREIGN KEY (meter_defaults_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT billing_module_database_id_unique UNIQUE (database_id)
 );
 

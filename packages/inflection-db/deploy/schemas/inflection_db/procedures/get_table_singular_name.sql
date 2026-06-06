@@ -12,3 +12,4 @@ $$
 LANGUAGE 'sql'
 IMMUTABLE;
 COMMIT;
+

@@ -1,7 +1,7 @@
 %syntax-version=1.0.0
-%project=pgpm-inflection-db
-%uri=pgpm-inflection-db
-
+%project=inflection-db
+%uri=inflection-db
+  
 schemas/inflection_db/schema [pgpm-inflection:schemas/inflection/tables/inflection_rules/indexes/inflection_rules_type_idx pgpm-verify:procedures/verify_view] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/inflection_db/schema
 schemas/inflection_db/procedures/get_identifier [schemas/inflection_db/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/inflection_db/procedures/get_identifier
 schemas/inflection_db/procedures/get_table_name [schemas/inflection_db/schema schemas/inflection_db/procedures/get_identifier] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/inflection_db/procedures/get_table_name
@@ -16,4 +16,4 @@ schemas/inflection_db/procedures/get_schema_name [schemas/inflection_db/schema s
 schemas/inflection_db/procedures/get_table_plural_name [schemas/inflection_db/schema schemas/inflection_db/procedures/get_identifier] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/inflection_db/procedures/get_table_plural_name
 schemas/inflection_db/procedures/get_table_singular_name [schemas/inflection_db/schema schemas/inflection_db/procedures/get_identifier] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/inflection_db/procedures/get_table_singular_name
 schemas/inflection_db/procedures/get_unique_index_name [schemas/inflection_db/schema schemas/inflection_db/procedures/get_table_name schemas/inflection_db/procedures/get_identifier] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/inflection_db/procedures/get_unique_index_name
-schemas/inflection_db/procedures/get_namespace_name [schemas/inflection_db/schema schemas/inflection_db/procedures/get_identifier] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/inflection_db/procedures/get_namespace_name
+schemas/inflection_db/procedures/get_namespace_name [schemas/inflection_db/schema schemas/inflection_db/procedures/get_identifier] 2026-05-21T00:00:00Z devin <devin@cognition.ai> # add schemas/inflection_db/procedures/get_namespace_name

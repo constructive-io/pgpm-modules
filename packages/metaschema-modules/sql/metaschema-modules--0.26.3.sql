@@ -31,6 +31,8 @@ CREATE TABLE metaschema_modules_public.connected_accounts_module (
   table_id uuid NOT NULL DEFAULT uuid_nil(),
   owner_table_id uuid NOT NULL DEFAULT uuid_nil(),
   table_name text NOT NULL,
+  api_name text DEFAULT 'auth',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -64,6 +66,8 @@ CREATE TABLE metaschema_modules_public.crypto_addresses_module (
   owner_table_id uuid NOT NULL DEFAULT uuid_nil(),
   table_name text NOT NULL,
   crypto_network text NOT NULL DEFAULT 'BTC',
+  api_name text DEFAULT 'auth',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -187,6 +191,8 @@ CREATE TABLE metaschema_modules_public.emails_module (
   table_id uuid NOT NULL DEFAULT uuid_nil(),
   owner_table_id uuid NOT NULL DEFAULT uuid_nil(),
   table_name text NOT NULL,
+  api_name text DEFAULT 'auth',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -218,6 +224,8 @@ CREATE TABLE metaschema_modules_public.config_secrets_user_module (
   table_id uuid NOT NULL DEFAULT uuid_nil(),
   table_name text NOT NULL DEFAULT 'user_secrets',
   config_definitions_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  api_name text DEFAULT 'config',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -250,9 +258,11 @@ CREATE TABLE metaschema_modules_public.invites_module (
   invites_table_name text NOT NULL DEFAULT '',
   claimed_invites_table_name text NOT NULL DEFAULT '',
   submit_invite_code_function text NOT NULL DEFAULT '',
-  prefix text NULL,
-  membership_type int NOT NULL,
+  scope text NOT NULL DEFAULT 'app',
+  prefix text NOT NULL DEFAULT '',
   entity_table_id uuid NULL,
+  api_name text DEFAULT 'admin',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -289,7 +299,7 @@ CREATE TABLE metaschema_modules_public.invites_module (
 
 CREATE INDEX invites_module_database_id_idx ON metaschema_modules_public.invites_module (database_id);
 
-CREATE UNIQUE INDEX invites_module_unique_scope ON metaschema_modules_public.invites_module (database_id, membership_type);
+CREATE UNIQUE INDEX invites_module_unique_scope ON metaschema_modules_public.invites_module (database_id, scope, prefix);
 
 CREATE TABLE metaschema_modules_public.events_module (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -327,10 +337,13 @@ CREATE TABLE metaschema_modules_public.events_module (
   interval text NOT NULL DEFAULT '1 month',
   retention text DEFAULT '12 months',
   premake int NOT NULL DEFAULT 2,
-  prefix text NULL,
-  membership_type int NOT NULL,
+  scope text NOT NULL DEFAULT 'app',
+  prefix text NOT NULL DEFAULT '',
   entity_table_id uuid NULL,
   actor_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  default_permissions text[] DEFAULT NULL,
+  api_name text DEFAULT 'usage',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -412,10 +425,12 @@ CREATE TABLE metaschema_modules_public.limits_module (
   limit_warning_state_table_id uuid NULL,
   limit_check_soft_function text NOT NULL DEFAULT '',
   limit_aggregate_check_soft_function text NOT NULL DEFAULT '',
-  prefix text NULL,
-  membership_type int NOT NULL,
+  scope text NOT NULL DEFAULT 'app',
+  prefix text NOT NULL DEFAULT '',
   entity_table_id uuid NULL,
   actor_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  api_name text DEFAULT 'usage',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -535,10 +550,10 @@ CREATE TABLE metaschema_modules_public.memberships_module (
   admin_grants_table_name text NOT NULL DEFAULT '',
   owner_grants_table_id uuid NOT NULL DEFAULT uuid_nil(),
   owner_grants_table_name text NOT NULL DEFAULT '',
-  membership_type int NOT NULL,
+  scope text NOT NULL DEFAULT 'app',
+  prefix text NOT NULL DEFAULT '',
   entity_table_id uuid NULL,
   entity_table_owner_id uuid NULL,
-  prefix text NULL,
   get_org_fn text NULL,
   actor_mask_check text NOT NULL DEFAULT '',
   actor_perm_check text NOT NULL DEFAULT '',
@@ -546,6 +561,8 @@ CREATE TABLE metaschema_modules_public.memberships_module (
   entity_ids_by_perm text NULL,
   entity_ids_function text NULL,
   member_profiles_table_id uuid NULL,
+  api_name text DEFAULT 'admin',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -609,7 +626,9 @@ CREATE TABLE metaschema_modules_public.memberships_module (
   CONSTRAINT default_permissions_table_fkey
     FOREIGN KEY(default_permissions_table_id)
     REFERENCES metaschema_public."table" (id)
-    ON DELETE CASCADE
+    ON DELETE CASCADE,
+  CONSTRAINT memberships_module_unique 
+    UNIQUE (database_id, scope, prefix)
 );
 
 CREATE INDEX memberships_module_database_id_idx ON metaschema_modules_public.memberships_module (database_id);
@@ -624,14 +643,16 @@ CREATE TABLE metaschema_modules_public.permissions_module (
   default_table_id uuid NOT NULL DEFAULT uuid_nil(),
   default_table_name text NOT NULL DEFAULT '',
   bitlen int NOT NULL DEFAULT 64,
-  membership_type int NOT NULL,
+  scope text NOT NULL DEFAULT 'app',
+  prefix text NOT NULL DEFAULT '',
   entity_table_id uuid NULL,
   actor_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  prefix text NULL,
   get_padded_mask text NOT NULL DEFAULT '',
   get_mask text NOT NULL DEFAULT '',
   get_by_mask text NOT NULL DEFAULT '',
   get_mask_by_name text NOT NULL DEFAULT '',
+  api_name text DEFAULT 'admin',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -672,6 +693,8 @@ CREATE TABLE metaschema_modules_public.phone_numbers_module (
   table_id uuid NOT NULL DEFAULT uuid_nil(),
   owner_table_id uuid NOT NULL DEFAULT uuid_nil(),
   table_name text NOT NULL,
+  api_name text DEFAULT 'auth',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -711,12 +734,14 @@ CREATE TABLE metaschema_modules_public.profiles_module (
   profile_definition_grants_table_name text NOT NULL DEFAULT '',
   profile_templates_table_id uuid NOT NULL DEFAULT uuid_nil(),
   profile_templates_table_name text NOT NULL DEFAULT '',
-  membership_type int NOT NULL,
+  scope text NOT NULL DEFAULT 'app',
+  prefix text NOT NULL DEFAULT '',
   entity_table_id uuid NULL,
   actor_table_id uuid NOT NULL DEFAULT uuid_nil(),
   permissions_table_id uuid NOT NULL DEFAULT uuid_nil(),
   memberships_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  prefix text NULL,
+  api_name text DEFAULT 'admin',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -766,7 +791,7 @@ CREATE TABLE metaschema_modules_public.profiles_module (
     REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT profiles_module_unique 
-    UNIQUE (database_id, membership_type)
+    UNIQUE (database_id, scope, prefix)
 );
 
 CREATE INDEX profiles_module_database_id_idx ON metaschema_modules_public.profiles_module (database_id);
@@ -783,6 +808,8 @@ CREATE TABLE metaschema_modules_public.rls_module (
   authenticate_strict text NOT NULL DEFAULT 'authenticate_strict',
   "current_role" text NOT NULL DEFAULT 'current_user',
   current_role_id text NOT NULL DEFAULT 'current_user_id',
+  api_name text DEFAULT 'auth',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -916,6 +943,8 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
   sign_in_cross_origin_function text NOT NULL DEFAULT 'sign_in_cross_origin',
   request_cross_origin_token_function text NOT NULL DEFAULT 'request_cross_origin_token',
   extend_token_expires text NOT NULL DEFAULT 'extend_token_expires',
+  api_name text DEFAULT 'auth',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -972,6 +1001,8 @@ CREATE TABLE metaschema_modules_public.users_module (
   table_name text NOT NULL DEFAULT 'users',
   type_table_id uuid NOT NULL DEFAULT uuid_nil(),
   type_table_name text NOT NULL DEFAULT 'role_types',
+  api_name text DEFAULT 'auth',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -1005,13 +1036,15 @@ CREATE TABLE metaschema_modules_public.hierarchy_module (
   chart_edge_grants_table_name text NOT NULL DEFAULT '',
   entity_table_id uuid NOT NULL,
   users_table_id uuid NOT NULL,
-  prefix text NOT NULL DEFAULT 'org',
+  scope text NOT NULL DEFAULT 'org',
+  prefix text NOT NULL DEFAULT '',
   private_schema_name text NOT NULL DEFAULT '',
   sprt_table_name text NOT NULL DEFAULT '',
   rebuild_hierarchy_function text NOT NULL DEFAULT '',
   get_subordinates_function text NOT NULL DEFAULT '',
   get_managers_function text NOT NULL DEFAULT '',
   is_manager_of_function text NOT NULL DEFAULT '',
+  default_permissions text[] DEFAULT NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
@@ -1460,10 +1493,10 @@ CREATE TABLE metaschema_modules_public.storage_module (
   private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
   buckets_table_id uuid NOT NULL DEFAULT uuid_nil(),
   files_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  buckets_table_name text NOT NULL DEFAULT 'app_buckets',
-  files_table_name text NOT NULL DEFAULT 'app_files',
-  membership_type int DEFAULT NULL,
-  key text NOT NULL DEFAULT 'default',
+  buckets_table_name text NOT NULL DEFAULT 'buckets',
+  files_table_name text NOT NULL DEFAULT 'files',
+  scope text NOT NULL DEFAULT 'app',
+  prefix text NOT NULL DEFAULT '',
   policies jsonb NULL,
   provisions jsonb NULL,
   entity_table_id uuid NULL,
@@ -1488,6 +1521,9 @@ CREATE TABLE metaschema_modules_public.storage_module (
   has_confirm_upload boolean NOT NULL DEFAULT false,
   confirm_upload_delay interval NOT NULL DEFAULT '30 seconds',
   file_events_table_id uuid NULL DEFAULT NULL,
+  default_permissions text[] DEFAULT NULL,
+  api_name text DEFAULT 'admin',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -1524,7 +1560,7 @@ CREATE TABLE metaschema_modules_public.storage_module (
 
 CREATE INDEX storage_module_database_id_idx ON metaschema_modules_public.storage_module (database_id);
 
-CREATE UNIQUE INDEX storage_module_unique_scope ON metaschema_modules_public.storage_module (database_id, (COALESCE(membership_type, -1)), key);
+CREATE UNIQUE INDEX storage_module_unique_scope ON metaschema_modules_public.storage_module (database_id, scope, prefix);
 
 CREATE TABLE metaschema_modules_public.entity_type_provision (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -1564,8 +1600,6 @@ CREATE TABLE metaschema_modules_public.entity_type_provision (
   out_invocations_table_id uuid DEFAULT NULL,
   out_execution_logs_table_id uuid DEFAULT NULL,
   out_secret_definitions_table_id uuid DEFAULT NULL,
-  out_requirements_table_id uuid DEFAULT NULL,
-  out_config_requirements_table_id uuid DEFAULT NULL,
   out_graph_module_id uuid DEFAULT NULL,
   out_graphs_table_id uuid DEFAULT NULL,
   out_agent_module_id uuid DEFAULT NULL,
@@ -1901,6 +1935,8 @@ CREATE TABLE metaschema_modules_public.webauthn_credentials_module (
   table_id uuid NOT NULL DEFAULT uuid_nil(),
   owner_table_id uuid NOT NULL DEFAULT uuid_nil(),
   table_name text NOT NULL DEFAULT 'webauthn_credentials',
+  api_name text DEFAULT 'auth',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -1989,6 +2025,11 @@ CREATE TABLE metaschema_modules_public.identity_providers_module (
   private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
   table_id uuid NOT NULL DEFAULT uuid_nil(),
   table_name text NOT NULL DEFAULT 'identity_providers',
+  api_name text DEFAULT 'auth',
+  private_api_name text DEFAULT NULL,
+  scope text NOT NULL DEFAULT 'app',
+  prefix text NOT NULL DEFAULT '',
+  entity_table_id uuid NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -2004,6 +2045,10 @@ CREATE TABLE metaschema_modules_public.identity_providers_module (
   CONSTRAINT private_schema_fkey
     FOREIGN KEY(private_schema_id)
     REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT entity_table_fkey
+    FOREIGN KEY(entity_table_id)
+    REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE
 );
 
@@ -2015,7 +2060,18 @@ CREATE INDEX identity_providers_module_private_schema_id_idx ON metaschema_modul
 
 CREATE INDEX identity_providers_module_table_id_idx ON metaschema_modules_public.identity_providers_module (table_id);
 
-COMMENT ON TABLE metaschema_modules_public.identity_providers_module IS 'Config row for the identity_providers_module, which provisions a per-database identity_providers config table holding OAuth2 / OIDC (and future SAML) provider definitions: protocol kind, endpoint URLs, encrypted client secret, scopes, audience validation, PKCE, and email-handling flags. Built-in providers (google, github, apple, ...) are seeded as is_built_in=true rows; custom providers use slugs of the form custom:<slug>.';
+CREATE UNIQUE INDEX identity_providers_module_unique_scope ON metaschema_modules_public.identity_providers_module (database_id, scope);
+
+COMMENT ON TABLE metaschema_modules_public.identity_providers_module IS 'Entity-aware config row for the identity_providers_module, which provisions a per-database
+     identity_providers table holding OAuth2 / OIDC (and future SAML) provider definitions.
+     The scope column determines which config_secrets_module table the rotate proc targets
+     (app_secrets for app scope, org_secrets for org scope). When scope = platform,
+     the secrets table gets a database_id column and platform-level RLS via
+     AuthzRelatedEntityMembership through database.owner_id.
+     Scoping matrix:
+       scope=app       → per-database flat, in-app admin manages
+       scope=platform  → per-database, platform admin manages (generate:constructive)
+       scope=org       → per-org tenant, org admin manages';
 
 COMMENT ON COLUMN metaschema_modules_public.identity_providers_module.private_schema_id IS 'Private schema that hosts SECURITY DEFINER admin helpers which write to identity_providers (create / update / enable / disable / rotate-secret / delete) and the per-app quota check.';
 
@@ -2037,6 +2093,9 @@ CREATE TABLE metaschema_modules_public.notifications_module (
   has_settings_extension boolean NOT NULL DEFAULT false,
   has_digest_metadata boolean NOT NULL DEFAULT false,
   has_subscriptions boolean NOT NULL DEFAULT false,
+  default_permissions text[] DEFAULT NULL,
+  api_name text DEFAULT 'notifications',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -2125,9 +2184,15 @@ CREATE TABLE metaschema_modules_public.plans_module (
   plan_limits_table_name text NOT NULL DEFAULT '',
   plan_pricing_table_id uuid NULL,
   plan_overrides_table_id uuid NULL,
+  plan_meter_limits_table_id uuid NULL,
+  plan_caps_table_id uuid NULL,
   apply_plan_function text NOT NULL DEFAULT '',
   apply_plan_aggregate_function text NOT NULL DEFAULT '',
+  apply_billing_plan_function text NULL,
+  apply_plan_caps_function text NULL,
   prefix text NULL,
+  api_name text DEFAULT 'usage',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -2156,6 +2221,14 @@ CREATE TABLE metaschema_modules_public.plans_module (
     FOREIGN KEY(plan_overrides_table_id)
     REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
+  CONSTRAINT plan_meter_limits_table_fkey
+    FOREIGN KEY(plan_meter_limits_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT plan_caps_table_fkey
+    FOREIGN KEY(plan_caps_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
   CONSTRAINT plans_module_database_id_unique 
     UNIQUE (database_id)
 );
@@ -2179,8 +2252,13 @@ CREATE TABLE metaschema_modules_public.billing_module (
   meter_credits_table_name text NOT NULL DEFAULT '',
   meter_sources_table_id uuid NOT NULL DEFAULT uuid_nil(),
   meter_sources_table_name text NOT NULL DEFAULT '',
+  meter_defaults_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  meter_defaults_table_name text NOT NULL DEFAULT '',
   record_usage_function text NOT NULL DEFAULT '',
   prefix text NULL,
+  default_permissions text[] DEFAULT NULL,
+  api_name text DEFAULT 'usage',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -2217,6 +2295,10 @@ CREATE TABLE metaschema_modules_public.billing_module (
     FOREIGN KEY(meter_sources_table_id)
     REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
+  CONSTRAINT meter_defaults_table_fkey
+    FOREIGN KEY(meter_defaults_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
   CONSTRAINT billing_module_database_id_unique 
     UNIQUE (database_id)
 );
@@ -2244,6 +2326,8 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   billing_webhook_events_table_name text NOT NULL DEFAULT '',
   process_billing_event_function text NOT NULL DEFAULT '',
   prefix text NULL,
+  api_name text DEFAULT NULL,
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -2307,6 +2391,8 @@ CREATE TABLE metaschema_modules_public.realtime_module (
   premake int NOT NULL DEFAULT 7,
   interval text NOT NULL DEFAULT '1 day',
   notify_channel text NULL,
+  api_name text DEFAULT 'realtime',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -2366,6 +2452,9 @@ CREATE TABLE metaschema_modules_public.rate_limit_meters_module (
   rate_window_limits_table_name text NOT NULL DEFAULT '',
   check_rate_limit_function text NOT NULL DEFAULT '',
   prefix text NULL,
+  default_permissions text[] DEFAULT NULL,
+  api_name text DEFAULT 'usage',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -2408,6 +2497,8 @@ CREATE TABLE metaschema_modules_public.config_secrets_org_module (
   schema_id uuid NOT NULL DEFAULT uuid_nil(),
   table_id uuid NOT NULL DEFAULT uuid_nil(),
   table_name text NOT NULL DEFAULT 'org_secrets',
+  api_name text DEFAULT 'config',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -2445,7 +2536,9 @@ CREATE TABLE metaschema_modules_public.inference_log_module (
   scope text NOT NULL DEFAULT 'app',
   actor_fk_table_id uuid NULL,
   entity_fk_table_id uuid NULL,
-  prefix text NULL,
+  prefix text NOT NULL DEFAULT '',
+  api_name text DEFAULT 'usage',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -2487,7 +2580,9 @@ CREATE TABLE metaschema_modules_public.compute_log_module (
   scope text NOT NULL DEFAULT 'app',
   actor_fk_table_id uuid NULL,
   entity_fk_table_id uuid NULL,
-  prefix text NULL,
+  prefix text NOT NULL DEFAULT '',
+  api_name text DEFAULT 'usage',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -2529,7 +2624,9 @@ CREATE TABLE metaschema_modules_public.transfer_log_module (
   scope text NOT NULL DEFAULT 'app',
   actor_fk_table_id uuid NULL,
   entity_fk_table_id uuid NULL,
-  prefix text NULL,
+  prefix text NOT NULL DEFAULT '',
+  api_name text DEFAULT 'usage',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -2571,7 +2668,9 @@ CREATE TABLE metaschema_modules_public.storage_log_module (
   scope text NOT NULL DEFAULT 'app',
   actor_fk_table_id uuid NULL,
   entity_fk_table_id uuid NULL,
-  prefix text NULL,
+  prefix text NOT NULL DEFAULT '',
+  api_name text DEFAULT 'usage',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -2615,7 +2714,10 @@ CREATE TABLE metaschema_modules_public.db_usage_module (
   retention text NOT NULL DEFAULT '12 months',
   premake int NOT NULL DEFAULT 2,
   scope text NOT NULL DEFAULT 'app',
-  prefix text NULL,
+  prefix text NOT NULL DEFAULT '',
+  default_permissions text[] DEFAULT NULL,
+  api_name text DEFAULT 'usage',
+  private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -2659,21 +2761,31 @@ CREATE TABLE metaschema_modules_public.agent_module (
   message_table_id uuid NOT NULL DEFAULT uuid_nil(),
   task_table_id uuid NOT NULL DEFAULT uuid_nil(),
   prompts_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  knowledge_table_id uuid DEFAULT NULL,
+  plan_table_id uuid DEFAULT NULL,
+  agent_table_id uuid DEFAULT NULL,
+  persona_table_id uuid DEFAULT NULL,
+  resource_table_id uuid DEFAULT NULL,
   thread_table_name text NOT NULL DEFAULT 'agent_thread',
   message_table_name text NOT NULL DEFAULT 'agent_message',
   task_table_name text NOT NULL DEFAULT 'agent_task',
   prompts_table_name text NOT NULL DEFAULT 'agent_prompt',
-  knowledge_table_name text NOT NULL DEFAULT 'agent_knowledge',
-  has_knowledge boolean NOT NULL DEFAULT false,
+  plan_table_name text NOT NULL DEFAULT 'agent_plan',
+  agent_table_name text NOT NULL DEFAULT 'agent',
+  persona_table_name text NOT NULL DEFAULT 'agent_persona',
+  resource_table_name text NOT NULL DEFAULT 'agent_resource',
+  has_plans boolean NOT NULL DEFAULT false,
+  has_resources boolean NOT NULL DEFAULT false,
+  has_agents boolean NOT NULL DEFAULT false,
+  shared boolean NOT NULL DEFAULT false,
   api_name text DEFAULT 'agent',
-  membership_type int DEFAULT NULL,
-  key text NOT NULL DEFAULT 'default',
+  private_api_name text DEFAULT NULL,
+  scope text NOT NULL DEFAULT 'app',
+  prefix text NOT NULL DEFAULT '',
   entity_table_id uuid NULL,
   policies jsonb NULL,
-  knowledge_config jsonb NULL,
-  knowledge_policies jsonb NULL,
+  resources jsonb NULL,
   provisions jsonb NULL,
+  default_permissions text[] DEFAULT NULL,
   CONSTRAINT agent_module_db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -2702,8 +2814,20 @@ CREATE TABLE metaschema_modules_public.agent_module (
     FOREIGN KEY(prompts_table_id)
     REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
-  CONSTRAINT agent_module_knowledge_table_fkey
-    FOREIGN KEY(knowledge_table_id)
+  CONSTRAINT agent_module_plan_table_fkey
+    FOREIGN KEY(plan_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT agent_module_agent_table_fkey
+    FOREIGN KEY(agent_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT agent_module_persona_table_fkey
+    FOREIGN KEY(persona_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT agent_module_resource_table_fkey
+    FOREIGN KEY(resource_table_id)
     REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
   CONSTRAINT agent_module_entity_table_fkey
@@ -2714,7 +2838,7 @@ CREATE TABLE metaschema_modules_public.agent_module (
 
 CREATE INDEX agent_module_database_id_idx ON metaschema_modules_public.agent_module (database_id);
 
-CREATE UNIQUE INDEX agent_module_unique_scope ON metaschema_modules_public.agent_module (database_id, (COALESCE(membership_type, -1)), key);
+CREATE UNIQUE INDEX agent_module_unique_scope ON metaschema_modules_public.agent_module (database_id, scope, prefix);
 
 CREATE TABLE metaschema_modules_public.merkle_store_module (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -2730,7 +2854,7 @@ CREATE TABLE metaschema_modules_public.merkle_store_module (
   prefix text NOT NULL DEFAULT '',
   api_name text,
   private_api_name text,
-  scope_field text NOT NULL DEFAULT 'scope_id',
+  scope text NOT NULL DEFAULT 'app',
   created_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
@@ -2775,6 +2899,7 @@ CREATE TABLE metaschema_modules_public.graph_module (
   private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
   public_schema_name text,
   private_schema_name text,
+  scope text NOT NULL DEFAULT 'app',
   prefix text NOT NULL DEFAULT '',
   merkle_store_module_id uuid NOT NULL,
   graphs_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -2782,11 +2907,10 @@ CREATE TABLE metaschema_modules_public.graph_module (
   outputs_table_id uuid NOT NULL DEFAULT uuid_nil(),
   api_name text,
   private_api_name text,
-  scope_field text NOT NULL DEFAULT 'scope_id',
-  membership_type int DEFAULT NULL,
   entity_table_id uuid NULL,
   policies jsonb NULL,
   provisions jsonb NULL,
+  default_permissions text[] DEFAULT NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
@@ -2839,11 +2963,12 @@ CREATE TABLE metaschema_modules_public.namespace_module (
   namespace_events_table_name text NOT NULL DEFAULT 'namespace_events',
   api_name text,
   private_api_name text,
-  membership_type int DEFAULT NULL,
-  key text NOT NULL DEFAULT 'default',
+  scope text NOT NULL DEFAULT 'app',
+  prefix text NOT NULL DEFAULT '',
   entity_table_id uuid NULL,
   policies jsonb NULL,
   provisions jsonb NULL,
+  default_permissions text[] DEFAULT NULL,
   CONSTRAINT namespace_module_db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -2872,7 +2997,7 @@ CREATE TABLE metaschema_modules_public.namespace_module (
 
 CREATE INDEX namespace_module_database_id_idx ON metaschema_modules_public.namespace_module (database_id);
 
-CREATE UNIQUE INDEX namespace_module_unique_scope ON metaschema_modules_public.namespace_module (database_id, (COALESCE(membership_type, -1)), key);
+CREATE UNIQUE INDEX namespace_module_unique_scope ON metaschema_modules_public.namespace_module (database_id, scope, prefix);
 
 CREATE TABLE metaschema_modules_public.function_module (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -2885,23 +3010,18 @@ CREATE TABLE metaschema_modules_public.function_module (
   invocations_table_id uuid NOT NULL DEFAULT uuid_nil(),
   execution_logs_table_id uuid NOT NULL DEFAULT uuid_nil(),
   secret_definitions_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  requirements_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  config_definitions_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  config_requirements_table_id uuid NOT NULL DEFAULT uuid_nil(),
   definitions_table_name text NOT NULL DEFAULT 'function_definitions',
   invocations_table_name text NOT NULL DEFAULT 'function_invocations',
   execution_logs_table_name text NOT NULL DEFAULT 'function_execution_logs',
   secret_definitions_table_name text NOT NULL DEFAULT 'secret_definitions',
-  requirements_table_name text NOT NULL DEFAULT 'function_secret_requirements',
-  config_requirements_table_name text NOT NULL DEFAULT 'function_config_requirements',
   api_name text,
   private_api_name text,
-  membership_type int DEFAULT NULL,
-  prefix text NULL,
-  key text NOT NULL DEFAULT 'default',
+  scope text NOT NULL DEFAULT 'app',
+  prefix text NOT NULL DEFAULT '',
   entity_table_id uuid NULL,
   policies jsonb NULL,
   provisions jsonb NULL,
+  default_permissions text[] DEFAULT NULL,
   CONSTRAINT function_module_db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -2930,18 +3050,6 @@ CREATE TABLE metaschema_modules_public.function_module (
     FOREIGN KEY(secret_definitions_table_id)
     REFERENCES metaschema_public."table" (id)
     ON DELETE CASCADE,
-  CONSTRAINT function_module_requirements_table_fkey
-    FOREIGN KEY(requirements_table_id)
-    REFERENCES metaschema_public."table" (id)
-    ON DELETE CASCADE,
-  CONSTRAINT function_module_config_defs_table_fkey
-    FOREIGN KEY(config_definitions_table_id)
-    REFERENCES metaschema_public."table" (id)
-    ON DELETE CASCADE,
-  CONSTRAINT function_module_config_reqs_table_fkey
-    FOREIGN KEY(config_requirements_table_id)
-    REFERENCES metaschema_public."table" (id)
-    ON DELETE CASCADE,
   CONSTRAINT function_module_entity_table_fkey
     FOREIGN KEY(entity_table_id)
     REFERENCES metaschema_public."table" (id)
@@ -2950,4 +3058,152 @@ CREATE TABLE metaschema_modules_public.function_module (
 
 CREATE INDEX function_module_database_id_idx ON metaschema_modules_public.function_module (database_id);
 
-CREATE UNIQUE INDEX function_module_unique_scope ON metaschema_modules_public.function_module (database_id, (COALESCE(membership_type, -1)), key);
+CREATE UNIQUE INDEX function_module_unique_scope ON metaschema_modules_public.function_module (database_id, scope, prefix);
+
+CREATE TABLE metaschema_modules_public.config_secrets_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_id uuid NOT NULL DEFAULT uuid_nil(),
+  config_definitions_table_id uuid NULL DEFAULT NULL,
+  table_name text NOT NULL DEFAULT 'secrets',
+  api_name text DEFAULT 'config',
+  private_api_name text DEFAULT NULL,
+  scope text NOT NULL DEFAULT 'app',
+  prefix text NOT NULL DEFAULT '',
+  entity_table_id uuid NULL,
+  policies jsonb NULL,
+  provisions jsonb NULL,
+  has_config boolean NOT NULL DEFAULT false,
+  CONSTRAINT config_secrets_module_db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT config_secrets_module_schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT config_secrets_module_private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT config_secrets_module_table_fkey
+    FOREIGN KEY(table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT config_secrets_module_config_defs_table_fkey
+    FOREIGN KEY(config_definitions_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT config_secrets_module_entity_table_fkey
+    FOREIGN KEY(entity_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX config_secrets_module_database_id_idx ON metaschema_modules_public.config_secrets_module (database_id);
+
+CREATE INDEX config_secrets_module_schema_id_idx ON metaschema_modules_public.config_secrets_module (schema_id);
+
+CREATE INDEX config_secrets_module_table_id_idx ON metaschema_modules_public.config_secrets_module (table_id);
+
+CREATE UNIQUE INDEX config_secrets_module_unique_scope ON metaschema_modules_public.config_secrets_module (database_id, scope, prefix);
+
+COMMENT ON TABLE metaschema_modules_public.config_secrets_module IS 'Entity-aware PGP-encrypted key-value config/secrets module. Supports app-level (admin-only)
+     and org-scoped (per-org secrets with manage_secrets permission) via the scope column.
+     User-scoped bcrypt credentials are handled by user_credentials_module.';
+
+CREATE TABLE metaschema_modules_public.user_credentials_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_name text NOT NULL DEFAULT 'user_secrets',
+  api_name text DEFAULT 'config',
+  private_api_name text DEFAULT NULL,
+  CONSTRAINT user_credentials_module_db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT user_credentials_module_schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT user_credentials_module_table_fkey
+    FOREIGN KEY(table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX user_credentials_module_database_id_idx ON metaschema_modules_public.user_credentials_module (database_id);
+
+CREATE INDEX user_credentials_module_schema_id_idx ON metaschema_modules_public.user_credentials_module (schema_id);
+
+CREATE INDEX user_credentials_module_table_id_idx ON metaschema_modules_public.user_credentials_module (table_id);
+
+CREATE UNIQUE INDEX user_credentials_module_unique ON metaschema_modules_public.user_credentials_module (database_id);
+
+COMMENT ON TABLE metaschema_modules_public.user_credentials_module IS 'Per-user bcrypt credential store (password hashes, API key hashes).
+     Always user-scoped with AuthzDirectOwner RLS. Consumed by user_auth_module,
+     identity_providers_module, and bootstrap procedures.';
+
+CREATE TABLE metaschema_modules_public.user_settings_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_id uuid NOT NULL DEFAULT uuid_nil(),
+  owner_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_name text NOT NULL DEFAULT 'user_settings',
+  api_name text DEFAULT NULL,
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT table_fkey
+    FOREIGN KEY(table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT owner_table_fkey
+    FOREIGN KEY(owner_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX user_settings_module_database_id_idx ON metaschema_modules_public.user_settings_module (database_id);
+
+CREATE UNIQUE INDEX user_settings_module_unique_per_db ON metaschema_modules_public.user_settings_module (database_id);
+
+CREATE TABLE metaschema_modules_public.i18n_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  settings_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  api_name text DEFAULT NULL,
+  private_api_name text DEFAULT NULL,
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT settings_table_fkey
+    FOREIGN KEY(settings_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX i18n_module_database_id_idx ON metaschema_modules_public.i18n_module (database_id);
+
+CREATE UNIQUE INDEX i18n_module_unique_per_db ON metaschema_modules_public.i18n_module (database_id);

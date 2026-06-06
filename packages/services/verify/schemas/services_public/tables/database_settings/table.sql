@@ -16,6 +16,7 @@ SELECT
     enable_llm,
     enable_realtime,
     enable_bulk,
+    enable_i18n,
     options
 FROM services_public.database_settings
 WHERE false;

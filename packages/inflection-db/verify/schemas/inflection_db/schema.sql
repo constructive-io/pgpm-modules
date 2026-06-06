@@ -1,4 +1,4 @@
--- Verify schemas/inflection_db/schema on pg
+-- Verify schemas/inflection_db/schema  on pg
 
 BEGIN;
 

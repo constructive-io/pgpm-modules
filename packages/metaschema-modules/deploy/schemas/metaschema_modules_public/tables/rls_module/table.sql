@@ -22,6 +22,10 @@ CREATE TABLE metaschema_modules_public.rls_module (
     "current_role" text NOT NULL DEFAULT 'current_user',
     current_role_id text NOT NULL DEFAULT 'current_user_id',
 
+    -- API routing (configurable per-module)
+    api_name text DEFAULT 'auth',
+    private_api_name text DEFAULT NULL,
+
     --
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
     CONSTRAINT session_credentials_table_fkey FOREIGN KEY (session_credentials_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,

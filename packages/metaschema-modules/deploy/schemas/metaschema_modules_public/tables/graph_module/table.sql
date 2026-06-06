@@ -17,8 +17,10 @@ CREATE TABLE metaschema_modules_public.graph_module (
     public_schema_name text,
     private_schema_name text,
 
-    -- Table/function prefix (e.g., 'pipeline' -> pipeline_function_graphs, ...)
-    -- Stored normalized (no trailing underscore); underscore added at generation time
+    -- Scope: determines the security level for this module instance.
+    scope text NOT NULL DEFAULT 'app',
+
+    -- Table name prefix. Auto-derived from scope by the trigger when empty.
     prefix text NOT NULL DEFAULT '',
 
     -- Reference to the Merkle store this graph module depends on
@@ -33,12 +35,8 @@ CREATE TABLE metaschema_modules_public.graph_module (
     api_name text,
     private_api_name text,
 
-    -- Scope field name (column used for multi-tenant isolation)
-    scope_field text NOT NULL DEFAULT 'scope_id',
-
-    -- Multi-tenant scoping (entity-aware module pattern)
-    membership_type int DEFAULT NULL,              -- NULL = database-root, non-NULL = entity-scoped
-    entity_table_id uuid NULL,                     -- Entity table for entity-scoped RLS
+    -- Entity table for RLS (NULL for app-level, entity table for entity-scoped)
+    entity_table_id uuid NULL,
 
     -- Configurable security policies (NULL = use defaults).
     -- Accepts a JSON array of policy objects:
@@ -50,6 +48,10 @@ CREATE TABLE metaschema_modules_public.graph_module (
     -- When a key is present, the module trigger skips default security for that table;
     -- secure_table_provision applies the custom grants/policies instead.
     provisions jsonb NULL,
+
+    -- Default permissions: permission names auto-granted to new members.
+    -- NULL uses the module's built-in defaults; explicit array overrides them.
+    default_permissions text[] DEFAULT NULL,
 
     -- Timestamps
     created_at timestamptz NOT NULL DEFAULT now(),

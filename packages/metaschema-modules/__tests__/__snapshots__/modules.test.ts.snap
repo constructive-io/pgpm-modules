@@ -7,6 +7,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "billing_module",
     "billing_provider_module",
     "compute_log_module",
+    "config_secrets_module",
     "config_secrets_org_module",
     "config_secrets_user_module",
     "connected_accounts_module",
@@ -20,6 +21,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "function_module",
     "graph_module",
     "hierarchy_module",
+    "i18n_module",
     "identity_providers_module",
     "inference_log_module",
     "invites_module",
@@ -43,6 +45,8 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "storage_module",
     "transfer_log_module",
     "user_auth_module",
+    "user_credentials_module",
+    "user_settings_module",
     "user_state_module",
     "users_module",
     "webauthn_auth_module",
@@ -53,8 +57,8 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
-  "moduleTablesCount": 44,
-  "totalTables": 51,
+  "moduleTablesCount": 48,
+  "totalTables": 55,
 }
 `;
 
@@ -103,19 +107,31 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
       "data_type": "text",
       "is_nullable": "NO",
     },
+    {
+      "column_default": "'auth'::text",
+      "column_name": "api_name",
+      "data_type": "text",
+      "is_nullable": "YES",
+    },
+    {
+      "column_default": null,
+      "column_name": "private_api_name",
+      "data_type": "text",
+      "is_nullable": "YES",
+    },
   ],
 }
 `;
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 269004,
+  "constraintCount": 303413,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 396560,
+  "constraintCount": 452625,
   "foreignTables": [
     "database",
     "field",
@@ -245,6 +261,10 @@ exports[`db_meta_modules should verify specific module table column defaults 1`]
   ],
   "usersDefaults": [
     {
+      "column_default": "'auth'::text",
+      "column_name": "api_name",
+    },
+    {
       "column_default": "uuidv7()",
       "column_name": "id",
     },
@@ -316,6 +336,18 @@ exports[`db_meta_modules should verify users_module table structure 1`] = `
       "column_name": "type_table_name",
       "data_type": "text",
       "is_nullable": "NO",
+    },
+    {
+      "column_default": "'auth'::text",
+      "column_name": "api_name",
+      "data_type": "text",
+      "is_nullable": "YES",
+    },
+    {
+      "column_default": null,
+      "column_name": "private_api_name",
+      "data_type": "text",
+      "is_nullable": "YES",
     },
   ],
 }

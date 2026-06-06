@@ -21,9 +21,6 @@ CREATE TABLE metaschema_modules_public.function_module (
     invocations_table_id uuid NOT NULL DEFAULT uuid_nil(),
     execution_logs_table_id uuid NOT NULL DEFAULT uuid_nil(),
     secret_definitions_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    requirements_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    config_definitions_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    config_requirements_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- Table names (input to the generator — bare names without scope prefix).
     -- The trigger prepends the scope prefix automatically.
@@ -31,42 +28,37 @@ CREATE TABLE metaschema_modules_public.function_module (
     invocations_table_name text NOT NULL DEFAULT 'function_invocations',
     execution_logs_table_name text NOT NULL DEFAULT 'function_execution_logs',
     secret_definitions_table_name text NOT NULL DEFAULT 'secret_definitions',
-    requirements_table_name text NOT NULL DEFAULT 'function_secret_requirements',
-    config_requirements_table_name text NOT NULL DEFAULT 'function_config_requirements',
 
     -- API routing (get-or-create: if set, schema is added to this API; if NULL, no API is added)
     api_name text,
     private_api_name text,
 
-    -- Multi-tenant function identity
-    membership_type int DEFAULT NULL,              -- NULL = database-root (AuthzMembership via app_sprt), non-NULL = entity-scoped (AuthzEntityMembership)
+    -- Scope: determines the security level for this module instance.
+    -- Resolved to a membership_type integer at trigger time via membership_types table.
+    scope text NOT NULL DEFAULT 'app',
 
-    -- Scope prefix for table naming.  Auto-derived from membership_type when
-    -- NULL:  NULL/1 → 'app',  2 → 'org'.  Can be overridden explicitly.
-    -- The trigger prepends this to all bare table names
-    -- (e.g. prefix='app' + 'function_definitions' → 'app_function_definitions').
-    prefix text NULL,
-
-    -- Module key discriminator: allows multiple function modules per scope.
-    -- 'default' is omitted from table names, any other value becomes
-    -- an infix: {prefix}_{key}_function_definitions.
-    -- Max 16 chars, lowercase snake_case.
-    key text NOT NULL DEFAULT 'default',
+    -- Table name prefix. Auto-derived from scope by the trigger when empty.
+    -- Override to create multiple module instances at the same scope.
+    prefix text NOT NULL DEFAULT '',
 
     -- Entity table for RLS (NULL for app-level functions, entity table for entity-scoped functions)
     entity_table_id uuid NULL,
 
-    -- Configurable security policies (NULL = use defaults based on membership_type).
+    -- Configurable security policies (NULL = use defaults based on scope).
     -- When provided, replaces the default policy set in apply_function_security.
     -- Accepts a JSON array of policy objects:
     --   {"$type": "AuthzEntityMembership", "privileges": ["select", "update"], "data": {...}}
     policies jsonb NULL,
 
     -- Per-table provisions overrides from blueprint config.
-    -- Keys are table keys (definitions, invocations, execution_logs, secret_definitions, requirements).
+    -- Keys are table keys (definitions, invocations, execution_logs, secret_definitions).
     -- When a key is present, the module trigger skips default security for that table;
     -- secure_table_provision applies the custom grants/policies instead.
     provisions jsonb NULL,
+
+    -- Default permissions: permission names auto-granted to new members.
+    -- NULL uses the module's built-in defaults; explicit array overrides them.
+    default_permissions text[] DEFAULT NULL,
 
     -- Constraints
     CONSTRAINT function_module_db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
@@ -76,17 +68,12 @@ CREATE TABLE metaschema_modules_public.function_module (
     CONSTRAINT function_module_invocations_table_fkey FOREIGN KEY (invocations_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT function_module_execution_logs_table_fkey FOREIGN KEY (execution_logs_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT function_module_secret_defs_table_fkey FOREIGN KEY (secret_definitions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT function_module_requirements_table_fkey FOREIGN KEY (requirements_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT function_module_config_defs_table_fkey FOREIGN KEY (config_definitions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT function_module_config_reqs_table_fkey FOREIGN KEY (config_requirements_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT function_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
 CREATE INDEX function_module_database_id_idx ON metaschema_modules_public.function_module ( database_id );
 
--- Unique constraint on (database_id, membership_type, key) using COALESCE to handle NULLs.
--- NULL membership_type = app-level, non-NULL = entity-scoped. key discriminates
--- multiple function modules for the same scope (e.g. 'webhooks' + 'automations').
-CREATE UNIQUE INDEX function_module_unique_scope ON metaschema_modules_public.function_module ( database_id, COALESCE(membership_type, -1), key );
+-- Unique constraint: one function module per database per scope per prefix.
+CREATE UNIQUE INDEX function_module_unique_scope ON metaschema_modules_public.function_module ( database_id, scope, prefix );
 
 COMMIT;

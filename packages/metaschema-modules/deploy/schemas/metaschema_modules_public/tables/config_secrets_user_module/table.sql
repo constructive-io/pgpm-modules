@@ -17,6 +17,10 @@ CREATE TABLE metaschema_modules_public.config_secrets_user_module (
     config_definitions_table_id uuid NOT NULL DEFAULT uuid_nil(),
     -- 
     
+    -- API routing (configurable per-module)
+    api_name text DEFAULT 'config',
+    private_api_name text DEFAULT NULL,
+
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
     CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,

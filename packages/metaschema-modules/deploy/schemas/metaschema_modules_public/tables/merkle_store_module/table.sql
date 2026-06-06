@@ -30,8 +30,9 @@ CREATE TABLE metaschema_modules_public.merkle_store_module (
     api_name text,
     private_api_name text,
 
-    -- Scope field name (column used for multi-tenant isolation)
-    scope_field text NOT NULL DEFAULT 'scope_id',
+    -- Scope: 'app' for app-level, 'platform' for database-scoped with
+    -- RLS through metaschema_public.database ownership.
+    scope text NOT NULL DEFAULT 'app',
 
     -- Timestamps
     created_at timestamptz NOT NULL DEFAULT now(),

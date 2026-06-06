@@ -1,4 +1,4 @@
--- Verify schemas/inflection_db/procedures/get_check_constraint_name on pg
+-- Verify schemas/inflection_db/procedures/get_check_constraint_name  on pg
 
 BEGIN;
 

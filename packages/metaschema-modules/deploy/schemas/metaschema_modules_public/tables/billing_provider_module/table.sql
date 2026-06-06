@@ -42,6 +42,10 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
 
   prefix text NULL,
 
+  -- API routing (configurable per-module)
+  api_name text DEFAULT NULL,
+  private_api_name text DEFAULT NULL,
+
   CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
   CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
   CONSTRAINT private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,

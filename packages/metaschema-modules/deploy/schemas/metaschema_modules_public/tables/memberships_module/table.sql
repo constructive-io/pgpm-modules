@@ -41,14 +41,15 @@ CREATE TABLE metaschema_modules_public.memberships_module (
     owner_grants_table_id uuid NOT NULL DEFAULT uuid_nil(),
     owner_grants_table_name text NOT NULL DEFAULT '',
 
-    membership_type int NOT NULL,
+    -- Scope: determines the security level for this module instance.
+    scope text NOT NULL DEFAULT 'app',
 
-    -- if this is NOT NULL, then we add entity_id 
-    -- e.g. memberships to the app itself are considered global owned by app and no explicit owner
+    -- Table name prefix. Auto-derived from scope by the trigger when empty.
+    prefix text NOT NULL DEFAULT '',
+
+    -- Entity table for RLS (NULL for app-level, entity table for entity-scoped)
     entity_table_id uuid NULL,
     entity_table_owner_id uuid NULL,
-
-    prefix text NULL,
 
     -- Populated by memberships_module generator when get_organization_id is created
     get_org_fn text NULL,
@@ -65,6 +66,10 @@ CREATE TABLE metaschema_modules_public.memberships_module (
 
     -- 
      
+    -- API routing (configurable per-module)
+    api_name text DEFAULT 'admin',
+    private_api_name text DEFAULT NULL,
+
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
     CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
@@ -83,7 +88,9 @@ CREATE TABLE metaschema_modules_public.memberships_module (
     CONSTRAINT default_limits_table_fkey FOREIGN KEY (default_limits_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
 
     CONSTRAINT permissions_table_fkey FOREIGN KEY (permissions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT default_permissions_table_fkey FOREIGN KEY (default_permissions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
+    CONSTRAINT default_permissions_table_fkey FOREIGN KEY (default_permissions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+
+    CONSTRAINT memberships_module_unique UNIQUE (database_id, scope, prefix)
 );
 
 CREATE INDEX memberships_module_database_id_idx ON metaschema_modules_public.memberships_module ( database_id );
