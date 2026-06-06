@@ -36,6 +36,14 @@ CREATE TABLE metaschema_modules_public.notifications_module (
     has_digest_metadata boolean NOT NULL DEFAULT false,
     has_subscriptions boolean NOT NULL DEFAULT false,
 
+    -- Default permissions: permission names auto-granted to new members.
+    -- NULL uses the module's built-in defaults; explicit array overrides them.
+    default_permissions text[] DEFAULT NULL,
+
+    -- API routing (configurable per-module)
+    api_name text DEFAULT 'notifications',
+    private_api_name text DEFAULT NULL,
+
     --
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
     CONSTRAINT notifications_table_fkey FOREIGN KEY (notifications_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,

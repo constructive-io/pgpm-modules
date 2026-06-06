@@ -1,4 +1,4 @@
--- Verify schemas/inflection_db/procedures/get_table_singular_name on pg
+-- Verify schemas/inflection_db/procedures/get_table_singular_name  on pg
 
 BEGIN;
 

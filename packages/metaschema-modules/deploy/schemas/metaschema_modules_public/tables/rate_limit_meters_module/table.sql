@@ -30,6 +30,14 @@ CREATE TABLE metaschema_modules_public.rate_limit_meters_module (
 
   prefix text NULL,
 
+  -- Default permissions: permission names auto-granted to new members.
+  -- NULL uses the module's built-in defaults; explicit array overrides them.
+  default_permissions text[] DEFAULT NULL,
+
+  -- API routing (configurable per-module)
+  api_name text DEFAULT 'usage',
+  private_api_name text DEFAULT NULL,
+
   CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
   CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
   CONSTRAINT private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,

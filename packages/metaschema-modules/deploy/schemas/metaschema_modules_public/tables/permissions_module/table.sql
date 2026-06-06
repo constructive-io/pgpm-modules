@@ -42,15 +42,18 @@ CREATE TABLE metaschema_modules_public.permissions_module (
     -- Existing databases are unaffected; this only changes the default for
     -- newly inserted permissions_module rows.
     bitlen int NOT NULL DEFAULT 64,
-    membership_type int NOT NULL,
-    -- if this is NOT NULL, then we add entity_id 
-    -- e.g. limits to the app itself are considered global owned by app and no explicit owner
+
+    -- Scope: determines the security level for this module instance.
+    scope text NOT NULL DEFAULT 'app',
+
+    -- Table name prefix. Auto-derived from scope by the trigger when empty.
+    prefix text NOT NULL DEFAULT '',
+
+    -- Entity table for RLS (NULL for app-level, entity table for entity-scoped)
     entity_table_id uuid NULL,
 
     -- required tables    
     actor_table_id uuid NOT NULL DEFAULT uuid_nil(),
-
-    prefix text NULL,
 
     --
 
@@ -60,6 +63,10 @@ CREATE TABLE metaschema_modules_public.permissions_module (
     get_mask_by_name text NOT NULL DEFAULT '',
 
     --
+
+    -- API routing (configurable per-module)
+    api_name text DEFAULT 'admin',
+    private_api_name text DEFAULT NULL,
 
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
     CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,

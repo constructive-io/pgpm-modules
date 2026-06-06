@@ -54,16 +54,26 @@ CREATE TABLE metaschema_modules_public.events_module (
   retention text DEFAULT '12 months',
   premake int NOT NULL DEFAULT 2,
 
-  prefix text NULL,
+  -- Scope: determines the security level for this module instance.
+  scope text NOT NULL DEFAULT 'app',
 
-  membership_type int NOT NULL,
-  -- if this is NOT NULL, then we add entity_id 
-  -- e.g. limits to the app itself are considered global owned by app and no explicit owner
+  -- Table name prefix. Auto-derived from scope by the trigger when empty.
+  prefix text NOT NULL DEFAULT '',
+
+  -- Entity table for RLS (NULL for app-level, entity table for entity-scoped)
   entity_table_id uuid NULL,
 
   -- required tables    
   actor_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
+
+  -- Default permissions: permission names auto-granted to new members.
+  -- NULL uses the module's built-in defaults; explicit array overrides them.
+  default_permissions text[] DEFAULT NULL,
+
+  -- API routing (configurable per-module)
+  api_name text DEFAULT 'usage',
+  private_api_name text DEFAULT NULL,
 
   CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
   CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,

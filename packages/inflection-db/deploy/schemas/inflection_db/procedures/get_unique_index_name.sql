@@ -4,6 +4,7 @@
 -- requires: schemas/inflection_db/procedures/get_identifier
 
 BEGIN;
+-- ${table_name}_${field1}_${field2}_${fieldN}_key
 CREATE FUNCTION inflection_db.get_unique_index_name (table_name text, fields text[])
   RETURNS text
   AS $$
@@ -16,3 +17,4 @@ $$
 LANGUAGE 'sql'
 STABLE;
 COMMIT;
+

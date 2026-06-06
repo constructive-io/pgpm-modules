@@ -137,10 +137,6 @@ CREATE TABLE metaschema_modules_public.entity_type_provision (
 
     out_secret_definitions_table_id uuid DEFAULT NULL,
 
-    out_requirements_table_id uuid DEFAULT NULL,
-
-    out_config_requirements_table_id uuid DEFAULT NULL,
-
     out_graph_module_id uuid DEFAULT NULL,
 
     out_graphs_table_id uuid DEFAULT NULL,

@@ -61,16 +61,22 @@ CREATE TABLE metaschema_modules_public.limits_module (
     limit_check_soft_function text NOT NULL DEFAULT '',
     limit_aggregate_check_soft_function text NOT NULL DEFAULT '',
 
-    prefix text NULL,
+    -- Scope: determines the security level for this module instance.
+    scope text NOT NULL DEFAULT 'app',
 
-    membership_type int NOT NULL,
-    -- if this is NOT NULL, then we add entity_id 
-    -- e.g. limits to the app itself are considered global owned by app and no explicit owner
+    -- Table name prefix. Auto-derived from scope by the trigger when empty.
+    prefix text NOT NULL DEFAULT '',
+
+    -- Entity table for RLS (NULL for app-level, entity table for entity-scoped)
     entity_table_id uuid NULL,
 
     -- required tables    
     actor_table_id uuid NOT NULL DEFAULT uuid_nil(),
      
+    -- API routing (configurable per-module)
+    api_name text DEFAULT 'usage',
+    private_api_name text DEFAULT NULL,
+
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
     CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,

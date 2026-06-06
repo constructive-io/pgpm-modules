@@ -21,3 +21,4 @@ $$
 LANGUAGE 'sql'
 IMMUTABLE;
 COMMIT;
+

@@ -21,12 +21,18 @@ CREATE TABLE metaschema_modules_public.invites_module (
     claimed_invites_table_name text NOT NULL DEFAULT '',
     submit_invite_code_function text NOT NULL DEFAULT '',
 
-    prefix text NULL,
+    -- Scope: determines the security level for this module instance.
+    scope text NOT NULL DEFAULT 'app',
 
-    membership_type int NOT NULL,
-    -- if this is NOT NULL, then we add entity_id 
-    -- e.g. limits to the app itself are considered global owned by app and no explicit owner
+    -- Table name prefix. Auto-derived from scope by the trigger when empty.
+    prefix text NOT NULL DEFAULT '',
+
+    -- Entity table for RLS (NULL for app-level, entity table for entity-scoped)
     entity_table_id uuid NULL,
+
+    -- API routing (configurable per-module)
+    api_name text DEFAULT 'admin',
+    private_api_name text DEFAULT NULL,
 
     --
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
@@ -41,12 +47,8 @@ CREATE TABLE metaschema_modules_public.invites_module (
 
 CREATE INDEX invites_module_database_id_idx ON metaschema_modules_public.invites_module ( database_id );
 
--- Unique constraint on (database_id, membership_type) so the
--- entity_type_provision fan-out can use ON CONFLICT DO NOTHING for idempotent
--- re-provisioning. invites_module is always entity-scoped (membership_type
--- is NOT NULL on this table), so no COALESCE-NULL trick is needed here,
--- unlike storage_module which supports an app-level singleton row.
+-- Unique constraint: one invites module per database per scope per prefix.
 CREATE UNIQUE INDEX invites_module_unique_scope
-    ON metaschema_modules_public.invites_module (database_id, membership_type);
+    ON metaschema_modules_public.invites_module (database_id, scope, prefix);
 
 COMMIT;

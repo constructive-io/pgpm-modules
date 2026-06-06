@@ -14,3 +14,4 @@ $$
 LANGUAGE 'sql'
 STABLE;
 COMMIT;
+

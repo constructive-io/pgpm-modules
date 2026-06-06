@@ -44,6 +44,10 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
 
     -- UNIQUE(api_id),
 
+    -- API routing (configurable per-module)
+    api_name text DEFAULT 'auth',
+    private_api_name text DEFAULT NULL,
+
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
     CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT email_table_fkey FOREIGN KEY (emails_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
