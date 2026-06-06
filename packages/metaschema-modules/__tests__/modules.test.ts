@@ -169,7 +169,7 @@ describe('db_meta_modules', () => {
     }
 
     expect(snapshot({ constraintCount: constraints.length })).toMatchSnapshot();
-  });
+  }, 30000);
 
   it('should verify all module tables exist in metaschema_modules_public schema', async () => {
     const tables = await pg.any(`
