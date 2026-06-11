@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/services",
-  "version": "0.27.0",
+  "version": "0.28.0",
   "description": "Services schemas for module registration and service configuration",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [

@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/inflection",
-  "version": "0.27.0",
+  "version": "0.28.0",
   "description": "String inflection utilities for PostgreSQL naming conventions",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
