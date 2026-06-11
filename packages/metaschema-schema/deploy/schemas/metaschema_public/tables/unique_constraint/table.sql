@@ -19,7 +19,6 @@ CREATE TABLE metaschema_public.unique_constraint (
   field_ids uuid[] NOT NULL,
 
   category metaschema_public.object_category NOT NULL DEFAULT 'app',
-  module text NULL,
   scope int NULL,
 
   tags citext[] NOT NULL DEFAULT '{}',
