@@ -52,10 +52,8 @@ CREATE TABLE metaschema_public.field (
 
   -- Field categorization for system/module/app fields (mirrors table categorization)
   -- category: 'core' for system fields (id, entity_id, actor_id), 'module' for module-generated fields, 'app' for user-defined fields
-  -- module: the module name that created this field (e.g., 'users', 'permissions', 'memberships')
   -- scope: membership_type int (1=app, 2=org, 3=group, NULL=not scoped)
   category metaschema_public.object_category NOT NULL DEFAULT 'app',
-  module text NULL,
   scope int NULL,
 
   created_at timestamptz DEFAULT now(),

@@ -25,7 +25,6 @@ CREATE TABLE metaschema_public.spatial_relation (
     param_name text NULL,
 
     category metaschema_public.object_category NOT NULL DEFAULT 'app',
-    module text NULL,
     scope int NULL,
 
     tags citext[] NOT NULL DEFAULT '{}',

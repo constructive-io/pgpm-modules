@@ -20,7 +20,6 @@ CREATE TABLE metaschema_public.table (
   smart_tags jsonb,
   
   category metaschema_public.object_category NOT NULL DEFAULT 'app',
-  module text NULL,
   scope int NULL,
 
   use_rls boolean NOT NULL DEFAULT FALSE,

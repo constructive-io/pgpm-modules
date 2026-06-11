@@ -23,7 +23,6 @@ CREATE TABLE metaschema_public.foreign_key_constraint (
     update_action char(1) DEFAULT 'a',
 
     category metaschema_public.object_category NOT NULL DEFAULT 'app',
-    module text NULL,
     scope int NULL,
 
     tags citext[] NOT NULL DEFAULT '{}',
