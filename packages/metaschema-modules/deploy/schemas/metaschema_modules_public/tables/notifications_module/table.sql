@@ -19,6 +19,7 @@ CREATE TABLE metaschema_modules_public.notifications_module (
     preferences_table_id uuid,
     channels_table_id uuid,
     delivery_log_table_id uuid,
+    suppressions_table_id uuid,
 
     owner_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
@@ -51,6 +52,7 @@ CREATE TABLE metaschema_modules_public.notifications_module (
     CONSTRAINT preferences_table_fkey FOREIGN KEY (preferences_table_id) REFERENCES metaschema_public.table (id) ON DELETE SET NULL,
     CONSTRAINT channels_table_fkey FOREIGN KEY (channels_table_id) REFERENCES metaschema_public.table (id) ON DELETE SET NULL,
     CONSTRAINT delivery_log_table_fkey FOREIGN KEY (delivery_log_table_id) REFERENCES metaschema_public.table (id) ON DELETE SET NULL,
+    CONSTRAINT suppressions_table_fkey FOREIGN KEY (suppressions_table_id) REFERENCES metaschema_public.table (id) ON DELETE SET NULL,
     CONSTRAINT owner_table_fkey FOREIGN KEY (owner_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT user_settings_table_fkey FOREIGN KEY (user_settings_table_id) REFERENCES metaschema_public.table (id) ON DELETE SET NULL,
     CONSTRAINT organization_settings_table_fkey FOREIGN KEY (organization_settings_table_id) REFERENCES metaschema_public.table (id) ON DELETE SET NULL,
@@ -65,6 +67,7 @@ COMMENT ON CONSTRAINT read_state_table_fkey ON metaschema_modules_public.notific
 COMMENT ON CONSTRAINT preferences_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName preferencesTableByPreferencesTableId\n@omit manyToMany';
 COMMENT ON CONSTRAINT channels_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName channelsTableByChannelsTableId\n@omit manyToMany';
 COMMENT ON CONSTRAINT delivery_log_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName deliveryLogTableByDeliveryLogTableId\n@omit manyToMany';
+COMMENT ON CONSTRAINT suppressions_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName suppressionsTableBySuppressionsTableId';
 COMMENT ON CONSTRAINT owner_table_fkey ON metaschema_modules_public.notifications_module IS E'@omit manyToMany';
 COMMENT ON CONSTRAINT user_settings_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName userSettingsTableByUserSettingsTableId\n@omit manyToMany';
 COMMENT ON CONSTRAINT organization_settings_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName organizationSettingsTableByOrganizationSettingsTableId\n@omit manyToMany';

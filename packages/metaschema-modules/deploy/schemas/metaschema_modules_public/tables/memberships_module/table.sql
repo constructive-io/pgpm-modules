@@ -64,8 +64,10 @@ CREATE TABLE metaschema_modules_public.memberships_module (
 
     member_profiles_table_id uuid NULL,
 
-    -- 
-     
+    -- Audit tables for permission defaults (created by memberships_module when has_permissions=true)
+    permission_default_permissions_table_id uuid NULL,
+    permission_default_grants_table_id uuid NULL,
+
     -- API routing (configurable per-module)
     api_name text DEFAULT 'admin',
     private_api_name text DEFAULT NULL,

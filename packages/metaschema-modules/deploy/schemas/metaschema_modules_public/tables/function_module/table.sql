@@ -18,15 +18,11 @@ CREATE TABLE metaschema_modules_public.function_module (
 
     -- Generated table IDs (populated by the generator)
     definitions_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    invocations_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    execution_logs_table_id uuid NOT NULL DEFAULT uuid_nil(),
     secret_definitions_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- Table names (input to the generator — bare names without scope prefix).
     -- The trigger prepends the scope prefix automatically.
     definitions_table_name text NOT NULL DEFAULT 'function_definitions',
-    invocations_table_name text NOT NULL DEFAULT 'function_invocations',
-    execution_logs_table_name text NOT NULL DEFAULT 'function_execution_logs',
     secret_definitions_table_name text NOT NULL DEFAULT 'secret_definitions',
 
     -- API routing (get-or-create: if set, schema is added to this API; if NULL, no API is added)
@@ -51,7 +47,7 @@ CREATE TABLE metaschema_modules_public.function_module (
     policies jsonb NULL,
 
     -- Per-table provisions overrides from blueprint config.
-    -- Keys are table keys (definitions, invocations, execution_logs, secret_definitions).
+    -- Keys are table keys (definitions, secret_definitions).
     -- When a key is present, the module trigger skips default security for that table;
     -- secure_table_provision applies the custom grants/policies instead.
     provisions jsonb NULL,
@@ -65,8 +61,6 @@ CREATE TABLE metaschema_modules_public.function_module (
     CONSTRAINT function_module_schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT function_module_private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT function_module_definitions_table_fkey FOREIGN KEY (definitions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT function_module_invocations_table_fkey FOREIGN KEY (invocations_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT function_module_execution_logs_table_fkey FOREIGN KEY (execution_logs_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT function_module_secret_defs_table_fkey FOREIGN KEY (secret_definitions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT function_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
