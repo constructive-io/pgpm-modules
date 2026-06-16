@@ -66,3 +66,4 @@ schemas/metaschema_modules_public/tables/user_credentials_module/table [schemas/
 schemas/metaschema_modules_public/tables/user_settings_module/table [schemas/metaschema_modules_public/schema] 2026-05-28T00:00:00Z devin <devin@cognition.ai> # add user_settings_module for extensible per-user preferences (1:1 with users)
 
 schemas/metaschema_modules_public/tables/i18n_module/table [schemas/metaschema_modules_public/schema] 2026-05-28T00:00:00Z devin <devin@cognition.ai> # add i18n_module config table for internationalization settings
+schemas/metaschema_modules_public/tables/graph_execution_module/table [schemas/metaschema_modules_public/schema schemas/metaschema_modules_public/tables/graph_module/table] 2026-06-12T00:00:00Z devin <devin@cognition.ai> # add graph_execution_module config table for partitioned execution state + merkle tree time-travel debugging
