@@ -43,7 +43,7 @@ This is a quick way to get started. The sections below provide more detailed ins
 ### Prerequisites
 
 ```bash
-# Install pgpm CLI 
+# Install pgpm CLI
 npm install -g pgpm
 
 # Start local Postgres (via Docker) and export env vars
@@ -60,7 +60,7 @@ eval "$(pgpm env)"
 pgpm install @pgpm/db-meta-schema
 
 # 2. Deploy locally
-pgpm deploy 
+pgpm deploy
 ```
 
 ### **Add to a New Project**
@@ -185,7 +185,7 @@ WHERE f.table_id = 'table-uuid'
 ORDER BY f.field_order;
 
 -- Get foreign key relationships
-SELECT 
+SELECT
   fk.name as constraint_name,
   t1.name as from_table,
   t2.name as to_table
@@ -336,3 +336,4 @@ npx skills add https://github.com/constructive-io/constructive --skill construct
 AS DESCRIBED IN THE LICENSES, THE SOFTWARE IS PROVIDED "AS IS", AT YOUR OWN RISK, AND WITHOUT WARRANTIES OF ANY KIND.
 
 No developer or entity involved in creating this software will be liable for any claims or damages whatsoever associated with your use, inability to use, or your interaction with other users of the code, including any direct, indirect, incidental, special, exemplary, punitive or consequential damages, or loss of profits, cryptocurrencies, tokens, or anything else of value.
+
