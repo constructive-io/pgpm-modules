@@ -1,0 +1,45 @@
+{
+  "name": "@pgpm/geolite",
+  "version": "0.26.0",
+  "description": "GeoLite2 IP geolocation tables and lookup functions for PostgreSQL",
+  "author": "Dan Lynch <pyramation@gmail.com>",
+  "contributors": [
+    "Constructive <developers@constructive.io>"
+  ],
+  "keywords": [
+    "postgresql",
+    "pgpm",
+    "geoip",
+    "geolocation",
+    "maxmind",
+    "geolite2"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "bundle": "pgpm package",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "geolite:load": "ts-node src/loader.ts"
+  },
+  "dependencies": {
+    "@pgpm/verify": "workspace:*"
+  },
+  "devDependencies": {
+    "maxmind": "^4.3.23",
+    "pg": "^8.13.1",
+    "pg-copy-streams": "^6.0.6",
+    "pgpm": "^4.23.2",
+    "@types/pg": "^8.11.10",
+    "@types/pg-copy-streams": "^1.2.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/constructive-io/pgpm-modules"
+  },
+  "homepage": "https://github.com/constructive-io/pgpm-modules",
+  "bugs": {
+    "url": "https://github.com/constructive-io/pgpm-modules/issues"
+  }
+}

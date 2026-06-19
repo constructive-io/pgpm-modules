@@ -1,0 +1,7 @@
+# pgpm-geolite extension
+comment = 'pgpm-geolite extension'
+default_version = '0.26.0'
+module_pathname = '$libdir/pgpm-geolite'
+requires = 'plpgsql,pgpm-verify'
+relocatable = false
+superuser = false

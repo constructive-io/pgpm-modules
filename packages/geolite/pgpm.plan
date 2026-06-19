@@ -1,0 +1,11 @@
+%syntax-version=1.0.0
+%project=pgpm-geolite
+%uri=pgpm-geolite
+  
+schemas/geolite/schema 2026-05-29T21:00:00Z Dan Lynch <pyramation@gmail.com> # add schemas/geolite/schema
+schemas/geolite/tables/network/table [schemas/geolite/schema] 2026-05-29T21:00:00Z Dan Lynch <pyramation@gmail.com> # add schemas/geolite/tables/network/table
+schemas/geolite/tables/location/table [schemas/geolite/schema] 2026-05-29T21:00:00Z Dan Lynch <pyramation@gmail.com> # add schemas/geolite/tables/location/table
+schemas/geolite/tables/asn/table [schemas/geolite/schema] 2026-05-29T21:00:00Z Dan Lynch <pyramation@gmail.com> # add schemas/geolite/tables/asn/table
+schemas/geolite/tables/data_version/table [schemas/geolite/schema] 2026-05-29T21:00:00Z Dan Lynch <pyramation@gmail.com> # add schemas/geolite/tables/data_version/table
+schemas/geolite/procedures/lookup [schemas/geolite/schema schemas/geolite/tables/network/table schemas/geolite/tables/location/table] 2026-05-29T21:00:00Z Dan Lynch <pyramation@gmail.com> # add schemas/geolite/procedures/lookup
+schemas/geolite/procedures/lookup_asn [schemas/geolite/schema schemas/geolite/tables/asn/table] 2026-05-29T21:00:00Z Dan Lynch <pyramation@gmail.com> # add schemas/geolite/procedures/lookup_asn
