@@ -3,6 +3,7 @@
 -- requires: schemas/metaschema_public/schema
 -- requires: schemas/metaschema_public/tables/database/table
 -- requires: schemas/metaschema_public/types/object_category
+-- requires: schemas/metaschema_public/types/api_exposure_level
 
 BEGIN;
 
@@ -23,6 +24,8 @@ CREATE TABLE metaschema_public.schema (
     tags citext[] NOT NULL DEFAULT '{}',
 
     is_public boolean NOT NULL DEFAULT TRUE,
+
+    api_exposure metaschema_public.api_exposure_level NOT NULL DEFAULT 'exposable',
 
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now(),
