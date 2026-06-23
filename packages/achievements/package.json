@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/achievements",
-  "version": "0.28.0",
+  "version": "0.28.3",
   "description": "Achievement system for tracking user progress and milestones",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
