@@ -183,8 +183,8 @@ pnpm test
 
 ## Related Tooling
 
-* [pgpm](https://github.com/constructive-io/constructive/tree/main/packages/pgpm): PostgreSQL Package Manager for modular Postgres development.
-* [pgsql-test](https://github.com/constructive-io/constructive/tree/main/packages/pgsql-test): Isolated testing environments with per-test transaction rollbacks.
+* [pgpm](https://github.com/constructive-io/constructive/tree/main/pgpm/cli): PostgreSQL Package Manager for modular Postgres development.
+* [pgsql-test](https://github.com/constructive-io/constructive/tree/main/postgres/pgsql-test): Isolated testing environments with per-test transaction rollbacks.
 
 ## Disclaimer
 
