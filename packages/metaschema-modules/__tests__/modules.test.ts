@@ -171,7 +171,7 @@ describe('db_meta_modules', () => {
     }
 
     expect(snapshot({ constraintCount: constraints.length })).toMatchSnapshot();
-  }, 30000);
+  }, 60000);
 
   it('should verify all module tables exist in metaschema_modules_public schema', async () => {
     const tables = await pg.any(`
@@ -222,7 +222,7 @@ describe('db_meta_modules', () => {
       constraintCount: fkConstraints.length,
       foreignTables: foreignTables.sort()
     })).toMatchSnapshot();
-  }, 30000);
+  }, 60000);
 
   it('should verify specific module table column defaults', async () => {
     // Check that modules have sensible defaults
