@@ -33,7 +33,7 @@ CREATE TABLE metaschema_modules_public.hierarchy_module (
     prefix text NOT NULL DEFAULT '',
     
     -- Resolved names for RLS parser lookups
-    private_schema_name text NOT NULL DEFAULT '',
+  private_schema_name text NOT NULL DEFAULT '',
     sprt_table_name text NOT NULL DEFAULT '',
     
     -- Function names for helper functions

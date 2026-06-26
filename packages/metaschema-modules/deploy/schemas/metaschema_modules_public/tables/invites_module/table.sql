@@ -11,6 +11,10 @@ CREATE TABLE metaschema_modules_public.invites_module (
     schema_id uuid NOT NULL DEFAULT uuid_nil(),
     private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
 
+  -- Schema name overrides: when set, the trigger uses these instead of hardcoded defaults.
+  public_schema_name text,
+  private_schema_name text,
+
     emails_table_id uuid NOT NULL DEFAULT uuid_nil(),
     users_table_id uuid NOT NULL DEFAULT uuid_nil(),
 

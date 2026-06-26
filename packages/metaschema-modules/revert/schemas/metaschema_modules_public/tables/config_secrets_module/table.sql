@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP TABLE IF EXISTS metaschema_modules_public.config_secrets_module;
+DROP TABLE metaschema_modules_public.config_secrets_module;
 
 COMMIT;

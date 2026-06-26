@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP TABLE IF EXISTS metaschema_modules_public.user_credentials_module;
+DROP TABLE metaschema_modules_public.user_credentials_module;
 
 COMMIT;

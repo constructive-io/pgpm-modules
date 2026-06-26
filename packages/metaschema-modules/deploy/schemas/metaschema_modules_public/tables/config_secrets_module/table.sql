@@ -12,6 +12,10 @@ CREATE TABLE metaschema_modules_public.config_secrets_module (
     schema_id uuid NOT NULL DEFAULT uuid_nil(),
     private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
 
+  -- Schema name overrides: when set, the trigger uses these instead of hardcoded defaults.
+  public_schema_name text,
+  private_schema_name text,
+
     -- Generated table IDs (populated by the generator)
     table_id uuid NOT NULL DEFAULT uuid_nil(),
     config_definitions_table_id uuid NULL DEFAULT NULL,

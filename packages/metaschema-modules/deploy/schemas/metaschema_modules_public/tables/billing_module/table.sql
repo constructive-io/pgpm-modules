@@ -11,6 +11,10 @@ CREATE TABLE metaschema_modules_public.billing_module (
   schema_id uuid NOT NULL DEFAULT uuid_nil(),
   private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
 
+  -- Schema name overrides: when set, the trigger uses these instead of hardcoded defaults.
+  public_schema_name text,
+  private_schema_name text,
+
   -- Meters table: defines what you track (quota, boolean, credit_pool)
   meters_table_id uuid NOT NULL DEFAULT uuid_nil(),
   meters_table_name text NOT NULL DEFAULT '',

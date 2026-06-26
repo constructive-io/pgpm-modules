@@ -1,11 +1,27 @@
 {
   "name": "@pgpm/inflection-db",
-  "version": "0.28.3",
-  "description": "Database-level string inflection and naming convention utilities for PostgreSQL",
+  "version": "0.0.1",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
     "Constructive <developers@constructive.io>"
   ],
+  "description": "Database-level string inflection and naming convention utilities for PostgreSQL",
+  "homepage": "https://github.com/constructive-io/pgpm-modules",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/constructive-io/pgpm-modules"
+  },
+  "bugs": {
+    "url": "https://github.com/constructive-io/pgpm-modules/issues"
+  },
+  "scripts": {
+    "bundle": "pgpm package",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
   "keywords": [
     "postgresql",
     "pgpm",
@@ -13,27 +29,11 @@
     "naming",
     "conventions"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "bundle": "pgpm package",
-    "test": "jest",
-    "test:watch": "jest --watch"
-  },
   "dependencies": {
     "@pgpm/inflection": "workspace:*",
     "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {
-    "pgpm": "^4.23.2"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/constructive-io/pgpm-modules"
-  },
-  "homepage": "https://github.com/constructive-io/pgpm-modules",
-  "bugs": {
-    "url": "https://github.com/constructive-io/pgpm-modules/issues"
+    "pgpm": "^4.28.7"
   }
 }
