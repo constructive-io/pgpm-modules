@@ -31,7 +31,6 @@ jobs:
           - services
           - jobs
           - database-jobs
-          - uuid
           - types
           - stamps
           - geotypes

@@ -18,6 +18,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "devices_module",
     "emails_module",
     "events_module",
+    "function_deployment_module",
     "function_invocation_module",
     "function_module",
     "graph_execution_module",
@@ -59,8 +60,8 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
-  "moduleTablesCount": 50,
-  "totalTables": 57,
+  "moduleTablesCount": 51,
+  "totalTables": 58,
 }
 `;
 
@@ -127,18 +128,20 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 310682,
+  "constraintCount": 310683,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 459905,
+  "constraintCount": 459911,
   "foreignTables": [
     "database",
     "field",
+    "function_module",
     "graph_module",
     "merkle_store_module",
+    "namespace_module",
     "schema",
     "table",
   ],

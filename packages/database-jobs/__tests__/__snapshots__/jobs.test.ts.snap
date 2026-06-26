@@ -18,6 +18,7 @@ exports[`scheduled jobs schedule jobs 1`] = `
   "payload": {
     "just": "run it",
   },
+  "principal_id": null,
   "priority": 0,
   "task_identifier": "my_job",
 }

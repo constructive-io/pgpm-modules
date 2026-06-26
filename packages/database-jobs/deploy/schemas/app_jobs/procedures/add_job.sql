@@ -4,6 +4,7 @@
 -- requires: schemas/app_jobs/tables/job_queues/table
 -- requires: pgpm-jwt-claims:schemas/jwt_private/procedures/current_database_id
 -- requires: pgpm-jwt-claims:schemas/jwt_public/procedures/current_user_id
+-- requires: pgpm-jwt-claims:schemas/jwt_public/procedures/current_principal_id
 
 BEGIN;
 CREATE FUNCTION app_jobs.add_job (
@@ -24,16 +25,20 @@ DECLARE
   v_job app_jobs.jobs;
   v_database_id uuid;
   v_actor_id uuid;
+  v_principal_id uuid;
 BEGIN
   -- Read context from JWT claims
   v_database_id := jwt_private.current_database_id();
   v_actor_id := jwt_public.current_user_id();
+
+  v_principal_id := jwt_public.current_principal_id();
 
   IF job_key IS NOT NULL THEN
     -- Upsert job
     INSERT INTO app_jobs.jobs (
       database_id,
       actor_id,
+      principal_id,
       entity_id,
       organization_id,
       entity_type,
@@ -47,6 +52,7 @@ BEGIN
     ) VALUES (
         v_database_id,
         v_actor_id,
+        v_principal_id,
         add_job.entity_id,
         add_job.organization_id,
         add_job.entity_type,
@@ -93,6 +99,7 @@ BEGIN
   INSERT INTO app_jobs.jobs (
     database_id,
     actor_id,
+    principal_id,
     entity_id,
     organization_id,
     entity_type,
@@ -105,6 +112,7 @@ BEGIN
   ) VALUES (
     v_database_id,
     v_actor_id,
+    v_principal_id,
     add_job.entity_id,
     add_job.organization_id,
     add_job.entity_type,

@@ -11,6 +11,10 @@ CREATE TABLE metaschema_modules_public.notifications_module (
     schema_id uuid NOT NULL DEFAULT uuid_nil(),
     private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
 
+  -- Schema name overrides: when set, the trigger uses these instead of hardcoded defaults.
+  public_schema_name text,
+  private_schema_name text,
+
     notifications_table_id uuid NOT NULL DEFAULT uuid_nil(),
     read_state_table_id uuid NOT NULL DEFAULT uuid_nil(),
     -- Feature-gated tables: NULL when the corresponding has_* flag is off.

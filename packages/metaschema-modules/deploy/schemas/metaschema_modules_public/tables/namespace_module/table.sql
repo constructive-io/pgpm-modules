@@ -39,6 +39,12 @@ CREATE TABLE metaschema_modules_public.namespace_module (
     -- Entity table for RLS (NULL for app-level namespaces, entity table for entity-scoped namespaces)
     entity_table_id uuid NULL,
 
+    -- Platform namespace table reference (for cross-scope mirror trigger).
+    -- When scope != 'platform', the insert trigger resolves this automatically
+    -- from the platform-scope namespace_module row.
+    -- NULL means no mirror trigger (platform scope, or no platform module exists).
+    platform_namespaces_table_id uuid NULL,
+
     -- Configurable security policies (NULL = use defaults based on scope).
     -- When provided, replaces the default policy set in apply_namespace_security.
     -- Accepts a JSON array of policy objects:

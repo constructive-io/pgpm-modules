@@ -11,6 +11,10 @@ CREATE TABLE metaschema_modules_public.storage_log_module (
   schema_id uuid NOT NULL DEFAULT uuid_nil(),
   private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
 
+  -- Schema name overrides: when set, the trigger uses these instead of hardcoded defaults.
+  public_schema_name text,
+  private_schema_name text,
+
   -- Storage log table (partitioned by snapshot_at)
   storage_log_table_id uuid NOT NULL DEFAULT uuid_nil(),
   storage_log_table_name text NOT NULL DEFAULT '',
