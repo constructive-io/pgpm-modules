@@ -12,6 +12,11 @@ CREATE TABLE metaschema_modules_public.storage_module (
     schema_id uuid NOT NULL DEFAULT uuid_nil(),
     private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
 
+    -- Schema name overrides: when set, the trigger uses these instead of hardcoded defaults.
+    -- Enables putting storage tables into a dedicated schema (e.g. per-entity isolation).
+    public_schema_name text,
+    private_schema_name text,
+
     -- Generated table IDs (populated by the generator)
     buckets_table_id uuid NOT NULL DEFAULT uuid_nil(),
     files_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -92,7 +97,8 @@ CREATE TABLE metaschema_modules_public.storage_module (
 
     -- Constraints
     -- API routing (configurable per-module)
-    api_name text DEFAULT 'admin',
+    -- NULL = no automatic API routing (caller must route explicitly or use entity_type_provision).
+    api_name text DEFAULT NULL,
     private_api_name text DEFAULT NULL,
 
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,

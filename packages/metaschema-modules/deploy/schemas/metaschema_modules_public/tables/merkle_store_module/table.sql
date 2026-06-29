@@ -39,6 +39,11 @@ CREATE TABLE metaschema_modules_public.merkle_store_module (
     -- any other value is used as-is. Tables always keep their prefix regardless of this setting.
     function_prefix text DEFAULT NULL,
 
+    -- Permission key for SELECT gating: when set, all 4 merkle tables require this
+    -- permission for SELECT at platform/app scope (e.g., 'manage_graphs').
+    -- NULL means the caller intentionally wants open membership SELECT.
+    permission_key text DEFAULT NULL,
+
     -- Timestamps
     created_at timestamptz NOT NULL DEFAULT now(),
 

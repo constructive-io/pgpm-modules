@@ -11,6 +11,10 @@ CREATE TABLE metaschema_modules_public.db_usage_module (
   schema_id uuid NOT NULL DEFAULT uuid_nil(),
   private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
 
+  -- Schema name overrides: when set, the trigger uses these instead of hardcoded defaults.
+  public_schema_name text,
+  private_schema_name text,
+
   -- DB table stats log (partitioned — per-table reads/writes/size from pg_stat_user_tables)
   table_stats_log_table_id uuid NOT NULL DEFAULT uuid_nil(),
   table_stats_log_table_name text NOT NULL DEFAULT '',

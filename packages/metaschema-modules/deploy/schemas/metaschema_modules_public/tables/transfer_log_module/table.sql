@@ -11,6 +11,10 @@ CREATE TABLE metaschema_modules_public.transfer_log_module (
   schema_id uuid NOT NULL DEFAULT uuid_nil(),
   private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
 
+  -- Schema name overrides: when set, the trigger uses these instead of hardcoded defaults.
+  public_schema_name text,
+  private_schema_name text,
+
   -- Transfer log table (partitioned by created_at)
   transfer_log_table_id uuid NOT NULL DEFAULT uuid_nil(),
   transfer_log_table_name text NOT NULL DEFAULT '',
