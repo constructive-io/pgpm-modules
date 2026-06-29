@@ -25,6 +25,7 @@
     "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {
+    "constructive-test": "^0.4.1",
     "pgpm": "^4.28.7"
   },
   "repository": {
