@@ -11,8 +11,9 @@ SELECT
   inference_log_table_name,
   usage_daily_table_id,
   usage_daily_table_name,
+  "interval",
   retention,
-  scope,
+  premake,
   actor_fk_table_id,
   entity_fk_table_id,
   prefix

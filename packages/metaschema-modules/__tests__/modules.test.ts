@@ -1,4 +1,4 @@
-import { getConnections, PgTestClient, snapshot } from 'pgsql-test';
+import { getConnections, PgTestClient, snapshot } from 'constructive-test';
 
 let pg: PgTestClient;
 let teardown: () => Promise<void>;
@@ -171,7 +171,7 @@ describe('db_meta_modules', () => {
     }
 
     expect(snapshot({ constraintCount: constraints.length })).toMatchSnapshot();
-  }, 60000);
+  });
 
   it('should verify all module tables exist in metaschema_modules_public schema', async () => {
     const tables = await pg.any(`
@@ -222,7 +222,7 @@ describe('db_meta_modules', () => {
       constraintCount: fkConstraints.length,
       foreignTables: foreignTables.sort()
     })).toMatchSnapshot();
-  }, 60000);
+  }, 30000);
 
   it('should verify specific module table column defaults', async () => {
     // Check that modules have sensible defaults
