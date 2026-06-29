@@ -37,6 +37,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "permissions_module",
     "phone_numbers_module",
     "plans_module",
+    "principal_auth_module",
     "profiles_module",
     "rate_limit_meters_module",
     "rate_limits_module",
@@ -60,8 +61,8 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
-  "moduleTablesCount": 51,
-  "totalTables": 58,
+  "moduleTablesCount": 52,
+  "totalTables": 59,
 }
 `;
 
@@ -128,13 +129,13 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 310683,
+  "constraintCount": 325432,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 459911,
+  "constraintCount": 482213,
   "foreignTables": [
     "database",
     "field",
