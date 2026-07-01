@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/ltree-helpers",
-  "version": "0.28.3",
+  "version": "0.28.4",
   "description": "Slash-path to ltree/lquery conversion helpers for PostgreSQL",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
