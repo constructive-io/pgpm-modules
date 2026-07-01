@@ -8,7 +8,6 @@ SELECT
     schema_id,
     table_id,
     table_name,
-    nodes,
     use_rls,
     fields,
     grants,
