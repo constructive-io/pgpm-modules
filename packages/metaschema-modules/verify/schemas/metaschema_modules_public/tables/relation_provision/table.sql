@@ -18,6 +18,8 @@ SELECT
     source_field_name,
     target_field_name,
     use_composite_key,
+    node_type,
+    node_data,
     grants,
     policies,
     out_field_id,
