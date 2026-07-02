@@ -26,6 +26,9 @@ CREATE TABLE services_public.database_settings (
     -- Extensible JSON for future settings that don't warrant their own column
     options jsonb NOT NULL DEFAULT '{}'::jsonb,
 
+    labels jsonb NOT NULL DEFAULT '{}',
+    annotations jsonb NOT NULL DEFAULT '{}',
+
     --
 
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE
@@ -47,6 +50,8 @@ COMMENT ON COLUMN services_public.database_settings.enable_realtime IS 'Enable r
 COMMENT ON COLUMN services_public.database_settings.enable_bulk IS 'Enable bulk mutation operations (insert, upsert, update, delete) in the GraphQL API';
 COMMENT ON COLUMN services_public.database_settings.enable_i18n IS 'Enable internationalization plugin (localeStrings field, translation table discovery) in the GraphQL API';
 COMMENT ON COLUMN services_public.database_settings.options IS 'Extensible JSON for additional settings that do not have dedicated columns';
+COMMENT ON COLUMN services_public.database_settings.labels IS 'Key/value pairs for selecting and filtering database settings';
+COMMENT ON COLUMN services_public.database_settings.annotations IS 'Freeform metadata for tooling and operational notes';
 
 CREATE INDEX database_settings_database_id_idx ON services_public.database_settings (database_id);
 
