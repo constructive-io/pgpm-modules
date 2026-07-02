@@ -15,11 +15,13 @@ exports[`services functionality should handle complete meta workflow with servic
 
 exports[`services functionality should handle complete meta workflow with services 2`] = `
 {
+  "annotations": {},
   "anon_role": "anonymous",
   "database_id": "[ID]",
   "dbname": "test-database",
   "id": "[ID]",
   "is_public": true,
+  "labels": {},
   "name": "public",
   "role_name": "authenticated",
 }
@@ -27,11 +29,13 @@ exports[`services functionality should handle complete meta workflow with servic
 
 exports[`services functionality should handle complete meta workflow with services 3`] = `
 {
+  "annotations": {},
   "anon_role": "administrator",
   "database_id": "[ID]",
   "dbname": "test-database",
   "id": "[ID]",
   "is_public": true,
+  "labels": {},
   "name": "admin",
   "role_name": "administrator",
 }
@@ -39,12 +43,14 @@ exports[`services functionality should handle complete meta workflow with servic
 
 exports[`services functionality should handle complete meta workflow with services 4`] = `
 {
+  "annotations": {},
   "apple_touch_icon": null,
   "database_id": "[ID]",
   "dbname": "test-database",
   "description": "Website Description",
   "favicon": null,
   "id": "[ID]",
+  "labels": {},
   "logo": null,
   "og_image": null,
   "title": "Website Title",
@@ -53,10 +59,13 @@ exports[`services functionality should handle complete meta workflow with servic
 
 exports[`services functionality should handle complete meta workflow with services 5`] = `
 {
+  "annotations": {},
   "api_id": "[ID]",
   "database_id": "[ID]",
   "domain": "pgpm.io",
   "id": "[ID]",
+  "labels": {},
+  "service_id": null,
   "site_id": null,
   "subdomain": "api",
 }
@@ -64,10 +73,13 @@ exports[`services functionality should handle complete meta workflow with servic
 
 exports[`services functionality should handle complete meta workflow with services 6`] = `
 {
+  "annotations": {},
   "api_id": null,
   "database_id": "[ID]",
   "domain": "pgpm.io",
   "id": "[ID]",
+  "labels": {},
+  "service_id": null,
   "site_id": "[ID]",
   "subdomain": "app",
 }
@@ -75,10 +87,13 @@ exports[`services functionality should handle complete meta workflow with servic
 
 exports[`services functionality should handle complete meta workflow with services 7`] = `
 {
+  "annotations": {},
   "api_id": "[ID]",
   "database_id": "[ID]",
   "domain": "pgpm.io",
   "id": "[ID]",
+  "labels": {},
+  "service_id": null,
   "site_id": null,
   "subdomain": "admin",
 }
