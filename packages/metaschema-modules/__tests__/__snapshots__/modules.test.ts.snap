@@ -6,6 +6,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "agent_module",
     "billing_module",
     "billing_provider_module",
+    "certificate_module",
     "compute_log_module",
     "config_secrets_module",
     "config_secrets_org_module",
@@ -43,6 +44,9 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "rate_limits_module",
     "realtime_module",
     "rls_module",
+    "route_module",
+    "server_definition_module",
+    "server_deployment_module",
     "session_secrets_module",
     "sessions_module",
     "storage_log_module",
@@ -61,8 +65,8 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
-  "moduleTablesCount": 52,
-  "totalTables": 59,
+  "moduleTablesCount": 56,
+  "totalTables": 63,
 }
 `;
 
@@ -129,13 +133,13 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 325432,
+  "constraintCount": 325436,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 482213,
+  "constraintCount": 482239,
   "foreignTables": [
     "database",
     "field",
@@ -144,6 +148,7 @@ exports[`db_meta_modules should verify module tables have proper foreign key rel
     "merkle_store_module",
     "namespace_module",
     "schema",
+    "server_definition_module",
     "table",
   ],
 }

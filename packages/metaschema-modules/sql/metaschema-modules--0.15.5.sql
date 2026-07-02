@@ -3467,3 +3467,209 @@ COMMENT ON CONSTRAINT session_credentials_table_fkey ON metaschema_modules_publi
 COMMENT ON CONSTRAINT principal_entities_table_fkey ON metaschema_modules_public.principal_auth_module IS '@omit';
 
 COMMENT ON TABLE metaschema_modules_public.principal_auth_module IS 'Provisions the principals subsystem: a principals table, a principal_entities junction table, create/delete mutations, and org API key management. Supports both human-owned principals (AuthzDirectOwner, AuthzHumanOnly) and org-owned principals (AuthzEntityMembership with is_admin). Org principal and org API key functions are only generated when an org-scoped memberships_module exists for the database.';
+
+CREATE TABLE metaschema_modules_public.server_definition_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  public_schema_name text,
+  private_schema_name text,
+  definitions_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  definitions_table_name text NOT NULL DEFAULT 'server_definitions',
+  api_name text,
+  private_api_name text,
+  scope text NOT NULL DEFAULT 'platform',
+  prefix text NOT NULL DEFAULT '',
+  entity_table_id uuid NULL,
+  policies jsonb NULL,
+  provisions jsonb NULL,
+  default_permissions text[] DEFAULT NULL,
+  CONSTRAINT server_definition_module_db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT server_definition_module_schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT server_definition_module_private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT server_definition_module_definitions_table_fkey
+    FOREIGN KEY(definitions_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT server_definition_module_entity_table_fkey
+    FOREIGN KEY(entity_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX server_definition_module_database_id_idx ON metaschema_modules_public.server_definition_module (database_id);
+
+CREATE UNIQUE INDEX server_definition_module_unique_scope ON metaschema_modules_public.server_definition_module (database_id, scope, prefix);
+
+CREATE TABLE metaschema_modules_public.server_deployment_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  public_schema_name text,
+  private_schema_name text,
+  deployments_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  deployment_events_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  deployments_table_name text NOT NULL DEFAULT 'server_deployments',
+  deployment_events_table_name text NOT NULL DEFAULT 'server_deployment_events',
+  api_name text,
+  private_api_name text,
+  scope text NOT NULL DEFAULT 'app',
+  prefix text NOT NULL DEFAULT '',
+  entity_table_id uuid NULL,
+  server_definition_module_id uuid NULL,
+  namespace_module_id uuid NULL,
+  policies jsonb NULL,
+  provisions jsonb NULL,
+  default_permissions text[] DEFAULT NULL,
+  CONSTRAINT server_deployment_module_db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT server_deployment_module_schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT server_deployment_module_private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT server_deployment_module_deployments_table_fkey
+    FOREIGN KEY(deployments_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT server_deployment_module_events_table_fkey
+    FOREIGN KEY(deployment_events_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT server_deployment_module_entity_table_fkey
+    FOREIGN KEY(entity_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT server_deployment_module_server_def_module_fkey
+    FOREIGN KEY(server_definition_module_id)
+    REFERENCES metaschema_modules_public.server_definition_module (id)
+    ON DELETE SET NULL,
+  CONSTRAINT server_deployment_module_namespace_module_fkey
+    FOREIGN KEY(namespace_module_id)
+    REFERENCES metaschema_modules_public.namespace_module (id)
+    ON DELETE SET NULL
+);
+
+CREATE INDEX server_deployment_module_database_id_idx ON metaschema_modules_public.server_deployment_module (database_id);
+
+CREATE UNIQUE INDEX server_deployment_module_unique_scope ON metaschema_modules_public.server_deployment_module (database_id, scope, prefix);
+
+CREATE TABLE metaschema_modules_public.route_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  public_schema_name text,
+  private_schema_name text,
+  routes_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  route_events_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  routes_table_name text NOT NULL DEFAULT 'routes',
+  route_events_table_name text NOT NULL DEFAULT 'route_events',
+  api_name text,
+  private_api_name text,
+  scope text NOT NULL DEFAULT 'platform',
+  prefix text NOT NULL DEFAULT '',
+  entity_table_id uuid NULL,
+  policies jsonb NULL,
+  provisions jsonb NULL,
+  default_permissions text[] DEFAULT NULL,
+  CONSTRAINT route_module_db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT route_module_schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT route_module_private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT route_module_routes_table_fkey
+    FOREIGN KEY(routes_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT route_module_events_table_fkey
+    FOREIGN KEY(route_events_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT route_module_entity_table_fkey
+    FOREIGN KEY(entity_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX route_module_database_id_idx ON metaschema_modules_public.route_module (database_id);
+
+CREATE UNIQUE INDEX route_module_unique_scope ON metaschema_modules_public.route_module (database_id, scope, prefix);
+
+CREATE TABLE metaschema_modules_public.certificate_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  public_schema_name text,
+  private_schema_name text,
+  certificates_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  certificate_domains_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  certificate_events_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  certificates_table_name text NOT NULL DEFAULT 'certificates',
+  certificate_domains_table_name text NOT NULL DEFAULT 'certificate_domains',
+  certificate_events_table_name text NOT NULL DEFAULT 'certificate_events',
+  api_name text,
+  private_api_name text,
+  scope text NOT NULL DEFAULT 'platform',
+  prefix text NOT NULL DEFAULT '',
+  entity_table_id uuid NULL,
+  policies jsonb NULL,
+  provisions jsonb NULL,
+  default_permissions text[] DEFAULT NULL,
+  CONSTRAINT certificate_module_db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT certificate_module_schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT certificate_module_private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT certificate_module_certs_table_fkey
+    FOREIGN KEY(certificates_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT certificate_module_cert_domains_table_fkey
+    FOREIGN KEY(certificate_domains_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT certificate_module_events_table_fkey
+    FOREIGN KEY(certificate_events_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE,
+  CONSTRAINT certificate_module_entity_table_fkey
+    FOREIGN KEY(entity_table_id)
+    REFERENCES metaschema_public."table" (id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX certificate_module_database_id_idx ON metaschema_modules_public.certificate_module (database_id);
+
+CREATE UNIQUE INDEX certificate_module_unique_scope ON metaschema_modules_public.certificate_module (database_id, scope, prefix);
