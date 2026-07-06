@@ -1,5 +1,5 @@
 EXTENSION = metaschema-modules
-DATA = sql/metaschema-modules--0.15.5.sql
+DATA = sql/metaschema-modules--0.28.3.sql
 
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
