@@ -40,7 +40,7 @@ jobs:
       PGPORT: 5432
       PGUSER: postgres
       PGPASSWORD: password
-      PGPM_VERSION: 4.7.4
+      PGPM_VERSION: 4.33.0
 
     services:
       pg_db:
@@ -102,6 +102,11 @@ jobs:
 
       - name: Install pgpm CLI globally
         run: npm install -g pgpm@${{ env.PGPM_VERSION }}
+
+      # Durability is irrelevant for throwaway CI databases. Disabling fsync
+      # and synchronous commit avoids checkpoint I/O stalls on CI runners.
+      - name: Tune Postgres for CI (disable durability)
+        run: pgpm tune --yes
 
       - name: Build
         run: pnpm -r build
