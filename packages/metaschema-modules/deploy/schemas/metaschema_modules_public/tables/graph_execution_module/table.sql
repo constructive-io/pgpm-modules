@@ -77,7 +77,7 @@ CREATE TABLE metaschema_modules_public.graph_execution_module (
 
 CREATE INDEX graph_execution_module_database_id_idx ON metaschema_modules_public.graph_execution_module ( database_id );
 
--- One execution module per (database, scope, prefix).
-CREATE UNIQUE INDEX graph_execution_module_unique_scope ON metaschema_modules_public.graph_execution_module ( database_id, scope, prefix );
+-- One execution module per (database, scope) (K8s infra: scopes never share).
+CREATE UNIQUE INDEX graph_execution_module_unique_scope ON metaschema_modules_public.graph_execution_module ( database_id, scope );
 
 COMMIT;
