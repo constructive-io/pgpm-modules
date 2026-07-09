@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/cron",
-  "version": "0.0.1",
+  "version": "0.30.0",
   "description": "open-code pg_cron sync for the scheduled_cron registry",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
