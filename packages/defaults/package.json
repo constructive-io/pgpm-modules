@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/defaults",
-  "version": "0.28.4",
+  "version": "0.29.0",
   "description": "Security defaults and baseline configurations",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
