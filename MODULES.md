@@ -31,6 +31,7 @@
 ### Job Management
 - [ ] `packages/jobs/jobs` - Core job system
 - [ ] `packages/jobs/database-jobs` - Database-specific job handling
+- [ ] `packages/pgpm-cron` - pg_cron sync for the scheduled_cron registry
 
 ## Meta & Database Introspection
 
