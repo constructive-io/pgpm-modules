@@ -36,7 +36,6 @@ CREATE TABLE metaschema_public.view (
   smart_tags jsonb,
 
   category metaschema_public.object_category NOT NULL DEFAULT 'app',
-  scope int NULL,
 
   tags citext[] NOT NULL DEFAULT '{}',
 

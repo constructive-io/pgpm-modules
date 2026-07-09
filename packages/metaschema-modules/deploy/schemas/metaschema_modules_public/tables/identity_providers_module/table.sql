@@ -25,8 +25,9 @@ CREATE TABLE metaschema_modules_public.identity_providers_module (
 
     -- Entity-aware scope: determines which config_secrets_module table
     -- the rotate_identity_provider_{prefix}_secret proc targets.
-    --   'app'  = app_secrets (AuthzAppMembership, admin-only)
-    --   'org'  = org_secrets (AuthzEntityMembership, per-org)
+    --   'app'      = app_secrets (AuthzAppMembership, admin-only)
+    --   'platform' = platform_secrets (platform-wide infra)
+    --   'database' = secrets (per-database infra, carries database_id)
     -- Future entity types are also supported via the membership_types table.
     scope text NOT NULL DEFAULT 'app',
 
@@ -57,13 +58,12 @@ COMMENT ON TABLE metaschema_modules_public.identity_providers_module IS
     'Entity-aware config row for the identity_providers_module, which provisions a per-database
      identity_providers table holding OAuth2 / OIDC (and future SAML) provider definitions.
      The scope column determines which config_secrets_module table the rotate proc targets
-     (app_secrets for app scope, org_secrets for org scope). When scope = platform,
-     the secrets table gets a database_id column and platform-level RLS via
-     AuthzRelatedEntityMembership through database.owner_id.
+     (app_secrets for app scope, platform_secrets for platform scope). When scope = database,
+     the secrets table gets a database_id column.
      Scoping matrix:
        scope=app       → per-database flat, in-app admin manages
-       scope=platform  → per-database, platform admin manages (generate:constructive)
-       scope=org       → per-org tenant, org admin manages';
+       scope=platform  → platform-wide, platform admin manages (generate:constructive)
+       scope=database  → per-database infra, carries database_id';
 COMMENT ON COLUMN metaschema_modules_public.identity_providers_module.private_schema_id IS 'Private schema that hosts SECURITY DEFINER admin helpers which write to identity_providers (create / update / enable / disable / rotate-secret / delete) and the per-app quota check.';
 
 COMMIT;

@@ -37,6 +37,8 @@ CREATE TABLE services_public.apis (
   role_name text NOT NULL DEFAULT 'authenticated',
   anon_role text NOT NULL DEFAULT 'anonymous',
   is_public boolean NOT NULL DEFAULT true,
+  labels jsonb NOT NULL DEFAULT '{}',
+  annotations jsonb NOT NULL DEFAULT '{}',
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -59,6 +61,10 @@ COMMENT ON COLUMN services_public.apis.role_name IS 'PostgreSQL role used for au
 COMMENT ON COLUMN services_public.apis.anon_role IS 'PostgreSQL role used for anonymous/unauthenticated requests';
 
 COMMENT ON COLUMN services_public.apis.is_public IS 'Whether this API is publicly accessible without authentication';
+
+COMMENT ON COLUMN services_public.apis.labels IS 'Key/value pairs for selecting and filtering APIs';
+
+COMMENT ON COLUMN services_public.apis.annotations IS 'Freeform metadata for tooling and operational notes';
 
 CREATE INDEX apis_database_id_idx ON services_public.apis (database_id);
 
@@ -141,6 +147,8 @@ CREATE TABLE services_public.sites (
   apple_touch_icon image,
   logo image,
   dbname text NOT NULL DEFAULT current_database(),
+  labels jsonb NOT NULL DEFAULT '{}',
+  annotations jsonb NOT NULL DEFAULT '{}',
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -170,6 +178,10 @@ COMMENT ON COLUMN services_public.sites.apple_touch_icon IS 'Apple touch icon fo
 COMMENT ON COLUMN services_public.sites.logo IS 'Primary logo image for the site';
 
 COMMENT ON COLUMN services_public.sites.dbname IS 'PostgreSQL database name this site connects to';
+
+COMMENT ON COLUMN services_public.sites.labels IS 'Key/value pairs for selecting and filtering sites';
+
+COMMENT ON COLUMN services_public.sites.annotations IS 'Freeform metadata for tooling and operational notes';
 
 CREATE INDEX sites_database_id_idx ON services_public.sites (database_id);
 
@@ -224,8 +236,11 @@ CREATE TABLE services_public.domains (
   database_id uuid NOT NULL,
   api_id uuid,
   site_id uuid,
+  service_id uuid,
   subdomain hostname,
   domain hostname,
+  labels jsonb NOT NULL DEFAULT '{}',
+  annotations jsonb NOT NULL DEFAULT '{}',
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -239,14 +254,7 @@ CREATE TABLE services_public.domains (
     REFERENCES services_public.sites (id)
     ON DELETE CASCADE,
   CONSTRAINT one_route_chk 
-    CHECK (
-    (api_id IS NULL
-      AND site_id IS NULL)
-      OR (api_id IS NULL
-      AND site_id IS NOT NULL)
-      OR (api_id IS NOT NULL
-      AND site_id IS NULL)
-  ),
+    CHECK (num_nonnulls(api_id, site_id, service_id) <= 1),
   UNIQUE (subdomain, domain)
 );
 
@@ -258,7 +266,13 @@ COMMENT ON COLUMN services_public.domains.database_id IS 'Reference to the metas
 
 COMMENT ON COLUMN services_public.domains.api_id IS 'API endpoint this domain routes to (mutually exclusive with site_id)';
 
-COMMENT ON COLUMN services_public.domains.site_id IS 'Site this domain routes to (mutually exclusive with api_id)';
+COMMENT ON COLUMN services_public.domains.site_id IS 'Site this domain routes to (mutually exclusive with api_id and service_id)';
+
+COMMENT ON COLUMN services_public.domains.service_id IS 'Server deployment this domain routes to (mutually exclusive with api_id and site_id)';
+
+COMMENT ON COLUMN services_public.domains.labels IS 'Key/value pairs for selecting and filtering domains';
+
+COMMENT ON COLUMN services_public.domains.annotations IS 'Freeform metadata for tooling and operational notes';
 
 COMMENT ON COLUMN services_public.domains.subdomain IS 'Subdomain portion of the hostname';
 
@@ -269,6 +283,8 @@ CREATE INDEX domains_database_id_idx ON services_public.domains (database_id);
 CREATE INDEX domains_api_id_idx ON services_public.domains (api_id);
 
 CREATE INDEX domains_site_id_idx ON services_public.domains (site_id);
+
+CREATE INDEX domains_service_id_idx ON services_public.domains (service_id);
 
 CREATE TABLE services_public.site_metadata (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -407,13 +423,13 @@ $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
 CREATE TRIGGER _000003_enforce_api_table_name_uniqueness
   BEFORE INSERT
-  ON metaschema_public."table"
+  ON metaschema_public.table
   FOR EACH ROW
   EXECUTE PROCEDURE services_private.tg_enforce_api_table_name_uniqueness();
 
 CREATE TRIGGER _000003_enforce_api_table_name_uniqueness_update
   BEFORE UPDATE
-  ON metaschema_public."table"
+  ON metaschema_public.table
   FOR EACH ROW
   WHEN (new.name IS DISTINCT FROM old.name
     OR new.schema_id IS DISTINCT FROM old.schema_id)
@@ -469,6 +485,8 @@ CREATE TABLE services_public.database_settings (
   enable_bulk boolean NOT NULL DEFAULT false,
   enable_i18n boolean NOT NULL DEFAULT false,
   options jsonb NOT NULL DEFAULT '{}'::jsonb,
+  labels jsonb NOT NULL DEFAULT '{}',
+  annotations jsonb NOT NULL DEFAULT '{}',
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -506,6 +524,10 @@ COMMENT ON COLUMN services_public.database_settings.enable_bulk IS 'Enable bulk 
 COMMENT ON COLUMN services_public.database_settings.enable_i18n IS 'Enable internationalization plugin (localeStrings field, translation table discovery) in the GraphQL API';
 
 COMMENT ON COLUMN services_public.database_settings.options IS 'Extensible JSON for additional settings that do not have dedicated columns';
+
+COMMENT ON COLUMN services_public.database_settings.labels IS 'Key/value pairs for selecting and filtering database settings';
+
+COMMENT ON COLUMN services_public.database_settings.annotations IS 'Freeform metadata for tooling and operational notes';
 
 CREATE INDEX database_settings_database_id_idx ON services_public.database_settings (database_id);
 
@@ -777,19 +799,19 @@ CREATE TABLE services_public.webauthn_settings (
     ON DELETE SET NULL,
   CONSTRAINT credentials_table_fkey
     FOREIGN KEY(credentials_table_id)
-    REFERENCES metaschema_public."table" (id)
+    REFERENCES metaschema_public.table (id)
     ON DELETE SET NULL,
   CONSTRAINT sessions_table_fkey
     FOREIGN KEY(sessions_table_id)
-    REFERENCES metaschema_public."table" (id)
+    REFERENCES metaschema_public.table (id)
     ON DELETE SET NULL,
   CONSTRAINT session_credentials_table_fkey
     FOREIGN KEY(session_credentials_table_id)
-    REFERENCES metaschema_public."table" (id)
+    REFERENCES metaschema_public.table (id)
     ON DELETE SET NULL,
   CONSTRAINT session_secrets_table_fkey
     FOREIGN KEY(session_secrets_table_id)
-    REFERENCES metaschema_public."table" (id)
+    REFERENCES metaschema_public.table (id)
     ON DELETE SET NULL,
   CONSTRAINT user_field_fkey
     FOREIGN KEY(user_field_id)
