@@ -1,7 +1,0 @@
-# pgpm-cron extension
-comment = 'open-code pg_cron sync for the scheduled_cron registry'
-default_version = '0.0.1'
-module_pathname = '$libdir/pgpm-cron'
-requires = 'plpgsql,metaschema-schema'
-relocatable = false
-superuser = false

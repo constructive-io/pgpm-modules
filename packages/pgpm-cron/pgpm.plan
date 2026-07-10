@@ -1,6 +1,0 @@
-%syntax-version=1.0.0
-%project=pgpm-cron
-%uri=pgpm-cron
-
-schemas/pgpm_cron/schema 2026-07-08T00:00:00Z devin <devin@cognition.ai> # add pgpm_cron schema
-schemas/pgpm_cron/procedures/sync_scheduled_cron [schemas/pgpm_cron/schema metaschema-schema:schemas/metaschema_public/tables/scheduled_cron/table] 2026-07-08T00:00:01Z devin <devin@cognition.ai> # sync scheduled_cron registry rows into pg_cron (local single-database deployments)
