@@ -382,660 +382,189 @@ INSERT INTO inflection.inflection_rules (
   test,
   replacement
 ) VALUES
-(
-  'plural',
-  '^(m|wom)en$',
-  NULL
-),
-(
-  'plural',
-  '(pe)ople$',
-  NULL
-),
-(
-  'plural',
-  '(child)ren$',
-  NULL
-),
-(
-  'plural',
-  '([ti])a$',
-  NULL
-),
-(
-  'plural',
-  '((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$',
-  NULL
-),
-(
-  'plural',
-  '(database)s$',
-  NULL
-),
-(
-  'plural',
-  '(drive)s$',
-  NULL
-),
-(
-  'plural',
-  '(hi|ti)ves$',
-  NULL
-),
-(
-  'plural',
-  '(curve)s$',
-  NULL
-),
-(
-  'plural',
-  '([lr])ves$',
-  NULL
-),
-(
-  'plural',
-  '([^fo])ves$',
-  NULL
-),
-(
-  'plural',
-  '([^aeiouy]|qu)ies$',
-  NULL
-),
-(
-  'plural',
-  '(s)eries$',
-  NULL
-),
-(
-  'plural',
-  '(m)ovies$',
-  NULL
-),
-(
-  'plural',
-  '(x|ch|ss|sh)es$',
-  NULL
-),
-(
-  'plural',
-  '([m|l])ice$',
-  NULL
-),
-(
-  'plural',
-  '(bus)es$',
-  NULL
-),
-(
-  'plural',
-  '(o)es$',
-  NULL
-),
-(
-  'plural',
-  '(shoe)s$',
-  NULL
-),
-(
-  'plural',
-  '(cris|ax|test)es$',
-  NULL
-),
-(
-  'plural',
-  '(octop|vir)uses$',
-  NULL
-),
-(
-  'plural',
-  '(alias|canvas|status|campus)es$',
-  NULL
-),
-(
-  'plural',
-  '^(summons|bonus)es$',
-  NULL
-),
-(
-  'plural',
-  '^(ox)en',
-  NULL
-),
-(
-  'plural',
-  '(matr)ices$',
-  NULL
-),
-(
-  'plural',
-  '(vert|ind)ices$',
-  NULL
-),
-(
-  'plural',
-  '^feet$',
-  NULL
-),
-(
-  'plural',
-  '^teeth$',
-  NULL
-),
-(
-  'plural',
-  '^geese$',
-  NULL
-),
-(
-  'plural',
-  '(quiz)zes$',
-  NULL
-),
-(
-  'plural',
-  '^(whereas)es$',
-  NULL
-),
-(
-  'plural',
-  '^(criteri)a$',
-  NULL
-),
-(
-  'plural',
-  '^genera$',
-  NULL
-),
-(
-  'plural',
-  '^(m|wom)an$',
-  E'\\1en'
-),
-(
-  'plural',
-  '(pe)rson$',
-  E'\\1ople'
-),
-(
-  'plural',
-  '(child)$',
-  E'\\1ren'
-),
-(
-  'plural',
-  '(drive)$',
-  E'\\1s'
-),
-(
-  'plural',
-  '^(ox)$',
-  E'\\1en'
-),
-(
-  'plural',
-  '(ax|test)is$',
-  E'\\1es'
-),
-(
-  'plural',
-  '(octop|vir)us$',
-  E'\\1uses'
-),
-(
-  'plural',
-  '(alias|status|canvas|campus)$',
-  E'\\1es'
-),
-(
-  'plural',
-  '^(summons|bonus)$',
-  E'\\1es'
-),
-(
-  'plural',
-  '(bu)s$',
-  E'\\1ses'
-),
-(
-  'plural',
-  '(buffal|tomat|potat)o$',
-  E'\\1oes'
-),
-(
-  'plural',
-  '([ti])um$',
-  E'\\1a'
-),
-(
-  'plural',
-  'sis$',
-  'ses'
-),
-(
-  'plural',
-  '(?:([^f])fe|([lr])f)$',
-  E'\\1\\2ves'
-),
-(
-  'plural',
-  '^(focus)$',
-  E'\\1es'
-),
-(
-  'plural',
-  '(hi|ti)ve$',
-  E'\\1ves'
-),
-(
-  'plural',
-  '([^aeiouy]|qu)y$',
-  E'\\1ies'
-),
-(
-  'plural',
-  '(matr)ix$',
-  E'\\1ices'
-),
-(
-  'plural',
-  '(vert|ind)ex$',
-  E'\\1ices'
-),
-(
-  'plural',
-  '(x|ch|ss|sh)$',
-  E'\\1es'
-),
-(
-  'plural',
-  '([m|l])ouse$',
-  E'\\1ice'
-),
-(
-  'plural',
-  '^foot$',
-  'feet'
-),
-(
-  'plural',
-  '^tooth$',
-  'teeth'
-),
-(
-  'plural',
-  '^goose$',
-  'geese'
-),
-(
-  'plural',
-  '(quiz)$',
-  E'\\1zes'
-),
-(
-  'plural',
-  '^(whereas)$',
-  E'\\1es'
-),
-(
-  'plural',
-  '^(criteri)on$',
-  E'\\1a'
-),
-(
-  'plural',
-  '^genus$',
-  'genera'
-),
-(
-  'plural',
-  's$',
-  's'
-),
-(
-  'plural',
-  '$',
-  's'
-),
-(
-  'singular',
-  '^(m|wom)an$',
-  NULL
-),
-(
-  'singular',
-  '(pe)rson$',
-  NULL
-),
-(
-  'singular',
-  '(child)$',
-  NULL
-),
-(
-  'singular',
-  '(drive)$',
-  NULL
-),
-(
-  'singular',
-  '^(ox)$',
-  NULL
-),
-(
-  'singular',
-  '(ax|test)is$',
-  NULL
-),
-(
-  'singular',
-  '(octop|vir)us$',
-  NULL
-),
-(
-  'singular',
-  '(alias|status|canvas|campus)$',
-  NULL
-),
-(
-  'singular',
-  '^(summons|bonus)$',
-  NULL
-),
-(
-  'singular',
-  '(bu)s$',
-  NULL
-),
-(
-  'singular',
-  '(buffal|tomat|potat)o$',
-  NULL
-),
-(
-  'singular',
-  '([ti])um$',
-  NULL
-),
-(
-  'singular',
-  'sis$',
-  NULL
-),
-(
-  'singular',
-  '(?:([^f])fe|([lr])f)$',
-  NULL
-),
-(
-  'singular',
-  '^(focus)$',
-  NULL
-),
-(
-  'singular',
-  '(hi|ti)ve$',
-  NULL
-),
-(
-  'singular',
-  '([^aeiouy]|qu)y$',
-  NULL
-),
-(
-  'singular',
-  '(x|ch|ss|sh)$',
-  NULL
-),
-(
-  'singular',
-  '(matr)ix$',
-  NULL
-),
-(
-  'singular',
-  '(vert|ind)ex$',
-  NULL
-),
-(
-  'singular',
-  '([m|l])ouse$',
-  NULL
-),
-(
-  'singular',
-  '^foot$',
-  NULL
-),
-(
-  'singular',
-  '^tooth$',
-  NULL
-),
-(
-  'singular',
-  '^goose$',
-  NULL
-),
-(
-  'singular',
-  '(quiz)$',
-  NULL
-),
-(
-  'singular',
-  '^(whereas)$',
-  NULL
-),
-(
-  'singular',
-  '^(criteri)on$',
-  NULL
-),
-(
-  'singular',
-  '^genus$',
-  NULL
-),
-(
-  'singular',
-  '^(m|wom)en$',
-  E'\\1an'
-),
-(
-  'singular',
-  '(pe)ople$',
-  E'\\1rson'
-),
-(
-  'singular',
-  '(child)ren$',
-  E'\\1'
-),
-(
-  'singular',
-  '(database)s$',
-  E'\\1'
-),
-(
-  'singular',
-  '(drive)s$',
-  E'\\1'
-),
-(
-  'singular',
-  '^genera$',
-  'genus'
-),
-(
-  'singular',
-  '^(criteri)a$',
-  E'\\1on'
-),
-(
-  'singular',
-  '(schema)ta$',
-  E'\\1'
-),
-(
-  'singular',
-  '(phenomen)a$',
-  E'\\1on'
-),
-(
-  'singular',
-  '(memorand)a$',
-  E'\\1um'
-),
-(
-  'singular',
-  '(curricul)a$',
-  E'\\1um'
-),
-(
-  'singular',
-  '([ti])a$',
-  E'\\1um'
-),
-(
-  'singular',
-  '((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$',
-  E'\\1\\2sis'
-),
-(
-  'singular',
-  '(hi|ti)ves$',
-  E'\\1ve'
-),
-(
-  'singular',
-  '(curve)s$',
-  E'\\1'
-),
-(
-  'singular',
-  '([lr])ves$',
-  E'\\1f'
-),
-(
-  'singular',
-  '([a])ves$',
-  E'\\1ve'
-),
-(
-  'singular',
-  '([^fo])ves$',
-  E'\\1fe'
-),
-(
-  'singular',
-  '(m)ovies$',
-  E'\\1ovie'
-),
-(
-  'singular',
-  '([^aeiouy]|qu)ies$',
-  E'\\1y'
-),
-(
-  'singular',
-  '(s)eries$',
-  E'\\1eries'
-),
-(
-  'singular',
-  '(x|ch|ss|sh)es$',
-  E'\\1'
-),
-(
-  'singular',
-  '([m|l])ice$',
-  E'\\1ouse'
-),
-(
-  'singular',
-  '(bus)es$',
-  E'\\1'
-),
-(
-  'singular',
-  '(o)es$',
-  E'\\1'
-),
-(
-  'singular',
-  '(shoe)s$',
-  E'\\1'
-),
-(
-  'singular',
-  '(cris|ax|test)es$',
-  E'\\1is'
-),
-(
-  'singular',
-  '(octop|vir)uses$',
-  E'\\1us'
-),
-(
-  'singular',
-  '(alias|canvas|status|campus)es$',
-  E'\\1'
-),
-(
-  'singular',
-  '^(summons|bonus)es$',
-  E'\\1'
-),
-(
-  'singular',
-  '^(ox)en',
-  E'\\1'
-),
-(
-  'singular',
-  '(matr)ices$',
-  E'\\1ix'
-),
-(
-  'singular',
-  '(vert|ind)ices$',
-  E'\\1ex'
-),
-(
-  'singular',
-  '^feet$',
-  'foot'
-),
-(
-  'singular',
-  '^teeth$',
-  'tooth'
-),
-(
-  'singular',
-  '^geese$',
-  'goose'
-),
-(
-  'singular',
-  '(quiz)zes$',
-  E'\\1'
-),
-(
-  'singular',
-  '^(whereas)es$',
-  E'\\1'
-),
-(
-  'singular',
-  'ss$',
-  'ss'
-),
-(
-  'singular',
-  's$',
-  ''
-);
+  ('plural', '^(m|wom)en$', NULL),
+  ('plural', '(pe)ople$', NULL),
+  ('plural', '(child)ren$', NULL),
+  ('plural', '([ti])a$', NULL),
+  ('plural', '((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$', NULL),
+  ('plural', '(.+base)s$', NULL),
+  ('plural', '(database)s$', NULL),
+  ('plural', '(drive)s$', NULL),
+  ('plural', '(hi|ti)ves$', NULL),
+  ('plural', '(curve)s$', NULL),
+  ('plural', '([lr])ves$', NULL),
+  ('plural', '([^fo])ves$', NULL),
+  ('plural', '([^aeiouy]|qu)ies$', NULL),
+  ('plural', '(s)eries$', NULL),
+  ('plural', '(m)ovies$', NULL),
+  ('plural', '(x|ch|ss|sh)es$', NULL),
+  ('plural', '([m|l])ice$', NULL),
+  ('plural', '(bus)es$', NULL),
+  ('plural', '(o)es$', NULL),
+  ('plural', '(shoe)s$', NULL),
+  ('plural', '(cris|ax|test)es$', NULL),
+  ('plural', '(octop|vir)uses$', NULL),
+  ('plural', '(alias|canvas|status|campus)es$', NULL),
+  ('plural', '^(summons|bonus)es$', NULL),
+  ('plural', '^(ox)en', NULL),
+  ('plural', '(matr)ices$', NULL),
+  ('plural', '(vert|ind)ices$', NULL),
+  ('plural', '^feet$', NULL),
+  ('plural', '^teeth$', NULL),
+  ('plural', '^geese$', NULL),
+  ('plural', '(quiz)zes$', NULL),
+  ('plural', '^(whereas)es$', NULL),
+  ('plural', '^(criteri)a$', NULL),
+  ('plural', '^genera$', NULL),
+  ('plural', '^(m|wom)an$', E'\\1en'),
+  ('plural', '(pe)rson$', E'\\1ople'),
+  ('plural', '(child)$', E'\\1ren'),
+  ('plural', '(drive)$', E'\\1s'),
+  ('plural', '^(ox)$', E'\\1en'),
+  ('plural', '(ax|test)is$', E'\\1es'),
+  ('plural', '(octop|vir)us$', E'\\1uses'),
+  ('plural', '(alias|status|canvas|campus)$', E'\\1es'),
+  ('plural', '^(summons|bonus)$', E'\\1es'),
+  ('plural', '(bu)s$', E'\\1ses'),
+  ('plural', '(buffal|tomat|potat)o$', E'\\1oes'),
+  ('plural', '([ti])um$', E'\\1a'),
+  ('plural', 'sis$', 'ses'),
+  ('plural', '(?:([^f])fe|([lr])f)$', E'\\1\\2ves'),
+  ('plural', '^(focus)$', E'\\1es'),
+  ('plural', '(hi|ti)ve$', E'\\1ves'),
+  ('plural', '([^aeiouy]|qu)y$', E'\\1ies'),
+  ('plural', '(matr)ix$', E'\\1ices'),
+  ('plural', '(vert|ind)ex$', E'\\1ices'),
+  ('plural', '(x|ch|ss|sh)$', E'\\1es'),
+  ('plural', '([m|l])ouse$', E'\\1ice'),
+  ('plural', '^foot$', 'feet'),
+  ('plural', '^tooth$', 'teeth'),
+  ('plural', '^goose$', 'geese'),
+  ('plural', '(quiz)$', E'\\1zes'),
+  ('plural', '^(whereas)$', E'\\1es'),
+  ('plural', '^(criteri)on$', E'\\1a'),
+  ('plural', '^genus$', 'genera'),
+  ('plural', 's$', 's'),
+  ('plural', '$', 's'),
+  ('singular', '^(m|wom)an$', NULL),
+  ('singular', '(pe)rson$', NULL),
+  ('singular', '(child)$', NULL),
+  ('singular', '(drive)$', NULL),
+  ('singular', '^(ox)$', NULL),
+  ('singular', '(ax|test)is$', NULL),
+  ('singular', '(octop|vir)us$', NULL),
+  ('singular', '(alias|status|canvas|campus)$', NULL),
+  ('singular', '^(summons|bonus)$', NULL),
+  ('singular', '(bu)s$', NULL),
+  ('singular', '(buffal|tomat|potat)o$', NULL),
+  ('singular', '([ti])um$', NULL),
+  ('singular', 'sis$', NULL),
+  ('singular', '(?:([^f])fe|([lr])f)$', NULL),
+  ('singular', '^(focus)$', NULL),
+  ('singular', '(hi|ti)ve$', NULL),
+  ('singular', '([^aeiouy]|qu)y$', NULL),
+  ('singular', '(x|ch|ss|sh)$', NULL),
+  ('singular', '(matr)ix$', NULL),
+  ('singular', '(vert|ind)ex$', NULL),
+  ('singular', '([m|l])ouse$', NULL),
+  ('singular', '^foot$', NULL),
+  ('singular', '^tooth$', NULL),
+  ('singular', '^goose$', NULL),
+  ('singular', '(quiz)$', NULL),
+  ('singular', '^(whereas)$', NULL),
+  ('singular', '^(criteri)on$', NULL),
+  ('singular', '^genus$', NULL),
+  ('singular', '^(m|wom)en$', E'\\1an'),
+  ('singular', '(pe)ople$', E'\\1rson'),
+  ('singular', '(child)ren$', E'\\1'),
+  ('singular', '(database)s$', E'\\1'),
+  ('singular', '(drive)s$', E'\\1'),
+  ('singular', '^genera$', 'genus'),
+  ('singular', '^(criteri)a$', E'\\1on'),
+  ('singular', '(schema)ta$', E'\\1'),
+  ('singular', '(phenomen)a$', E'\\1on'),
+  ('singular', '(memorand)a$', E'\\1um'),
+  ('singular', '(curricul)a$', E'\\1um'),
+  ('singular', '([ti])a$', E'\\1um'),
+  ('singular', '(.+base)s$', E'\\1'),
+  ('singular', '((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$', E'\\1\\2sis'),
+  ('singular', '(hi|ti)ves$', E'\\1ve'),
+  ('singular', '(curve)s$', E'\\1'),
+  ('singular', '([lr])ves$', E'\\1f'),
+  ('singular', '([a])ves$', E'\\1ve'),
+  ('singular', '([^fo])ves$', E'\\1fe'),
+  ('singular', '(m)ovies$', E'\\1ovie'),
+  ('singular', '([^aeiouy]|qu)ies$', E'\\1y'),
+  ('singular', '(s)eries$', E'\\1eries'),
+  ('singular', '(x|ch|ss|sh)es$', E'\\1'),
+  ('singular', '([m|l])ice$', E'\\1ouse'),
+  ('singular', '(bus)es$', E'\\1'),
+  ('singular', '(o)es$', E'\\1'),
+  ('singular', '(shoe)s$', E'\\1'),
+  ('singular', '(cris|ax|test)es$', E'\\1is'),
+  ('singular', '(octop|vir)uses$', E'\\1us'),
+  ('singular', '(alias|canvas|status|campus)es$', E'\\1'),
+  ('singular', '^(summons|bonus)es$', E'\\1'),
+  ('singular', '^(ox)en', E'\\1'),
+  ('singular', '(matr)ices$', E'\\1ix'),
+  ('singular', '(vert|ind)ices$', E'\\1ex'),
+  ('singular', '^feet$', 'foot'),
+  ('singular', '^teeth$', 'tooth'),
+  ('singular', '^geese$', 'goose'),
+  ('singular', '(quiz)zes$', E'\\1'),
+  ('singular', '^(whereas)es$', E'\\1'),
+  ('singular', 'ss$', 'ss'),
+  ('singular', 's$', '');
 
 CREATE INDEX inflection_rules_type_idx ON inflection.inflection_rules (type);
+
+CREATE FUNCTION inflection.dns_1123(
+  value text
+) RETURNS text AS $EOFCODE$
+  WITH lowercased AS (
+    SELECT
+      lower(value) AS value
+),
+-- ':' delimits namespaced identifiers; map to '--' so the boundary survives
+namespaced AS (
+  SELECT
+    replace(value, ':', '--') AS value
+FROM
+  lowercased
+),
+hyphenated AS (
+  SELECT
+    replace(value, '_', '-') AS value
+FROM
+  namespaced
+),
+stripped AS (
+  SELECT
+    regexp_replace(value, '[^a-z0-9-]', '', 'g') AS value
+FROM
+  hyphenated
+),
+trimmed AS (
+  SELECT
+    regexp_replace(value, '^-+|-+$', '', 'g') AS value
+FROM
+  stripped
+),
+truncated AS (
+  SELECT
+    "left"(value, 63) AS value
+FROM
+  trimmed
+),
+-- truncation can leave a dangling '-'; drop any trailing non-alphanumerics
+final AS (
+  SELECT
+    regexp_replace(value, '[^a-z0-9]+$', '') AS value
+FROM
+  truncated
+)
+SELECT
+  value
+FROM
+  final;
+$EOFCODE$ LANGUAGE sql STRICT IMMUTABLE;
