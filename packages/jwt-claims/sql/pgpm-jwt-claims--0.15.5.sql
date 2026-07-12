@@ -178,3 +178,23 @@ $EOFCODE$ LANGUAGE sql STABLE;
 CREATE FUNCTION jwt_private.current_session_id() RETURNS uuid AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.session_id', true), '')::uuid;
 $EOFCODE$ LANGUAGE sql STABLE;
+
+CREATE FUNCTION jwt_private.current_api_id() RETURNS uuid AS $EOFCODE$
+DECLARE
+  v_identifier_id uuid;
+BEGIN
+  IF current_setting('jwt.claims.api_id', TRUE)
+    IS NOT NULL THEN
+    BEGIN
+      v_identifier_id = current_setting('jwt.claims.api_id', TRUE)::uuid;
+    EXCEPTION
+      WHEN OTHERS THEN
+      RAISE NOTICE 'Invalid UUID value';
+      RETURN NULL;
+    END;
+    RETURN v_identifier_id;
+  ELSE
+    RETURN NULL;
+  END IF;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE;
