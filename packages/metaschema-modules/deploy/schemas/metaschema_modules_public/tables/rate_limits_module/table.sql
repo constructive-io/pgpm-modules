@@ -14,9 +14,9 @@ CREATE TABLE metaschema_modules_public.rate_limits_module (
     ip_rate_limits_table_id uuid NOT NULL DEFAULT uuid_nil(),
     rate_limits_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
-    rate_limit_settings_table text NOT NULL DEFAULT 'app_settings_rate_limit',
-    ip_rate_limits_table text NOT NULL DEFAULT 'auth_ip_rate_limits',
-    rate_limits_table text NOT NULL DEFAULT 'auth_rate_limits',
+    rate_limit_settings_table_name text NOT NULL DEFAULT 'app_settings_rate_limit',
+    ip_rate_limits_table_name text NOT NULL DEFAULT 'auth_ip_rate_limits',
+    rate_limits_table_name text NOT NULL DEFAULT 'auth_rate_limits',
     --
 
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,

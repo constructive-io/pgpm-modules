@@ -25,6 +25,8 @@ CREATE TABLE metaschema_public.policy (
   policy_type text,
   data jsonb,
 
+  with_check jsonb,
+
   smart_tags jsonb,
 
   category metaschema_public.object_category NOT NULL DEFAULT 'app',
@@ -37,8 +39,19 @@ CREATE TABLE metaschema_public.policy (
   CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
   CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
 
+  CONSTRAINT policy_with_check_shape CHECK (
+    with_check IS NULL OR (
+      jsonb_typeof(with_check) = 'object'
+      AND with_check ? '$type'
+      AND jsonb_typeof(with_check->'$type') = 'string'
+    )
+  ),
+
   UNIQUE (table_id, name)
 );
+
+COMMENT ON COLUMN metaschema_public.policy.with_check IS
+  'Optional WITH CHECK override node {"$type": "Authz...", "data": {...}}. Only valid for UPDATE policies; NULL inherits the USING expression.';
 
 
 CREATE INDEX policy_table_id_idx ON metaschema_public.policy ( table_id );

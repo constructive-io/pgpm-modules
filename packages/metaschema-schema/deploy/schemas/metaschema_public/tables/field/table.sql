@@ -38,6 +38,9 @@ CREATE TABLE metaschema_public.field (
   api_required boolean NOT NULL DEFAULT FALSE,
   default_value jsonb NULL DEFAULT NULL,
 
+  generation_expression jsonb NULL DEFAULT NULL,
+  generation_type text NULL DEFAULT NULL,
+
   type jsonb NOT NULL,
 
   field_order int not null default 0,

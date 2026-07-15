@@ -8,6 +8,11 @@ CREATE TABLE metaschema_modules_public.events_module (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   database_id uuid NOT NULL,
 
+
+  -- Scope-key column name on the generated table(s), recorded by the insert
+  -- trigger via metaschema_generators.scope_key_column(scope, key): database ->
+  -- 'database_id', entity -> the module's key ('entity_id' here), global -> NULL.
+  entity_field text,
   --
   schema_id uuid NOT NULL DEFAULT uuid_nil(),
   private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -46,7 +51,6 @@ CREATE TABLE metaschema_modules_public.events_module (
   tg_event_bool text NOT NULL DEFAULT '',
   upsert_aggregate text NOT NULL DEFAULT '',
   tg_update_aggregates text NOT NULL DEFAULT '',
-  prune_events text NOT NULL DEFAULT '',
   steps_required text NOT NULL DEFAULT '',
   level_achieved text NOT NULL DEFAULT '',
   tg_check_achievements text NOT NULL DEFAULT '',

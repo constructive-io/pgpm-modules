@@ -7,6 +7,10 @@ BEGIN;
 CREATE TABLE metaschema_modules_public.user_state_module (
     id uuid PRIMARY KEY DEFAULT uuidv7(),
     database_id uuid NOT NULL,
+
+    -- Scope-key column name on the generated table ('owner_id' here).
+    -- Recorded so consumers read it as a stored fact instead of hardcoding.
+    entity_field text,
     --
     schema_id uuid NOT NULL DEFAULT uuid_nil(),
     table_id uuid NOT NULL DEFAULT uuid_nil(),

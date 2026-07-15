@@ -5,14 +5,13 @@
 BEGIN;
 
 -- BEFORE INSERT trigger function enforcing the per-database cap on
--- non-built-in identity_providers rows. Built-in providers (is_built_in = TRUE)
--- are exempt from the quota. The quota value is read from the singleton
+-- identity_providers rows. The quota value is read from the singleton
 -- app_settings_auth.identity_providers_max column.
 --
 -- TG_ARGV[0] : app_settings_auth schema name
 -- TG_ARGV[1] : app_settings_auth table name
 --
--- Raises IDENTITY_PROVIDER_QUOTA_EXCEEDED when the non-built-in row count on
+-- Raises IDENTITY_PROVIDER_QUOTA_EXCEEDED when the row count on
 -- the triggering table is already at or above the configured maximum.
 CREATE FUNCTION utils.enforce_identity_providers_quota()
   RETURNS TRIGGER
@@ -23,11 +22,6 @@ DECLARE
   v_max int;
   v_count int;
 BEGIN
-
-  -- Built-in providers are exempt from the quota.
-  IF NEW.is_built_in THEN
-    RETURN NEW;
-  END IF;
 
   v_settings_schema = TG_ARGV[0];
   v_settings_table = TG_ARGV[1];
@@ -40,7 +34,7 @@ BEGIN
   INTO v_max;
 
   EXECUTE format(
-    'SELECT count(1) FROM %1$I.%2$I WHERE NOT is_built_in',
+    'SELECT count(1) FROM %1$I.%2$I',
     TG_TABLE_SCHEMA,
     TG_TABLE_NAME
   )

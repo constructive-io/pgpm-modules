@@ -16,4 +16,12 @@ CREATE UNIQUE INDEX databases_field_uniq_names_idx ON metaschema_public.field (
   )), 'hex')
 );
 
+COMMENT ON INDEX metaschema_public.databases_field_uniq_names_idx IS
+'Guards against PostGraphile/Graphile inflection collisions: a uuid FK field
+(e.g. action_id) and a sibling text field (e.g. action) on the same table
+inflect toward the same GraphQL property name. For uuid fields the suffix
+(_row_id|_id|_uuid|_fk|_pk) is stripped before uniqueness-checking, so any
+name-like text field sitting next to a uuid FK must be suffixed explicitly
+(convention: use *_name, e.g. action_name, sessions_table_name).';
+
 COMMIT;

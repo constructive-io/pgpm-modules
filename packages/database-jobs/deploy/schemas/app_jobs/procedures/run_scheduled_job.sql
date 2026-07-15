@@ -67,10 +67,10 @@ BEGIN
     * INTO j;
   -- update the scheduled job
   UPDATE
-    app_jobs.scheduled_jobs s
+  app_jobs.scheduled_jobs s
   SET
     last_scheduled = NOW(),
-    last_scheduled_id = j.id
+    last_scheduled_id = COALESCE(j.id, s.last_scheduled_id)
   WHERE
     s.id = run_scheduled_job.id;
   RETURN j;
@@ -79,4 +79,3 @@ $$
 LANGUAGE 'plpgsql'
 VOLATILE;
 COMMIT;
-

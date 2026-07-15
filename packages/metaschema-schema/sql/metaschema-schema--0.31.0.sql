@@ -25,6 +25,258 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA metaschema_public
 ALTER DEFAULT PRIVILEGES IN SCHEMA metaschema_public
   GRANT ALL ON FUNCTIONS TO authenticated;
 
+CREATE FUNCTION metaschema_private.is_valid_step_up_conditions(
+  cond jsonb
+) RETURNS boolean AS $EOFCODE$
+DECLARE
+    -- node iteration
+    v_i int;
+
+    -- leaf validation
+    v_key text;
+    v_op text;
+
+    -- ref validation (column-to-column comparison)
+    v_ref jsonb;
+    v_ref_key text;
+BEGIN
+    IF cond IS NULL THEN
+        RETURN false;
+    END IF;
+
+    -- Array: implicit AND of all elements
+    IF jsonb_typeof(cond) = 'array' THEN
+        IF jsonb_array_length(cond) = 0 THEN
+            RETURN false;
+        END IF;
+        FOR v_i IN 0..jsonb_array_length(cond) - 1 LOOP
+            IF NOT metaschema_private.is_valid_step_up_conditions(cond -> v_i) THEN
+                RETURN false;
+            END IF;
+        END LOOP;
+        RETURN true;
+    END IF;
+
+    IF jsonb_typeof(cond) != 'object' OR cond = '{}'::jsonb THEN
+        RETURN false;
+    END IF;
+
+    -- Combinator object: exactly one of AND / OR / NOT
+    IF cond ? 'AND' OR cond ? 'OR' OR cond ? 'NOT' THEN
+        IF (SELECT count(*) FROM jsonb_object_keys(cond)) != 1 THEN
+            RETURN false;
+        END IF;
+        IF cond ? 'NOT' THEN
+            RETURN metaschema_private.is_valid_step_up_conditions(cond -> 'NOT');
+        END IF;
+        IF jsonb_typeof(COALESCE(cond -> 'AND', cond -> 'OR')) != 'array' THEN
+            RETURN false;
+        END IF;
+        RETURN metaschema_private.is_valid_step_up_conditions(COALESCE(cond -> 'AND', cond -> 'OR'));
+    END IF;
+
+    -- Leaf condition: {field, op, value?, row?, ref?}
+    FOR v_key IN SELECT key FROM jsonb_each(cond) LOOP
+        IF v_key NOT IN ('field', 'op', 'value', 'row', 'ref') THEN
+            RETURN false;
+        END IF;
+    END LOOP;
+
+    IF jsonb_typeof(cond -> 'field') IS DISTINCT FROM 'string'
+       OR jsonb_typeof(cond -> 'op') IS DISTINCT FROM 'string' THEN
+        RETURN false;
+    END IF;
+
+    v_op := upper(cond ->> 'op');
+    IF v_op NOT IN ('=', '!=', '>', '<', '>=', '<=', 'LIKE', 'NOT LIKE',
+                    'IS NULL', 'IS NOT NULL', 'IS DISTINCT FROM') THEN
+        RETURN false;
+    END IF;
+
+    IF cond ? 'row' THEN
+        IF jsonb_typeof(cond -> 'row') != 'string'
+           OR upper(cond ->> 'row') NOT IN ('NEW', 'OLD') THEN
+            RETURN false;
+        END IF;
+    END IF;
+
+    -- Operators without a right-hand side
+    IF v_op IN ('IS NULL', 'IS NOT NULL', 'IS DISTINCT FROM') THEN
+        IF cond ? 'value' OR cond ? 'ref' THEN
+            RETURN false;
+        END IF;
+        RETURN true;
+    END IF;
+
+    -- Comparison operators require exactly one of value / ref
+    IF (cond ? 'value') = (cond ? 'ref') THEN
+        RETURN false;
+    END IF;
+
+    IF cond ? 'value' THEN
+        IF jsonb_typeof(cond -> 'value') NOT IN ('string', 'number', 'boolean') THEN
+            RETURN false;
+        END IF;
+        RETURN true;
+    END IF;
+
+    v_ref := cond -> 'ref';
+    IF jsonb_typeof(v_ref) != 'object' THEN
+        RETURN false;
+    END IF;
+    FOR v_ref_key IN SELECT key FROM jsonb_each(v_ref) LOOP
+        IF v_ref_key NOT IN ('field', 'row') THEN
+            RETURN false;
+        END IF;
+    END LOOP;
+    IF jsonb_typeof(v_ref -> 'field') IS DISTINCT FROM 'string' THEN
+        RETURN false;
+    END IF;
+    IF v_ref ? 'row' THEN
+        IF jsonb_typeof(v_ref -> 'row') != 'string'
+           OR upper(v_ref ->> 'row') NOT IN ('NEW', 'OLD') THEN
+            RETURN false;
+        END IF;
+    END IF;
+
+    RETURN true;
+END;
+$EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
+
+CREATE FUNCTION metaschema_private.is_valid_step_up(
+  step_up jsonb
+) RETURNS boolean AS $EOFCODE$
+DECLARE
+    -- entry iteration
+    v_key text;
+    v_value jsonb;
+
+    -- object value validation
+    v_obj_key text;
+    v_type jsonb;
+    v_min_age jsonb;
+    v_min_age_interval interval;
+
+    -- min_age_lookup validation (per-row lookup windows)
+    v_min_age_lookup jsonb;
+    v_lookup_key text;
+    v_lookup_table_id uuid;
+
+    -- conditions validation (declarative WHEN-clause tree)
+    v_conditions jsonb;
+BEGIN
+    IF step_up IS NULL THEN
+        RETURN false;
+    END IF;
+
+    IF jsonb_typeof(step_up) != 'object' THEN
+        RETURN false;
+    END IF;
+
+    IF step_up = '{}'::jsonb THEN
+        RETURN false;
+    END IF;
+
+    FOR v_key, v_value IN SELECT key, value FROM jsonb_each(step_up) LOOP
+        IF v_key NOT IN ('INSERT', 'UPDATE', 'DELETE') THEN
+            RETURN false;
+        END IF;
+
+        IF jsonb_typeof(v_value) = 'boolean' THEN
+            IF v_value = 'false'::jsonb THEN
+                RETURN false;
+            END IF;
+        ELSIF jsonb_typeof(v_value) = 'string' THEN
+            IF v_value #>> '{}' NOT IN ('password', 'mfa', 'password_or_mfa') THEN
+                RETURN false;
+            END IF;
+        ELSIF jsonb_typeof(v_value) = 'object' THEN
+            IF v_value = '{}'::jsonb THEN
+                RETURN false;
+            END IF;
+
+            FOR v_obj_key IN SELECT key FROM jsonb_each(v_value) LOOP
+                IF v_obj_key NOT IN ('type', 'min_age', 'min_age_lookup', 'conditions') THEN
+                    RETURN false;
+                END IF;
+            END LOOP;
+
+            v_type := v_value -> 'type';
+            IF v_type IS NOT NULL THEN
+                IF jsonb_typeof(v_type) != 'string'
+                   OR v_type #>> '{}' NOT IN ('password', 'mfa', 'password_or_mfa') THEN
+                    RETURN false;
+                END IF;
+            END IF;
+
+            v_min_age := v_value -> 'min_age';
+            IF v_min_age IS NOT NULL THEN
+                -- min_age is meaningless for INSERT: a new row has no age
+                IF v_key = 'INSERT' THEN
+                    RETURN false;
+                END IF;
+
+                IF jsonb_typeof(v_min_age) != 'string' THEN
+                    RETURN false;
+                END IF;
+
+                BEGIN
+                    v_min_age_interval := (v_min_age #>> '{}')::interval;
+                EXCEPTION WHEN OTHERS THEN
+                    RETURN false;
+                END;
+
+                IF v_min_age_interval <= interval '0' THEN
+                    RETURN false;
+                END IF;
+            END IF;
+
+            v_min_age_lookup := v_value -> 'min_age_lookup';
+            IF v_min_age_lookup IS NOT NULL THEN
+                -- lookup windows are meaningless for INSERT and need min_age
+                -- as the fallback default
+                IF v_key = 'INSERT' OR v_min_age IS NULL THEN
+                    RETURN false;
+                END IF;
+
+                IF jsonb_typeof(v_min_age_lookup) != 'object' THEN
+                    RETURN false;
+                END IF;
+
+                FOR v_lookup_key IN SELECT key FROM jsonb_each(v_min_age_lookup) LOOP
+                    IF v_lookup_key NOT IN ('table_id', 'fk_field', 'min_age_field') THEN
+                        RETURN false;
+                    END IF;
+                END LOOP;
+
+                IF jsonb_typeof(v_min_age_lookup -> 'table_id') IS DISTINCT FROM 'string'
+                   OR jsonb_typeof(v_min_age_lookup -> 'fk_field') IS DISTINCT FROM 'string'
+                   OR jsonb_typeof(v_min_age_lookup -> 'min_age_field') IS DISTINCT FROM 'string' THEN
+                    RETURN false;
+                END IF;
+
+                BEGIN
+                    v_lookup_table_id := (v_min_age_lookup ->> 'table_id')::uuid;
+                EXCEPTION WHEN OTHERS THEN
+                    RETURN false;
+                END;
+            END IF;
+
+            v_conditions := v_value -> 'conditions';
+            IF v_conditions IS NOT NULL THEN
+                IF NOT metaschema_private.is_valid_step_up_conditions(v_conditions) THEN
+                    RETURN false;
+                END IF;
+            END IF;
+        ELSE
+            RETURN false;
+        END IF;
+    END LOOP;
+
+    RETURN true;
+END;
+$EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
+
 CREATE TYPE metaschema_public.object_category AS ENUM ('core', 'module', 'permissions', 'auth', 'memberships', 'app');
 
 CREATE TYPE metaschema_public.api_exposure_level AS ENUM ('exposable', 'internal_only', 'never_expose');
@@ -93,6 +345,7 @@ CREATE TABLE metaschema_public.table (
   plural_name text,
   singular_name text,
   tags citext[] NOT NULL DEFAULT '{}',
+  step_up jsonb DEFAULT NULL,
   partitioned boolean NOT NULL DEFAULT false,
   partition_strategy text DEFAULT NULL,
   partition_key_names text[] DEFAULT NULL,
@@ -107,8 +360,15 @@ CREATE TABLE metaschema_public.table (
     FOREIGN KEY(schema_id)
     REFERENCES metaschema_public.schema (id)
     ON DELETE CASCADE,
-  UNIQUE (database_id, schema_id, name)
+  UNIQUE (database_id, schema_id, name),
+  CONSTRAINT table_step_up_check 
+    CHECK (
+    step_up IS NULL
+      OR metaschema_private.is_valid_step_up(step_up)
+  )
 );
+
+COMMENT ON COLUMN metaschema_public."table".step_up IS 'Declarative step-up auth guard: jsonb object mapping DML verbs (INSERT, UPDATE, DELETE) to a step-up spec. Values: true (default password_or_mfa), a type string (password / mfa / password_or_mfa), or an object {type, min_age, min_age_lookup, conditions} where min_age is an interval string (e.g. 6 hours) gating the guard to rows older than that age (UPDATE/DELETE only), min_age_lookup resolves per-row windows from a lookup table, and conditions is a declarative WHEN-clause tree compiled by build_condition_expr.';
 
 ALTER TABLE metaschema_public.table 
   ADD COLUMN inherits_id uuid
@@ -168,6 +428,8 @@ CREATE TABLE metaschema_public.field (
   is_required boolean NOT NULL DEFAULT false,
   api_required boolean NOT NULL DEFAULT false,
   default_value jsonb NULL DEFAULT NULL,
+  generation_expression jsonb NULL DEFAULT NULL,
+  generation_type text NULL DEFAULT NULL,
   type jsonb NOT NULL,
   field_order int NOT NULL DEFAULT 0,
   regexp text DEFAULT NULL,
@@ -198,6 +460,13 @@ CREATE UNIQUE INDEX databases_field_uniq_names_idx ON metaschema_public.field (t
   WHEN (type ->> 'name') = 'uuid' THEN regexp_replace(name, '^(.+?)(_row_id|_id|_uuid|_fk|_pk)$', E'\\1', 'i') 
   ELSE name 
 END)), 'hex')));
+
+COMMENT ON INDEX metaschema_public.databases_field_uniq_names_idx IS 'Guards against PostGraphile/Graphile inflection collisions: a uuid FK field
+(e.g. action_id) and a sibling text field (e.g. action) on the same table
+inflect toward the same GraphQL property name. For uuid fields the suffix
+(_row_id|_id|_uuid|_fk|_pk) is stripped before uniqueness-checking, so any
+name-like text field sitting next to a uuid FK must be suffixed explicitly
+(convention: use *_name, e.g. action_name, sessions_table_name).';
 
 CREATE TABLE metaschema_public.foreign_key_constraint (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -307,6 +576,7 @@ CREATE TABLE metaschema_public.policy (
   disabled boolean DEFAULT false,
   policy_type text,
   data jsonb,
+  with_check jsonb,
   smart_tags jsonb,
   category metaschema_public.object_category NOT NULL DEFAULT 'app',
   tags citext[] NOT NULL DEFAULT '{}',
@@ -320,8 +590,17 @@ CREATE TABLE metaschema_public.policy (
     FOREIGN KEY(table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
+  CONSTRAINT policy_with_check_shape 
+    CHECK (
+    with_check IS NULL
+      OR (jsonb_typeof(with_check) = 'object'
+      AND with_check ? '$type'
+      AND jsonb_typeof(with_check -> '$type') = 'string')
+  ),
   UNIQUE (table_id, name)
 );
+
+COMMENT ON COLUMN metaschema_public.policy.with_check IS 'Optional WITH CHECK override node {"$type": "Authz...", "data": {...}}. Only valid for UPDATE policies; NULL inherits the USING expression.';
 
 CREATE INDEX policy_table_id_idx ON metaschema_public.policy (table_id);
 

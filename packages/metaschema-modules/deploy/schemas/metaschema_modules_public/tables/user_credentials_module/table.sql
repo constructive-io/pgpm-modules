@@ -8,6 +8,10 @@ CREATE TABLE metaschema_modules_public.user_credentials_module (
     id uuid PRIMARY KEY DEFAULT uuidv7(),
     database_id uuid NOT NULL,
 
+
+    -- Scope-key column name on the generated table ('owner_id' here).
+    -- Recorded so consumers read it as a stored fact instead of hardcoding.
+    entity_field text,
     -- Schema references (resolved by BEFORE INSERT trigger when uuid_nil)
     schema_id uuid NOT NULL DEFAULT uuid_nil(),
 
@@ -17,8 +21,7 @@ CREATE TABLE metaschema_modules_public.user_credentials_module (
     -- Table name (input — defaults to 'user_secrets')
     table_name text NOT NULL DEFAULT 'user_secrets',
 
-    -- API routing (get-or-create: if set, schema is added to this API)
-    api_name text DEFAULT 'config',
+    -- API routing (private schema only — never routed to a public API)
     private_api_name text DEFAULT NULL,
 
     -- Constraints
