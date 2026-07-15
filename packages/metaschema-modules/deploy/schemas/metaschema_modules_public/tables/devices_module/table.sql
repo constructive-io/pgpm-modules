@@ -13,8 +13,8 @@ CREATE TABLE metaschema_modules_public.devices_module (
     user_devices_table_id uuid NOT NULL DEFAULT uuid_nil(),
     device_settings_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
-    user_devices_table text NOT NULL DEFAULT 'auth_user_devices',
-    device_settings_table text NOT NULL DEFAULT 'app_settings_device',
+    user_devices_table_name text NOT NULL DEFAULT 'auth_user_devices',
+    device_settings_table_name text NOT NULL DEFAULT 'app_settings_device',
     --
 
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,

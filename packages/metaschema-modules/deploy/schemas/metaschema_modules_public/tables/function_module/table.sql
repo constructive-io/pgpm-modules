@@ -8,6 +8,11 @@ CREATE TABLE metaschema_modules_public.function_module (
     id uuid PRIMARY KEY DEFAULT uuidv7(),
     database_id uuid NOT NULL,
 
+
+    -- Scope-key column name on the generated table(s), recorded by the insert
+    -- trigger via metaschema_generators.scope_key_column(scope, key): database ->
+    -- 'database_id', entity -> the module's key ('entity_id' here), global -> NULL.
+    entity_field text,
     -- Schema references (if uuid_nil, resolved from schema name or default)
     schema_id uuid NOT NULL DEFAULT uuid_nil(),
     private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -18,10 +23,18 @@ CREATE TABLE metaschema_modules_public.function_module (
 
     -- Generated table IDs (populated by the generator)
     definitions_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    bindings_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    schedules_table_id uuid,
+
+    -- Optional cron scheduling support.
+    has_cron boolean NOT NULL DEFAULT false,
 
     -- Table names (input to the generator — bare names without scope prefix).
     -- The trigger prepends the scope prefix automatically.
     definitions_table_name text NOT NULL DEFAULT 'function_definitions',
+
+    -- Actual generated api bindings table name (recorded by the generator)
+    bindings_table_name text,
 
     -- API routing (get-or-create: if set, schema is added to this API; if NULL, no API is added)
     api_name text,
@@ -32,7 +45,7 @@ CREATE TABLE metaschema_modules_public.function_module (
     scope text NOT NULL DEFAULT 'app',
 
     -- Table name prefix. Auto-derived from scope by the trigger when empty.
-    -- Override to create multiple module instances at the same scope.
+    -- Naming-only: instances are unique per (database_id, scope).
     prefix text NOT NULL DEFAULT '',
 
     -- Entity table for RLS (NULL for app-level functions, entity table for entity-scoped functions)
@@ -59,6 +72,8 @@ CREATE TABLE metaschema_modules_public.function_module (
     CONSTRAINT function_module_schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT function_module_private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT function_module_definitions_table_fkey FOREIGN KEY (definitions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT function_module_bindings_table_fkey FOREIGN KEY (bindings_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT function_module_schedules_table_fkey FOREIGN KEY (schedules_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT function_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 

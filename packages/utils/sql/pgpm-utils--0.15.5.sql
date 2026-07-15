@@ -6,7 +6,11 @@ GRANT USAGE ON SCHEMA utils TO PUBLIC;
 ALTER DEFAULT PRIVILEGES IN SCHEMA utils
   GRANT EXECUTE ON FUNCTIONS TO PUBLIC;
 
-CREATE FUNCTION utils.mask_pad(bitstr text, bitlen int, pad text DEFAULT '0') RETURNS text AS $EOFCODE$
+CREATE FUNCTION utils.mask_pad(
+  bitstr text,
+  bitlen int,
+  pad text DEFAULT '0'
+) RETURNS text AS $EOFCODE$
   SELECT
     (
       CASE WHEN length(bitstr) > bitlen THEN
@@ -17,7 +21,11 @@ CREATE FUNCTION utils.mask_pad(bitstr text, bitlen int, pad text DEFAULT '0') RE
       END)
 $EOFCODE$ LANGUAGE sql;
 
-CREATE FUNCTION utils.bitmask_pad(bitstr pg_catalog.varbit, bitlen int, pad text DEFAULT '0') RETURNS pg_catalog.varbit AS $EOFCODE$
+CREATE FUNCTION utils.bitmask_pad(
+  bitstr pg_catalog.varbit,
+  bitlen int,
+  pad text DEFAULT '0'
+) RETURNS pg_catalog.varbit AS $EOFCODE$
   SELECT
     (
       CASE WHEN length(bitstr) > bitlen THEN
@@ -71,11 +79,6 @@ DECLARE
   v_count int;
 BEGIN
 
-  -- Built-in providers are exempt from the quota.
-  IF NEW.is_built_in THEN
-    RETURN NEW;
-  END IF;
-
   v_settings_schema = TG_ARGV[0];
   v_settings_table = TG_ARGV[1];
 
@@ -87,7 +90,7 @@ BEGIN
   INTO v_max;
 
   EXECUTE format(
-    'SELECT count(1) FROM %1$I.%2$I WHERE NOT is_built_in',
+    'SELECT count(1) FROM %1$I.%2$I',
     TG_TABLE_SCHEMA,
     TG_TABLE_NAME
   )

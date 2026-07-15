@@ -27,7 +27,9 @@ describe('db_meta_modules', () => {
           'crypto_auth_module',
           'default_ids_module',
           'emails_module',
-          'config_secrets_module',
+          'infra_secrets_module',
+          'infra_config_module',
+          'internal_secrets_module',
           'config_secrets_user_module',
           'invites_module',
           'events_module',
@@ -106,8 +108,8 @@ describe('db_meta_modules', () => {
     expect(columnNames).toContain('id');
     expect(columnNames).toContain('database_id');
     expect(columnNames).toContain('schema_id');
-    expect(columnNames).toContain('sessions_table');
-    expect(columnNames).toContain('session_credentials_table');
+    expect(columnNames).toContain('sessions_table_name');
+    expect(columnNames).toContain('session_credentials_table_name');
 
     expect(snapshot({ columns })).toMatchSnapshot();
   });

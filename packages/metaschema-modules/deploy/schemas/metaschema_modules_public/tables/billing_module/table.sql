@@ -35,7 +35,7 @@ CREATE TABLE metaschema_modules_public.billing_module (
   meter_credits_table_id uuid NOT NULL DEFAULT uuid_nil(),
   meter_credits_table_name text NOT NULL DEFAULT '',
 
-  -- Meter sources table: maps billing meters to typed daily summary table columns
+  -- Meter sources table: maps billing meters to typed usage summary table columns
   meter_sources_table_id uuid NOT NULL DEFAULT uuid_nil(),
   meter_sources_table_name text NOT NULL DEFAULT '',
 
@@ -45,6 +45,8 @@ CREATE TABLE metaschema_modules_public.billing_module (
 
   -- Generated functions
   record_usage_function text NOT NULL DEFAULT '',
+  sweep_expired_subscriptions_function text NOT NULL DEFAULT '',
+  rollup_usage_summary_function text NOT NULL DEFAULT '',
 
   prefix text NULL,
 

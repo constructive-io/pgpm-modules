@@ -9,6 +9,11 @@ CREATE TABLE metaschema_modules_public.resource_module (
     id uuid PRIMARY KEY DEFAULT uuidv7(),
     database_id uuid NOT NULL,
 
+
+    -- Scope-key column name on the generated table(s), recorded by the insert
+    -- trigger via metaschema_generators.scope_key_column(scope, key): database ->
+    -- 'database_id', entity -> the module's key ('entity_id' here), global -> NULL.
+    entity_field text,
     -- Schema references (if uuid_nil, resolved from schema name or default)
     schema_id uuid NOT NULL DEFAULT uuid_nil(),
     private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -22,6 +27,9 @@ CREATE TABLE metaschema_modules_public.resource_module (
     resource_events_table_id uuid NOT NULL DEFAULT uuid_nil(),
     resource_status_checks_table_id uuid NOT NULL DEFAULT uuid_nil(),
     resource_definitions_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    resource_usage_samples_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    resource_usage_summary_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    namespace_usage_summary_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- Table names (input to the generator — bare names without scope prefix).
     -- The trigger prepends the scope prefix automatically.
@@ -29,6 +37,21 @@ CREATE TABLE metaschema_modules_public.resource_module (
     resource_events_table_name text NOT NULL DEFAULT 'resource_events',
     resource_status_checks_table_name text NOT NULL DEFAULT 'resource_status_checks',
     resource_definitions_table_name text NOT NULL DEFAULT 'resource_definitions',
+    resource_usage_samples_table_name text NOT NULL DEFAULT 'resource_usage_samples',
+    resource_usage_summary_table_name text NOT NULL DEFAULT 'resource_usage_summaries',
+    namespace_usage_summary_table_name text NOT NULL DEFAULT 'namespace_usage_summaries',
+
+    -- Generated functions (populated by the generator)
+    rollup_resource_usage_summary_function text NOT NULL DEFAULT '',
+    -- Billing bridge: empty when not generated (no entity-keyed namespace
+    -- module or no billing_module for the database)
+    resource_billing_rollup_function text NOT NULL DEFAULT '',
+
+    -- Requirement view names (derived by the trigger from resources_table_name).
+    -- Surfaced to the projection handlers via the module loader so consumers
+    -- never reconstruct the view name from a naming convention.
+    resolved_requirements_view_name text,
+    requirements_state_view_name text,
 
     -- API routing (get-or-create: if set, schema is added to this API; if NULL, no API is added)
     api_name text,
@@ -64,6 +87,9 @@ CREATE TABLE metaschema_modules_public.resource_module (
     CONSTRAINT resource_module_events_table_fkey FOREIGN KEY (resource_events_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT resource_module_status_checks_table_fkey FOREIGN KEY (resource_status_checks_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT resource_module_definitions_table_fkey FOREIGN KEY (resource_definitions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT resource_module_usage_samples_table_fkey FOREIGN KEY (resource_usage_samples_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT resource_module_usage_summary_table_fkey FOREIGN KEY (resource_usage_summary_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT resource_module_ns_usage_summary_table_fkey FOREIGN KEY (namespace_usage_summary_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT resource_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT resource_module_namespace_module_fkey FOREIGN KEY (namespace_module_id) REFERENCES metaschema_modules_public.namespace_module (id) ON DELETE SET NULL
 );

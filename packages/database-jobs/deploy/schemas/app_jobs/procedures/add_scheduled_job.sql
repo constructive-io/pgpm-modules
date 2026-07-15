@@ -15,7 +15,8 @@ CREATE FUNCTION app_jobs.add_scheduled_job(
   queue_name text DEFAULT NULL,
   max_attempts integer DEFAULT 25,
   priority integer DEFAULT 0,
-  entity_id uuid DEFAULT NULL
+  entity_id uuid DEFAULT NULL,
+  db_id uuid DEFAULT NULL
 )
   RETURNS app_jobs.scheduled_jobs
   AS $$
@@ -24,7 +25,9 @@ DECLARE
   v_database_id uuid;
   v_actor_id uuid;
 BEGIN
-  v_database_id := jwt_private.current_database_id();
+  -- Callers that run outside a JWT context (e.g. provisioning triggers) pass
+  -- db_id explicitly; everyone else keeps the JWT-derived default.
+  v_database_id := coalesce(db_id, jwt_private.current_database_id());
   v_actor_id := jwt_public.current_user_id();
 
   IF job_key IS NOT NULL THEN

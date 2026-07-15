@@ -8,6 +8,10 @@ CREATE TABLE metaschema_modules_public.notifications_module (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
     database_id uuid NOT NULL,
 
+
+    -- Scope-key column name on the generated table ('scope_entity_id' here).
+    -- Recorded so consumers read it as a stored fact instead of hardcoding.
+    entity_field text,
     schema_id uuid NOT NULL DEFAULT uuid_nil(),
     private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
 

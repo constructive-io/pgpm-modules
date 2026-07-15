@@ -18,6 +18,8 @@ SELECT
   meter_sources_table_id,
   meter_sources_table_name,
   record_usage_function,
+  sweep_expired_subscriptions_function,
+  rollup_usage_summary_function,
   prefix
 FROM metaschema_modules_public.billing_module
 WHERE FALSE;

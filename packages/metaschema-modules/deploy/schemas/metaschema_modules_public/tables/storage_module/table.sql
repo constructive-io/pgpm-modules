@@ -48,6 +48,12 @@ CREATE TABLE metaschema_modules_public.storage_module (
     -- Entity table for RLS (NULL for app-level storage, entity table for entity-scoped storage)
     entity_table_id uuid NULL,
 
+    -- Scope-key column name on the generated buckets/files tables, recorded by
+    -- the insert trigger via metaschema_generators.scope_key_column(scope, key).
+    -- database → 'database_id', entity → the module's key ('owner_id' here),
+    -- global (platform/app) → NULL. Consumers read this instead of hardcoding.
+    entity_field text,
+
     -- S3 connection config (NULL = use global env/plugin defaults)
     endpoint text NULL,                          -- S3-compatible API endpoint URL (MinIO, R2, DO Spaces, GCS, etc.)
     public_url_prefix text NULL,                 -- Public URL prefix for generating download URLs (e.g., CDN domain)
