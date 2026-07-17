@@ -1,0 +1,42 @@
+{
+  "name": "@pgpm/function-resolution",
+  "version": "0.32.2",
+  "description": "Portable cross-scope function-definition resolution and resolver-aware enqueue (built on app-scope)",
+  "author": "Dan Lynch <pyramation@gmail.com>",
+  "contributors": [
+    "Constructive <developers@constructive.io>"
+  ],
+  "keywords": [
+    "postgresql",
+    "pgpm",
+    "functions",
+    "resolution"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "bundle": "pgpm package",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "devDependencies": {
+    "pgpm": "^4.28.7"
+  },
+  "dependencies": {
+    "@pgpm/app-scope": "workspace:*",
+    "@pgpm/database-jobs": "workspace:*",
+    "@pgpm/jwt-claims": "workspace:*",
+    "@pgpm/metaschema-modules": "workspace:*",
+    "@pgpm/metaschema-schema": "workspace:*",
+    "@pgpm/verify": "workspace:*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/constructive-io/pgpm-modules"
+  },
+  "homepage": "https://github.com/constructive-io/pgpm-modules",
+  "bugs": {
+    "url": "https://github.com/constructive-io/pgpm-modules/issues"
+  }
+}

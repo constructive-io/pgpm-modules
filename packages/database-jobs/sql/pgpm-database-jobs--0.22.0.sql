@@ -200,6 +200,8 @@ CREATE TABLE app_jobs.jobs (
   entity_id uuid,
   organization_id uuid,
   entity_type text,
+  function_definition_id uuid,
+  definition_scope text,
   queue_name text DEFAULT NULL,
   task_identifier text NOT NULL,
   payload pg_catalog.json DEFAULT '{}'::json NOT NULL,
@@ -218,6 +220,8 @@ CREATE TABLE app_jobs.jobs (
   CHECK (max_attempts >= 1),
   CHECK (length(queue_name) < 127),
   CHECK (length(locked_by) > 3),
+  CHECK (length(definition_scope) < 64),
+  CHECK ((function_definition_id IS NULL) = (definition_scope IS NULL)),
   UNIQUE (key)
 );
 
@@ -236,6 +240,10 @@ COMMENT ON COLUMN app_jobs.jobs.entity_id IS 'Entity (org/team) this job is scop
 COMMENT ON COLUMN app_jobs.jobs.organization_id IS 'Top-level organization for this entity; resolved at enqueue time via get_organization_id(entity_type, entity_id)';
 
 COMMENT ON COLUMN app_jobs.jobs.entity_type IS 'Entity type prefix (org, team, app, etc.) for interpreting entity_id';
+
+COMMENT ON COLUMN app_jobs.jobs.function_definition_id IS 'For function jobs: the exact function definition resolved at enqueue time (scope-chain winner). NULL for handler/system tasks that have no function definition. Not an FK — definitions live in per-scope tables across databases; integrity is enforced by the resolver at enqueue.';
+
+COMMENT ON COLUMN app_jobs.jobs.definition_scope IS 'For function jobs: the scope (database/org/app/platform) the winning definition was resolved at. Together with function_definition_id and database_id it identifies the exact physical definition to execute. NULL when function_definition_id is NULL.';
 
 COMMENT ON COLUMN app_jobs.jobs.queue_name IS 'Name of the queue this job belongs to; used for worker routing and concurrency control';
 
@@ -914,7 +922,9 @@ CREATE FUNCTION app_jobs.add_job(
   priority int DEFAULT 0,
   entity_id uuid DEFAULT NULL,
   organization_id uuid DEFAULT NULL,
-  entity_type text DEFAULT NULL
+  entity_type text DEFAULT NULL,
+  function_definition_id uuid DEFAULT NULL,
+  definition_scope text DEFAULT NULL
 ) RETURNS app_jobs.jobs AS $EOFCODE$
 DECLARE
   v_job app_jobs.jobs;
@@ -937,6 +947,8 @@ BEGIN
       entity_id,
       organization_id,
       entity_type,
+      function_definition_id,
+      definition_scope,
       task_identifier,
       payload,
       queue_name,
@@ -951,6 +963,8 @@ BEGIN
         add_job.entity_id,
         add_job.organization_id,
         add_job.entity_type,
+        add_job.function_definition_id,
+        add_job.definition_scope,
         identifier,
         coalesce(payload, '{}'::json),
         queue_name,
@@ -967,6 +981,8 @@ BEGIN
         max_attempts = EXCLUDED.max_attempts,
         run_at = EXCLUDED.run_at,
         priority = EXCLUDED.priority,
+        function_definition_id = EXCLUDED.function_definition_id,
+        definition_scope = EXCLUDED.definition_scope,
         -- always reset error/retry state
         attempts = 0, last_error = NULL
       WHERE
@@ -998,6 +1014,8 @@ BEGIN
     entity_id,
     organization_id,
     entity_type,
+    function_definition_id,
+    definition_scope,
     task_identifier,
     payload,
     queue_name,
@@ -1011,6 +1029,8 @@ BEGIN
     add_job.entity_id,
     add_job.organization_id,
     add_job.entity_type,
+    add_job.function_definition_id,
+    add_job.definition_scope,
     identifier,
     payload,
     queue_name,
@@ -1024,7 +1044,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 
-GRANT EXECUTE ON FUNCTION app_jobs.add_job(text, pg_catalog.json, text, text, timestamptz, int, int, uuid, uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION app_jobs.add_job(text, pg_catalog.json, text, text, timestamptz, int, int, uuid, uuid, text, uuid, text) TO authenticated;
 
 CREATE FUNCTION app_jobs.remove_job(
   job_key text

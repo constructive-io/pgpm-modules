@@ -126,6 +126,10 @@ Each module includes its own README with detailed documentation. See individual 
 - [`@pgpm/metaschema-modules`](https://www.npmjs.com/package/@pgpm/metaschema-modules) - Module metadata handling
 - [`@pgpm/services`](https://www.npmjs.com/package/@pgpm/services) - Services schemas for APIs, sites, and domains
 
+### Scope & Resolution
+- [`@pgpm/app-scope`](https://www.npmjs.com/package/@pgpm/app-scope) - Portable scope-chain resolution primitive (ordered scope frames + platform database lookup)
+- [`@pgpm/function-resolution`](https://www.npmjs.com/package/@pgpm/function-resolution) - Cross-scope function-definition resolution and resolver-aware enqueue (built on app-scope)
+
 ### Security & Authentication
 - [`@pgpm/defaults`](https://www.npmjs.com/package/@pgpm/defaults) - Security defaults and configurations
 - [`@pgpm/jwt-claims`](https://www.npmjs.com/package/@pgpm/jwt-claims) - JWT claim handling and validation

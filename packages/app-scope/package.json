@@ -1,0 +1,39 @@
+{
+  "name": "@pgpm/app-scope",
+  "version": "0.32.2",
+  "description": "Portable scope-chain resolution primitive (ordered scope frames + platform database lookup)",
+  "author": "Dan Lynch <pyramation@gmail.com>",
+  "contributors": [
+    "Constructive <developers@constructive.io>"
+  ],
+  "keywords": [
+    "postgresql",
+    "pgpm",
+    "scope",
+    "resolution"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "bundle": "pgpm package",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "devDependencies": {
+    "pgpm": "^4.28.7"
+  },
+  "dependencies": {
+    "@pgpm/metaschema-modules": "workspace:*",
+    "@pgpm/metaschema-schema": "workspace:*",
+    "@pgpm/verify": "workspace:*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/constructive-io/pgpm-modules"
+  },
+  "homepage": "https://github.com/constructive-io/pgpm-modules",
+  "bugs": {
+    "url": "https://github.com/constructive-io/pgpm-modules/issues"
+  }
+}
