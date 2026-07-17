@@ -2,6 +2,7 @@
 
 -- requires: schemas/metaschema_modules_public/schema
 -- requires: schemas/metaschema_modules_public/tables/namespace_module/table
+-- requires: schemas/metaschema_modules_public/tables/merkle_store_module/table
 
 BEGIN;
 
@@ -30,6 +31,8 @@ CREATE TABLE metaschema_modules_public.resource_module (
     resource_usage_samples_table_id uuid NOT NULL DEFAULT uuid_nil(),
     resource_usage_summary_table_id uuid NOT NULL DEFAULT uuid_nil(),
     namespace_usage_summary_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    -- Resource-bundles Stage 1: the installation ("release") grouping table.
+    resource_installations_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- Table names (input to the generator — bare names without scope prefix).
     -- The trigger prepends the scope prefix automatically.
@@ -40,6 +43,7 @@ CREATE TABLE metaschema_modules_public.resource_module (
     resource_usage_samples_table_name text NOT NULL DEFAULT 'resource_usage_samples',
     resource_usage_summary_table_name text NOT NULL DEFAULT 'resource_usage_summaries',
     namespace_usage_summary_table_name text NOT NULL DEFAULT 'namespace_usage_summaries',
+    resource_installations_table_name text NOT NULL DEFAULT 'resource_installations',
 
     -- Generated functions (populated by the generator)
     rollup_resource_usage_summary_function text NOT NULL DEFAULT '',
@@ -69,6 +73,13 @@ CREATE TABLE metaschema_modules_public.resource_module (
     -- FK to namespace_module: which namespaces table resources are scoped to
     namespace_module_id uuid NULL,
 
+    -- Resource-bundles Stage 1: the shared merkle store an installation commits
+    -- its versioned params into (reuses the scope's shared infra store, like
+    -- db_preset). NULL disables installation versioning (no rollback history).
+    merkle_store_module_id uuid NULL,
+    -- Store row name inside the merkle store the installation head commits into.
+    installation_store_name text NOT NULL DEFAULT 'infra',
+
     -- Configurable security policies (NULL = use defaults based on scope).
     policies jsonb NULL,
 
@@ -90,6 +101,8 @@ CREATE TABLE metaschema_modules_public.resource_module (
     CONSTRAINT resource_module_usage_samples_table_fkey FOREIGN KEY (resource_usage_samples_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT resource_module_usage_summary_table_fkey FOREIGN KEY (resource_usage_summary_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT resource_module_ns_usage_summary_table_fkey FOREIGN KEY (namespace_usage_summary_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT resource_module_installations_table_fkey FOREIGN KEY (resource_installations_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT resource_module_merkle_store_module_fkey FOREIGN KEY (merkle_store_module_id) REFERENCES metaschema_modules_public.merkle_store_module (id) ON DELETE SET NULL,
     CONSTRAINT resource_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT resource_module_namespace_module_fkey FOREIGN KEY (namespace_module_id) REFERENCES metaschema_modules_public.namespace_module (id) ON DELETE SET NULL
 );
