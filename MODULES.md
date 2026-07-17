@@ -39,6 +39,12 @@
 - [ ] `packages/metaschema-modules` - Module metadata handling
 - [ ] `packages/services` - Services schemas for APIs, sites, and domains
 
+## Scope & Resolution
+
+### Scope-Chain Resolution
+- [ ] `packages/app-scope` - Portable scope-chain resolution primitive (ordered scope frames + platform database lookup)
+- [ ] `packages/function-resolution` - Cross-scope function-definition resolution and resolver-aware enqueue
+
 ## Security & Authentication
 
 ### Core Security

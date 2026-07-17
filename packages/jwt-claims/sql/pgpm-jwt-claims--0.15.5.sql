@@ -198,3 +198,23 @@ BEGIN
   END IF;
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
+
+CREATE FUNCTION jwt_private.current_graph_execution_id() RETURNS uuid AS $EOFCODE$
+DECLARE
+  v_identifier_id uuid;
+BEGIN
+  IF current_setting('jwt.claims.graph_execution_id', TRUE)
+    IS NOT NULL THEN
+    BEGIN
+      v_identifier_id = current_setting('jwt.claims.graph_execution_id', TRUE)::uuid;
+    EXCEPTION
+      WHEN OTHERS THEN
+      RAISE NOTICE 'Invalid UUID value';
+      RETURN NULL;
+    END;
+    RETURN v_identifier_id;
+  ELSE
+    RETURN NULL;
+  END IF;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE;
