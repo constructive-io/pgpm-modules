@@ -901,3 +901,269 @@ CREATE TRIGGER _000002_enforce_api_exposure
   ON services_public.api_schemas
   FOR EACH ROW
   EXECUTE PROCEDURE services_private.tg_enforce_api_exposure();
+
+CREATE TABLE services_public.managed_domains (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  domain hostname NOT NULL,
+  is_wildcard boolean NOT NULL DEFAULT false,
+  allow_public_usage boolean NOT NULL DEFAULT false,
+  verification_status text NOT NULL DEFAULT 'pending',
+  verified_at timestamptz,
+  tls_status text NOT NULL DEFAULT 'none',
+  tls_ready_at timestamptz,
+  cert_status text NOT NULL DEFAULT 'none',
+  annotations jsonb NOT NULL DEFAULT '{}',
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT verification_status_chk 
+    CHECK (verification_status IN ('pending', 'checking', 'verified', 'failed', 'expired')),
+  CONSTRAINT tls_status_chk 
+    CHECK (tls_status IN ('none', 'provisioning', 'active', 'failed')),
+  CONSTRAINT cert_status_chk 
+    CHECK (cert_status IN ('none', 'issuing', 'active', 'error')),
+  UNIQUE (domain)
+);
+
+COMMENT ON TABLE services_public.managed_domains IS 'One row per cert-bearing host or wildcard; tracks domain verification and TLS provisioning independently of services_public.domains. Reconcilers match a route''s root domain to a row here by string (no FK/coupling in v1)';
+
+COMMENT ON COLUMN services_public.managed_domains.id IS 'Unique identifier for this managed domain record';
+
+COMMENT ON COLUMN services_public.managed_domains.database_id IS 'Database that owns this cert-bearing host; platform wildcards are owned by the platform database';
+
+COMMENT ON COLUMN services_public.managed_domains.domain IS 'Root hostname this row governs certs/verification for (e.g. launchql.dev, shop.acme.com)';
+
+COMMENT ON COLUMN services_public.managed_domains.is_wildcard IS 'Whether the cert covers the wildcard *.domain (one wildcard cert covers every subdomain row sharing this root)';
+
+COMMENT ON COLUMN services_public.managed_domains.allow_public_usage IS 'Whether this domain is deliberately published so routes in other scopes may match and ride this row''s cert. Only settable by app/platform authority via a generated AuthzColumnSecurity write-guard; backed by a generated permissive cross-scope SELECT policy.';
+
+COMMENT ON COLUMN services_public.managed_domains.verification_status IS 'Domain ownership verification state driven by the domain:issue_challenge/domain:verify loop: pending | checking | verified | failed | expired';
+
+COMMENT ON COLUMN services_public.managed_domains.verified_at IS 'When verification_status last became verified';
+
+COMMENT ON COLUMN services_public.managed_domains.tls_status IS 'TLS/SSL serving/reconcile state (ingress): none | provisioning | active | failed';
+
+COMMENT ON COLUMN services_public.managed_domains.tls_ready_at IS 'When tls_status last became active';
+
+COMMENT ON COLUMN services_public.managed_domains.cert_status IS 'cert-manager resource lifecycle driven by the domain:issue_cert/domain:check_cert loop, tracked independently of tls_status: none | issuing | active | error';
+
+COMMENT ON COLUMN services_public.managed_domains.annotations IS 'Freeform cert-manager detail (secret name, challenge, last error) and tooling metadata';
+
+CREATE INDEX managed_domains_database_id_idx ON services_public.managed_domains (database_id);
+
+CREATE TABLE services_public.domain_verifications (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  owner_id uuid NOT NULL,
+  managed_domain_id uuid NOT NULL,
+  method text NOT NULL DEFAULT 'dns_txt_ownership',
+  record_name text,
+  record_type text,
+  record_value text,
+  status text NOT NULL DEFAULT 'pending',
+  attempts int NOT NULL DEFAULT 0,
+  last_checked_at timestamptz,
+  verified_at timestamptz,
+  expires_at timestamptz,
+  error text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT managed_domain_fkey
+    FOREIGN KEY(managed_domain_id)
+    REFERENCES services_public.managed_domains (id)
+    ON DELETE CASCADE,
+  CONSTRAINT method_chk 
+    CHECK (method IN ('dns_txt_ownership', 'http_01', 'dns_01_acme')),
+  CONSTRAINT record_type_chk 
+    CHECK (
+    record_type IS NULL
+      OR record_type IN ('TXT', 'CNAME', 'A')
+  ),
+  CONSTRAINT status_chk 
+    CHECK (status IN ('pending', 'checking', 'verified', 'failed', 'expired'))
+);
+
+COMMENT ON TABLE services_public.domain_verifications IS 'One row per outstanding/completed ownership-verification challenge for a managed_domain. Holds the PUBLIC challenge the user must publish (e.g. a DNS TXT record value) — this is a verification token, NOT a secret. Entity-owned via owner_id and read/written through the AuthzEntityMembership scoped-module security path gated on manage_domains.';
+
+COMMENT ON COLUMN services_public.domain_verifications.id IS 'Unique identifier for this verification challenge';
+
+COMMENT ON COLUMN services_public.domain_verifications.owner_id IS 'Entity (e.g. org) that owns this verification; scope key for AuthzEntityMembership RLS. Domain control is proven once per owning entity.';
+
+COMMENT ON COLUMN services_public.domain_verifications.managed_domain_id IS 'The managed_domain this challenge proves ownership of';
+
+COMMENT ON COLUMN services_public.domain_verifications.method IS 'Verification method: dns_txt_ownership (root-domain ownership TXT) | http_01 (ACME HTTP challenge) | dns_01_acme (ACME DNS challenge)';
+
+COMMENT ON COLUMN services_public.domain_verifications.record_name IS 'DNS record name the user must create (e.g. _constructive-challenge.example.com); NULL for http_01';
+
+COMMENT ON COLUMN services_public.domain_verifications.record_type IS 'DNS record type to create: TXT | CNAME | A; NULL for http_01';
+
+COMMENT ON COLUMN services_public.domain_verifications.record_value IS 'The public challenge token the user must publish (ends up in a public DNS record). NOT a secret.';
+
+COMMENT ON COLUMN services_public.domain_verifications.status IS 'Challenge lifecycle: pending | checking | verified | failed | expired';
+
+COMMENT ON COLUMN services_public.domain_verifications.attempts IS 'Number of times domain:verify has polled for this challenge (drives backoff / max_attempts)';
+
+COMMENT ON COLUMN services_public.domain_verifications.last_checked_at IS 'When domain:verify last polled DNS/HTTP for this challenge';
+
+COMMENT ON COLUMN services_public.domain_verifications.verified_at IS 'When status last became verified';
+
+COMMENT ON COLUMN services_public.domain_verifications.expires_at IS 'When this challenge expires and must be reissued';
+
+COMMENT ON COLUMN services_public.domain_verifications.error IS 'Last verification error (mismatch, NXDOMAIN, timeout, ...)';
+
+COMMENT ON COLUMN services_public.domain_verifications.created_at IS 'When this challenge was minted (domain:issue_challenge)';
+
+COMMENT ON COLUMN services_public.domain_verifications.updated_at IS 'When this row was last updated';
+
+CREATE INDEX domain_verifications_owner_id_idx ON services_public.domain_verifications (owner_id);
+
+CREATE INDEX domain_verifications_managed_domain_id_idx ON services_public.domain_verifications (managed_domain_id);
+
+CREATE TABLE services_public.domain_events (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  owner_id uuid NOT NULL,
+  managed_domain_id uuid NOT NULL,
+  domain_verification_id uuid,
+  event_type text NOT NULL,
+  actor_id uuid,
+  message text,
+  metadata jsonb NOT NULL DEFAULT '{}',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT managed_domain_fkey
+    FOREIGN KEY(managed_domain_id)
+    REFERENCES services_public.managed_domains (id)
+    ON DELETE CASCADE,
+  CONSTRAINT domain_verification_fkey
+    FOREIGN KEY(domain_verification_id)
+    REFERENCES services_public.domain_verifications (id)
+    ON DELETE SET NULL,
+  CONSTRAINT event_type_chk 
+    CHECK (event_type IN ('challenge_issued', 'verification_started', 'verified', 'verification_failed', 'verification_expired', 'cert_issuing', 'cert_active', 'cert_error', 'cert_renewed', 'cert_revoked'))
+);
+
+COMMENT ON TABLE services_public.domain_events IS 'Append-only audit trail of the domain verify->DNS->issue lifecycle, mirroring resource_events / cluster_events. One row per state transition emitted by the domain:* functions.';
+
+COMMENT ON COLUMN services_public.domain_events.id IS 'Unique event identifier';
+
+COMMENT ON COLUMN services_public.domain_events.owner_id IS 'Entity (e.g. org) that owns the managed_domain; scope key for AuthzEntityMembership RLS';
+
+COMMENT ON COLUMN services_public.domain_events.managed_domain_id IS 'The managed_domain this event belongs to';
+
+COMMENT ON COLUMN services_public.domain_events.domain_verification_id IS 'The verification challenge this event relates to, when applicable';
+
+COMMENT ON COLUMN services_public.domain_events.event_type IS 'Lifecycle event: challenge_issued | verification_started | verified | verification_failed | verification_expired | cert_issuing | cert_active | cert_error | cert_renewed | cert_revoked';
+
+COMMENT ON COLUMN services_public.domain_events.actor_id IS 'User who triggered this event (NULL for system/automated transitions)';
+
+COMMENT ON COLUMN services_public.domain_events.message IS 'Human-readable description of the event';
+
+COMMENT ON COLUMN services_public.domain_events.metadata IS 'Structured context (challenge record, cert-manager detail, error details, ...)';
+
+COMMENT ON COLUMN services_public.domain_events.created_at IS 'Event timestamp';
+
+CREATE INDEX domain_events_owner_id_idx ON services_public.domain_events (owner_id);
+
+CREATE INDEX domain_events_managed_domain_id_created_at_idx ON services_public.domain_events (managed_domain_id, created_at);
+
+CREATE INDEX domain_events_domain_verification_id_idx ON services_public.domain_events (domain_verification_id);
+
+CREATE FUNCTION services_private.domain_issue_challenge(
+  v_managed_domain_id uuid,
+  v_method text DEFAULT 'dns_txt_ownership',
+  v_actor_id uuid DEFAULT NULL
+) RETURNS services_public.domain_verifications AS $EOFCODE$
+DECLARE
+    v_owner_id uuid;
+    v_domain text;
+    v_token text;
+    v_record_name text;
+    v_record_type text;
+    v_record_value text;
+    v_row services_public.domain_verifications;
+BEGIN
+    -- The verification/audit rows are entity-owned (owner_id), so resolve the
+    -- owning entity from the managed_domain's database owner. managed_domains
+    -- itself stays database-scoped; only this loop's tables key on the entity.
+    SELECT db.owner_id, md.domain
+      INTO v_owner_id, v_domain
+      FROM services_public.managed_domains AS md
+      JOIN metaschema_public.database AS db ON db.id = md.database_id
+     WHERE md.id = v_managed_domain_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'DOMAIN_ISSUE_CHALLENGE_UNKNOWN_DOMAIN: no managed_domain with id %', v_managed_domain_id
+            USING ERRCODE = 'foreign_key_violation';
+    END IF;
+
+    IF v_owner_id IS NULL THEN
+        RAISE EXCEPTION 'DOMAIN_ISSUE_CHALLENGE_NO_OWNER: managed_domain % has no owning entity', v_managed_domain_id
+            USING ERRCODE = 'not_null_violation';
+    END IF;
+
+    IF v_method NOT IN ('dns_txt_ownership', 'http_01', 'dns_01_acme') THEN
+        RAISE EXCEPTION 'DOMAIN_ISSUE_CHALLENGE_BAD_METHOD: unsupported verification method %', v_method
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    -- 256 bits of entropy as a 64-char hex token; gen_random_uuid is core in
+    -- PostgreSQL (no pgcrypto dependency needed for the services module).
+    v_token := replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '');
+
+    IF v_method = 'dns_txt_ownership' THEN
+        v_record_name := '_constructive-challenge.' || v_domain;
+        v_record_type := 'TXT';
+        v_record_value := 'constructive-domain-verification=' || v_token;
+    ELSIF v_method = 'dns_01_acme' THEN
+        v_record_name := '_acme-challenge.' || v_domain;
+        v_record_type := 'TXT';
+        v_record_value := v_token;
+    ELSE
+        -- http_01: served at /.well-known/acme-challenge/<token>, no DNS record.
+        v_record_name := NULL;
+        v_record_type := NULL;
+        v_record_value := v_token;
+    END IF;
+
+    -- Supersede any outstanding challenge for this (domain, method) so only one
+    -- is ever active; historical rows stay for the audit trail.
+    UPDATE services_public.domain_verifications
+       SET status = 'expired',
+           updated_at = now()
+     WHERE managed_domain_id = v_managed_domain_id
+       AND method = v_method
+       AND status IN ('pending', 'checking');
+
+    INSERT INTO services_public.domain_verifications
+        (owner_id, managed_domain_id, method, record_name, record_type, record_value,
+         status, attempts, expires_at)
+    VALUES
+        (v_owner_id, v_managed_domain_id, v_method, v_record_name, v_record_type, v_record_value,
+         'pending', 0, now() + interval '7 days')
+    RETURNING * INTO v_row;
+
+    UPDATE services_public.managed_domains
+       SET verification_status = 'pending'
+     WHERE id = v_managed_domain_id;
+
+    INSERT INTO services_public.domain_events
+        (owner_id, managed_domain_id, domain_verification_id, event_type, actor_id, message, metadata)
+    VALUES
+        (v_owner_id, v_managed_domain_id, v_row.id, 'challenge_issued', v_actor_id,
+         'Issued ' || v_method || ' verification challenge for ' || v_domain,
+         jsonb_build_object(
+            'method', v_method,
+            'record_name', v_record_name,
+            'record_type', v_record_type,
+            'record_value', v_record_value
+         ));
+
+    RETURN v_row;
+END;
+$EOFCODE$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
+
+COMMENT ON FUNCTION services_private.domain_issue_challenge(uuid, text, uuid) IS 'domain:issue_challenge — mints a public verification challenge, writes the domain_verifications row + challenge_issued event, and resets managed_domains.verification_status to pending.';
+
+GRANT EXECUTE ON FUNCTION services_private.domain_issue_challenge(uuid, text, uuid) TO authenticated;
+
+GRANT EXECUTE ON FUNCTION services_private.domain_issue_challenge(uuid, text, uuid) TO administrator;
