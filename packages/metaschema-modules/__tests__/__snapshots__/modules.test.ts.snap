@@ -135,13 +135,13 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 325438,
+  "constraintCount": 333050,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 475461,
+  "constraintCount": 483073,
   "foreignTables": [
     "database",
     "field",
