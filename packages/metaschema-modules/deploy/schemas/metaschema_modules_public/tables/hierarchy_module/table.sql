@@ -32,7 +32,7 @@ CREATE TABLE metaschema_modules_public.hierarchy_module (
     users_table_id uuid NOT NULL,   -- Users table
 
     -- Scope: determines the security level for this module instance.
-    scope text NOT NULL DEFAULT 'org',
+    scope text NOT NULL,
     
     -- Table name prefix. Auto-derived from scope by the trigger when empty.
     prefix text NOT NULL DEFAULT '',

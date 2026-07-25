@@ -1,7 +1,6 @@
 -- Deploy schemas/metaschema_modules_public/tables/rls_module/table to pg
 
 -- requires: schemas/metaschema_modules_public/schema
--- requires: schemas/services_public/tables/apis/table
 
 BEGIN;
 

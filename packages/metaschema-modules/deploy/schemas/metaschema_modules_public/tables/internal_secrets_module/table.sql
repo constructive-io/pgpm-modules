@@ -28,7 +28,7 @@ CREATE TABLE metaschema_modules_public.internal_secrets_module (
     private_api_name text DEFAULT NULL,
 
     -- Scope: determines the security level for this module instance.
-    scope text NOT NULL DEFAULT 'app',
+    scope text NOT NULL,
 
     -- Table name prefix. Auto-derived from scope by the trigger when empty.
     prefix text NOT NULL DEFAULT '',

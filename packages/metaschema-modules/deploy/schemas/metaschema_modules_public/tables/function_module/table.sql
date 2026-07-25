@@ -42,7 +42,7 @@ CREATE TABLE metaschema_modules_public.function_module (
 
     -- Scope: determines the security level for this module instance.
     -- Resolved to a membership_type integer at trigger time via membership_types table.
-    scope text NOT NULL DEFAULT 'app',
+    scope text NOT NULL,
 
     -- Table name prefix. Auto-derived from scope by the trigger when empty.
     -- Naming-only: instances are unique per (database_id, scope).

@@ -28,7 +28,6 @@ jobs:
           - achievements
           - metaschema-schema
           - metaschema-modules
-          - services
           - app-scope
           - function-resolution
           - jobs

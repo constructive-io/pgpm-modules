@@ -1,4 +1,4 @@
-import { getConnections, PgTestClient, snapshot } from 'constructive-test';
+import { getConnections, PgTestClient, snapshot } from 'pgsql-test';
 
 let pg: PgTestClient;
 let teardown: () => Promise<void>;
@@ -142,24 +142,25 @@ describe('db_meta_modules', () => {
   it('should verify module table structures have database_id foreign keys', async () => {
     // Check that all module tables have proper foreign key constraints to database
     const constraints = await pg.any(`
-      SELECT 
-        tc.table_name,
-        tc.constraint_name,
-        tc.constraint_type,
-        kcu.column_name,
-        ccu.table_name AS foreign_table_name,
-        ccu.column_name AS foreign_column_name
-      FROM information_schema.table_constraints AS tc
-      JOIN information_schema.key_column_usage AS kcu
-        ON tc.constraint_name = kcu.constraint_name
-      JOIN information_schema.constraint_column_usage AS ccu
-        ON ccu.constraint_name = tc.constraint_name
-      WHERE tc.table_schema = 'metaschema_modules_public'
-        AND tc.table_name LIKE '%_module'
-        AND tc.constraint_type = 'FOREIGN KEY'
-        AND kcu.column_name = 'database_id'
-        AND ccu.table_name = 'database'
-      ORDER BY tc.table_name
+      SELECT
+        c.relname AS table_name,
+        con.conname AS constraint_name,
+        att.attname AS column_name,
+        fc.relname AS foreign_table_name,
+        fatt.attname AS foreign_column_name
+      FROM pg_constraint con
+      JOIN pg_class c ON c.oid = con.conrelid
+      JOIN pg_namespace n ON n.oid = c.relnamespace
+      JOIN pg_class fc ON fc.oid = con.confrelid
+      JOIN LATERAL unnest(con.conkey, con.confkey) AS k(attnum, fattnum) ON true
+      JOIN pg_attribute att ON att.attrelid = con.conrelid AND att.attnum = k.attnum
+      JOIN pg_attribute fatt ON fatt.attrelid = con.confrelid AND fatt.attnum = k.fattnum
+      WHERE con.contype = 'f'
+        AND n.nspname = 'metaschema_modules_public'
+        AND c.relname LIKE '%\\_module'
+        AND att.attname = 'database_id'
+        AND fc.relname = 'database'
+      ORDER BY c.relname
     `);
 
     // Should have at least several module tables with database_id foreign keys
@@ -195,20 +196,22 @@ describe('db_meta_modules', () => {
   it('should verify module tables have proper foreign key relationships', async () => {
     // Get all foreign key constraints for module tables
     const fkConstraints = await pg.any(`
-      SELECT 
-        tc.table_name,
-        kcu.column_name,
-        ccu.table_name AS foreign_table_name,
-        ccu.column_name AS foreign_column_name
-      FROM information_schema.table_constraints AS tc
-      JOIN information_schema.key_column_usage AS kcu
-        ON tc.constraint_name = kcu.constraint_name
-      JOIN information_schema.constraint_column_usage AS ccu
-        ON ccu.constraint_name = tc.constraint_name
-      WHERE tc.table_schema = 'metaschema_modules_public'
-        AND tc.table_name LIKE '%_module'
-        AND tc.constraint_type = 'FOREIGN KEY'
-      ORDER BY tc.table_name, kcu.column_name
+      SELECT
+        c.relname AS table_name,
+        att.attname AS column_name,
+        fc.relname AS foreign_table_name,
+        fatt.attname AS foreign_column_name
+      FROM pg_constraint con
+      JOIN pg_class c ON c.oid = con.conrelid
+      JOIN pg_namespace n ON n.oid = c.relnamespace
+      JOIN pg_class fc ON fc.oid = con.confrelid
+      JOIN LATERAL unnest(con.conkey, con.confkey) AS k(attnum, fattnum) ON true
+      JOIN pg_attribute att ON att.attrelid = con.conrelid AND att.attnum = k.attnum
+      JOIN pg_attribute fatt ON fatt.attrelid = con.confrelid AND fatt.attnum = k.fattnum
+      WHERE con.contype = 'f'
+        AND n.nspname = 'metaschema_modules_public'
+        AND c.relname LIKE '%\\_module'
+      ORDER BY c.relname, att.attname
     `);
 
     // Should have many foreign key relationships
@@ -224,7 +227,7 @@ describe('db_meta_modules', () => {
       constraintCount: fkConstraints.length,
       foreignTables: foreignTables.sort()
     })).toMatchSnapshot();
-  }, 30000);
+  });
 
   it('should verify specific module table column defaults', async () => {
     // Check that modules have sensible defaults

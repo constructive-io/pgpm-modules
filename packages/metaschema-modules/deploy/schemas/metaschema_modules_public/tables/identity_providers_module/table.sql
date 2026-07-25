@@ -34,7 +34,7 @@ CREATE TABLE metaschema_modules_public.identity_providers_module (
     --   'platform' = platform_secrets (platform-wide infra)
     --   'database' = secrets (per-database infra, carries database_id)
     -- Future entity types are also supported via the membership_types table.
-    scope text NOT NULL DEFAULT 'app',
+    scope text NOT NULL,
 
     -- Table name prefix for the generated rotate proc.
     -- Auto-derived from scope by the trigger when empty.

@@ -34,7 +34,7 @@ CREATE TABLE metaschema_modules_public.inference_log_module (
   premake int NOT NULL DEFAULT 2,
 
   -- Scope configuration: 'app' = per-app usage (actor_id RLS)
-  scope text NOT NULL DEFAULT 'app',
+  scope text NOT NULL,
   actor_fk_table_id uuid NULL,
   entity_fk_table_id uuid NULL,
 

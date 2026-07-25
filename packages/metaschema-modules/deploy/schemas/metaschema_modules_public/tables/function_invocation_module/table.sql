@@ -24,18 +24,20 @@ CREATE TABLE metaschema_modules_public.function_invocation_module (
     -- Generated table IDs (populated by the generator)
     invocations_table_id uuid NOT NULL DEFAULT uuid_nil(),
     execution_logs_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    attempts_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- Table names (input to the generator — bare names without scope prefix).
     -- The trigger prepends the scope prefix automatically.
     invocations_table_name text NOT NULL DEFAULT 'function_invocations',
     execution_logs_table_name text NOT NULL DEFAULT 'function_execution_logs',
+    attempts_table_name text NOT NULL DEFAULT 'function_invocation_attempts',
 
     -- API routing (get-or-create: if set, schema is added to this API; if NULL, no API is added)
     api_name text,
     private_api_name text,
 
     -- Scope: determines the security level for this module instance.
-    scope text NOT NULL DEFAULT 'app',
+    scope text NOT NULL,
 
     -- Table name prefix. Auto-derived from scope by the trigger when empty.
     -- Override to create multiple module instances at the same scope.
@@ -61,6 +63,7 @@ CREATE TABLE metaschema_modules_public.function_invocation_module (
     CONSTRAINT function_invocation_module_private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT function_invocation_module_invocations_table_fkey FOREIGN KEY (invocations_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT function_invocation_module_logs_table_fkey FOREIGN KEY (execution_logs_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT function_invocation_module_attempts_table_fkey FOREIGN KEY (attempts_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT function_invocation_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 

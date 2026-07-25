@@ -31,7 +31,7 @@ CREATE TABLE metaschema_modules_public.invites_module (
     submit_invite_code_function text NOT NULL DEFAULT '',
 
     -- Scope: determines the security level for this module instance.
-    scope text NOT NULL DEFAULT 'app',
+    scope text NOT NULL,
 
     -- Table name prefix. Auto-derived from scope by the trigger when empty.
     prefix text NOT NULL DEFAULT '',
