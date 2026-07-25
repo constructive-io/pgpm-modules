@@ -37,7 +37,7 @@ CREATE TABLE metaschema_modules_public.merkle_store_module (
 
     -- Scope: 'app' for app-level, 'platform' for database-scoped with
     -- RLS through metaschema_public.database ownership.
-    scope text NOT NULL DEFAULT 'app',
+    scope text NOT NULL,
 
     -- Function name prefix override: NULL (default) inherits from `prefix`;
     -- '' (empty string) generates unprefixed function names (e.g., get_all instead of function_graph_get_all);

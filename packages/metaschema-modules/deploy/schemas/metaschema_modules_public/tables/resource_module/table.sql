@@ -28,9 +28,8 @@ CREATE TABLE metaschema_modules_public.resource_module (
     resource_events_table_id uuid NOT NULL DEFAULT uuid_nil(),
     resource_status_checks_table_id uuid NOT NULL DEFAULT uuid_nil(),
     resource_definitions_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    resource_usage_samples_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    resource_usage_log_table_id uuid NOT NULL DEFAULT uuid_nil(),
     resource_usage_summary_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    namespace_usage_summary_table_id uuid NOT NULL DEFAULT uuid_nil(),
     -- Resource-bundles Stage 1: the installation ("release") grouping table.
     resource_installations_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
@@ -40,9 +39,8 @@ CREATE TABLE metaschema_modules_public.resource_module (
     resource_events_table_name text NOT NULL DEFAULT 'resource_events',
     resource_status_checks_table_name text NOT NULL DEFAULT 'resource_status_checks',
     resource_definitions_table_name text NOT NULL DEFAULT 'resource_definitions',
-    resource_usage_samples_table_name text NOT NULL DEFAULT 'resource_usage_samples',
-    resource_usage_summary_table_name text NOT NULL DEFAULT 'resource_usage_summaries',
-    namespace_usage_summary_table_name text NOT NULL DEFAULT 'namespace_usage_summaries',
+    resource_usage_log_table_name text NOT NULL DEFAULT 'resource_usage_log',
+    resource_usage_summary_table_name text NOT NULL DEFAULT 'resource_usage_summary',
     resource_installations_table_name text NOT NULL DEFAULT 'resource_installations',
 
     -- Generated functions (populated by the generator)
@@ -62,7 +60,7 @@ CREATE TABLE metaschema_modules_public.resource_module (
     private_api_name text,
 
     -- Scope: determines the security level for this module instance.
-    scope text NOT NULL DEFAULT 'app',
+    scope text NOT NULL,
 
     -- Table name prefix. Auto-derived from scope by the trigger when empty.
     prefix text NOT NULL DEFAULT '',
@@ -98,9 +96,8 @@ CREATE TABLE metaschema_modules_public.resource_module (
     CONSTRAINT resource_module_events_table_fkey FOREIGN KEY (resource_events_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT resource_module_status_checks_table_fkey FOREIGN KEY (resource_status_checks_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT resource_module_definitions_table_fkey FOREIGN KEY (resource_definitions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT resource_module_usage_samples_table_fkey FOREIGN KEY (resource_usage_samples_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT resource_module_usage_log_table_fkey FOREIGN KEY (resource_usage_log_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT resource_module_usage_summary_table_fkey FOREIGN KEY (resource_usage_summary_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT resource_module_ns_usage_summary_table_fkey FOREIGN KEY (namespace_usage_summary_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT resource_module_installations_table_fkey FOREIGN KEY (resource_installations_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT resource_module_merkle_store_module_fkey FOREIGN KEY (merkle_store_module_id) REFERENCES metaschema_modules_public.merkle_store_module (id) ON DELETE SET NULL,
     CONSTRAINT resource_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,

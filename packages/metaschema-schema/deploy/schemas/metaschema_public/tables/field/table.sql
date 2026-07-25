@@ -41,6 +41,9 @@ CREATE TABLE metaschema_public.field (
   generation_expression jsonb NULL DEFAULT NULL,
   generation_type text NULL DEFAULT NULL,
 
+  identity_generation text NULL DEFAULT NULL,
+  identity_options jsonb NULL DEFAULT NULL,
+
   type jsonb NOT NULL,
 
   field_order int not null default 0,

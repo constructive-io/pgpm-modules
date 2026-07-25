@@ -29,7 +29,7 @@ CREATE TABLE metaschema_modules_public.graph_execution_module (
 
     -- Scope: determines the security level for this module instance.
     -- Can differ from graph_module scope (e.g., platform definitions + entity executions).
-    scope text NOT NULL DEFAULT 'app',
+    scope text NOT NULL,
 
     -- Table name prefix. Auto-derived from scope by the trigger when empty.
     prefix text NOT NULL DEFAULT '',

@@ -37,7 +37,6 @@
 ### Database Metadata
 - [ ] `packages/metaschema-schema` - Database metadata schema and utilities
 - [ ] `packages/metaschema-modules` - Module metadata handling
-- [ ] `packages/services` - Services schemas for APIs, sites, and domains
 
 ## Scope & Resolution
 

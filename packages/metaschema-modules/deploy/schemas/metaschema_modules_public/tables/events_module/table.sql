@@ -63,7 +63,7 @@ CREATE TABLE metaschema_modules_public.events_module (
   premake int NOT NULL DEFAULT 2,
 
   -- Scope: determines the security level for this module instance.
-  scope text NOT NULL DEFAULT 'app',
+  scope text NOT NULL,
 
   -- Table name prefix. Auto-derived from scope by the trigger when empty.
   prefix text NOT NULL DEFAULT '',

@@ -30,7 +30,7 @@ CREATE TABLE metaschema_modules_public.integration_providers_module (
     private_api_name text DEFAULT NULL,
 
     -- Scope: integration providers are installed once per database as platform scope.
-    scope text NOT NULL DEFAULT 'platform',
+    scope text NOT NULL,
 
     -- Table name prefix. Auto-derived from scope by the trigger when empty.
     prefix text NOT NULL DEFAULT '',

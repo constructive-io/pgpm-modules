@@ -41,7 +41,7 @@ CREATE TABLE metaschema_modules_public.webhook_module (
     api_name text,
     private_api_name text,
 
-    scope text NOT NULL DEFAULT 'app',
+    scope text NOT NULL,
     prefix text NOT NULL DEFAULT '',
     entity_table_id uuid NULL,
 

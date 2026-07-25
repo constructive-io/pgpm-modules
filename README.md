@@ -124,7 +124,6 @@ Each module includes its own README with detailed documentation. See individual 
 ### Meta & Database Introspection
 - [`@pgpm/metaschema-schema`](https://www.npmjs.com/package/@pgpm/metaschema-schema) - Database metadata schema and utilities
 - [`@pgpm/metaschema-modules`](https://www.npmjs.com/package/@pgpm/metaschema-modules) - Module metadata handling
-- [`@pgpm/services`](https://www.npmjs.com/package/@pgpm/services) - Services schemas for APIs, sites, and domains
 
 ### Scope & Resolution
 - [`@pgpm/app-scope`](https://www.npmjs.com/package/@pgpm/app-scope) - Portable scope-chain resolution primitive (ordered scope frames + platform database lookup)

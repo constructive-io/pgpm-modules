@@ -53,7 +53,7 @@ CREATE TABLE metaschema_modules_public.agent_module (
 
   -- Scope: determines the security level for this module instance.
   -- Resolved to a membership_type integer at trigger time via membership_types table.
-  scope text NOT NULL DEFAULT 'app',
+  scope text NOT NULL,
 
   -- Table name prefix. Auto-derived from scope by the trigger when empty.
   -- Override to create multiple module instances at the same scope.

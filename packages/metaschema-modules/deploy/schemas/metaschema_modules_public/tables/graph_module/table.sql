@@ -23,7 +23,7 @@ CREATE TABLE metaschema_modules_public.graph_module (
     private_schema_name text,
 
     -- Scope: determines the security level for this module instance.
-    scope text NOT NULL DEFAULT 'app',
+    scope text NOT NULL,
 
     -- Table name prefix. Auto-derived from scope by the trigger when empty.
     prefix text NOT NULL DEFAULT '',

@@ -55,12 +55,22 @@ BEGIN
         RAISE EXCEPTION 'APP_SCOPE_FRAMES_SCOPE_REQUIRED: execution_scope is required (no default scope)';
     END IF;
 
-    v_platform_db := app_scope.platform_database_id();
-    v_is_platform_db := (database_id = v_platform_db);
+    -- The platform database is resolved lazily: before it is registered (the
+    -- generation bootstrap window, or an isolated generated metaschema), the
+    -- execution database is its own root and the chain ends after its local
+    -- frames. Only the `platform` execution scope requires the registration.
+    SELECT d.id INTO v_platform_db
+    FROM metaschema_public.database d
+    WHERE d.platform;
+
+    v_is_platform_db := (frames.database_id = v_platform_db);
 
     -- `platform` execution scope names the global root directly: nothing is more
     -- or less specific to walk, so the chain is just the terminal platform frame.
     IF execution_scope = 'platform' THEN
+        IF v_platform_db IS NULL THEN
+            RAISE EXCEPTION 'PLATFORM_DATABASE_NOT_REGISTERED: no metaschema_public.database row has platform = true';
+        END IF;
         scope := 'platform';
         lookup_database_id := v_platform_db;
         key_value := NULL;
@@ -73,6 +83,11 @@ BEGIN
     RETURN QUERY
     SELECT lf.scope, lf.lookup_database_id, lf.key_value
     FROM app_scope.local_frames(frames.database_id, frames.execution_scope, frames.entity_id) lf;
+
+    -- No platform database registered: the local chain ends the search.
+    IF v_platform_db IS NULL THEN
+        RETURN;
+    END IF;
 
     -- Fall through to the platform database's OWN full local chain (its
     -- database -> org -> app), unless the execution already ran inside the
@@ -93,6 +108,6 @@ END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
 COMMENT ON FUNCTION app_scope.frames(uuid, text, uuid) IS
-'Ordered scope-lookup frames for an execution, most-specific first. A database is the unit of resolution: each database climbs its own local chain (entity -> ... -> org -> app, or database -> org -> app) via app_scope.local_frames; a tenant execution then falls through to the platform database''s own full chain (database -> org -> app) and finally the single global `platform` terminal. The platform database is the root database, not a special case. Each frame carries the scope-key VALUE to match against a consuming module''s entity_field (global app/platform frames carry NULL) and the lookup_database_id whose module instance the frame is probed in. Single source of truth for scope resolution; never hand-order scopes or re-derive keys elsewhere.';
+'Ordered scope-lookup frames for an execution, most-specific first. A database is the unit of resolution: each database climbs its own local chain (entity -> ... -> org -> app, or database -> org -> app) via app_scope.local_frames; a tenant execution then falls through to the platform database''s own full chain (database -> org -> app) and finally the single global `platform` terminal. The platform database is the root database, not a special case. Each frame carries the scope-key VALUE to match against a consuming module''s entity_field (global app/platform frames carry NULL) and the lookup_database_id whose module instance the frame is probed in. Single source of truth for scope resolution; never hand-order scopes or re-derive keys elsewhere. The platform database is resolved lazily: before one is registered (generation bootstrap, isolated metaschemas) the chain ends after the local frames, and only the `platform` execution scope raises PLATFORM_DATABASE_NOT_REGISTERED.';
 
 COMMIT;

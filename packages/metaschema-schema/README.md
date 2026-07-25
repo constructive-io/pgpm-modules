@@ -105,21 +105,6 @@ Stores database structure metadata:
 
 Private schema for internal metadata operations.
 
-### services_public Schema
-
-Application-level metadata:
-
-- **apis**: API configurations
-- **api_extensions**: API extension relationships
-- **api_modules**: API module definitions
-- **api_schemas**: API schema configurations
-- **sites**: Site definitions
-- **apps**: Application definitions
-- **domains**: Domain configurations
-- **site_metadata**: Site metadata
-- **site_modules**: Site module configurations
-- **site_themes**: Site theme definitions
-
 ## Usage
 
 ### Storing Database Metadata
