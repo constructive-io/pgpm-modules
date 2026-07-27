@@ -18,7 +18,8 @@
     "bundle": "pnpm -r bundle",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
-    "deps": "pnpm up -r -i -L"
+    "deps": "pnpm up -r -i -L",
+    "version": "pgpm sync-versions"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

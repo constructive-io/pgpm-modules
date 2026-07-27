@@ -387,6 +387,8 @@ CREATE TABLE metaschema_public.check_constraint (
   type text,
   field_ids uuid[] NOT NULL,
   expr jsonb,
+  is_deferrable boolean NOT NULL DEFAULT false,
+  initially_deferred boolean NOT NULL DEFAULT false,
   smart_tags jsonb,
   category metaschema_public.object_category NOT NULL DEFAULT 'app',
   tags citext[] NOT NULL DEFAULT '{}',
@@ -430,6 +432,8 @@ CREATE TABLE metaschema_public.field (
   default_value jsonb NULL DEFAULT NULL,
   generation_expression jsonb NULL DEFAULT NULL,
   generation_type text NULL DEFAULT NULL,
+  identity_generation text NULL DEFAULT NULL,
+  identity_options jsonb NULL DEFAULT NULL,
   type jsonb NOT NULL,
   field_order int NOT NULL DEFAULT 0,
   regexp text DEFAULT NULL,
@@ -482,6 +486,10 @@ CREATE TABLE metaschema_public.foreign_key_constraint (
   ref_field_ids uuid[] NOT NULL,
   delete_action char(1) DEFAULT 'c',
   update_action char(1) DEFAULT 'a',
+  with_period boolean NOT NULL DEFAULT false,
+  delete_set_field_ids uuid[],
+  is_deferrable boolean NOT NULL DEFAULT false,
+  initially_deferred boolean NOT NULL DEFAULT false,
   category metaschema_public.object_category NOT NULL DEFAULT 'app',
   tags citext[] NOT NULL DEFAULT '{}',
   created_at timestamptz DEFAULT now(),
@@ -613,6 +621,9 @@ CREATE TABLE metaschema_public.primary_key_constraint (
   name text,
   type text,
   field_ids uuid[] NOT NULL,
+  without_overlaps boolean NOT NULL DEFAULT false,
+  is_deferrable boolean NOT NULL DEFAULT false,
+  initially_deferred boolean NOT NULL DEFAULT false,
   smart_tags jsonb,
   category metaschema_public.object_category NOT NULL DEFAULT 'app',
   tags citext[] NOT NULL DEFAULT '{}',
@@ -742,6 +753,9 @@ CREATE TABLE metaschema_public.unique_constraint (
   smart_tags jsonb,
   type text,
   field_ids uuid[] NOT NULL,
+  without_overlaps boolean NOT NULL DEFAULT false,
+  is_deferrable boolean NOT NULL DEFAULT false,
+  initially_deferred boolean NOT NULL DEFAULT false,
   category metaschema_public.object_category NOT NULL DEFAULT 'app',
   tags citext[] NOT NULL DEFAULT '{}',
   created_at timestamptz DEFAULT now(),
@@ -773,10 +787,17 @@ CREATE TABLE metaschema_public.view (
   filter_type text,
   filter_data jsonb DEFAULT '{}',
   security_invoker boolean DEFAULT true,
+  security_barrier boolean DEFAULT false,
+  check_option text,
   is_read_only boolean DEFAULT true,
   smart_tags jsonb,
   category metaschema_public.object_category NOT NULL DEFAULT 'app',
   tags citext[] NOT NULL DEFAULT '{}',
+  CONSTRAINT view_check_option_valid 
+    CHECK (
+    check_option IS NULL
+      OR check_option IN ('local', 'cascaded')
+  ),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -1151,3 +1172,34 @@ CREATE TRIGGER _000003_enforce_api_exposure_ratchet
   FOR EACH ROW
   WHEN (new.api_exposure IS DISTINCT FROM old.api_exposure)
   EXECUTE PROCEDURE metaschema_public.tg_enforce_api_exposure_ratchet();
+
+CREATE TABLE metaschema_public.exclusion_constraint (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_id uuid NOT NULL,
+  name text,
+  type text,
+  access_method text NOT NULL DEFAULT 'gist',
+  field_ids uuid[] NOT NULL DEFAULT '{}',
+  operators text[] NOT NULL DEFAULT '{}',
+  element_expr jsonb,
+  where_clause jsonb,
+  smart_tags jsonb,
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
+  tags citext[] NOT NULL DEFAULT '{}',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT table_fkey
+    FOREIGN KEY(table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  UNIQUE (table_id, name)
+);
+
+CREATE INDEX exclusion_constraint_table_id_idx ON metaschema_public.exclusion_constraint (table_id);
+
+CREATE INDEX exclusion_constraint_database_id_idx ON metaschema_public.exclusion_constraint (database_id);

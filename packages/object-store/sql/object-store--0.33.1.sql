@@ -38,11 +38,16 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA object_store_utils
 ALTER DEFAULT PRIVILEGES IN SCHEMA object_store_utils
   GRANT ALL ON TABLES TO authenticated;
 
-CREATE FUNCTION object_store_utils.array_get_last(arr anyarray) RETURNS anyelement AS $EOFCODE$
+CREATE FUNCTION object_store_utils.array_get_last(
+  arr anyarray
+) RETURNS anyelement AS $EOFCODE$
   SELECT arr[array_length(arr, 1)];
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
 
-CREATE FUNCTION object_store_utils.array_index_of(arr anyarray, el anyelement) RETURNS int AS $EOFCODE$ 
+CREATE FUNCTION object_store_utils.array_index_of(
+  arr anyarray,
+  el anyelement
+) RETURNS int AS $EOFCODE$ 
 DECLARE
   val int = -1;
   i int;
@@ -58,7 +63,9 @@ BEGIN
 END
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION object_store_utils.array_pop(srcarr anyarray) RETURNS SETOF anyarray AS $EOFCODE$ 
+CREATE FUNCTION object_store_utils.array_pop(
+  srcarr anyarray
+) RETURNS SETOF anyarray AS $EOFCODE$ 
 SELECT ARRAY (
  SELECT UNNEST(srcarr) LIMIT (
   SELECT array_upper(srcarr, 1) - 1
@@ -66,11 +73,16 @@ SELECT ARRAY (
 )
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
 
-CREATE FUNCTION object_store_utils.array_shift(srcarr anyarray) RETURNS SETOF anyarray AS $EOFCODE$ 
+CREATE FUNCTION object_store_utils.array_shift(
+  srcarr anyarray
+) RETURNS SETOF anyarray AS $EOFCODE$ 
 SELECT srcarr[2:array_length(srcarr, 1)]
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
 
-CREATE FUNCTION object_store_utils.zip_arrays(a text[], b anyarray) RETURNS jsonb AS $EOFCODE$
+CREATE FUNCTION object_store_utils.zip_arrays(
+  a text[],
+  b anyarray
+) RETURNS jsonb AS $EOFCODE$
 DECLARE
   obj jsonb = '{}'::jsonb;
   i int;
@@ -88,7 +100,12 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE FUNCTION object_store_utils.unzip_obj_to_ktree_and_kids(obj jsonb) RETURNS TABLE ( ktree text[], kids uuid[] ) AS $EOFCODE$
+CREATE FUNCTION object_store_utils.unzip_obj_to_ktree_and_kids(
+  obj jsonb
+) RETURNS TABLE (
+  ktree text[],
+  kids uuid[]
+) AS $EOFCODE$
 DECLARE
   key text;
   value text;
@@ -121,7 +138,10 @@ CREATE TABLE object_store_public.object (
   )
 );
 
-CREATE FUNCTION object_store_public.get_all_objects_from_root(s_id uuid, id uuid) RETURNS SETOF object_store_public.object AS $EOFCODE$ WITH RECURSIVE hierarchy AS (
+CREATE FUNCTION object_store_public.get_all_objects_from_root(
+  s_id uuid,
+  id uuid
+) RETURNS SETOF object_store_public.object AS $EOFCODE$ WITH RECURSIVE hierarchy AS (
     SELECT
         *
     FROM
@@ -140,7 +160,13 @@ FROM
     hierarchy;
 $EOFCODE$ LANGUAGE sql STABLE;
 
-CREATE FUNCTION object_store_public.get_all(s_id uuid, id uuid) RETURNS TABLE ( path text[], data jsonb ) AS $EOFCODE$ 
+CREATE FUNCTION object_store_public.get_all(
+  s_id uuid,
+  id uuid
+) RETURNS TABLE (
+  path text[],
+  data jsonb
+) AS $EOFCODE$ 
 DECLARE
   root object_store_public.object;
   pth text[];
@@ -153,8 +179,8 @@ DECLARE
   rdata jsonb;
 BEGIN
 
-	SELECT * from object_store_public.object o WHERE o.scope_id = s_id
-			AND o.id = get_all.id
+		SELECT * from object_store_public.object o WHERE o.scope_id = s_id
+				AND o.id = get_all.id
 	INTO root;
 			
 	pth = ARRAY[]::text[];
@@ -183,7 +209,11 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION object_store_public.get_node_at_path(s_id uuid, id uuid, path text[] DEFAULT CAST(ARRAY[] AS text[])) RETURNS object_store_public.object AS $EOFCODE$ 
+CREATE FUNCTION object_store_public.get_node_at_path(
+  s_id uuid,
+  id uuid,
+  path text[] DEFAULT CAST(ARRAY[] AS text[])
+) RETURNS object_store_public.object AS $EOFCODE$ 
 
 DECLARE
   _path text[] = path;
@@ -233,7 +263,11 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION object_store_public.get_path_objects_from_root(s_id uuid, id uuid, path text[] DEFAULT CAST(ARRAY[] AS text[])) RETURNS SETOF object_store_public.object AS $EOFCODE$ 
+CREATE FUNCTION object_store_public.get_path_objects_from_root(
+  s_id uuid,
+  id uuid,
+  path text[] DEFAULT CAST(ARRAY[] AS text[])
+) RETURNS SETOF object_store_public.object AS $EOFCODE$ 
 
 DECLARE
   _path text[] = path;
@@ -274,7 +308,14 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION object_store_public.insert_node_at_path(s_id uuid, root uuid, path text[], data jsonb, kids uuid[], ktree text[]) RETURNS uuid AS $EOFCODE$
+CREATE FUNCTION object_store_public.insert_node_at_path(
+  s_id uuid,
+  root uuid,
+  path text[],
+  data jsonb,
+  kids uuid[],
+  ktree text[]
+) RETURNS uuid AS $EOFCODE$
 DECLARE
   _newnode_id uuid;
   _newparent_id uuid;
@@ -419,7 +460,9 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-CREATE FUNCTION object_store_public.object_hash_uuid(obj object_store_public.object) RETURNS uuid AS $EOFCODE$
+CREATE FUNCTION object_store_public.object_hash_uuid(
+  obj object_store_public.object
+) RETURNS uuid AS $EOFCODE$
 DECLARE
   _cash jsonb = '{}'::jsonb;
   hash1 uuid;
@@ -440,7 +483,11 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
-CREATE FUNCTION object_store_public.remove_node_at_path(s_id uuid, root uuid, path text[]) RETURNS uuid AS $EOFCODE$
+CREATE FUNCTION object_store_public.remove_node_at_path(
+  s_id uuid,
+  root uuid,
+  path text[]
+) RETURNS uuid AS $EOFCODE$
 DECLARE
   _node object_store_public.object;
   _parent object_store_public.object;
@@ -512,13 +559,25 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-CREATE FUNCTION object_store_public.update_node_at_path(s_id uuid, root uuid, path text[], data jsonb, kids uuid[], ktree text[]) RETURNS uuid AS $EOFCODE$
+CREATE FUNCTION object_store_public.update_node_at_path(
+  s_id uuid,
+  root uuid,
+  path text[],
+  data jsonb,
+  kids uuid[],
+  ktree text[]
+) RETURNS uuid AS $EOFCODE$
 BEGIN
   RETURN object_store_public.insert_node_at_path(s_id, root, path, data, kids, ktree);
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-CREATE FUNCTION object_store_public.set_data_at_path(s_id uuid, root uuid, path text[], data jsonb) RETURNS uuid AS $EOFCODE$
+CREATE FUNCTION object_store_public.set_data_at_path(
+  s_id uuid,
+  root uuid,
+  path text[],
+  data jsonb
+) RETURNS uuid AS $EOFCODE$
 DECLARE
   _node object_store_public.object;
   _kids uuid[] = ARRAY[]::uuid[];
@@ -540,27 +599,34 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-CREATE FUNCTION object_store_public.freeze_objects(s_id uuid, id uuid) RETURNS void AS $EOFCODE$
+CREATE FUNCTION object_store_public.freeze_objects(
+  s_id uuid,
+  id uuid
+) RETURNS void AS $EOFCODE$
 BEGIN
 
+-- Unnest kids so each recursion step joins through the (id, scope_id)
+-- primary key instead of scanning the whole table per level.
 WITH RECURSIVE hierarchy AS (
     SELECT
-        *
+        o.id, o.scope_id, o.kids
     FROM
         object_store_public.object o
     WHERE
         o.id = freeze_objects.id AND o.scope_id=s_id
     UNION
     SELECT
-        object.*
+        object.id, object.scope_id, object.kids
     FROM
-        object_store_public.object AS object
-        JOIN hierarchy a ON (object.id = ANY (a.kids) AND object.scope_id=a.scope_id))
+        hierarchy a
+        CROSS JOIN LATERAL unnest(a.kids) AS kid(id)
+        JOIN object_store_public.object AS object
+          ON (object.id = kid.id AND object.scope_id=a.scope_id))
 
 UPDATE object_store_public.object o
   SET frzn = TRUE
 FROM hierarchy
-  WHERE hierarchy.id = o.id;
+  WHERE hierarchy.id = o.id AND hierarchy.scope_id = o.scope_id;
 
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;

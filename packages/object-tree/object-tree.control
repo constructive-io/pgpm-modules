@@ -1,6 +1,6 @@
 # object-tree extension
 comment = 'object-tree extension - git-like version control for database objects'
-default_version = '0.15.5'
+default_version = '0.33.1'
 module_pathname = '$libdir/object-tree'
 requires = 'plpgsql,pgcrypto,object-store,pgpm-verify'
 relocatable = false
