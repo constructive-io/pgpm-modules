@@ -21,7 +21,7 @@
     "test:watch": "jest --watch"
   },
   "devDependencies": {
-    "pgpm": "^4.28.7"
+    "pgpm": "^5"
   },
   "dependencies": {
     "@pgpm/jwt-claims": "workspace:*",

@@ -1,5 +1,5 @@
 EXTENSION = pgpm-totp
-DATA = sql/pgpm-totp--0.15.5.sql
+DATA = sql/pgpm-totp--0.33.0.sql
 
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
