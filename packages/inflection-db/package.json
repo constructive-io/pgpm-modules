@@ -34,6 +34,6 @@
     "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {
-    "pgpm": "^4.28.7"
+    "pgpm": "^5.8.0"
   }
 }
