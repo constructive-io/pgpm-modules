@@ -21,7 +21,7 @@
     "test:watch": "jest --watch"
   },
   "devDependencies": {
-    "pgpm": "^5.8.0"
+    "pgpm": "^5"
   },
   "dependencies": {
     "@pgpm/metaschema-modules": "workspace:*",
