@@ -92,9 +92,15 @@ BEGIN
     -- Fall through to the platform database's OWN full local chain (its
     -- database -> org -> app), unless the execution already ran inside the
     -- platform database (in which case its local chain above already covered it).
+    -- The fall-through `database` frame is re-keyed by the EXECUTION database:
+    -- `database` is the synthetic per-database root, so rows a tenant reads or
+    -- writes on a shared plane served by this frame are keyed by the tenant's
+    -- own database_id, never by the platform database that hosts the plane.
     IF NOT v_is_platform_db THEN
         RETURN QUERY
-        SELECT lf.scope, lf.lookup_database_id, lf.key_value
+        SELECT lf.scope, lf.lookup_database_id,
+               CASE WHEN lf.scope = 'database' THEN frames.database_id
+                    ELSE lf.key_value END
         FROM app_scope.local_frames(v_platform_db, 'database', NULL) lf;
     END IF;
 

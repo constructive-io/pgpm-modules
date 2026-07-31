@@ -1,0 +1,40 @@
+{
+  "name": "@pgpm/db-utils",
+  "version": "0.0.1",
+  "description": "General database utility functions (deep jsonb merge/set, timestamps, column comments)",
+  "author": "Dan Lynch <pyramation@gmail.com>",
+  "contributors": [
+    "Constructive <developers@constructive.io>"
+  ],
+  "keywords": [
+    "postgresql",
+    "pgpm",
+    "jsonb",
+    "utilities"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "bundle": "pgpm package",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "@pgpm/inflection": "workspace:*",
+    "@pgpm/verify": "workspace:*"
+  },
+  "devDependencies": {
+    "constructive-test": "^1.8.7",
+    "pgsql-test": "^5.8.2",
+    "pgpm": "^5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/constructive-io/pgpm-modules"
+  },
+  "homepage": "https://github.com/constructive-io/pgpm-modules",
+  "bugs": {
+    "url": "https://github.com/constructive-io/pgpm-modules/issues"
+  }
+}

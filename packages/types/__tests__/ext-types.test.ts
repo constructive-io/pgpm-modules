@@ -1,4 +1,4 @@
-import { getConnections, PgTestClient } from 'pgsql-test';
+import { getConnections, PgTestClient } from 'constructive-test';
 
 let teardown: () => Promise<void>;
 let pg: PgTestClient;

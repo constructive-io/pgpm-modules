@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT has_function_privilege('authenticated', 'app_jobs.add_job(text, json, text, text, timestamptz, integer, integer, uuid, uuid, text, uuid, text)', 'EXECUTE');
+SELECT has_function_privilege('authenticated', 'app_jobs.add_job(text, json, text, text, timestamptz, integer, integer, uuid, uuid, text, uuid, text, uuid)', 'EXECUTE');
 
 ROLLBACK;

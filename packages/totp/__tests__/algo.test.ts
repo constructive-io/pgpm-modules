@@ -1,4 +1,4 @@
-import { getConnections, PgTestClient } from 'pgsql-test';
+import { getConnections, PgTestClient } from 'constructive-test';
 import cases from 'jest-in-case';
 
 let pg: PgTestClient;

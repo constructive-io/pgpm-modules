@@ -118,7 +118,7 @@ $EOFCODE$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 
 CREATE TABLE app_jobs.scheduled_jobs (
   id bigserial PRIMARY KEY,
-  database_id uuid,
+  database_id uuid NOT NULL,
   actor_id uuid,
   entity_id uuid,
   queue_name text DEFAULT NULL,
@@ -144,7 +144,7 @@ COMMENT ON TABLE app_jobs.scheduled_jobs IS 'Recurring/cron-style job definition
 
 COMMENT ON COLUMN app_jobs.scheduled_jobs.id IS 'Auto-incrementing scheduled job identifier';
 
-COMMENT ON COLUMN app_jobs.scheduled_jobs.database_id IS 'Database this scheduled job belongs to (nullable for system-level schedules without tenant context)';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.database_id IS 'Database this scheduled job belongs to; every scheduled job is owned by exactly one database';
 
 COMMENT ON COLUMN app_jobs.scheduled_jobs.actor_id IS 'User who created this scheduled job, read from JWT claims at creation time';
 
@@ -194,7 +194,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON app_jobs.scheduled_jobs TO administrator
 
 CREATE TABLE app_jobs.jobs (
   id bigserial PRIMARY KEY,
-  database_id uuid,
+  database_id uuid NOT NULL,
   actor_id uuid,
   principal_id uuid,
   entity_id uuid,
@@ -229,7 +229,7 @@ COMMENT ON TABLE app_jobs.jobs IS 'Background job queue: each row is a pending o
 
 COMMENT ON COLUMN app_jobs.jobs.id IS 'Auto-incrementing job identifier';
 
-COMMENT ON COLUMN app_jobs.jobs.database_id IS 'Database this job belongs to (nullable for system-level jobs without tenant context)';
+COMMENT ON COLUMN app_jobs.jobs.database_id IS 'Database this job belongs to; every job is owned by exactly one database';
 
 COMMENT ON COLUMN app_jobs.jobs.actor_id IS 'User who triggered this job, read from JWT claims at enqueue time';
 
@@ -744,16 +744,20 @@ CREATE FUNCTION app_jobs.add_scheduled_job(
   max_attempts int DEFAULT 25,
   priority int DEFAULT 0,
   entity_id uuid DEFAULT NULL,
-  db_id uuid DEFAULT NULL
+  db_id uuid DEFAULT jwt_private.current_database_id()
 ) RETURNS app_jobs.scheduled_jobs AS $EOFCODE$
 DECLARE
   v_job app_jobs.scheduled_jobs;
   v_database_id uuid;
   v_actor_id uuid;
 BEGIN
-  -- Callers that run outside a JWT context (e.g. provisioning triggers) pass
-  -- db_id explicitly; everyone else keeps the JWT-derived default.
-  v_database_id := coalesce(db_id, jwt_private.current_database_id());
+  -- db_id defaults to the session's database claim; only callers that act on
+  -- behalf of a different database (e.g. provisioning triggers, platform-owned
+  -- births) pass it explicitly. Every scheduled job is owned by exactly one
+  -- database — a claim-less session with no explicit db_id fails the
+  -- scheduled_jobs.database_id NOT NULL constraint rather than producing an
+  -- unattributable job.
+  v_database_id := db_id;
   v_actor_id := jwt_public.current_user_id();
 
   IF job_key IS NOT NULL THEN
@@ -924,7 +928,8 @@ CREATE FUNCTION app_jobs.add_job(
   organization_id uuid DEFAULT NULL,
   entity_type text DEFAULT NULL,
   function_definition_id uuid DEFAULT NULL,
-  definition_scope text DEFAULT NULL
+  definition_scope text DEFAULT NULL,
+  db_id uuid DEFAULT jwt_private.current_database_id()
 ) RETURNS app_jobs.jobs AS $EOFCODE$
 DECLARE
   v_job app_jobs.jobs;
@@ -932,8 +937,12 @@ DECLARE
   v_actor_id uuid;
   v_principal_id uuid;
 BEGIN
-  -- Read context from JWT claims
-  v_database_id := jwt_private.current_database_id();
+  -- db_id defaults to the session's database claim; only callers that act on
+  -- behalf of a different database (e.g. platform-owned births) pass it
+  -- explicitly. Every job is owned by exactly one database — a claim-less
+  -- session with no explicit db_id fails the jobs.database_id NOT NULL
+  -- constraint rather than producing an unattributable job.
+  v_database_id := db_id;
   v_actor_id := jwt_public.current_user_id();
 
   v_principal_id := jwt_public.current_principal_id();
@@ -1044,7 +1053,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 
-GRANT EXECUTE ON FUNCTION app_jobs.add_job(text, pg_catalog.json, text, text, timestamptz, int, int, uuid, uuid, text, uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION app_jobs.add_job(text, pg_catalog.json, text, text, timestamptz, int, int, uuid, uuid, text, uuid, text, uuid) TO authenticated;
 
 CREATE FUNCTION app_jobs.remove_job(
   job_key text

@@ -45,61 +45,6 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
-CREATE FUNCTION function_resolution.probe(
-  database_id uuid,
-  scope text,
-  key uuid,
-  task_identifier text
-) RETURNS uuid AS $EOFCODE$
-DECLARE
-    v_schema text;
-    v_table text;
-    v_entity_field text;
-    v_id uuid;
-    v_query text;
-BEGIN
-    SELECT l.schema_name, l.table_name, l.entity_field
-    INTO v_schema, v_table, v_entity_field
-    FROM function_resolution.definitions_location(probe.database_id, probe.scope) l;
-
-    IF v_schema IS NULL THEN
-        RETURN NULL;
-    END IF;
-
-    IF v_entity_field IS NULL THEN
-        -- SELECT id FROM "<schema>"."<table>" WHERE task_identifier = $1
-        v_query := format(
-            'SELECT id FROM %I.%I WHERE task_identifier = $1',
-            v_schema, v_table
-        );
-        EXECUTE v_query INTO v_id USING task_identifier;
-        RETURN v_id;
-    END IF;
-
-    -- Exact scope-key match (most specific).
-    -- SELECT id FROM "<schema>"."<table>"
-    --   WHERE task_identifier = $1 AND "<entity_field>" = $2
-    v_query := format(
-        'SELECT id FROM %I.%I WHERE task_identifier = $1 AND %I = $2',
-        v_schema, v_table, v_entity_field
-    );
-    EXECUTE v_query INTO v_id USING task_identifier, key;
-    IF v_id IS NOT NULL THEN
-        RETURN v_id;
-    END IF;
-
-    -- Scope-default row (entity_field IS NULL) within an entity-scoped table.
-    -- SELECT id FROM "<schema>"."<table>"
-    --   WHERE task_identifier = $1 AND "<entity_field>" IS NULL
-    v_query := format(
-        'SELECT id FROM %I.%I WHERE task_identifier = $1 AND %I IS NULL',
-        v_schema, v_table, v_entity_field
-    );
-    EXECUTE v_query INTO v_id USING task_identifier;
-    RETURN v_id;
-END;
-$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
-
 CREATE FUNCTION function_resolution.routing(
   database_id uuid,
   scope text,
@@ -147,6 +92,43 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
+CREATE FUNCTION function_resolution.catalog_location(
+  database_id uuid
+) RETURNS TABLE (
+  schema_name text,
+  table_name text
+) AS $EOFCODE$
+DECLARE
+    v_functions_table_id uuid;
+BEGIN
+    BEGIN
+        SELECT cm.functions_table_id
+        INTO STRICT v_functions_table_id
+        FROM metaschema_modules_public.catalog_module cm
+        WHERE cm.database_id = catalog_location.database_id
+          AND cm.functions_table_id <> uuid_nil();
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RETURN;
+        WHEN TOO_MANY_ROWS THEN
+            RAISE EXCEPTION 'FUNCTION_RESOLUTION_CATALOG_AMBIGUOUS: multiple functions catalogs registered for database %',
+                catalog_location.database_id;
+    END;
+
+    SELECT s.schema_name, t.name
+    INTO catalog_location.schema_name, catalog_location.table_name
+    FROM metaschema_public.schema s
+    JOIN metaschema_public."table" t ON (t.schema_id = s.id AND t.database_id = s.database_id)
+    WHERE t.id = v_functions_table_id;
+
+    IF NOT FOUND THEN
+        RETURN;
+    END IF;
+
+    RETURN NEXT;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
 CREATE FUNCTION function_resolution.resolve(
   database_id uuid,
   scope text,
@@ -155,29 +137,108 @@ CREATE FUNCTION function_resolution.resolve(
   require_definition boolean DEFAULT true
 ) RETURNS TABLE (
   function_definition_id uuid,
-  resolved_scope text
+  resolved_scope text,
+  owner_database_id uuid
 ) AS $EOFCODE$
 DECLARE
-    v_frame record;
-    v_id uuid;
+    v_frame_db record;
+    v_schema text;
+    v_table text;
+    v_query text;
+    v_hit record;
+    v_best_ord bigint;
 BEGIN
-    FOR v_frame IN
-        SELECT f.scope, f.lookup_database_id, f.key_value
-        FROM app_scope.frames(resolve.database_id, resolve.scope, resolve.entity_id) f
+    -- Group the ordered frames by lookup database, expanding each frame into
+    -- its probe candidates (exact key first, scope-default second) with a
+    -- global ordinality that preserves frame precedence across databases.
+    FOR v_frame_db IN
+        SELECT c.lookup_database_id,
+               array_agg(c.owner_scope ORDER BY c.ord) AS scopes,
+               array_agg(c.owner_key ORDER BY c.ord) AS keys,
+               array_agg(c.ord ORDER BY c.ord) AS ords
+        FROM (
+            SELECT f.lookup_database_id,
+                   f.scope AS owner_scope,
+                   cand.owner_key,
+                   (f.ord * 2) + cand.off AS ord
+            FROM app_scope.frames(
+                resolve.database_id,
+                resolve.scope,
+                resolve.entity_id
+            ) WITH ORDINALITY AS f(scope, lookup_database_id, key_value, ord)
+            CROSS JOIN LATERAL (
+                VALUES (f.key_value, 0::bigint), (NULL::uuid, 1::bigint)
+            ) AS cand(owner_key, off)
+            -- Global frames carry no key: emit the NULL candidate once.
+            WHERE cand.off = 0 OR f.key_value IS NOT NULL
+        ) c
+        GROUP BY c.lookup_database_id
+        ORDER BY min(c.ord)
     LOOP
-        v_id := function_resolution.probe(
-            v_frame.lookup_database_id,
-            v_frame.scope,
-            v_frame.key_value,
-            task_identifier
+        SELECT l.schema_name, l.table_name
+        INTO v_schema, v_table
+        FROM function_resolution.catalog_location(v_frame_db.lookup_database_id) l;
+
+        IF v_schema IS NULL THEN
+            -- No catalog for this frame database. If it hosts function
+            -- modules the catalog cannot answer for it — fail loud so a
+            -- missing catalog never silently mis-resolves as "not found".
+            IF EXISTS (
+                SELECT 1 FROM metaschema_modules_public.function_module fm
+                WHERE fm.database_id = v_frame_db.lookup_database_id
+            ) THEN
+                RAISE EXCEPTION USING
+                    errcode = 'FR001',
+                    message = format(
+                        'FUNCTION_RESOLUTION_CATALOG_UNAVAILABLE: database %s hosts function modules but has no functions catalog',
+                        v_frame_db.lookup_database_id
+                    );
+            END IF;
+            CONTINUE;
+        END IF;
+
+        -- One indexed read per catalog: LATERAL over the ordered candidates,
+        -- each branch an exact probe of one partial unique index.
+        v_query := format(
+            'SELECT hit.id, hit.owner_scope, hit.database_id, cand.ord
+             FROM unnest($2::text[], $3::uuid[], $4::bigint[]) AS cand(owner_scope, owner_key, ord)
+             CROSS JOIN LATERAL (
+                 SELECT c.id, c.owner_scope, c.database_id
+                 FROM %I.%I c
+                 WHERE c.task_identifier = $1
+                   AND c.owner_scope = cand.owner_scope
+                   AND c.owner_key = cand.owner_key
+                   AND cand.owner_key IS NOT NULL
+                 UNION ALL
+                 SELECT c.id, c.owner_scope, c.database_id
+                 FROM %I.%I c
+                 WHERE c.task_identifier = $1
+                   AND c.owner_scope = cand.owner_scope
+                   AND c.owner_key IS NULL
+                   AND cand.owner_key IS NULL
+             ) hit
+             ORDER BY cand.ord
+             LIMIT 1',
+            v_schema, v_table, v_schema, v_table
         );
-        IF v_id IS NOT NULL THEN
-            resolve.function_definition_id := v_id;
-            resolve.resolved_scope := v_frame.scope;
-            RETURN NEXT;
-            RETURN;
+
+        EXECUTE v_query
+        INTO v_hit
+        USING resolve.task_identifier,
+              v_frame_db.scopes, v_frame_db.keys, v_frame_db.ords;
+
+        IF v_hit.id IS NOT NULL AND (v_best_ord IS NULL OR v_hit.ord < v_best_ord) THEN
+            v_best_ord := v_hit.ord;
+            resolve.function_definition_id := v_hit.id;
+            resolve.resolved_scope := v_hit.owner_scope;
+            resolve.owner_database_id := v_hit.database_id;
         END IF;
     END LOOP;
+
+    IF resolve.function_definition_id IS NOT NULL THEN
+        RETURN NEXT;
+        RETURN;
+    END IF;
 
     -- Chain exhausted.
     IF require_definition THEN
@@ -206,6 +267,8 @@ DECLARE
     v_lookup_db uuid;
     v_probe_key uuid;
     v_found uuid;
+    v_catalog_schema text;
+    v_catalog_table text;
 BEGIN
     -- API-provenance path (api_binding_id present) must declare its definition
     -- explicitly — the function_callable_check policy verifies the binding
@@ -221,7 +284,7 @@ BEGIN
     IF existing_id IS NOT NULL THEN
         v_scope := COALESCE(resolve_invocation.existing_scope, resolve_invocation.scope);
 
-        -- Key/probe database for the declared scope come from the same frame
+        -- Key/lookup database for the declared scope come from the same frame
         -- definition resolution uses, so an `org` pair keys by the owning org
         -- and the platform frame probes the platform database.
         SELECT f.lookup_database_id, f.key_value
@@ -233,9 +296,29 @@ BEGIN
             v_lookup_db := database_id;
         END IF;
 
-        v_found := function_resolution.probe(
-            v_lookup_db, v_scope, v_probe_key, task_identifier
-        );
+        SELECT l.schema_name, l.table_name
+        INTO v_catalog_schema, v_catalog_table
+        FROM function_resolution.catalog_location(v_lookup_db) l;
+
+        IF v_catalog_schema IS NULL THEN
+            RAISE EXCEPTION 'FUNCTION_RESOLUTION_CATALOG_UNAVAILABLE: database % has no functions catalog to validate pair against (task_identifier "%")',
+                v_lookup_db, task_identifier
+                USING ERRCODE = 'FR001';
+        END IF;
+
+        -- Same two-pass keying as resolution: the exact scope-key row wins,
+        -- the scope-default (owner_key IS NULL) row only as fallback.
+        EXECUTE format(
+            'SELECT id FROM %I.%I WHERE owner_scope = $1 AND task_identifier = $2 AND owner_key = $3',
+            v_catalog_schema, v_catalog_table
+        ) INTO v_found USING v_scope, task_identifier, v_probe_key;
+        IF v_found IS NULL THEN
+            EXECUTE format(
+                'SELECT id FROM %I.%I WHERE owner_scope = $1 AND task_identifier = $2 AND owner_key IS NULL',
+                v_catalog_schema, v_catalog_table
+            ) INTO v_found USING v_scope, task_identifier;
+        END IF;
+
         IF v_found IS DISTINCT FROM existing_id THEN
             RAISE EXCEPTION 'FUNCTION_DEFINITION_INVALID_PAIR: function_definition_id % / definition_scope "%" does not resolve to task_identifier "%" (database_id=%)',
                 existing_id, v_scope, task_identifier, database_id;
@@ -275,7 +358,8 @@ CREATE FUNCTION function_resolution.enqueue(
   entity_type text DEFAULT NULL,
   should_resolve boolean DEFAULT true,
   resolution_scope text DEFAULT NULL,
-  resolution_key uuid DEFAULT NULL
+  resolution_key uuid DEFAULT NULL,
+  db_id uuid DEFAULT jwt_private.current_database_id()
 ) RETURNS app_jobs.jobs AS $EOFCODE$
 DECLARE
     v_database_id uuid;
@@ -289,7 +373,7 @@ DECLARE
     v_priority integer;
     v_max_attempts integer;
 BEGIN
-    v_database_id := jwt_private.current_database_id();
+    v_database_id := db_id;
 
     -- Hard contract: the execution scope is a provisioning-time constant at the
     -- call site, never silently defaulted (constructive-planning #1183).
@@ -308,9 +392,11 @@ BEGIN
     v_def_scope := definition_scope;
 
     -- Resolve the winning definition when the caller did not already stamp one.
+    -- resolve() also returns the definition's home database, so the resolving
+    -- lane needs no second frame walk below.
     IF v_fn_id IS NULL AND should_resolve THEN
-        SELECT r.function_definition_id, r.resolved_scope
-        INTO v_fn_id, v_def_scope
+        SELECT r.function_definition_id, r.resolved_scope, r.owner_database_id
+        INTO v_fn_id, v_def_scope, v_defs_db
         FROM function_resolution.resolve(
             v_database_id, v_resolution_scope, v_resolution_key, task_identifier, false
         ) r;
@@ -319,13 +405,16 @@ BEGIN
     -- Definition routing: read queue_name/priority/max_attempts from the exact
     -- winning definition (no scope-chain re-walk). The definition's home database
     -- is the frame's lookup_database_id for its scope (the platform database for a
-    -- platform-scope definition, the execution database otherwise).
+    -- platform-scope definition, the execution database otherwise); only the
+    -- caller-supplied-pair lane still derives it from the declared scope's frame.
     IF v_fn_id IS NOT NULL AND v_def_scope IS NOT NULL THEN
-        SELECT f.lookup_database_id
-        INTO v_defs_db
-        FROM app_scope.frames(v_database_id, v_resolution_scope, v_resolution_key) f
-        WHERE f.scope = v_def_scope
-        LIMIT 1;
+        IF v_defs_db IS NULL THEN
+            SELECT f.lookup_database_id
+            INTO v_defs_db
+            FROM app_scope.frames(v_database_id, v_resolution_scope, v_resolution_key) f
+            WHERE f.scope = v_def_scope
+            LIMIT 1;
+        END IF;
 
         IF v_defs_db IS NULL THEN
             v_defs_db := v_database_id;
@@ -350,9 +439,10 @@ BEGIN
         organization_id := organization_id,
         entity_type := entity_type,
         function_definition_id := v_fn_id,
-        definition_scope := v_def_scope
+        definition_scope := v_def_scope,
+        db_id := v_database_id
     );
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 
-COMMENT ON FUNCTION function_resolution.enqueue(text, pg_catalog.json, text, uuid, uuid, text, text, text, timestamptz, int, int, uuid, text, boolean, text, uuid) IS 'Resolver-aware job enqueue: resolves (or trusts a supplied) function definition for the execution (database, scope, entity, task_identifier), stamps the (function_definition_id, definition_scope) pair and the definition''s queue routing, then delegates the insert to app_jobs.add_job. The single enqueue path for function jobs; definition-less tasks enqueue with a NULL pair. Portable: built only on app_scope + the metaschema catalog + app_jobs, no AST/deparser runtime.';
+COMMENT ON FUNCTION function_resolution.enqueue(text, pg_catalog.json, text, uuid, uuid, text, text, text, timestamptz, int, int, uuid, text, boolean, text, uuid, uuid) IS 'Resolver-aware job enqueue: resolves (or trusts a supplied) function definition for the execution (database, scope, entity, task_identifier), stamps the (function_definition_id, definition_scope) pair and the definition''s queue routing, then delegates the insert to app_jobs.add_job. The single enqueue path for function jobs; definition-less tasks enqueue with a NULL pair. Portable: built only on app_scope + the metaschema catalog + app_jobs, no AST/deparser runtime.';

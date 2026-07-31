@@ -1,6 +1,6 @@
 jest.setTimeout(30000);
 
-import { getConnections, PgTestClient } from 'pgsql-test';
+import { getConnections, PgTestClient } from 'constructive-test';
 import { snapshot } from 'pgsql-test/utils';
 
 const scope_id = 'd0f7ab73-356f-4aac-b9cb-d1a4274906d6';

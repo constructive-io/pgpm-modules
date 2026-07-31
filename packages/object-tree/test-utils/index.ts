@@ -1,4 +1,4 @@
-import { PgTestClient } from 'pgsql-test';
+import { PgTestClient } from 'constructive-test';
 
 /**
  * VDOM node structure for tree representation

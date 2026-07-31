@@ -3,7 +3,6 @@ module.exports = {
   forceExit: true,
   preset: 'ts-jest',
   testEnvironment: 'node',
-  testTimeout: 60000,
 
   // Match both __tests__ and colocated test files
   testMatch: ['**/?(*.)+(test|spec).{ts,tsx,js,jsx}'],

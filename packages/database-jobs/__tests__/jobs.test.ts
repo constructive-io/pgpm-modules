@@ -1,4 +1,4 @@
-import { getConnections, PgTestClient } from 'pgsql-test';
+import { getConnections, PgTestClient } from 'constructive-test';
 
 let pg: PgTestClient;
 let teardown: () => Promise<void>;
@@ -134,5 +134,27 @@ describe('scheduled jobs', () => {
 
     console.log('First insert:', obj);
     console.log('Duplicate insert (job_key conflict):', obj2);
+  });
+
+  it('add_job stamps explicit db_id', async () => {
+    const [job] = await pg.any(
+      `SELECT * FROM app_jobs.add_job(identifier := 'my_job', db_id := $1::uuid)`,
+      [database_id]
+    );
+    expect(job.database_id).toBe(database_id);
+  });
+
+  it('add_job fails the NOT NULL constraint without database attribution', async () => {
+    await expect(
+      pg.any(`SELECT * FROM app_jobs.add_job(identifier := 'my_job')`)
+    ).rejects.toThrow(/database_id/);
+  });
+
+  it('add_scheduled_job fails the NOT NULL constraint without database attribution', async () => {
+    await expect(
+      pg.any(
+        `SELECT * FROM app_jobs.add_scheduled_job(identifier := 'my_job')`
+      )
+    ).rejects.toThrow(/database_id/);
   });
 });

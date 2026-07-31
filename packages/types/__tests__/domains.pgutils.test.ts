@@ -1,4 +1,4 @@
-import { getConnections, PgTestClient } from 'pgsql-test';
+import { getConnections, PgTestClient } from 'constructive-test';
 
 // Validation rules:
 // - url: lenient regex ^https?://[^\s]+$ (must start with http/https, no whitespace, paths allowed)

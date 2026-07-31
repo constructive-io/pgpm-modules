@@ -1,0 +1,41 @@
+{
+  "name": "@pgpm/infra-utils",
+  "version": "0.0.1",
+  "description": "Typed parameter interface for infrastructure resource bundles (declared params, bindings, k8s quantities)",
+  "author": "Dan Lynch <pyramation@gmail.com>",
+  "contributors": [
+    "Constructive <developers@constructive.io>"
+  ],
+  "keywords": [
+    "postgresql",
+    "pgpm",
+    "kubernetes",
+    "infrastructure",
+    "parameters"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "bundle": "pgpm package",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "@pgpm/errors": "workspace:*",
+    "@pgpm/db-utils": "workspace:*"
+  },
+  "devDependencies": {
+    "constructive-test": "^1.8.7",
+    "pgsql-test": "^5.8.2",
+    "pgpm": "^5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/constructive-io/pgpm-modules"
+  },
+  "homepage": "https://github.com/constructive-io/pgpm-modules",
+  "bugs": {
+    "url": "https://github.com/constructive-io/pgpm-modules/issues"
+  }
+}

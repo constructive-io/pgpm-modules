@@ -10,9 +10,10 @@ BEGIN;
 -- Keys must be INSERT, UPDATE, or DELETE.
 -- Values must be one of:
 --   - true (default step-up type)
---   - a type string: 'password', 'mfa', 'password_or_mfa'
+--   - a type string: 'password', 'mfa', 'fresh_auth'
+--     ('password_or_mfa' is the legacy spelling of 'fresh_auth')
 --   - an object with keys from {type, min_age, min_age_lookup, conditions}:
---       type    (optional): 'password', 'mfa', 'password_or_mfa'
+--       type    (optional): 'password', 'mfa', 'fresh_auth'
 --       min_age (optional): a positive interval string (e.g. '6 hours');
 --                           the guard only fires for rows older than this.
 --                           Not allowed for INSERT (new rows have no age).
@@ -199,7 +200,7 @@ BEGIN
                 RETURN false;
             END IF;
         ELSIF jsonb_typeof(v_value) = 'string' THEN
-            IF v_value #>> '{}' NOT IN ('password', 'mfa', 'password_or_mfa') THEN
+            IF v_value #>> '{}' NOT IN ('password', 'mfa', 'fresh_auth', 'password_or_mfa') THEN
                 RETURN false;
             END IF;
         ELSIF jsonb_typeof(v_value) = 'object' THEN
@@ -216,7 +217,7 @@ BEGIN
             v_type := v_value -> 'type';
             IF v_type IS NOT NULL THEN
                 IF jsonb_typeof(v_type) != 'string'
-                   OR v_type #>> '{}' NOT IN ('password', 'mfa', 'password_or_mfa') THEN
+                   OR v_type #>> '{}' NOT IN ('password', 'mfa', 'fresh_auth', 'password_or_mfa') THEN
                     RETURN false;
                 END IF;
             END IF;

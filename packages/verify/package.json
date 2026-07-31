@@ -21,6 +21,7 @@
     "test:watch": "jest --watch"
   },
   "devDependencies": {
+    "constructive-test": "^1.8.7",
     "pgpm": "^5"
   },
   "repository": {

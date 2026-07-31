@@ -1,0 +1,9 @@
+%syntax-version=1.0.0
+%project=db-utils
+%uri=db-utils
+  
+schemas/db_utils/schema [inflection-db:schemas/inflection_db/procedures/get_unique_index_name pgpm-inflection:schemas/inflection/tables/inflection_rules/indexes/inflection_rules_type_idx pgpm-verify:procedures/verify_view] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/db_utils/schema
+schemas/db_utils/procedures/get_column_smart_comment [schemas/db_utils/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/db_utils/procedures/get_column_smart_comment
+schemas/db_utils/procedures/timestamps [schemas/db_utils/schema] 2025-01-01T15:00:00Z devin <devin@cognition.ai> # add schemas/db_utils/procedures/timestamps
+schemas/db_utils/procedures/jsonb_deep_merge [schemas/db_utils/schema] 2026-07-30T10:00:00Z devin <devin@cognition.ai> # add schemas/db_utils/procedures/jsonb_deep_merge
+schemas/db_utils/procedures/jsonb_set_deep [schemas/db_utils/schema] 2026-07-30T20:00:00Z devin <devin@cognition.ai> # add schemas/db_utils/procedures/jsonb_set_deep

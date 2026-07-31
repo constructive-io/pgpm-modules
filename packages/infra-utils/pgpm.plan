@@ -1,0 +1,8 @@
+%syntax-version=1.0.0
+%project=infra-utils
+%uri=infra-utils
+
+schemas/infra_utils/schema [pgpm-verify:procedures/verify_view] 2026-07-30T23:00:00Z devin <devin@cognition.ai> # add schemas/infra_utils/schema
+schemas/infra_utils/procedures/param_quantity [schemas/infra_utils/schema] 2026-07-30T23:00:01Z devin <devin@cognition.ai> # add schemas/infra_utils/procedures/param_quantity
+schemas/infra_utils/procedures/resource_params [schemas/infra_utils/schema schemas/infra_utils/procedures/param_quantity db-utils:schemas/db_utils/procedures/jsonb_deep_merge db-utils:schemas/db_utils/procedures/jsonb_set_deep errors:schemas/errors/procedures/raise_error] 2026-07-30T23:00:02Z devin <devin@cognition.ai> # add schemas/infra_utils/procedures/resource_params
+schemas/infra_utils/procedures/resource_installation_guards [schemas/infra_utils/schema errors:schemas/errors/procedures/raise_error] 2026-07-30T23:00:03Z devin <devin@cognition.ai> # add schemas/infra_utils/procedures/resource_installation_guards

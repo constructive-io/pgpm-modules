@@ -326,9 +326,15 @@ BEGIN
     -- Fall through to the platform database's OWN full local chain (its
     -- database -> org -> app), unless the execution already ran inside the
     -- platform database (in which case its local chain above already covered it).
+    -- The fall-through `database` frame is re-keyed by the EXECUTION database:
+    -- `database` is the synthetic per-database root, so rows a tenant reads or
+    -- writes on a shared plane served by this frame are keyed by the tenant's
+    -- own database_id, never by the platform database that hosts the plane.
     IF NOT v_is_platform_db THEN
         RETURN QUERY
-        SELECT lf.scope, lf.lookup_database_id, lf.key_value
+        SELECT lf.scope, lf.lookup_database_id,
+               CASE WHEN lf.scope = 'database' THEN frames.database_id
+                    ELSE lf.key_value END
         FROM app_scope.local_frames(v_platform_db, 'database', NULL) lf;
     END IF;
 
@@ -351,8 +357,6 @@ CREATE FUNCTION app_scope.routing_tables(
   apis_table text,
   api_schemas_schema text,
   api_schemas_table text,
-  api_modules_schema text,
-  api_modules_table text,
   api_settings_schema text,
   api_settings_table text,
   cors_settings_schema text,
@@ -388,7 +392,7 @@ BEGIN
         RAISE EXCEPTION 'ROUTING_TABLES_SCOPE_REQUIRED: scope is required (no default scope)';
     END IF;
 
-    SELECT am.apis_table_id, am.api_schemas_table_id, am.api_modules_table_id,
+    SELECT am.apis_table_id, am.api_schemas_table_id,
            am.api_settings_table_id, am.cors_settings_table_id
     INTO api_surface
     FROM app_scope.frames(
@@ -404,20 +408,16 @@ BEGIN
     IF FOUND AND api_surface.apis_table_id IS NOT NULL AND api_surface.apis_table_id <> uuid_nil() THEN
         SELECT apis_s.schema_name, apis_t.name,
                api_schemas_s.schema_name, api_schemas_t.name,
-               api_modules_s.schema_name, api_modules_t.name,
                api_settings_s.schema_name, api_settings_t.name,
                cors_settings_s.schema_name, cors_settings_t.name
         INTO apis_schema, apis_table,
              api_schemas_schema, api_schemas_table,
-             api_modules_schema, api_modules_table,
              api_settings_schema, api_settings_table,
              cors_settings_schema, cors_settings_table
         FROM metaschema_public.table apis_t
         JOIN metaschema_public.schema apis_s ON apis_s.id = apis_t.schema_id
         JOIN metaschema_public.table api_schemas_t ON api_schemas_t.id = api_surface.api_schemas_table_id
         JOIN metaschema_public.schema api_schemas_s ON api_schemas_s.id = api_schemas_t.schema_id
-        JOIN metaschema_public.table api_modules_t ON api_modules_t.id = api_surface.api_modules_table_id
-        JOIN metaschema_public.schema api_modules_s ON api_modules_s.id = api_modules_t.schema_id
         JOIN metaschema_public.table api_settings_t ON api_settings_t.id = api_surface.api_settings_table_id
         JOIN metaschema_public.schema api_settings_s ON api_settings_s.id = api_settings_t.schema_id
         JOIN metaschema_public.table cors_settings_t ON cors_settings_t.id = api_surface.cors_settings_table_id

@@ -1,6 +1,6 @@
 jest.setTimeout(30000);
 
-import { getConnections, PgTestClient } from 'pgsql-test';
+import { getConnections, PgTestClient } from 'constructive-test';
 import { ObjectTreeHelper, createObjectTreeHelper, VDOMNode } from '../../test-utils';
 
 /**

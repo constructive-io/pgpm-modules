@@ -27,14 +27,12 @@ CREATE TABLE metaschema_modules_public.api_surface_module (
     -- Generated table IDs (populated by the generator)
     apis_table_id uuid NOT NULL DEFAULT uuid_nil(),
     api_schemas_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    api_modules_table_id uuid NOT NULL DEFAULT uuid_nil(),
     api_settings_table_id uuid NOT NULL DEFAULT uuid_nil(),
     cors_settings_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- Table names (input to the generator)
     apis_table_name text NOT NULL DEFAULT 'apis',
     api_schemas_table_name text NOT NULL DEFAULT 'api_schemas',
-    api_modules_table_name text NOT NULL DEFAULT 'api_modules',
     api_settings_table_name text NOT NULL DEFAULT 'api_settings',
     cors_settings_table_name text NOT NULL DEFAULT 'cors_settings',
 
@@ -78,10 +76,6 @@ CREATE TABLE metaschema_modules_public.api_surface_module (
         ON DELETE CASCADE,
     CONSTRAINT api_module_api_schemas_table_fkey
         FOREIGN KEY (api_schemas_table_id)
-        REFERENCES metaschema_public.table (id)
-        ON DELETE CASCADE,
-    CONSTRAINT api_module_api_modules_table_fkey
-        FOREIGN KEY (api_modules_table_id)
         REFERENCES metaschema_public.table (id)
         ON DELETE CASCADE,
     CONSTRAINT api_module_api_settings_table_fkey

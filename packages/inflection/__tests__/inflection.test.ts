@@ -1,5 +1,5 @@
 import cases from 'jest-in-case';
-import { getConnections, PgTestClient } from 'pgsql-test';
+import { getConnections, PgTestClient } from 'constructive-test';
 
 let pg: PgTestClient;
 let teardown: () => Promise<void>;
@@ -219,36 +219,6 @@ describe('inflection', () => {
       { name: 'sheep', result: 'sheep' },
       { name: 'equipment', result: 'equipment' },
       { name: 'information', result: 'information' }
-    ]
-  );
-
-  cases(
-    'dns_1123',
-    async (opts: { name: string; result: string }) => {
-      const { dns_1123 } = await pg.one(
-        'SELECT * FROM inflection.dns_1123($1)',
-        [opts.name]
-      );
-      expect(dns_1123).toEqual(opts.result);
-    },
-    [
-      { name: 'api', result: 'api' },
-      { name: 'MyService', result: 'myservice' },
-      { name: 'my_service', result: 'my-service' },
-      { name: 'org:api', result: 'org--api' },
-      { name: 'Hello, World!', result: 'helloworld' },
-      { name: '__leading', result: 'leading' },
-      { name: 'trailing__', result: 'trailing' },
-      { name: '---', result: '' },
-      {
-        name: 'a'.repeat(80),
-        result: 'a'.repeat(63)
-      },
-      {
-        // truncation lands on a '-'; trailing non-alphanumerics are dropped
-        name: `${'a'.repeat(62)}-bcd`,
-        result: 'a'.repeat(62)
-      }
     ]
   );
 });

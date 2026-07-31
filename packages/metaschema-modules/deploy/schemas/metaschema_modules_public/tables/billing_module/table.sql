@@ -50,6 +50,12 @@ CREATE TABLE metaschema_modules_public.billing_module (
 
   prefix text NULL,
 
+  -- Default meter catalog: array of rows copied into the generated
+  -- meter_defaults table as data fixtures at provision time. Each element:
+  -- {slug, display_name, meter_type, default_plan_limit, unit, category_meter, is_active}.
+  -- NULL seeds nothing (clean catalog).
+  default_meter_catalog jsonb DEFAULT NULL,
+
   -- Default permissions: permission names auto-granted to new members.
   -- NULL uses the module's built-in defaults; explicit array overrides them.
   default_permissions text[] DEFAULT NULL,

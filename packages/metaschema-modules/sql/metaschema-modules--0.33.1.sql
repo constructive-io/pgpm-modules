@@ -2293,6 +2293,7 @@ CREATE TABLE metaschema_modules_public.billing_module (
   sweep_expired_subscriptions_function text NOT NULL DEFAULT '',
   rollup_usage_summary_function text NOT NULL DEFAULT '',
   prefix text NULL,
+  default_meter_catalog jsonb DEFAULT NULL,
   default_permissions text[] DEFAULT NULL,
   api_name text DEFAULT 'usage',
   private_api_name text DEFAULT NULL,
@@ -4061,12 +4062,10 @@ CREATE TABLE metaschema_modules_public.api_surface_module (
   catalog_module_id uuid,
   apis_table_id uuid NOT NULL DEFAULT uuid_nil(),
   api_schemas_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  api_modules_table_id uuid NOT NULL DEFAULT uuid_nil(),
   api_settings_table_id uuid NOT NULL DEFAULT uuid_nil(),
   cors_settings_table_id uuid NOT NULL DEFAULT uuid_nil(),
   apis_table_name text NOT NULL DEFAULT 'apis',
   api_schemas_table_name text NOT NULL DEFAULT 'api_schemas',
-  api_modules_table_name text NOT NULL DEFAULT 'api_modules',
   api_settings_table_name text NOT NULL DEFAULT 'api_settings',
   cors_settings_table_name text NOT NULL DEFAULT 'cors_settings',
   api_name text,
@@ -4095,10 +4094,6 @@ CREATE TABLE metaschema_modules_public.api_surface_module (
     ON DELETE CASCADE,
   CONSTRAINT api_module_api_schemas_table_fkey
     FOREIGN KEY(api_schemas_table_id)
-    REFERENCES metaschema_public.table (id)
-    ON DELETE CASCADE,
-  CONSTRAINT api_module_api_modules_table_fkey
-    FOREIGN KEY(api_modules_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
   CONSTRAINT api_module_api_settings_table_fkey

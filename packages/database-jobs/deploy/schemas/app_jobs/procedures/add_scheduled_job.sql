@@ -16,7 +16,7 @@ CREATE FUNCTION app_jobs.add_scheduled_job(
   max_attempts integer DEFAULT 25,
   priority integer DEFAULT 0,
   entity_id uuid DEFAULT NULL,
-  db_id uuid DEFAULT NULL
+  db_id uuid DEFAULT jwt_private.current_database_id()
 )
   RETURNS app_jobs.scheduled_jobs
   AS $$
@@ -25,9 +25,13 @@ DECLARE
   v_database_id uuid;
   v_actor_id uuid;
 BEGIN
-  -- Callers that run outside a JWT context (e.g. provisioning triggers) pass
-  -- db_id explicitly; everyone else keeps the JWT-derived default.
-  v_database_id := coalesce(db_id, jwt_private.current_database_id());
+  -- db_id defaults to the session's database claim; only callers that act on
+  -- behalf of a different database (e.g. provisioning triggers, platform-owned
+  -- births) pass it explicitly. Every scheduled job is owned by exactly one
+  -- database — a claim-less session with no explicit db_id fails the
+  -- scheduled_jobs.database_id NOT NULL constraint rather than producing an
+  -- unattributable job.
+  v_database_id := db_id;
   v_actor_id := jwt_public.current_user_id();
 
   IF job_key IS NOT NULL THEN

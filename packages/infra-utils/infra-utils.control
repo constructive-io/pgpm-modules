@@ -1,0 +1,7 @@
+# infra-utils extension
+comment = 'Typed parameter interface for infrastructure resource bundles'
+default_version = '0.0.1'
+module_pathname = '$libdir/infra-utils'
+requires = 'plpgsql,pgpm-verify,errors,db-utils'
+relocatable = false
+superuser = false

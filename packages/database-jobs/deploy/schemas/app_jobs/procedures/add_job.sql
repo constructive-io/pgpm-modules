@@ -19,7 +19,8 @@ CREATE FUNCTION app_jobs.add_job (
   organization_id uuid DEFAULT NULL,
   entity_type text DEFAULT NULL,
   function_definition_id uuid DEFAULT NULL,
-  definition_scope text DEFAULT NULL
+  definition_scope text DEFAULT NULL,
+  db_id uuid DEFAULT jwt_private.current_database_id()
 )
   RETURNS app_jobs.jobs
   AS $$
@@ -29,8 +30,12 @@ DECLARE
   v_actor_id uuid;
   v_principal_id uuid;
 BEGIN
-  -- Read context from JWT claims
-  v_database_id := jwt_private.current_database_id();
+  -- db_id defaults to the session's database claim; only callers that act on
+  -- behalf of a different database (e.g. platform-owned births) pass it
+  -- explicitly. Every job is owned by exactly one database — a claim-less
+  -- session with no explicit db_id fails the jobs.database_id NOT NULL
+  -- constraint rather than producing an unattributable job.
+  v_database_id := db_id;
   v_actor_id := jwt_public.current_user_id();
 
   v_principal_id := jwt_public.current_principal_id();
