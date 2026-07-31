@@ -4,7 +4,7 @@
 BEGIN;
 CREATE TABLE app_jobs.scheduled_jobs (
   id bigserial PRIMARY KEY,
-  database_id uuid,
+  database_id uuid NOT NULL,
   actor_id uuid,
   entity_id uuid,
   queue_name text DEFAULT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE app_jobs.scheduled_jobs (
 
 COMMENT ON TABLE app_jobs.scheduled_jobs IS 'Recurring/cron-style job definitions: each row spawns jobs on a schedule, optionally scoped to a database';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.id IS 'Auto-incrementing scheduled job identifier';
-COMMENT ON COLUMN app_jobs.scheduled_jobs.database_id IS 'Database this scheduled job belongs to (nullable for system-level schedules without tenant context)';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.database_id IS 'Database this scheduled job belongs to; every scheduled job is owned by exactly one database';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.actor_id IS 'User who created this scheduled job, read from JWT claims at creation time';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.entity_id IS 'Entity (org/team) this scheduled job is scoped to for billing; NULL means platform-level (resolved via database_id → owner_id)';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.queue_name IS 'Name of the queue spawned jobs are placed into';

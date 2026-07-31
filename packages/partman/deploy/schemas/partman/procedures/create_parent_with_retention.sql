@@ -1,7 +1,5 @@
 -- Deploy schemas/partman/procedures/create_parent_with_retention to pg
 
--- requires: extensions/pg_partman
-
 BEGIN;
 
 CREATE FUNCTION partman.create_parent_with_retention(

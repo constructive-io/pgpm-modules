@@ -7,7 +7,7 @@ BEGIN;
 -- Typed catalog module configuration: one row per database installs the typed
 -- catalog tables (catalog_public.domains / apis / sites / namespaces /
 -- functions / resources / resource_definitions / resource_installations /
--- apps). The catalog is
+-- apps / buckets). The catalog is
 -- a system projection surface holding ALL scopes of each type; scoped source
 -- tables register into it via catalog_register. The stable schema-qualified
 -- table names are load-bearing deployment contracts.
@@ -31,6 +31,7 @@ CREATE TABLE metaschema_modules_public.catalog_module (
     resource_definitions_table_id uuid NOT NULL DEFAULT uuid_nil(),
     resource_installations_table_id uuid NOT NULL DEFAULT uuid_nil(),
     apps_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    buckets_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- Table names (inputs to the generator; stable load-bearing contracts)
     domains_table_name text NOT NULL DEFAULT 'domains',
@@ -42,6 +43,7 @@ CREATE TABLE metaschema_modules_public.catalog_module (
     resource_definitions_table_name text NOT NULL DEFAULT 'resource_definitions',
     resource_installations_table_name text NOT NULL DEFAULT 'resource_installations',
     apps_table_name text NOT NULL DEFAULT 'apps',
+    buckets_table_name text NOT NULL DEFAULT 'buckets',
 
     -- API routing (get-or-create: if set, schema is added to this API)
     api_name text,
@@ -105,6 +107,10 @@ CREATE TABLE metaschema_modules_public.catalog_module (
         ON DELETE CASCADE,
     CONSTRAINT catalog_module_apps_table_fkey
         FOREIGN KEY (apps_table_id)
+        REFERENCES metaschema_public.table (id)
+        ON DELETE CASCADE,
+    CONSTRAINT catalog_module_buckets_table_fkey
+        FOREIGN KEY (buckets_table_id)
         REFERENCES metaschema_public.table (id)
         ON DELETE CASCADE,
     CONSTRAINT catalog_module_entity_table_fkey

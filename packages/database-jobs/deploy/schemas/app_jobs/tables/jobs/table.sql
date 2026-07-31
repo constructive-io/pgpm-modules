@@ -4,7 +4,7 @@
 BEGIN;
 CREATE TABLE app_jobs.jobs (
   id bigserial PRIMARY KEY,
-  database_id uuid,
+  database_id uuid NOT NULL,
   actor_id uuid,
   principal_id uuid,
   entity_id uuid,
@@ -39,7 +39,7 @@ CREATE TABLE app_jobs.jobs (
 
 COMMENT ON TABLE app_jobs.jobs IS 'Background job queue: each row is a pending or in-progress task, optionally scoped to a database';
 COMMENT ON COLUMN app_jobs.jobs.id IS 'Auto-incrementing job identifier';
-COMMENT ON COLUMN app_jobs.jobs.database_id IS 'Database this job belongs to (nullable for system-level jobs without tenant context)';
+COMMENT ON COLUMN app_jobs.jobs.database_id IS 'Database this job belongs to; every job is owned by exactly one database';
 COMMENT ON COLUMN app_jobs.jobs.actor_id IS 'User who triggered this job, read from JWT claims at enqueue time';
 COMMENT ON COLUMN app_jobs.jobs.principal_id IS 'Principal that triggered this job; equals actor_id for human-triggered jobs, differs when an agent/API-key acts on behalf of a user';
 COMMENT ON COLUMN app_jobs.jobs.entity_id IS 'Entity (org/team) this job is scoped to for billing; NULL means platform-level (resolved via database_id → owner_id)';

@@ -5,10 +5,9 @@
 BEGIN;
 
 -- WebAuthn / Passkey auth module config.
--- Sibling of crypto_auth_module. Registers a `webauthn_challenge` entry in
--- the scoped api_modules table for every authenticated API in the database,
--- so the Node relying-party (using @simplewebauthn/server) knows where to
--- read and write passkey challenges + where the credentials table lives.
+-- Sibling of crypto_auth_module. Publishes typed webauthn_settings so the
+-- Node relying-party (using @simplewebauthn/server) knows where to read and
+-- write passkey challenges + where the credentials table lives.
 --
 -- RP config (rp_id, rp_name, origin_allowlist, attestation_type,
 -- require_user_verification, resident_key) lives on this row (not on

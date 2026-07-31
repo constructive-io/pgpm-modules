@@ -1,0 +1,11 @@
+-- Revert schemas/partman/default_privileges from pg
+
+BEGIN;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA partman
+  REVOKE SELECT, INSERT, UPDATE, DELETE ON TABLES FROM authenticated;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA partman
+  REVOKE EXECUTE ON FUNCTIONS FROM authenticated;
+
+COMMIT;

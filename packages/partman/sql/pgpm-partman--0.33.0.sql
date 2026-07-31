@@ -1,17 +1,4 @@
 \echo Use "CREATE EXTENSION pgpm-partman" to load this file. \quit
-DO $EOFCODE$
-BEGIN
-  EXECUTE 'CREATE SCHEMA IF NOT EXISTS partman';
-  EXECUTE 'CREATE EXTENSION pg_partman SCHEMA partman';
-END;
-$EOFCODE$;
-
-GRANT USAGE, CREATE ON SCHEMA partman TO authenticated;
-
-GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA partman TO authenticated;
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA partman TO authenticated;
-
 ALTER DEFAULT PRIVILEGES IN SCHEMA partman
   GRANT EXECUTE ON FUNCTIONS TO authenticated;
 

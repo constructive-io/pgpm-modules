@@ -32,8 +32,10 @@ BEGIN;
 --     stay allowed (require_definition => false) — email:*/sms:*/etc. resolve to
 --     nothing and enqueue with a NULL pair, routed by task_identifier alone.
 --
--- The execution database is read from JWT (exactly like add_job), so the row's
--- database_id and the resolution database are always the same value.
+-- The execution database is the session's database claim by default (exactly
+-- like add_job's db_id); only callers acting on behalf of a different database
+-- pass db_id explicitly. It is forwarded to add_job so the row's database_id
+-- and the resolution database are always the same value.
 --
 -- RESOLUTION coordinate vs BILLING entity (constructive-planning #1183):
 --   * resolution_scope / resolution_key start the scope-chain walk (where a
@@ -59,7 +61,8 @@ CREATE FUNCTION function_resolution.enqueue(
     entity_type text DEFAULT NULL,
     should_resolve boolean DEFAULT true,
     resolution_scope text DEFAULT NULL,
-    resolution_key uuid DEFAULT NULL
+    resolution_key uuid DEFAULT NULL,
+    db_id uuid DEFAULT jwt_private.current_database_id()
 ) RETURNS app_jobs.jobs AS $$
 DECLARE
     v_database_id uuid;
@@ -73,7 +76,7 @@ DECLARE
     v_priority integer;
     v_max_attempts integer;
 BEGIN
-    v_database_id := jwt_private.current_database_id();
+    v_database_id := db_id;
 
     -- Hard contract: the execution scope is a provisioning-time constant at the
     -- call site, never silently defaulted (constructive-planning #1183).
@@ -92,9 +95,11 @@ BEGIN
     v_def_scope := definition_scope;
 
     -- Resolve the winning definition when the caller did not already stamp one.
+    -- resolve() also returns the definition's home database, so the resolving
+    -- lane needs no second frame walk below.
     IF v_fn_id IS NULL AND should_resolve THEN
-        SELECT r.function_definition_id, r.resolved_scope
-        INTO v_fn_id, v_def_scope
+        SELECT r.function_definition_id, r.resolved_scope, r.owner_database_id
+        INTO v_fn_id, v_def_scope, v_defs_db
         FROM function_resolution.resolve(
             v_database_id, v_resolution_scope, v_resolution_key, task_identifier, false
         ) r;
@@ -103,13 +108,16 @@ BEGIN
     -- Definition routing: read queue_name/priority/max_attempts from the exact
     -- winning definition (no scope-chain re-walk). The definition's home database
     -- is the frame's lookup_database_id for its scope (the platform database for a
-    -- platform-scope definition, the execution database otherwise).
+    -- platform-scope definition, the execution database otherwise); only the
+    -- caller-supplied-pair lane still derives it from the declared scope's frame.
     IF v_fn_id IS NOT NULL AND v_def_scope IS NOT NULL THEN
-        SELECT f.lookup_database_id
-        INTO v_defs_db
-        FROM app_scope.frames(v_database_id, v_resolution_scope, v_resolution_key) f
-        WHERE f.scope = v_def_scope
-        LIMIT 1;
+        IF v_defs_db IS NULL THEN
+            SELECT f.lookup_database_id
+            INTO v_defs_db
+            FROM app_scope.frames(v_database_id, v_resolution_scope, v_resolution_key) f
+            WHERE f.scope = v_def_scope
+            LIMIT 1;
+        END IF;
 
         IF v_defs_db IS NULL THEN
             v_defs_db := v_database_id;
@@ -134,12 +142,13 @@ BEGIN
         organization_id := organization_id,
         entity_type := entity_type,
         function_definition_id := v_fn_id,
-        definition_scope := v_def_scope
+        definition_scope := v_def_scope,
+        db_id := v_database_id
     );
 END;
 $$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 
-COMMENT ON FUNCTION function_resolution.enqueue(text, json, text, uuid, uuid, text, text, text, timestamptz, integer, integer, uuid, text, boolean, text, uuid) IS
+COMMENT ON FUNCTION function_resolution.enqueue(text, json, text, uuid, uuid, text, text, text, timestamptz, integer, integer, uuid, text, boolean, text, uuid, uuid) IS
 'Resolver-aware job enqueue: resolves (or trusts a supplied) function definition for the execution (database, scope, entity, task_identifier), stamps the (function_definition_id, definition_scope) pair and the definition''s queue routing, then delegates the insert to app_jobs.add_job. The single enqueue path for function jobs; definition-less tasks enqueue with a NULL pair. Portable: built only on app_scope + the metaschema catalog + app_jobs, no AST/deparser runtime.';
 
 COMMIT;

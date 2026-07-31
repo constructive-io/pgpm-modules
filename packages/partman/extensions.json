@@ -1,0 +1,13 @@
+{
+  "provides": {
+    "pg_partman": {
+      "schema": "partman",
+      "createSchema": true,
+      "grants": [
+        { "privileges": "USAGE, CREATE", "on": "schema", "to": ["authenticated"] },
+        { "privileges": "EXECUTE", "on": "all-functions", "to": ["authenticated"] },
+        { "privileges": "SELECT, INSERT, UPDATE, DELETE", "on": "all-tables", "to": ["authenticated"] }
+      ]
+    }
+  }
+}

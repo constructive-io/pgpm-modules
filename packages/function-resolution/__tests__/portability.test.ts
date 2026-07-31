@@ -59,7 +59,7 @@ describe('function-resolution portability', () => {
       `SELECT n.nspname, p.proname
        FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
        WHERE (n.nspname = 'app_scope' AND p.proname IN ('frames','platform_database_id','membership_parent','dyn_lookup_uuid'))
-          OR (n.nspname = 'function_resolution' AND p.proname IN ('resolve','probe','routing','definitions_location','resolve_invocation','enqueue'))
+          OR (n.nspname = 'function_resolution' AND p.proname IN ('resolve','routing','definitions_location','catalog_location','resolve_invocation','enqueue'))
        ORDER BY n.nspname, p.proname`
     );
     const names = rows.map((r: any) => `${r.nspname}.${r.proname}`);
@@ -68,9 +68,9 @@ describe('function-resolution portability', () => {
       'app_scope.frames',
       'app_scope.membership_parent',
       'app_scope.platform_database_id',
+      'function_resolution.catalog_location',
       'function_resolution.definitions_location',
       'function_resolution.enqueue',
-      'function_resolution.probe',
       'function_resolution.resolve',
       'function_resolution.resolve_invocation',
       'function_resolution.routing',
