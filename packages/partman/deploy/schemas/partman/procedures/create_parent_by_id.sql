@@ -1,6 +1,5 @@
 -- Deploy schemas/partman/procedures/create_parent_by_id to pg
 
--- requires: extensions/pg_partman
 -- requires: schemas/partman/procedures/create_parent_with_retention
 
 BEGIN;

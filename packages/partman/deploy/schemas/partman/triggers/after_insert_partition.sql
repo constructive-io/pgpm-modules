@@ -1,6 +1,5 @@
 -- Deploy schemas/partman/triggers/after_insert_partition to pg
 
--- requires: extensions/pg_partman
 -- requires: schemas/partman/procedures/create_parent_with_retention
 -- requires: metaschema-schema:schemas/metaschema_public/tables/partition/table
 -- requires: metaschema-schema:schemas/metaschema_public/tables/table/table

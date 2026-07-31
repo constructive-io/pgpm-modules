@@ -184,11 +184,13 @@ describe('app_scope scope frames (membership climb + platform fall-through)', ()
       { scope: 'department', lookup_database_id: TENANT_DB, key_value: DEPT_ID },
       { scope: 'org', lookup_database_id: TENANT_DB, key_value: ORG_ID },
       { scope: 'app', lookup_database_id: TENANT_DB, key_value: null },
-      // platform database full chain, then the global platform terminal
+      // platform database full chain, then the global platform terminal.
+      // The fall-through database frame is re-keyed by the EXECUTION database:
+      // rows the tenant sees on this shared plane are keyed by the tenant's id.
       {
         scope: 'database',
         lookup_database_id: PLATFORM_DB,
-        key_value: PLATFORM_DB,
+        key_value: TENANT_DB,
       },
       { scope: 'org', lookup_database_id: PLATFORM_DB, key_value: PLATFORM_ORG_ID },
       { scope: 'app', lookup_database_id: PLATFORM_DB, key_value: null },
@@ -206,10 +208,11 @@ describe('app_scope scope frames (membership climb + platform fall-through)', ()
       { scope: 'database', lookup_database_id: TENANT_DB, key_value: TENANT_DB },
       { scope: 'org', lookup_database_id: TENANT_DB, key_value: ORG_ID },
       { scope: 'app', lookup_database_id: TENANT_DB, key_value: null },
+      // fall-through database frame re-keyed by the execution (tenant) database
       {
         scope: 'database',
         lookup_database_id: PLATFORM_DB,
-        key_value: PLATFORM_DB,
+        key_value: TENANT_DB,
       },
       { scope: 'org', lookup_database_id: PLATFORM_DB, key_value: PLATFORM_ORG_ID },
       { scope: 'app', lookup_database_id: PLATFORM_DB, key_value: null },

@@ -26,6 +26,7 @@ CREATE TABLE metaschema_public.table (
   
   timestamps boolean NOT NULL DEFAULT FALSE,
   peoplestamps boolean NOT NULL DEFAULT FALSE,
+  principalstamps boolean NOT NULL DEFAULT FALSE,
 
   plural_name text,
   singular_name text,
@@ -53,7 +54,7 @@ CREATE TABLE metaschema_public.table (
 );
 
 COMMENT ON COLUMN metaschema_public.table.step_up IS
-  'Declarative step-up auth guard: jsonb object mapping DML verbs (INSERT, UPDATE, DELETE) to a step-up spec. Values: true (default password_or_mfa), a type string (password / mfa / password_or_mfa), or an object {type, min_age, min_age_lookup, conditions} where min_age is an interval string (e.g. 6 hours) gating the guard to rows older than that age (UPDATE/DELETE only), min_age_lookup resolves per-row windows from a lookup table, and conditions is a declarative WHEN-clause tree compiled by build_condition_expr.';
+  'Declarative step-up auth guard: jsonb object mapping DML verbs (INSERT, UPDATE, DELETE) to a step-up spec. Values: true (default fresh_auth), a type string (password / mfa / fresh_auth; password_or_mfa is the legacy spelling), or an object {type, min_age, min_age_lookup, conditions} where min_age is an interval string (e.g. 6 hours) gating the guard to rows older than that age (UPDATE/DELETE only), min_age_lookup resolves per-row windows from a lookup table, and conditions is a declarative WHEN-clause tree compiled by build_condition_expr.';
 
 ALTER TABLE metaschema_public.table ADD COLUMN
     inherits_id uuid NULL REFERENCES metaschema_public.table(id);

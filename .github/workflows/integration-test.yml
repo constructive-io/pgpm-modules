@@ -15,7 +15,7 @@ jobs:
       PGPORT: 5432
       PGUSER: postgres
       PGPASSWORD: password
-      PGPM_VERSION: 4.33.0
+      PGPM_VERSION: 5.18.0
 
     services:
       pg_db:

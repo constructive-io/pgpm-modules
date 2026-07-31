@@ -187,7 +187,7 @@ BEGIN
                 RETURN false;
             END IF;
         ELSIF jsonb_typeof(v_value) = 'string' THEN
-            IF v_value #>> '{}' NOT IN ('password', 'mfa', 'password_or_mfa') THEN
+            IF v_value #>> '{}' NOT IN ('password', 'mfa', 'fresh_auth', 'password_or_mfa') THEN
                 RETURN false;
             END IF;
         ELSIF jsonb_typeof(v_value) = 'object' THEN
@@ -204,7 +204,7 @@ BEGIN
             v_type := v_value -> 'type';
             IF v_type IS NOT NULL THEN
                 IF jsonb_typeof(v_type) != 'string'
-                   OR v_type #>> '{}' NOT IN ('password', 'mfa', 'password_or_mfa') THEN
+                   OR v_type #>> '{}' NOT IN ('password', 'mfa', 'fresh_auth', 'password_or_mfa') THEN
                     RETURN false;
                 END IF;
             END IF;
@@ -342,6 +342,7 @@ CREATE TABLE metaschema_public.table (
   use_rls boolean NOT NULL DEFAULT false,
   timestamps boolean NOT NULL DEFAULT false,
   peoplestamps boolean NOT NULL DEFAULT false,
+  principalstamps boolean NOT NULL DEFAULT false,
   plural_name text,
   singular_name text,
   tags citext[] NOT NULL DEFAULT '{}',
@@ -368,7 +369,7 @@ CREATE TABLE metaschema_public.table (
   )
 );
 
-COMMENT ON COLUMN metaschema_public."table".step_up IS 'Declarative step-up auth guard: jsonb object mapping DML verbs (INSERT, UPDATE, DELETE) to a step-up spec. Values: true (default password_or_mfa), a type string (password / mfa / password_or_mfa), or an object {type, min_age, min_age_lookup, conditions} where min_age is an interval string (e.g. 6 hours) gating the guard to rows older than that age (UPDATE/DELETE only), min_age_lookup resolves per-row windows from a lookup table, and conditions is a declarative WHEN-clause tree compiled by build_condition_expr.';
+COMMENT ON COLUMN metaschema_public."table".step_up IS 'Declarative step-up auth guard: jsonb object mapping DML verbs (INSERT, UPDATE, DELETE) to a step-up spec. Values: true (default fresh_auth), a type string (password / mfa / fresh_auth; password_or_mfa is the legacy spelling), or an object {type, min_age, min_age_lookup, conditions} where min_age is an interval string (e.g. 6 hours) gating the guard to rows older than that age (UPDATE/DELETE only), min_age_lookup resolves per-row windows from a lookup table, and conditions is a declarative WHEN-clause tree compiled by build_condition_expr.';
 
 ALTER TABLE metaschema_public.table 
   ADD COLUMN inherits_id uuid
@@ -586,6 +587,8 @@ CREATE TABLE metaschema_public.policy (
   data jsonb,
   with_check jsonb,
   smart_tags jsonb,
+  derived_from_table_id uuid,
+  derived_from_policy_id uuid,
   category metaschema_public.object_category NOT NULL DEFAULT 'app',
   tags citext[] NOT NULL DEFAULT '{}',
   created_at timestamptz DEFAULT now(),
@@ -598,6 +601,16 @@ CREATE TABLE metaschema_public.policy (
     FOREIGN KEY(table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
+  CONSTRAINT derived_from_table_fkey
+    FOREIGN KEY(derived_from_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT derived_from_policy_fkey
+    FOREIGN KEY(derived_from_policy_id)
+    REFERENCES metaschema_public.policy (id)
+    ON DELETE CASCADE,
+  CONSTRAINT derived_from_both_or_neither 
+    CHECK ((derived_from_table_id IS NULL) = (derived_from_policy_id IS NULL)),
   CONSTRAINT policy_with_check_shape 
     CHECK (
     with_check IS NULL
@@ -613,6 +626,10 @@ COMMENT ON COLUMN metaschema_public.policy.with_check IS 'Optional WITH CHECK ov
 CREATE INDEX policy_table_id_idx ON metaschema_public.policy (table_id);
 
 CREATE INDEX policy_database_id_idx ON metaschema_public.policy (database_id);
+
+CREATE INDEX policy_derived_from_table_id_idx ON metaschema_public.policy (derived_from_table_id) WHERE derived_from_table_id IS NOT NULL;
+
+CREATE INDEX policy_derived_from_policy_id_idx ON metaschema_public.policy (derived_from_policy_id) WHERE derived_from_policy_id IS NOT NULL;
 
 CREATE TABLE metaschema_public.primary_key_constraint (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -964,7 +981,7 @@ CREATE TABLE metaschema_public.embedding_chunks (
   metadata_fields jsonb,
   search_indexes jsonb,
   enqueue_chunking_job boolean NOT NULL DEFAULT true,
-  chunking_task_name text NOT NULL DEFAULT 'generate_chunks',
+  chunking_task_name text NOT NULL DEFAULT 'embedding:generate_chunks',
   embedding_model text,
   embedding_provider text,
   parent_fk_field_id uuid,
@@ -1154,6 +1171,35 @@ CREATE INDEX composite_type_schema_id_idx ON metaschema_public.composite_type (s
 
 CREATE INDEX composite_type_database_id_idx ON metaschema_public.composite_type (database_id);
 
+CREATE TABLE metaschema_public.domain_type (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  schema_id uuid NOT NULL,
+  name text NOT NULL,
+  label text,
+  description text,
+  base_type jsonb NOT NULL,
+  not_null boolean NOT NULL DEFAULT false,
+  check_expr jsonb,
+  default_expr jsonb,
+  smart_tags jsonb,
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
+  tags citext[] NOT NULL DEFAULT '{}',
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  UNIQUE (schema_id, name)
+);
+
+CREATE INDEX domain_type_schema_id_idx ON metaschema_public.domain_type (schema_id);
+
+CREATE INDEX domain_type_database_id_idx ON metaschema_public.domain_type (database_id);
+
 CREATE FUNCTION metaschema_public.tg_enforce_api_exposure_ratchet() RETURNS trigger AS $EOFCODE$
 BEGIN
   IF OLD.api_exposure = 'never_expose' THEN
@@ -1203,3 +1249,39 @@ CREATE TABLE metaschema_public.exclusion_constraint (
 CREATE INDEX exclusion_constraint_table_id_idx ON metaschema_public.exclusion_constraint (table_id);
 
 CREATE INDEX exclusion_constraint_database_id_idx ON metaschema_public.exclusion_constraint (database_id);
+
+CREATE TABLE metaschema_public.derives (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_id uuid NOT NULL,
+  source_table_id uuid NOT NULL,
+  kind text NOT NULL,
+  include_mutations boolean NOT NULL DEFAULT false,
+  policy_prefix text NOT NULL DEFAULT 'derived',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT table_fkey
+    FOREIGN KEY(table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT source_table_fkey
+    FOREIGN KEY(source_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT valid_kind 
+    CHECK (length(kind) > 0),
+  CONSTRAINT no_self_derivation 
+    CHECK (table_id <> source_table_id),
+  CONSTRAINT derives_table_source_uniq 
+    UNIQUE (table_id, source_table_id)
+);
+
+CREATE INDEX derives_table_id_idx ON metaschema_public.derives (table_id);
+
+CREATE INDEX derives_source_table_id_idx ON metaschema_public.derives (source_table_id);
+
+CREATE INDEX derives_database_id_idx ON metaschema_public.derives (database_id);

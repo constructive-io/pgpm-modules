@@ -21,6 +21,11 @@ CREATE TABLE metaschema_modules_public.storage_module (
     buckets_table_id uuid NOT NULL DEFAULT uuid_nil(),
     files_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
+    -- Typed catalog the buckets register into (resolved by the insert trigger
+    -- from the same-database catalog_module when one exists; NULL when the
+    -- database has no catalog — buckets are then not routable targets).
+    catalog_module_id uuid,
+
     -- Table names (input to the generator)
     buckets_table_name text NOT NULL DEFAULT 'buckets',
     files_table_name text NOT NULL DEFAULT 'files',

@@ -2,6 +2,6 @@
 comment = 'pg_partman wrapper - installs pg_partman into partman schema'
 default_version = '0.33.0'
 module_pathname = '$libdir/pgpm-partman'
-requires = 'plpgsql,metaschema-schema'
+requires = 'plpgsql,pg_partman,metaschema-schema'
 relocatable = false
 superuser = false

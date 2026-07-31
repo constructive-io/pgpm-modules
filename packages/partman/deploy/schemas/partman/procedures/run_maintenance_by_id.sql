@@ -1,7 +1,5 @@
 -- Deploy schemas/partman/procedures/run_maintenance_by_id to pg
 
--- requires: extensions/pg_partman
-
 BEGIN;
 
 CREATE FUNCTION partman.run_maintenance_by_id(

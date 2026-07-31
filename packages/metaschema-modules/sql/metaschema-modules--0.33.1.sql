@@ -1512,6 +1512,7 @@ CREATE TABLE metaschema_modules_public.storage_module (
   private_schema_name text,
   buckets_table_id uuid NOT NULL DEFAULT uuid_nil(),
   files_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  catalog_module_id uuid,
   buckets_table_name text NOT NULL DEFAULT 'buckets',
   files_table_name text NOT NULL DEFAULT 'files',
   scope text NOT NULL,
@@ -2293,6 +2294,7 @@ CREATE TABLE metaschema_modules_public.billing_module (
   sweep_expired_subscriptions_function text NOT NULL DEFAULT '',
   rollup_usage_summary_function text NOT NULL DEFAULT '',
   prefix text NULL,
+  default_meter_catalog jsonb DEFAULT NULL,
   default_permissions text[] DEFAULT NULL,
   api_name text DEFAULT 'usage',
   private_api_name text DEFAULT NULL,
@@ -3917,6 +3919,7 @@ CREATE TABLE metaschema_modules_public.catalog_module (
   resource_definitions_table_id uuid NOT NULL DEFAULT uuid_nil(),
   resource_installations_table_id uuid NOT NULL DEFAULT uuid_nil(),
   apps_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  buckets_table_id uuid NOT NULL DEFAULT uuid_nil(),
   domains_table_name text NOT NULL DEFAULT 'domains',
   apis_table_name text NOT NULL DEFAULT 'apis',
   sites_table_name text NOT NULL DEFAULT 'sites',
@@ -3926,6 +3929,7 @@ CREATE TABLE metaschema_modules_public.catalog_module (
   resource_definitions_table_name text NOT NULL DEFAULT 'resource_definitions',
   resource_installations_table_name text NOT NULL DEFAULT 'resource_installations',
   apps_table_name text NOT NULL DEFAULT 'apps',
+  buckets_table_name text NOT NULL DEFAULT 'buckets',
   api_name text,
   private_api_name text,
   scope text NOT NULL,
@@ -3975,6 +3979,10 @@ CREATE TABLE metaschema_modules_public.catalog_module (
     ON DELETE CASCADE,
   CONSTRAINT catalog_module_apps_table_fkey
     FOREIGN KEY(apps_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT catalog_module_buckets_table_fkey
+    FOREIGN KEY(buckets_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
   CONSTRAINT catalog_module_entity_table_fkey

@@ -1,7 +1,5 @@
 -- Deploy schemas/partman/procedures/verify_parent_by_id to pg
 
--- requires: extensions/pg_partman
-
 BEGIN;
 
 CREATE FUNCTION partman.verify_parent_by_id(

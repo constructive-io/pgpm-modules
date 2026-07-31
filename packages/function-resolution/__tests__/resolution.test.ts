@@ -117,6 +117,45 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
        VALUES ($1, 'database', 'database_id', $2, $2, $3, $3)`,
       [TENANT_DB, dbSchema.id, dbTable.id]
     );
+
+    // --- Typed functions catalog (the resolver's read path) -----------------
+    await pg.query(`CREATE SCHEMA cat_defs`);
+    await pg.query(
+      `CREATE TABLE cat_defs.functions (
+         id uuid PRIMARY KEY,
+         owner_scope text NOT NULL,
+         owner_key uuid,
+         is_visible boolean NOT NULL DEFAULT false,
+         database_id uuid NOT NULL,
+         task_identifier text NOT NULL
+       )`
+    );
+    await pg.query(
+      `INSERT INTO cat_defs.functions (id, owner_scope, owner_key, is_visible, database_id, task_identifier)
+       VALUES ($1, 'app', NULL, false, $4, 'email:send'),
+              ($2, 'database', $4, false, $4, 'report:run'),
+              ($3, 'database', NULL, false, $4, 'report:run')`,
+      [ids.appDef, ids.dbExact, ids.dbDefault, TENANT_DB]
+    );
+    const catSchema = await pg.one(
+      `INSERT INTO metaschema_public.schema (database_id, name, schema_name)
+       VALUES ($1, 'cat_defs', 'cat_defs') RETURNING id`,
+      [TENANT_DB]
+    );
+    const catTable = await pg.one(
+      `INSERT INTO metaschema_public."table" (database_id, schema_id, name)
+       VALUES ($1, $2, 'functions') RETURNING id`,
+      [TENANT_DB, catSchema.id]
+    );
+    await pg.query(
+      `INSERT INTO metaschema_modules_public.catalog_module
+         (database_id, schema_id, functions_table_id,
+          domains_table_id, apis_table_id, sites_table_id, namespaces_table_id,
+          resources_table_id, resource_definitions_table_id,
+          resource_installations_table_id, apps_table_id, buckets_table_id, scope)
+       VALUES ($1, $2, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, 'app')`,
+      [TENANT_DB, catSchema.id, catTable.id]
+    );
   });
 
   afterAll(async () => {
@@ -140,7 +179,7 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
       { scope: 'database', lookup_database_id: TENANT_DB, key_value: TENANT_DB },
       { scope: 'org', lookup_database_id: TENANT_DB, key_value: ORG_ID },
       { scope: 'app', lookup_database_id: TENANT_DB, key_value: null },
-      { scope: 'database', lookup_database_id: PLATFORM_DB, key_value: PLATFORM_DB },
+      { scope: 'database', lookup_database_id: PLATFORM_DB, key_value: TENANT_DB },
       { scope: 'org', lookup_database_id: PLATFORM_DB, key_value: PLATFORM_ORG_ID },
       { scope: 'app', lookup_database_id: PLATFORM_DB, key_value: null },
       { scope: 'platform', lookup_database_id: PLATFORM_DB, key_value: null },
@@ -155,7 +194,7 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
     );
     expect(rows).toEqual([
       { scope: 'app', lookup_database_id: TENANT_DB, key_value: null },
-      { scope: 'database', lookup_database_id: PLATFORM_DB, key_value: PLATFORM_DB },
+      { scope: 'database', lookup_database_id: PLATFORM_DB, key_value: TENANT_DB },
       { scope: 'org', lookup_database_id: PLATFORM_DB, key_value: PLATFORM_ORG_ID },
       { scope: 'app', lookup_database_id: PLATFORM_DB, key_value: null },
       { scope: 'platform', lookup_database_id: PLATFORM_DB, key_value: null },
@@ -182,29 +221,21 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
     ).rejects.toThrow(/APP_SCOPE_FRAMES_SCOPE_REQUIRED/);
   });
 
-  it('probe(): global (entity_field NULL) match', async () => {
-    const [{ probe }] = await pg.any(
-      `SELECT function_resolution.probe($1, 'app', NULL, 'email:send') AS probe`,
+  it('resolve(): falls back to the scope-default (owner_key IS NULL) row', async () => {
+    // Without the exact-key catalog row, the same frame's scope-default
+    // (owner_key IS NULL) row wins instead.
+    await pg.query(`DELETE FROM cat_defs.functions WHERE id = $1`, [ids.dbExact]);
+    const [row] = await pg.any(
+      `SELECT function_definition_id, resolved_scope
+       FROM function_resolution.resolve($1, 'database', NULL, 'report:run', true)`,
       [TENANT_DB]
     );
-    expect(probe).toBe(ids.appDef);
-  });
-
-  it('probe(): exact scope-key match wins', async () => {
-    const [{ probe }] = await pg.any(
-      `SELECT function_resolution.probe($1, 'database', $1, 'report:run') AS probe`,
-      [TENANT_DB]
+    expect(row).toEqual({ function_definition_id: ids.dbDefault, resolved_scope: 'database' });
+    await pg.query(
+      `INSERT INTO cat_defs.functions (id, owner_scope, owner_key, is_visible, database_id, task_identifier)
+       VALUES ($1, 'database', $2, false, $2, 'report:run')`,
+      [ids.dbExact, TENANT_DB]
     );
-    expect(probe).toBe(ids.dbExact);
-  });
-
-  it('probe(): falls back to scope-default (entity_field IS NULL) row', async () => {
-    // A key that has no exact row -> the database_id IS NULL default row.
-    const [{ probe }] = await pg.any(
-      `SELECT function_resolution.probe($1, 'database', $2, 'report:run') AS probe`,
-      [TENANT_DB, ORG_ID]
-    );
-    expect(probe).toBe(ids.dbDefault);
   });
 
   it('routing(): loads queue metadata from the resolved definition', async () => {
@@ -281,15 +312,16 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
 
   it('enqueue(): full portable path resolves, routes, and inserts a job', async () => {
     // enqueue reads the execution database from jwt_private.current_database_id()
-    // (the jwt.claims.database_id GUC), set here session-level on this connection.
-    await pg.query(`SELECT set_config('jwt.claims.database_id', $1, false)`, [TENANT_DB]);
+    // (the jwt.claims.database_id GUC), set transaction-locally around the call.
+    await pg.begin();
+    await pg.query(`SELECT set_config('jwt.claims.database_id', $1, true)`, [TENANT_DB]);
     const job = await pg.one(
       `SELECT * FROM function_resolution.enqueue(
          task_identifier := 'email:send',
          scope := 'app'
        )`
     );
-    await pg.query(`SELECT set_config('jwt.claims.database_id', NULL, false)`);
+    await pg.commit();
 
     expect(job.function_definition_id).toBe(ids.appDef);
     expect(job.definition_scope).toBe('app');
@@ -301,10 +333,11 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
   });
 
   it('enqueue(): NULL scope is a hard error', async () => {
-    await pg.query(`SELECT set_config('jwt.claims.database_id', $1, false)`, [TENANT_DB]);
+    await pg.begin();
+    await pg.query(`SELECT set_config('jwt.claims.database_id', $1, true)`, [TENANT_DB]);
     await expect(
       pg.one(`SELECT * FROM function_resolution.enqueue(task_identifier := 'email:send')`)
     ).rejects.toThrow(/ENQUEUE_SCOPE_REQUIRED/);
-    await pg.query(`SELECT set_config('jwt.claims.database_id', NULL, false)`);
+    await pg.query(`ROLLBACK`);
   });
 });

@@ -1,7 +1,5 @@
 -- Deploy schemas/partman/procedures/remove_parent_by_id to pg
 
--- requires: extensions/pg_partman
-
 BEGIN;
 
 CREATE FUNCTION partman.remove_parent_by_id(
