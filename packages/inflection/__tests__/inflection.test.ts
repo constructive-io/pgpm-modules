@@ -187,7 +187,7 @@ describe('inflection', () => {
       { name: 'derive', result: 'derives' },
       { name: 'mouse', result: 'mice' },
       { name: 'spouse', result: 'spouses' },
-      { name: 'iris', result: 'irises' }
+      { name: 'apis', result: 'apis' }
     ]
   );
 
@@ -259,6 +259,7 @@ describe('inflection', () => {
       { name: 'chalice', result: 'chalice' },
       // -is/-us words are already singular
       { name: 'iris', result: 'iris' },
+      { name: 'apis', result: 'api' },
       { name: 'analysis', result: 'analysis' },
       { name: 'analyses', result: 'analysis' },
       { name: 'status', result: 'status' },

@@ -56,7 +56,6 @@ INSERT INTO inflection.inflection_rules
     ('plural', '(buffal|tomat|potat)o$', E'\\1oes'),
     ('plural', '([ti])um$', E'\\1a'),
     ('plural', 'sis$', E'ses'),
-    ('plural', 'is$', E'ises'), -- iris -> irises, chassis -> chassises
     -- only the f-stem nouns take -ves; everything else takes a plain "s"
     -- (cafe -> cafes, safe -> safes, roof -> roofs) via the final '$' rule
     ('plural', 'self$', E'selves'),
@@ -106,12 +105,14 @@ INSERT INTO inflection.inflection_rules
     ('singular', '(buffal|tomat|potat)o$', NULL),
     ('singular', '([ti])um$', NULL),
     ('singular', 'sis$', NULL),
-    -- no English plural ends in "is" (iris, chassis, analysis) or "us"
-    -- (bus, status, census, radius, lotus, and every -ous adjective), so those
-    -- are singular already; the -u nouns whose plural IS -us come first
+    -- no English plural ends in "us" (bus, status, census, radius, lotus, and
+    -- every -ous adjective), so those are singular already; the -u nouns whose
+    -- plural IS -us come first
     ('singular', '(men|gur|em|haik|tof|tut|zeb|kudz)us$', E'\\1u'),
-    ('singular', 'is$', NULL),
     ('singular', 'us$', NULL),
+    -- -is words are singular too, but the guard has to be anchored: a blanket
+    -- is$ rule would also keep "apis" (a platform table) from reaching "api"
+    ('singular', '^(iris|chassis|clematis|trellis|tennis|debris|axis|oasis|pelvis|mantis|arthritis|bronchitis|hepatitis)$', NULL),
     ('singular', '(?:([^f])fe|([lr])f)$', NULL),
     -- mice/lice first, then every other -ice word is already singular
     -- (price, police, chalice, service): the ([m|l])ice$ rule's character
