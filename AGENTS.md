@@ -55,6 +55,26 @@ packages/
 * **One change per file** in each folder. If your deploy spans multiple SQL statements, they all live in that one file — see *revert mechanics* below.
 
 
+## Generated artifacts (`sql/`)
+
+`pgpm package` writes two committed artifacts per module, both derived from
+`deploy/` + `pgpm.plan` and both **never hand-edited**:
+
+```bash
+pgpm package    # sql/<name>--<version>.sql  and  sql/<name>--<version>.bundle.tar.gz
+pgpm deploy --fast   # deploy from the bundle: verify sha256, one-shot execute, write the ledger
+```
+
+The `.bundle.tar.gz` is a gzipped tarball of the module's JSON migration bundle
+(plan + per-change SQL + sha256 digest); output is byte-reproducible, so
+re-running `pgpm package` on unchanged sources produces no diff. `--fast` falls
+back to building from `deploy/` when the artifact is missing or stale, so a
+forgotten regeneration is a slowdown, not a failure — but regenerate both files
+in the same commit as any `deploy/` change.
+
+Requires the pgpm 5 CLI (`PGPM_VERSION` in the workflows); the pgpm 4 CLI
+neither emits bundles nor honours `extensions.json`'s `schema`/`createSchema`.
+
 ## Physical mechanics
 
 ### Deploy
