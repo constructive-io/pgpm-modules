@@ -173,7 +173,21 @@ describe('inflection', () => {
       { name: 'information', result: 'information' },
       { name: 'deer', result: 'deer' },
       { name: 'series', result: 'series' },
-      { name: 'species', result: 'species' }
+      { name: 'species', result: 'species' },
+      // -f/-fe: only the f-stem nouns take -ves
+      { name: 'knife', result: 'knives' },
+      { name: 'wolf', result: 'wolves' },
+      { name: 'leaf', result: 'leaves' },
+      { name: 'thief', result: 'thieves' },
+      { name: 'shelf', result: 'shelves' },
+      { name: 'cafe', result: 'cafes' },
+      { name: 'safe', result: 'safes' },
+      { name: 'roof', result: 'roofs' },
+      { name: 'belief', result: 'beliefs' },
+      { name: 'derive', result: 'derives' },
+      { name: 'mouse', result: 'mice' },
+      { name: 'spouse', result: 'spouses' },
+      { name: 'iris', result: 'irises' }
     ]
   );
 
@@ -215,6 +229,39 @@ describe('inflection', () => {
       { name: 'media', result: 'medium' },
       { name: 'data', result: 'datum' },
       { name: 'strata', result: 'stratum' },
+      // -ves: only the f-stem nouns rewrite to -f/-fe; the rest drop the "s".
+      // The old ([^fo])ves$ -> \1fe rule turned "derives" into "derife".
+      { name: 'derives', result: 'derive' },
+      { name: 'metaschema_public.derives', result: 'metaschema_public.derive' },
+      { name: 'archives', result: 'archive' },
+      { name: 'curves', result: 'curve' },
+      { name: 'olives', result: 'olive' },
+      { name: 'solves', result: 'solve' },
+      { name: 'valves', result: 'valve' },
+      { name: 'motives', result: 'motive' },
+      { name: 'natives', result: 'native' },
+      { name: 'hives', result: 'hive' },
+      { name: 'knives', result: 'knife' },
+      { name: 'lives', result: 'life' },
+      { name: 'wives', result: 'wife' },
+      { name: 'wolves', result: 'wolf' },
+      { name: 'shelves', result: 'shelf' },
+      { name: 'halves', result: 'half' },
+      { name: 'leaves', result: 'leaf' },
+      { name: 'loaves', result: 'loaf' },
+      { name: 'thieves', result: 'thief' },
+      { name: 'hooves', result: 'hoof' },
+      // -ice: only mice/lice are plurals
+      { name: 'mice', result: 'mouse' },
+      { name: 'lice', result: 'louse' },
+      { name: 'police', result: 'police' },
+      { name: 'service', result: 'service' },
+      { name: 'chalice', result: 'chalice' },
+      // -is/-us words are already singular
+      { name: 'iris', result: 'iris' },
+      { name: 'analysis', result: 'analysis' },
+      { name: 'analyses', result: 'analysis' },
+      { name: 'status', result: 'status' },
       // uncountable words
       { name: 'sheep', result: 'sheep' },
       { name: 'equipment', result: 'equipment' },
