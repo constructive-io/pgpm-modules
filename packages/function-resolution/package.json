@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/function-resolution",
-  "version": "0.33.1",
+  "version": "0.34.0",
   "description": "Portable cross-scope function-definition resolution and resolver-aware enqueue (built on app-scope)",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [

@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/partman",
-  "version": "0.33.0",
+  "version": "0.34.0",
   "description": "pg_partman wrapper - installs pg_partman into partman schema",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
