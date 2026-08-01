@@ -19,7 +19,7 @@
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "deps": "pnpm up -r -i -L",
-    "version": "pgpm sync-versions"
+    "version": "pgpm sync-versions && git add -A"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
