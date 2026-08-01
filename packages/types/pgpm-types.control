@@ -1,6 +1,6 @@
 # pgpm-types extension
 comment = 'pgpm-types extension'
-default_version = '0.33.0'
+default_version = '0.34.0'
 module_pathname = '$libdir/pgpm-types'
 requires = 'plpgsql,citext,pgpm-verify'
 relocatable = false

@@ -1,5 +1,5 @@
 EXTENSION = pgpm-app-scope
-DATA = sql/pgpm-app-scope--0.33.1.sql
+DATA = sql/pgpm-app-scope--0.34.0.sql
 
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)

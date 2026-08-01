@@ -1,6 +1,6 @@
 # pgpm-base32 extension
 comment = 'pgpm-base32 extension'
-default_version = '0.33.0'
+default_version = '0.34.0'
 module_pathname = '$libdir/pgpm-base32'
 requires = 'pgcrypto,plpgsql,pgpm-verify'
 relocatable = false
