@@ -51,13 +51,17 @@ CREATE TABLE metaschema_modules_public.rate_limit_meters_module (
   CONSTRAINT rate_limit_meters_module_database_id_unique UNIQUE (database_id)
 );
 
-CREATE INDEX rate_limit_meters_module_database_id_idx ON metaschema_modules_public.rate_limit_meters_module ( database_id );
-
 COMMENT ON CONSTRAINT rate_limit_state_table_fkey
      ON metaschema_modules_public.rate_limit_meters_module IS E'@fieldName rateLimitStateTableByRateLimitStateTableId';
 COMMENT ON CONSTRAINT rate_limit_overrides_table_fkey
      ON metaschema_modules_public.rate_limit_meters_module IS E'@fieldName rateLimitOverridesTableByRateLimitOverridesTableId';
 COMMENT ON CONSTRAINT rate_window_limits_table_fkey
      ON metaschema_modules_public.rate_limit_meters_module IS E'@fieldName rateWindowLimitsTableByRateWindowLimitsTableId';
+
+CREATE INDEX rate_limit_meters_module_rate_limit_overrides_table_id_idx ON metaschema_modules_public.rate_limit_meters_module ( rate_limit_overrides_table_id );
+CREATE INDEX rate_limit_meters_module_rate_limit_state_table_id_idx ON metaschema_modules_public.rate_limit_meters_module ( rate_limit_state_table_id );
+CREATE INDEX rate_limit_meters_module_rate_window_limits_table_id_idx ON metaschema_modules_public.rate_limit_meters_module ( rate_window_limits_table_id );
+CREATE INDEX rate_limit_meters_module_private_schema_id_idx ON metaschema_modules_public.rate_limit_meters_module ( private_schema_id );
+CREATE INDEX rate_limit_meters_module_schema_id_idx ON metaschema_modules_public.rate_limit_meters_module ( schema_id );
 
 COMMIT;

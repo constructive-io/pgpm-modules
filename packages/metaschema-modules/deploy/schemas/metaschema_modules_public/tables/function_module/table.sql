@@ -26,6 +26,10 @@ CREATE TABLE metaschema_modules_public.function_module (
     bindings_table_id uuid NOT NULL DEFAULT uuid_nil(),
     schedules_table_id uuid,
 
+    -- Capability bindings table: declarative grants of typed resource
+    -- capabilities (buckets today) to function/graph holders per lifecycle.
+    capability_bindings_table_id uuid NULL,
+
     -- Optional cron scheduling support.
     has_cron boolean NOT NULL DEFAULT false,
 
@@ -74,12 +78,18 @@ CREATE TABLE metaschema_modules_public.function_module (
     CONSTRAINT function_module_definitions_table_fkey FOREIGN KEY (definitions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT function_module_bindings_table_fkey FOREIGN KEY (bindings_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT function_module_schedules_table_fkey FOREIGN KEY (schedules_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT function_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
+    CONSTRAINT function_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT function_module_capability_bindings_table_fkey FOREIGN KEY (capability_bindings_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
-
-CREATE INDEX function_module_database_id_idx ON metaschema_modules_public.function_module ( database_id );
 
 -- Unique constraint: one function module per database per scope (K8s infra: scopes never share).
 CREATE UNIQUE INDEX function_module_unique_scope ON metaschema_modules_public.function_module ( database_id, scope );
+CREATE INDEX function_module_bindings_table_id_idx ON metaschema_modules_public.function_module ( bindings_table_id );
+CREATE INDEX function_module_definitions_table_id_idx ON metaschema_modules_public.function_module ( definitions_table_id );
+CREATE INDEX function_module_entity_table_id_idx ON metaschema_modules_public.function_module ( entity_table_id );
+CREATE INDEX function_module_schedules_table_id_idx ON metaschema_modules_public.function_module ( schedules_table_id );
+CREATE INDEX function_module_capability_bindings_table_id_idx ON metaschema_modules_public.function_module ( capability_bindings_table_id );
+CREATE INDEX function_module_private_schema_id_idx ON metaschema_modules_public.function_module ( private_schema_id );
+CREATE INDEX function_module_schema_id_idx ON metaschema_modules_public.function_module ( schema_id );
 
 COMMIT;

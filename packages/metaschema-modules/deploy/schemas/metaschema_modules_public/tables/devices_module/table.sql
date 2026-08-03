@@ -26,11 +26,13 @@ CREATE TABLE metaschema_modules_public.devices_module (
     CONSTRAINT devices_module_database_id_uniq UNIQUE(database_id)
 );
 
-CREATE INDEX devices_module_database_id_idx ON metaschema_modules_public.devices_module ( database_id );
-
 COMMENT ON CONSTRAINT user_devices_table_fkey
      ON metaschema_modules_public.devices_module IS E'@fieldName userDevicesTableByUserDevicesTableId';
 COMMENT ON CONSTRAINT device_settings_table_fkey
      ON metaschema_modules_public.devices_module IS E'@fieldName deviceSettingsTableByDeviceSettingsTableId';
+
+CREATE INDEX devices_module_device_settings_table_id_idx ON metaschema_modules_public.devices_module ( device_settings_table_id );
+CREATE INDEX devices_module_user_devices_table_id_idx ON metaschema_modules_public.devices_module ( user_devices_table_id );
+CREATE INDEX devices_module_schema_id_idx ON metaschema_modules_public.devices_module ( schema_id );
 
 COMMIT;

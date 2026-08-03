@@ -58,5 +58,12 @@ CREATE TABLE metaschema_modules_public.webauthn_auth_module (
 );
 
 CREATE INDEX webauthn_auth_module_database_id_idx ON metaschema_modules_public.webauthn_auth_module ( database_id );
+CREATE INDEX webauthn_auth_module_auth_settings_table_id_idx ON metaschema_modules_public.webauthn_auth_module ( auth_settings_table_id );
+CREATE INDEX webauthn_auth_module_credentials_table_id_idx ON metaschema_modules_public.webauthn_auth_module ( credentials_table_id );
+CREATE INDEX webauthn_auth_module_session_credentials_table_id_idx ON metaschema_modules_public.webauthn_auth_module ( session_credentials_table_id );
+CREATE INDEX webauthn_auth_module_session_secrets_table_id_idx ON metaschema_modules_public.webauthn_auth_module ( session_secrets_table_id );
+CREATE INDEX webauthn_auth_module_sessions_table_id_idx ON metaschema_modules_public.webauthn_auth_module ( sessions_table_id );
+CREATE INDEX webauthn_auth_module_users_table_id_idx ON metaschema_modules_public.webauthn_auth_module ( users_table_id );
+CREATE INDEX webauthn_auth_module_schema_id_idx ON metaschema_modules_public.webauthn_auth_module ( schema_id );
 
 COMMIT;

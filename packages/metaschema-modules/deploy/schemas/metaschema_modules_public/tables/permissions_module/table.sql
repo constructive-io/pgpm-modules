@@ -87,5 +87,11 @@ CREATE TABLE metaschema_modules_public.permissions_module (
 );
 
 CREATE INDEX permissions_module_database_id_idx ON metaschema_modules_public.permissions_module ( database_id );
+CREATE INDEX permissions_module_actor_table_id_idx ON metaschema_modules_public.permissions_module ( actor_table_id );
+CREATE INDEX permissions_module_default_table_id_idx ON metaschema_modules_public.permissions_module ( default_table_id );
+CREATE INDEX permissions_module_entity_table_id_idx ON metaschema_modules_public.permissions_module ( entity_table_id );
+CREATE INDEX permissions_module_table_id_idx ON metaschema_modules_public.permissions_module ( table_id );
+CREATE INDEX permissions_module_private_schema_id_idx ON metaschema_modules_public.permissions_module ( private_schema_id );
+CREATE INDEX permissions_module_schema_id_idx ON metaschema_modules_public.permissions_module ( schema_id );
 
 COMMIT;

@@ -122,9 +122,14 @@ CREATE TABLE metaschema_modules_public.storage_module (
     CONSTRAINT file_events_table_fkey FOREIGN KEY (file_events_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
-CREATE INDEX storage_module_database_id_idx ON metaschema_modules_public.storage_module ( database_id );
-
 -- Unique constraint: one storage module per database per scope per prefix.
 CREATE UNIQUE INDEX storage_module_unique_scope ON metaschema_modules_public.storage_module ( database_id, scope, prefix );
+CREATE INDEX storage_module_buckets_table_id_idx ON metaschema_modules_public.storage_module ( buckets_table_id );
+CREATE INDEX storage_module_entity_table_id_idx ON metaschema_modules_public.storage_module ( entity_table_id );
+CREATE INDEX storage_module_file_events_table_id_idx ON metaschema_modules_public.storage_module ( file_events_table_id );
+CREATE INDEX storage_module_files_table_id_idx ON metaschema_modules_public.storage_module ( files_table_id );
+CREATE INDEX storage_module_path_shares_table_id_idx ON metaschema_modules_public.storage_module ( path_shares_table_id );
+CREATE INDEX storage_module_private_schema_id_idx ON metaschema_modules_public.storage_module ( private_schema_id );
+CREATE INDEX storage_module_schema_id_idx ON metaschema_modules_public.storage_module ( schema_id );
 
 COMMIT;

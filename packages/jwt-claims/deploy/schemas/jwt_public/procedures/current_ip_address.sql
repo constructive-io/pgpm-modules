@@ -6,29 +6,17 @@
 BEGIN;
 
 -- Returns the client's IP address from the JWT claims
--- Includes error handling for invalid IP address values
--- Returns NULL if the claim is not set or invalid
+-- Returns NULL if the claim is not set, empty, or not a valid inet value
+-- pg_input_is_valid() validates without raising, so no EXCEPTION block is
+-- needed: an exception handler would open a subtransaction on every call
 CREATE FUNCTION jwt_public.current_ip_address()
   RETURNS inet
 AS $$
-DECLARE
-  v_ip_addr inet;
-BEGIN
-  IF current_setting('jwt.claims.ip_address', TRUE)
-    IS NOT NULL THEN
-    BEGIN
-      v_ip_addr = trim(current_setting('jwt.claims.ip_address', TRUE))::inet;
-    EXCEPTION
-      WHEN OTHERS THEN
-      RAISE NOTICE 'Invalid IP';
-    RETURN NULL;
-    END;
-    RETURN v_ip_addr;
-  ELSE
-    RETURN NULL;
-  END IF;
-END;
+  SELECT CASE
+    WHEN pg_input_is_valid(trim(current_setting('jwt.claims.ip_address', TRUE)), 'inet')
+      THEN trim(current_setting('jwt.claims.ip_address', TRUE))::inet
+  END;
 $$
-LANGUAGE 'plpgsql' STABLE;
+LANGUAGE 'sql' STABLE;
 
 COMMIT;

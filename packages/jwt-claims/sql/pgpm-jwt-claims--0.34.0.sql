@@ -48,101 +48,37 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA jwt_public
   GRANT EXECUTE ON FUNCTIONS TO authenticated;
 
 CREATE FUNCTION jwt_public.current_user_id() RETURNS uuid AS $EOFCODE$
-DECLARE
-  v_identifier_id uuid;
-BEGIN
-  IF current_setting('jwt.claims.user_id', TRUE)
-    IS NOT NULL THEN
-    BEGIN
-      v_identifier_id = current_setting('jwt.claims.user_id', TRUE)::uuid;
-    EXCEPTION
-      WHEN OTHERS THEN
-      RAISE NOTICE 'Invalid UUID value';
-    RETURN NULL;
-    END;
-    RETURN v_identifier_id;
-  ELSE
-    RETURN NULL;
-  END IF;
-END;
-$EOFCODE$ LANGUAGE plpgsql STABLE;
+  SELECT CASE
+    WHEN pg_input_is_valid(current_setting('jwt.claims.user_id', TRUE), 'uuid')
+      THEN current_setting('jwt.claims.user_id', TRUE)::uuid
+  END;
+$EOFCODE$ LANGUAGE sql STABLE LEAKPROOF;
 
 CREATE FUNCTION jwt_public.current_ip_address() RETURNS inet AS $EOFCODE$
-DECLARE
-  v_ip_addr inet;
-BEGIN
-  IF current_setting('jwt.claims.ip_address', TRUE)
-    IS NOT NULL THEN
-    BEGIN
-      v_ip_addr = trim(current_setting('jwt.claims.ip_address', TRUE))::inet;
-    EXCEPTION
-      WHEN OTHERS THEN
-      RAISE NOTICE 'Invalid IP';
-    RETURN NULL;
-    END;
-    RETURN v_ip_addr;
-  ELSE
-    RETURN NULL;
-  END IF;
-END;
-$EOFCODE$ LANGUAGE plpgsql STABLE;
+  SELECT CASE
+    WHEN pg_input_is_valid(trim(current_setting('jwt.claims.ip_address', TRUE)), 'inet')
+      THEN trim(current_setting('jwt.claims.ip_address', TRUE))::inet
+  END;
+$EOFCODE$ LANGUAGE sql STABLE;
 
 CREATE FUNCTION jwt_public.current_user_agent() RETURNS text AS $EOFCODE$
-DECLARE
-  v_uagent text;
-BEGIN
-  IF current_setting('jwt.claims.user_agent', TRUE)
-    IS NOT NULL THEN
-    BEGIN
-      v_uagent = current_setting('jwt.claims.user_agent', TRUE);
-    EXCEPTION
-      WHEN OTHERS THEN
-      RAISE NOTICE 'Invalid UserAgent';
-    RETURN NULL;
-    END;
-    RETURN v_uagent;
-  ELSE
-    RETURN NULL;
-  END IF;
-END;
-$EOFCODE$ LANGUAGE plpgsql STABLE;
+  SELECT current_setting('jwt.claims.user_agent', TRUE);
+$EOFCODE$ LANGUAGE sql STABLE;
 
 CREATE FUNCTION jwt_public.current_origin() RETURNS origin AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.origin', true), '')::origin;
 $EOFCODE$ LANGUAGE sql STABLE;
 
 CREATE FUNCTION jwt_public.current_principal_id() RETURNS uuid AS $EOFCODE$
-DECLARE
-  v_identifier_id uuid;
-BEGIN
-  IF current_setting('jwt.claims.principal_id', TRUE)
-    IS NOT NULL THEN
-    BEGIN
-      v_identifier_id = current_setting('jwt.claims.principal_id', TRUE)::uuid;
-    EXCEPTION
-      WHEN OTHERS THEN
-      RAISE NOTICE 'Invalid UUID value';
-    RETURN NULL;
-    END;
-    RETURN v_identifier_id;
-  ELSE
-    RETURN NULL;
-  END IF;
-END;
-$EOFCODE$ LANGUAGE plpgsql STABLE;
+  SELECT CASE
+    WHEN pg_input_is_valid(current_setting('jwt.claims.principal_id', TRUE), 'uuid')
+      THEN current_setting('jwt.claims.principal_id', TRUE)::uuid
+  END;
+$EOFCODE$ LANGUAGE sql STABLE LEAKPROOF;
 
 CREATE FUNCTION jwt_public.current_role_type() RETURNS text AS $EOFCODE$
-DECLARE
-  v_role_type text;
-BEGIN
-  v_role_type := current_setting('jwt.claims.role_type', TRUE);
-  IF v_role_type IS NOT NULL AND v_role_type <> '' THEN
-    RETURN v_role_type;
-  ELSE
-    RETURN 'user';
-  END IF;
-END;
-$EOFCODE$ LANGUAGE plpgsql STABLE;
+  SELECT coalesce(nullif(current_setting('jwt.claims.role_type', TRUE), ''), 'user');
+$EOFCODE$ LANGUAGE sql STABLE LEAKPROOF;
 
 CREATE SCHEMA jwt_private;
 
@@ -153,21 +89,19 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA jwt_private
 
 CREATE FUNCTION jwt_private.current_database_id() RETURNS uuid AS $EOFCODE$
 DECLARE
-  v_identifier_id uuid;
+  database_id uuid;
 BEGIN
-  IF current_setting('jwt.claims.database_id', TRUE)
-    IS NOT NULL THEN
-    BEGIN
-      v_identifier_id = current_setting('jwt.claims.database_id', TRUE)::uuid;
-    EXCEPTION
-      WHEN OTHERS THEN
-      RAISE NOTICE 'Invalid UUID value';
-    RETURN NULL;
-    END;
-    RETURN v_identifier_id;
-  ELSE
-    RETURN NULL;
+  IF pg_input_is_valid(current_setting('jwt.claims.database_id', TRUE), 'uuid') THEN
+    database_id = current_setting('jwt.claims.database_id', TRUE)::uuid;
   END IF;
+  IF database_id IS NULL THEN
+    PERFORM errors.raise_error(
+      'DATABASE_CLAIM_REQUIRED',
+      jsonb_build_object('claim', 'jwt.claims.database_id'),
+      'internal'
+    );
+  END IF;
+  RETURN database_id;
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
@@ -180,41 +114,15 @@ CREATE FUNCTION jwt_private.current_session_id() RETURNS uuid AS $EOFCODE$
 $EOFCODE$ LANGUAGE sql STABLE;
 
 CREATE FUNCTION jwt_private.current_api_id() RETURNS uuid AS $EOFCODE$
-DECLARE
-  v_identifier_id uuid;
-BEGIN
-  IF current_setting('jwt.claims.api_id', TRUE)
-    IS NOT NULL THEN
-    BEGIN
-      v_identifier_id = current_setting('jwt.claims.api_id', TRUE)::uuid;
-    EXCEPTION
-      WHEN OTHERS THEN
-      RAISE NOTICE 'Invalid UUID value';
-      RETURN NULL;
-    END;
-    RETURN v_identifier_id;
-  ELSE
-    RETURN NULL;
-  END IF;
-END;
-$EOFCODE$ LANGUAGE plpgsql STABLE;
+  SELECT CASE
+    WHEN pg_input_is_valid(current_setting('jwt.claims.api_id', TRUE), 'uuid')
+      THEN current_setting('jwt.claims.api_id', TRUE)::uuid
+  END;
+$EOFCODE$ LANGUAGE sql STABLE LEAKPROOF;
 
 CREATE FUNCTION jwt_private.current_graph_execution_id() RETURNS uuid AS $EOFCODE$
-DECLARE
-  v_identifier_id uuid;
-BEGIN
-  IF current_setting('jwt.claims.graph_execution_id', TRUE)
-    IS NOT NULL THEN
-    BEGIN
-      v_identifier_id = current_setting('jwt.claims.graph_execution_id', TRUE)::uuid;
-    EXCEPTION
-      WHEN OTHERS THEN
-      RAISE NOTICE 'Invalid UUID value';
-      RETURN NULL;
-    END;
-    RETURN v_identifier_id;
-  ELSE
-    RETURN NULL;
-  END IF;
-END;
-$EOFCODE$ LANGUAGE plpgsql STABLE;
+  SELECT CASE
+    WHEN pg_input_is_valid(current_setting('jwt.claims.graph_execution_id', TRUE), 'uuid')
+      THEN current_setting('jwt.claims.graph_execution_id', TRUE)::uuid
+  END;
+$EOFCODE$ LANGUAGE sql STABLE LEAKPROOF;

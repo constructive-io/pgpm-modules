@@ -23,5 +23,7 @@ CREATE TABLE metaschema_modules_public.user_state_module (
 );
 
 CREATE INDEX user_state_module_database_id_idx ON metaschema_modules_public.user_state_module ( database_id );
+CREATE INDEX user_state_module_table_id_idx ON metaschema_modules_public.user_state_module ( table_id );
+CREATE INDEX user_state_module_schema_id_idx ON metaschema_modules_public.user_state_module ( schema_id );
 
 COMMIT;

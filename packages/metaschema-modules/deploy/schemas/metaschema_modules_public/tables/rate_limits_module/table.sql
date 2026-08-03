@@ -29,13 +29,16 @@ CREATE TABLE metaschema_modules_public.rate_limits_module (
     CONSTRAINT rate_limits_module_database_id_uniq UNIQUE(database_id)
 );
 
-CREATE INDEX rate_limits_module_database_id_idx ON metaschema_modules_public.rate_limits_module ( database_id );
-
 COMMENT ON CONSTRAINT rate_limit_settings_table_fkey
      ON metaschema_modules_public.rate_limits_module IS E'@fieldName rateLimitSettingsTableByRateLimitSettingsTableId';
 COMMENT ON CONSTRAINT ip_rate_limits_table_fkey
      ON metaschema_modules_public.rate_limits_module IS E'@fieldName ipRateLimitsTableByIpRateLimitsTableId';
 COMMENT ON CONSTRAINT rate_limits_table_fkey
      ON metaschema_modules_public.rate_limits_module IS E'@fieldName rateLimitsTableByRateLimitsTableId';
+
+CREATE INDEX rate_limits_module_ip_rate_limits_table_id_idx ON metaschema_modules_public.rate_limits_module ( ip_rate_limits_table_id );
+CREATE INDEX rate_limits_module_rate_limit_settings_table_id_idx ON metaschema_modules_public.rate_limits_module ( rate_limit_settings_table_id );
+CREATE INDEX rate_limits_module_rate_limits_table_id_idx ON metaschema_modules_public.rate_limits_module ( rate_limits_table_id );
+CREATE INDEX rate_limits_module_schema_id_idx ON metaschema_modules_public.rate_limits_module ( schema_id );
 
 COMMIT;

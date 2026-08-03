@@ -45,6 +45,13 @@ CREATE TABLE metaschema_modules_public.route_module (
     -- Generated resolver name (populated by the generator)
     resolver_function_name text,
 
+    -- Generated site app-link / deep-link read-path function names (populated by
+    -- the generator). NULL when the routing plane's catalog carries no app-links
+    -- / deep-links mirror, so the serving edge fails loud rather than calling a
+    -- function that was never generated.
+    app_links_function_name text,
+    deep_link_function_name text,
+
     -- API routing (get-or-create: if set, schema is added to this API)
     api_name text,
     private_api_name text,
@@ -105,10 +112,15 @@ CREATE TABLE metaschema_modules_public.route_module (
         ON DELETE CASCADE
 );
 
-CREATE INDEX route_module_database_id_idx
-    ON metaschema_modules_public.route_module (database_id);
-
 CREATE UNIQUE INDEX route_module_unique_scope
     ON metaschema_modules_public.route_module (database_id, scope);
+CREATE INDEX route_module_entity_table_id_idx ON metaschema_modules_public.route_module ( entity_table_id );
+CREATE INDEX route_module_hostname_bindings_table_id_idx ON metaschema_modules_public.route_module ( hostname_bindings_table_id );
+CREATE INDEX route_module_route_bindings_table_id_idx ON metaschema_modules_public.route_module ( route_bindings_table_id );
+CREATE INDEX route_module_routes_table_id_idx ON metaschema_modules_public.route_module ( routes_table_id );
+CREATE INDEX route_module_private_schema_id_idx ON metaschema_modules_public.route_module ( private_schema_id );
+CREATE INDEX route_module_schema_id_idx ON metaschema_modules_public.route_module ( schema_id );
+CREATE INDEX route_module_catalog_module_id_idx ON metaschema_modules_public.route_module ( catalog_module_id );
+CREATE INDEX route_module_domain_module_id_idx ON metaschema_modules_public.route_module ( domain_module_id );
 
 COMMIT;

@@ -43,6 +43,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "merkle_store_module",
     "namespace_module",
     "notifications_module",
+    "pages_module",
     "permissions_module",
     "phone_numbers_module",
     "plans_module",
@@ -74,8 +75,8 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
-  "moduleTablesCount": 65,
-  "totalTables": 72,
+  "moduleTablesCount": 66,
+  "totalTables": 73,
 }
 `;
 
@@ -142,13 +143,13 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 65,
+  "constraintCount": 66,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 459,
+  "constraintCount": 476,
   "foreignTables": [
     "catalog_module",
     "database",
@@ -162,6 +163,7 @@ exports[`db_meta_modules should verify module tables have proper foreign key rel
     "namespace_module",
     "resource_module",
     "schema",
+    "site_surface_module",
     "storage_module",
     "table",
   ],

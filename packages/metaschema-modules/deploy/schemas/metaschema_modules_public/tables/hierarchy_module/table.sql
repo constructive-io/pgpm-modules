@@ -68,6 +68,12 @@ CREATE TABLE metaschema_modules_public.hierarchy_module (
     CONSTRAINT hierarchy_module_database_unique UNIQUE (database_id)
 );
 
-CREATE INDEX hierarchy_module_database_id_idx ON metaschema_modules_public.hierarchy_module ( database_id );
+CREATE INDEX hierarchy_module_chart_edge_grants_table_id_idx ON metaschema_modules_public.hierarchy_module ( chart_edge_grants_table_id );
+CREATE INDEX hierarchy_module_chart_edges_table_id_idx ON metaschema_modules_public.hierarchy_module ( chart_edges_table_id );
+CREATE INDEX hierarchy_module_entity_table_id_idx ON metaschema_modules_public.hierarchy_module ( entity_table_id );
+CREATE INDEX hierarchy_module_hierarchy_sprt_table_id_idx ON metaschema_modules_public.hierarchy_module ( hierarchy_sprt_table_id );
+CREATE INDEX hierarchy_module_users_table_id_idx ON metaschema_modules_public.hierarchy_module ( users_table_id );
+CREATE INDEX hierarchy_module_private_schema_id_idx ON metaschema_modules_public.hierarchy_module ( private_schema_id );
+CREATE INDEX hierarchy_module_schema_id_idx ON metaschema_modules_public.hierarchy_module ( schema_id );
 
 COMMIT;

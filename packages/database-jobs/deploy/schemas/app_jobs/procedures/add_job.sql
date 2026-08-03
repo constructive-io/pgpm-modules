@@ -32,9 +32,9 @@ DECLARE
 BEGIN
   -- db_id defaults to the session's database claim; only callers that act on
   -- behalf of a different database (e.g. platform-owned births) pass it
-  -- explicitly. Every job is owned by exactly one database — a claim-less
-  -- session with no explicit db_id fails the jobs.database_id NOT NULL
-  -- constraint rather than producing an unattributable job.
+  -- explicitly. Every job is owned by exactly one database, so a claim-less
+  -- session with no explicit db_id is rejected by the default expression rather
+  -- than producing an unattributable job.
   v_database_id := db_id;
   v_actor_id := jwt_public.current_user_id();
 

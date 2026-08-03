@@ -69,9 +69,12 @@ CREATE TABLE metaschema_modules_public.namespace_module (
     CONSTRAINT namespace_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
-CREATE INDEX namespace_module_database_id_idx ON metaschema_modules_public.namespace_module ( database_id );
-
 -- Unique constraint: one namespace module per database per scope (K8s infra: scopes never share).
 CREATE UNIQUE INDEX namespace_module_unique_scope ON metaschema_modules_public.namespace_module ( database_id, scope );
+CREATE INDEX namespace_module_entity_table_id_idx ON metaschema_modules_public.namespace_module ( entity_table_id );
+CREATE INDEX namespace_module_namespace_events_table_id_idx ON metaschema_modules_public.namespace_module ( namespace_events_table_id );
+CREATE INDEX namespace_module_namespaces_table_id_idx ON metaschema_modules_public.namespace_module ( namespaces_table_id );
+CREATE INDEX namespace_module_private_schema_id_idx ON metaschema_modules_public.namespace_module ( private_schema_id );
+CREATE INDEX namespace_module_schema_id_idx ON metaschema_modules_public.namespace_module ( schema_id );
 
 COMMIT;

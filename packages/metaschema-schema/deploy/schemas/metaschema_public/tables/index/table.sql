@@ -43,6 +43,5 @@ CREATE TABLE metaschema_public.index (
 
 
 CREATE INDEX index_table_id_idx ON metaschema_public.index ( table_id );
-CREATE INDEX index_database_id_idx ON metaschema_public.index ( database_id );
 
 COMMIT;

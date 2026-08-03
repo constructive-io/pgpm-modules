@@ -104,6 +104,20 @@ CREATE TABLE metaschema_modules_public.memberships_module (
     CONSTRAINT memberships_module_unique UNIQUE (database_id, scope, prefix)
 );
 
-CREATE INDEX memberships_module_database_id_idx ON metaschema_modules_public.memberships_module ( database_id );
+CREATE INDEX memberships_module_actor_table_id_idx ON metaschema_modules_public.memberships_module ( actor_table_id );
+CREATE INDEX memberships_module_default_limits_table_id_idx ON metaschema_modules_public.memberships_module ( default_limits_table_id );
+CREATE INDEX memberships_module_default_permissions_table_id_idx ON metaschema_modules_public.memberships_module ( default_permissions_table_id );
+CREATE INDEX memberships_module_entity_table_id_idx ON metaschema_modules_public.memberships_module ( entity_table_id );
+CREATE INDEX memberships_module_grants_table_id_idx ON metaschema_modules_public.memberships_module ( grants_table_id );
+CREATE INDEX memberships_module_limits_table_id_idx ON metaschema_modules_public.memberships_module ( limits_table_id );
+CREATE INDEX memberships_module_members_table_id_idx ON metaschema_modules_public.memberships_module ( members_table_id );
+CREATE INDEX memberships_module_membership_defaults_table_id_idx ON metaschema_modules_public.memberships_module ( membership_defaults_table_id );
+CREATE INDEX memberships_module_membership_settings_table_id_idx ON metaschema_modules_public.memberships_module ( membership_settings_table_id );
+CREATE INDEX memberships_module_memberships_table_id_idx ON metaschema_modules_public.memberships_module ( memberships_table_id );
+CREATE INDEX memberships_module_permissions_table_id_idx ON metaschema_modules_public.memberships_module ( permissions_table_id );
+CREATE INDEX memberships_module_sprt_table_id_idx ON metaschema_modules_public.memberships_module ( sprt_table_id );
+CREATE INDEX memberships_module_private_schema_id_idx ON metaschema_modules_public.memberships_module ( private_schema_id );
+CREATE INDEX memberships_module_schema_id_idx ON metaschema_modules_public.memberships_module ( schema_id );
+CREATE INDEX memberships_module_entity_table_owner_id_idx ON metaschema_modules_public.memberships_module ( entity_table_owner_id );
 
 COMMIT;

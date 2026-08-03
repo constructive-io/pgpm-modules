@@ -38,7 +38,6 @@ CREATE TABLE metaschema_public.check_constraint (
 );
 
 
-CREATE INDEX check_constraint_table_id_idx ON metaschema_public.check_constraint ( table_id );
 CREATE INDEX check_constraint_database_id_idx ON metaschema_public.check_constraint ( database_id );
 
 COMMIT;

@@ -99,5 +99,16 @@ CREATE TABLE metaschema_modules_public.events_module (
 );
 
 CREATE INDEX events_module_database_id_idx ON metaschema_modules_public.events_module ( database_id );
+CREATE INDEX events_module_achievement_rewards_table_id_idx ON metaschema_modules_public.events_module ( achievement_rewards_table_id );
+CREATE INDEX events_module_actor_table_id_idx ON metaschema_modules_public.events_module ( actor_table_id );
+CREATE INDEX events_module_entity_table_id_idx ON metaschema_modules_public.events_module ( entity_table_id );
+CREATE INDEX events_module_event_aggregates_table_id_idx ON metaschema_modules_public.events_module ( event_aggregates_table_id );
+CREATE INDEX events_module_event_types_table_id_idx ON metaschema_modules_public.events_module ( event_types_table_id );
+CREATE INDEX events_module_events_table_id_idx ON metaschema_modules_public.events_module ( events_table_id );
+CREATE INDEX events_module_level_grants_table_id_idx ON metaschema_modules_public.events_module ( level_grants_table_id );
+CREATE INDEX events_module_level_requirements_table_id_idx ON metaschema_modules_public.events_module ( level_requirements_table_id );
+CREATE INDEX events_module_levels_table_id_idx ON metaschema_modules_public.events_module ( levels_table_id );
+CREATE INDEX events_module_private_schema_id_idx ON metaschema_modules_public.events_module ( private_schema_id );
+CREATE INDEX events_module_schema_id_idx ON metaschema_modules_public.events_module ( schema_id );
 
 COMMIT;

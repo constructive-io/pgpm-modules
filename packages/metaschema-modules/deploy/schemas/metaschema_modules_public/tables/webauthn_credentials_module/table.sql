@@ -29,6 +29,10 @@ CREATE TABLE metaschema_modules_public.webauthn_credentials_module (
 );
 
 CREATE INDEX webauthn_credentials_module_database_id_idx ON metaschema_modules_public.webauthn_credentials_module ( database_id );
+CREATE INDEX webauthn_credentials_module_owner_table_id_idx ON metaschema_modules_public.webauthn_credentials_module ( owner_table_id );
+CREATE INDEX webauthn_credentials_module_table_id_idx ON metaschema_modules_public.webauthn_credentials_module ( table_id );
+CREATE INDEX webauthn_credentials_module_private_schema_id_idx ON metaschema_modules_public.webauthn_credentials_module ( private_schema_id );
+CREATE INDEX webauthn_credentials_module_schema_id_idx ON metaschema_modules_public.webauthn_credentials_module ( schema_id );
 
 COMMENT ON TABLE metaschema_modules_public.webauthn_credentials_module IS 'Config row for the webauthn_credentials_module, which provisions the per-user WebAuthn/passkey credentials table (public key, counter, transports, device type, backup state) mirroring crypto_addresses_module. The sibling webauthn_auth_module holds RP config and the registration/sign-in challenge state.';
 COMMENT ON COLUMN metaschema_modules_public.webauthn_credentials_module.private_schema_id IS 'Private schema that hosts SECURITY DEFINER helpers which write to webauthn_credentials (registration / counter-bump / delete).';

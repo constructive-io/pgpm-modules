@@ -65,7 +65,11 @@ CREATE TABLE metaschema_modules_public.merkle_store_module (
     CONSTRAINT merkle_store_module_database_prefix_unique UNIQUE (database_id, prefix)
 );
 
-CREATE INDEX merkle_store_module_database_id_idx ON metaschema_modules_public.merkle_store_module ( database_id );
 CREATE INDEX merkle_store_module_private_schema_id_idx ON metaschema_modules_public.merkle_store_module ( private_schema_id );
+CREATE INDEX merkle_store_module_commit_table_id_idx ON metaschema_modules_public.merkle_store_module ( commit_table_id );
+CREATE INDEX merkle_store_module_object_table_id_idx ON metaschema_modules_public.merkle_store_module ( object_table_id );
+CREATE INDEX merkle_store_module_ref_table_id_idx ON metaschema_modules_public.merkle_store_module ( ref_table_id );
+CREATE INDEX merkle_store_module_store_table_id_idx ON metaschema_modules_public.merkle_store_module ( store_table_id );
+CREATE INDEX merkle_store_module_schema_id_idx ON metaschema_modules_public.merkle_store_module ( schema_id );
 
 COMMIT;

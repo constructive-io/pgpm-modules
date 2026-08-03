@@ -71,6 +71,11 @@ CREATE TABLE metaschema_modules_public.db_usage_module (
   CONSTRAINT db_usage_module_database_id_scope_unique UNIQUE (database_id, scope)
 );
 
-CREATE INDEX db_usage_module_database_id_idx ON metaschema_modules_public.db_usage_module ( database_id );
+CREATE INDEX db_usage_module_query_stats_log_table_id_idx ON metaschema_modules_public.db_usage_module ( query_stats_log_table_id );
+CREATE INDEX db_usage_module_query_stats_summary_table_id_idx ON metaschema_modules_public.db_usage_module ( query_stats_summary_table_id );
+CREATE INDEX db_usage_module_table_stats_log_table_id_idx ON metaschema_modules_public.db_usage_module ( table_stats_log_table_id );
+CREATE INDEX db_usage_module_table_stats_summary_table_id_idx ON metaschema_modules_public.db_usage_module ( table_stats_summary_table_id );
+CREATE INDEX db_usage_module_private_schema_id_idx ON metaschema_modules_public.db_usage_module ( private_schema_id );
+CREATE INDEX db_usage_module_schema_id_idx ON metaschema_modules_public.db_usage_module ( schema_id );
 
 COMMIT;

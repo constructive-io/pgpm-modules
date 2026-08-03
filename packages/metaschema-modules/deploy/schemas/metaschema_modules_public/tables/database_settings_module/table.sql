@@ -82,10 +82,13 @@ CREATE TABLE metaschema_modules_public.database_settings_module (
         ON DELETE CASCADE
 );
 
-CREATE INDEX database_settings_module_database_id_idx
-    ON metaschema_modules_public.database_settings_module (database_id);
-
 CREATE UNIQUE INDEX database_settings_module_unique_scope
     ON metaschema_modules_public.database_settings_module (database_id, scope);
+CREATE INDEX database_settings_module_entity_table_id_idx ON metaschema_modules_public.database_settings_module ( entity_table_id );
+CREATE INDEX database_settings_module_pubkey_settings_table_id_idx ON metaschema_modules_public.database_settings_module ( pubkey_settings_table_id );
+CREATE INDEX database_settings_module_rls_settings_table_id_idx ON metaschema_modules_public.database_settings_module ( rls_settings_table_id );
+CREATE INDEX database_settings_module_database_settings_table_id_idx ON metaschema_modules_public.database_settings_module ( database_settings_table_id );
+CREATE INDEX database_settings_module_webauthn_settings_table_id_idx ON metaschema_modules_public.database_settings_module ( webauthn_settings_table_id );
+CREATE INDEX database_settings_module_schema_id_idx ON metaschema_modules_public.database_settings_module ( schema_id );
 
 COMMIT;

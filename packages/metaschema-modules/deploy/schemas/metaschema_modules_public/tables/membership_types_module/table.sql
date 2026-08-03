@@ -21,5 +21,7 @@ CREATE TABLE metaschema_modules_public.membership_types_module (
 );
 
 CREATE INDEX membership_types_module_database_id_idx ON metaschema_modules_public.membership_types_module ( database_id );
+CREATE INDEX membership_types_module_table_id_idx ON metaschema_modules_public.membership_types_module ( table_id );
+CREATE INDEX membership_types_module_schema_id_idx ON metaschema_modules_public.membership_types_module ( schema_id );
 
 COMMIT;

@@ -54,10 +54,15 @@ CREATE TABLE metaschema_modules_public.invites_module (
     CONSTRAINT pschema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE
 );
 
-CREATE INDEX invites_module_database_id_idx ON metaschema_modules_public.invites_module ( database_id );
-
 -- Unique constraint: one invites module per database per scope per prefix.
 CREATE UNIQUE INDEX invites_module_unique_scope
     ON metaschema_modules_public.invites_module (database_id, scope, prefix);
+CREATE INDEX invites_module_claimed_invites_table_id_idx ON metaschema_modules_public.invites_module ( claimed_invites_table_id );
+CREATE INDEX invites_module_emails_table_id_idx ON metaschema_modules_public.invites_module ( emails_table_id );
+CREATE INDEX invites_module_entity_table_id_idx ON metaschema_modules_public.invites_module ( entity_table_id );
+CREATE INDEX invites_module_invites_table_id_idx ON metaschema_modules_public.invites_module ( invites_table_id );
+CREATE INDEX invites_module_users_table_id_idx ON metaschema_modules_public.invites_module ( users_table_id );
+CREATE INDEX invites_module_private_schema_id_idx ON metaschema_modules_public.invites_module ( private_schema_id );
+CREATE INDEX invites_module_schema_id_idx ON metaschema_modules_public.invites_module ( schema_id );
 
 COMMIT;

@@ -35,6 +35,10 @@ CREATE TABLE metaschema_modules_public.db_preset_module (
     CONSTRAINT db_preset_module_database_merkle_unique UNIQUE (database_id, merkle_store_module_id)
 );
 
-CREATE INDEX db_preset_module_database_id_idx ON metaschema_modules_public.db_preset_module ( database_id );
+CREATE INDEX db_preset_module_entity_table_id_idx ON metaschema_modules_public.db_preset_module ( entity_table_id );
+CREATE INDEX db_preset_module_db_presets_table_id_idx ON metaschema_modules_public.db_preset_module ( db_presets_table_id );
+CREATE INDEX db_preset_module_private_schema_id_idx ON metaschema_modules_public.db_preset_module ( private_schema_id );
+CREATE INDEX db_preset_module_public_schema_id_idx ON metaschema_modules_public.db_preset_module ( public_schema_id );
+CREATE INDEX db_preset_module_merkle_store_module_id_idx ON metaschema_modules_public.db_preset_module ( merkle_store_module_id );
 
 COMMIT;

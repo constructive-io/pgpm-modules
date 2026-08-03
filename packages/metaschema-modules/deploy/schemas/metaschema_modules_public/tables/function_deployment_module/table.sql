@@ -78,9 +78,14 @@ CREATE TABLE metaschema_modules_public.function_deployment_module (
     CONSTRAINT function_deployment_module_namespace_module_fkey FOREIGN KEY (namespace_module_id) REFERENCES metaschema_modules_public.namespace_module (id) ON DELETE SET NULL
 );
 
-CREATE INDEX function_deployment_module_database_id_idx ON metaschema_modules_public.function_deployment_module ( database_id );
-
 -- Unique constraint: one function deployment module per database per scope (K8s infra: scopes never share).
 CREATE UNIQUE INDEX function_deployment_module_unique_scope ON metaschema_modules_public.function_deployment_module ( database_id, scope );
+CREATE INDEX function_deployment_module_deployments_table_id_idx ON metaschema_modules_public.function_deployment_module ( deployments_table_id );
+CREATE INDEX function_deployment_module_entity_table_id_idx ON metaschema_modules_public.function_deployment_module ( entity_table_id );
+CREATE INDEX function_deployment_module_deployment_events_table_id_idx ON metaschema_modules_public.function_deployment_module ( deployment_events_table_id );
+CREATE INDEX function_deployment_module_private_schema_id_idx ON metaschema_modules_public.function_deployment_module ( private_schema_id );
+CREATE INDEX function_deployment_module_schema_id_idx ON metaschema_modules_public.function_deployment_module ( schema_id );
+CREATE INDEX function_deployment_module_function_module_id_idx ON metaschema_modules_public.function_deployment_module ( function_module_id );
+CREATE INDEX function_deployment_module_namespace_module_id_idx ON metaschema_modules_public.function_deployment_module ( namespace_module_id );
 
 COMMIT;

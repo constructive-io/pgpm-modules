@@ -95,9 +95,18 @@ CREATE TABLE metaschema_modules_public.agent_module (
   CONSTRAINT agent_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
-CREATE INDEX agent_module_database_id_idx ON metaschema_modules_public.agent_module ( database_id );
-
 -- Unique constraint: one agent module per database per scope per prefix.
 CREATE UNIQUE INDEX agent_module_unique_scope ON metaschema_modules_public.agent_module ( database_id, scope, prefix );
+CREATE INDEX agent_module_agent_table_id_idx ON metaschema_modules_public.agent_module ( agent_table_id );
+CREATE INDEX agent_module_entity_table_id_idx ON metaschema_modules_public.agent_module ( entity_table_id );
+CREATE INDEX agent_module_message_table_id_idx ON metaschema_modules_public.agent_module ( message_table_id );
+CREATE INDEX agent_module_persona_table_id_idx ON metaschema_modules_public.agent_module ( persona_table_id );
+CREATE INDEX agent_module_plan_table_id_idx ON metaschema_modules_public.agent_module ( plan_table_id );
+CREATE INDEX agent_module_prompts_table_id_idx ON metaschema_modules_public.agent_module ( prompts_table_id );
+CREATE INDEX agent_module_resource_table_id_idx ON metaschema_modules_public.agent_module ( resource_table_id );
+CREATE INDEX agent_module_task_table_id_idx ON metaschema_modules_public.agent_module ( task_table_id );
+CREATE INDEX agent_module_thread_table_id_idx ON metaschema_modules_public.agent_module ( thread_table_id );
+CREATE INDEX agent_module_private_schema_id_idx ON metaschema_modules_public.agent_module ( private_schema_id );
+CREATE INDEX agent_module_schema_id_idx ON metaschema_modules_public.agent_module ( schema_id );
 
 COMMIT;

@@ -137,6 +137,7 @@ Each module includes its own README with detailed documentation. See individual 
 - [`@pgpm/encrypted-secrets-table`](https://www.npmjs.com/package/@pgpm/encrypted-secrets-table) - Table-based encrypted secrets
 
 ### Utilities
+- [`@pgpm/errors`](https://www.npmjs.com/package/@pgpm/errors) - Canonical structured error raising (`errors.raise_error`)
 - [`@pgpm/utils`](https://www.npmjs.com/package/@pgpm/utils) - General utility functions
 - [`@pgpm/verify`](https://www.npmjs.com/package/@pgpm/verify) - Verification utilities (used by other modules)
 - [`@pgpm/inflection`](https://www.npmjs.com/package/@pgpm/inflection) - String inflection utilities

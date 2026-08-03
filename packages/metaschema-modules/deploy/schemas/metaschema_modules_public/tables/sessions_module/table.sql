@@ -30,6 +30,11 @@ CREATE TABLE metaschema_modules_public.sessions_module (
 );
 
 CREATE INDEX sessions_module_database_id_idx ON metaschema_modules_public.sessions_module ( database_id );
+CREATE INDEX sessions_module_auth_settings_table_id_idx ON metaschema_modules_public.sessions_module ( auth_settings_table_id );
+CREATE INDEX sessions_module_session_credentials_table_id_idx ON metaschema_modules_public.sessions_module ( session_credentials_table_id );
+CREATE INDEX sessions_module_sessions_table_id_idx ON metaschema_modules_public.sessions_module ( sessions_table_id );
+CREATE INDEX sessions_module_users_table_id_idx ON metaschema_modules_public.sessions_module ( users_table_id );
+CREATE INDEX sessions_module_schema_id_idx ON metaschema_modules_public.sessions_module ( schema_id );
 
 COMMENT ON CONSTRAINT sessions_table_fkey
      ON metaschema_modules_public.sessions_module IS E'@fieldName sessionsTableBySessionsTableId';

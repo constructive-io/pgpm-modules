@@ -104,9 +104,19 @@ CREATE TABLE metaschema_modules_public.resource_module (
     CONSTRAINT resource_module_namespace_module_fkey FOREIGN KEY (namespace_module_id) REFERENCES metaschema_modules_public.namespace_module (id) ON DELETE SET NULL
 );
 
-CREATE INDEX resource_module_database_id_idx ON metaschema_modules_public.resource_module ( database_id );
-
 -- Unique constraint: one resource module per database per scope (K8s infra: scopes never share).
 CREATE UNIQUE INDEX resource_module_unique_scope ON metaschema_modules_public.resource_module ( database_id, scope );
+CREATE INDEX resource_module_resource_definitions_table_id_idx ON metaschema_modules_public.resource_module ( resource_definitions_table_id );
+CREATE INDEX resource_module_entity_table_id_idx ON metaschema_modules_public.resource_module ( entity_table_id );
+CREATE INDEX resource_module_resource_events_table_id_idx ON metaschema_modules_public.resource_module ( resource_events_table_id );
+CREATE INDEX resource_module_resource_installations_table_id_idx ON metaschema_modules_public.resource_module ( resource_installations_table_id );
+CREATE INDEX resource_module_resources_table_id_idx ON metaschema_modules_public.resource_module ( resources_table_id );
+CREATE INDEX resource_module_resource_status_checks_table_id_idx ON metaschema_modules_public.resource_module ( resource_status_checks_table_id );
+CREATE INDEX resource_module_resource_usage_log_table_id_idx ON metaschema_modules_public.resource_module ( resource_usage_log_table_id );
+CREATE INDEX resource_module_resource_usage_summary_table_id_idx ON metaschema_modules_public.resource_module ( resource_usage_summary_table_id );
+CREATE INDEX resource_module_private_schema_id_idx ON metaschema_modules_public.resource_module ( private_schema_id );
+CREATE INDEX resource_module_schema_id_idx ON metaschema_modules_public.resource_module ( schema_id );
+CREATE INDEX resource_module_merkle_store_module_id_idx ON metaschema_modules_public.resource_module ( merkle_store_module_id );
+CREATE INDEX resource_module_namespace_module_id_idx ON metaschema_modules_public.resource_module ( namespace_module_id );
 
 COMMIT;

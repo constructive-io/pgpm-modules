@@ -52,7 +52,6 @@ CREATE TABLE metaschema_public.view (
 );
 
 
-CREATE INDEX view_schema_id_idx ON metaschema_public.view ( schema_id );
 CREATE INDEX view_database_id_idx ON metaschema_public.view ( database_id );
 CREATE INDEX view_table_id_idx ON metaschema_public.view ( table_id );
 

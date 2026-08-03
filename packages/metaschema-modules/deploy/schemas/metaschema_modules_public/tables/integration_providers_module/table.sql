@@ -45,13 +45,13 @@ CREATE TABLE metaschema_modules_public.integration_providers_module (
     CONSTRAINT integration_providers_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
-CREATE INDEX integration_providers_module_database_id_idx ON metaschema_modules_public.integration_providers_module ( database_id );
 CREATE INDEX integration_providers_module_schema_id_idx ON metaschema_modules_public.integration_providers_module ( schema_id );
 CREATE INDEX integration_providers_module_private_schema_id_idx ON metaschema_modules_public.integration_providers_module ( private_schema_id );
 CREATE INDEX integration_providers_module_table_id_idx ON metaschema_modules_public.integration_providers_module ( table_id );
 
 -- One install per database per scope (prefix distinguishes multiple instances)
 CREATE UNIQUE INDEX integration_providers_module_unique_scope ON metaschema_modules_public.integration_providers_module ( database_id, scope, prefix );
+CREATE INDEX integration_providers_module_entity_table_id_idx ON metaschema_modules_public.integration_providers_module ( entity_table_id );
 
 COMMENT ON TABLE metaschema_modules_public.integration_providers_module IS
     'Config row for the integration_providers_module, which provisions a per-database

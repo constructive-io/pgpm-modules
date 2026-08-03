@@ -68,18 +68,29 @@ CREATE TABLE metaschema_modules_public.notifications_module (
     CONSTRAINT private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE
 );
 
-COMMENT ON CONSTRAINT schema_fkey ON metaschema_modules_public.notifications_module IS E'@omit manyToMany';
-COMMENT ON CONSTRAINT private_schema_fkey ON metaschema_modules_public.notifications_module IS E'@omit manyToMany';
-COMMENT ON CONSTRAINT notifications_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName notificationsTableByNotificationsTableId\n@omit manyToMany';
-COMMENT ON CONSTRAINT read_state_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName readStateTableByReadStateTableId\n@omit manyToMany';
-COMMENT ON CONSTRAINT preferences_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName preferencesTableByPreferencesTableId\n@omit manyToMany';
-COMMENT ON CONSTRAINT channels_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName channelsTableByChannelsTableId\n@omit manyToMany';
-COMMENT ON CONSTRAINT delivery_log_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName deliveryLogTableByDeliveryLogTableId\n@omit manyToMany';
+COMMENT ON CONSTRAINT schema_fkey ON metaschema_modules_public.notifications_module IS E'@behavior -manyToMany';
+COMMENT ON CONSTRAINT private_schema_fkey ON metaschema_modules_public.notifications_module IS E'@behavior -manyToMany';
+COMMENT ON CONSTRAINT notifications_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName notificationsTableByNotificationsTableId\n@behavior -manyToMany';
+COMMENT ON CONSTRAINT read_state_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName readStateTableByReadStateTableId\n@behavior -manyToMany';
+COMMENT ON CONSTRAINT preferences_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName preferencesTableByPreferencesTableId\n@behavior -manyToMany';
+COMMENT ON CONSTRAINT channels_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName channelsTableByChannelsTableId\n@behavior -manyToMany';
+COMMENT ON CONSTRAINT delivery_log_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName deliveryLogTableByDeliveryLogTableId\n@behavior -manyToMany';
 COMMENT ON CONSTRAINT suppressions_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName suppressionsTableBySuppressionsTableId';
-COMMENT ON CONSTRAINT owner_table_fkey ON metaschema_modules_public.notifications_module IS E'@omit manyToMany';
-COMMENT ON CONSTRAINT user_settings_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName userSettingsTableByUserSettingsTableId\n@omit manyToMany';
-COMMENT ON CONSTRAINT organization_settings_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName organizationSettingsTableByOrganizationSettingsTableId\n@omit manyToMany';
-COMMENT ON CONSTRAINT db_fkey ON metaschema_modules_public.notifications_module IS E'@omit manyToMany';
+COMMENT ON CONSTRAINT owner_table_fkey ON metaschema_modules_public.notifications_module IS E'@behavior -manyToMany';
+COMMENT ON CONSTRAINT user_settings_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName userSettingsTableByUserSettingsTableId\n@behavior -manyToMany';
+COMMENT ON CONSTRAINT organization_settings_table_fkey ON metaschema_modules_public.notifications_module IS E'@fieldName organizationSettingsTableByOrganizationSettingsTableId\n@behavior -manyToMany';
+COMMENT ON CONSTRAINT db_fkey ON metaschema_modules_public.notifications_module IS E'@behavior -manyToMany';
 CREATE INDEX notifications_module_database_id_idx ON metaschema_modules_public.notifications_module ( database_id );
+CREATE INDEX notifications_module_channels_table_id_idx ON metaschema_modules_public.notifications_module ( channels_table_id );
+CREATE INDEX notifications_module_delivery_log_table_id_idx ON metaschema_modules_public.notifications_module ( delivery_log_table_id );
+CREATE INDEX notifications_module_notifications_table_id_idx ON metaschema_modules_public.notifications_module ( notifications_table_id );
+CREATE INDEX notifications_module_organization_settings_table_id_idx ON metaschema_modules_public.notifications_module ( organization_settings_table_id );
+CREATE INDEX notifications_module_owner_table_id_idx ON metaschema_modules_public.notifications_module ( owner_table_id );
+CREATE INDEX notifications_module_preferences_table_id_idx ON metaschema_modules_public.notifications_module ( preferences_table_id );
+CREATE INDEX notifications_module_read_state_table_id_idx ON metaschema_modules_public.notifications_module ( read_state_table_id );
+CREATE INDEX notifications_module_suppressions_table_id_idx ON metaschema_modules_public.notifications_module ( suppressions_table_id );
+CREATE INDEX notifications_module_user_settings_table_id_idx ON metaschema_modules_public.notifications_module ( user_settings_table_id );
+CREATE INDEX notifications_module_private_schema_id_idx ON metaschema_modules_public.notifications_module ( private_schema_id );
+CREATE INDEX notifications_module_schema_id_idx ON metaschema_modules_public.notifications_module ( schema_id );
 
 COMMIT;

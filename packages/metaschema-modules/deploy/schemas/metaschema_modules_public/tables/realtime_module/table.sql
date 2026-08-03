@@ -40,7 +40,6 @@ CREATE TABLE metaschema_modules_public.realtime_module (
     CONSTRAINT source_registry_table_fkey FOREIGN KEY (source_registry_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
-CREATE INDEX realtime_module_database_id_idx ON metaschema_modules_public.realtime_module ( database_id );
 CREATE UNIQUE INDEX realtime_module_unique_per_db ON metaschema_modules_public.realtime_module ( database_id );
 CREATE INDEX realtime_module_schema_id_idx ON metaschema_modules_public.realtime_module ( schema_id );
 CREATE INDEX realtime_module_private_schema_id_idx ON metaschema_modules_public.realtime_module ( private_schema_id );

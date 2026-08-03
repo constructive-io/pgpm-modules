@@ -1,7 +1,8 @@
 jest.setTimeout(30000);
 
 import { getConnections, PgTestClient } from 'pgsql-test';
-import { ObjectTreeHelper, createObjectTreeHelper, VDOMNode } from '../../test-utils';
+
+import { createObjectTreeHelper, ObjectTreeHelper, VDOMNode } from '../../test-utils';
 
 /**
  * Format VDOM with type first, then key, props, children

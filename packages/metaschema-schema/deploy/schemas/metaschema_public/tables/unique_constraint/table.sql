@@ -44,7 +44,6 @@ CREATE TABLE metaschema_public.unique_constraint (
 );
 
 
-CREATE INDEX unique_constraint_table_id_idx ON metaschema_public.unique_constraint ( table_id );
 CREATE INDEX unique_constraint_database_id_idx ON metaschema_public.unique_constraint ( database_id );
 
 COMMIT;

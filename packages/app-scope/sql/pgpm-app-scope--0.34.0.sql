@@ -357,8 +357,6 @@ CREATE FUNCTION app_scope.routing_tables(
   apis_table text,
   api_schemas_schema text,
   api_schemas_table text,
-  api_modules_schema text,
-  api_modules_table text,
   api_settings_schema text,
   api_settings_table text,
   cors_settings_schema text,
@@ -394,7 +392,7 @@ BEGIN
         RAISE EXCEPTION 'ROUTING_TABLES_SCOPE_REQUIRED: scope is required (no default scope)';
     END IF;
 
-    SELECT am.apis_table_id, am.api_schemas_table_id, am.api_modules_table_id,
+    SELECT am.apis_table_id, am.api_schemas_table_id,
            am.api_settings_table_id, am.cors_settings_table_id
     INTO api_surface
     FROM app_scope.frames(
@@ -410,20 +408,16 @@ BEGIN
     IF FOUND AND api_surface.apis_table_id IS NOT NULL AND api_surface.apis_table_id <> uuid_nil() THEN
         SELECT apis_s.schema_name, apis_t.name,
                api_schemas_s.schema_name, api_schemas_t.name,
-               api_modules_s.schema_name, api_modules_t.name,
                api_settings_s.schema_name, api_settings_t.name,
                cors_settings_s.schema_name, cors_settings_t.name
         INTO apis_schema, apis_table,
              api_schemas_schema, api_schemas_table,
-             api_modules_schema, api_modules_table,
              api_settings_schema, api_settings_table,
              cors_settings_schema, cors_settings_table
         FROM metaschema_public.table apis_t
         JOIN metaschema_public.schema apis_s ON apis_s.id = apis_t.schema_id
         JOIN metaschema_public.table api_schemas_t ON api_schemas_t.id = api_surface.api_schemas_table_id
         JOIN metaschema_public.schema api_schemas_s ON api_schemas_s.id = api_schemas_t.schema_id
-        JOIN metaschema_public.table api_modules_t ON api_modules_t.id = api_surface.api_modules_table_id
-        JOIN metaschema_public.schema api_modules_s ON api_modules_s.id = api_modules_t.schema_id
         JOIN metaschema_public.table api_settings_t ON api_settings_t.id = api_surface.api_settings_table_id
         JOIN metaschema_public.schema api_settings_s ON api_settings_s.id = api_settings_t.schema_id
         JOIN metaschema_public.table cors_settings_t ON cors_settings_t.id = api_surface.cors_settings_table_id

@@ -107,5 +107,21 @@ CREATE TABLE metaschema_modules_public.limits_module (
 );
 
 CREATE INDEX limits_module_database_id_idx ON metaschema_modules_public.limits_module ( database_id );
+CREATE INDEX limits_module_actor_table_id_idx ON metaschema_modules_public.limits_module ( actor_table_id );
+CREATE INDEX limits_module_aggregate_table_id_idx ON metaschema_modules_public.limits_module ( aggregate_table_id );
+CREATE INDEX limits_module_credit_code_items_table_id_idx ON metaschema_modules_public.limits_module ( credit_code_items_table_id );
+CREATE INDEX limits_module_credit_codes_table_id_idx ON metaschema_modules_public.limits_module ( credit_codes_table_id );
+CREATE INDEX limits_module_credit_redemptions_table_id_idx ON metaschema_modules_public.limits_module ( credit_redemptions_table_id );
+CREATE INDEX limits_module_default_table_id_idx ON metaschema_modules_public.limits_module ( default_table_id );
+CREATE INDEX limits_module_entity_table_id_idx ON metaschema_modules_public.limits_module ( entity_table_id );
+CREATE INDEX limits_module_events_table_id_idx ON metaschema_modules_public.limits_module ( events_table_id );
+CREATE INDEX limits_module_limit_caps_defaults_table_id_idx ON metaschema_modules_public.limits_module ( limit_caps_defaults_table_id );
+CREATE INDEX limits_module_limit_caps_table_id_idx ON metaschema_modules_public.limits_module ( limit_caps_table_id );
+CREATE INDEX limits_module_limit_credits_table_id_idx ON metaschema_modules_public.limits_module ( limit_credits_table_id );
+CREATE INDEX limits_module_limit_warning_state_table_id_idx ON metaschema_modules_public.limits_module ( limit_warning_state_table_id );
+CREATE INDEX limits_module_limit_warnings_table_id_idx ON metaschema_modules_public.limits_module ( limit_warnings_table_id );
+CREATE INDEX limits_module_table_id_idx ON metaschema_modules_public.limits_module ( table_id );
+CREATE INDEX limits_module_private_schema_id_idx ON metaschema_modules_public.limits_module ( private_schema_id );
+CREATE INDEX limits_module_schema_id_idx ON metaschema_modules_public.limits_module ( schema_id );
 
 COMMIT;

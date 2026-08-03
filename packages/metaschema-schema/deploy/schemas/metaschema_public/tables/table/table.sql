@@ -61,7 +61,7 @@ ALTER TABLE metaschema_public.table ADD COLUMN
 
 
 CREATE INDEX table_schema_id_idx ON metaschema_public.table ( schema_id );
-CREATE INDEX table_database_id_idx ON metaschema_public.table ( database_id );
+CREATE INDEX table_inherits_id_idx ON metaschema_public.table ( inherits_id );
 
 COMMIT;
 

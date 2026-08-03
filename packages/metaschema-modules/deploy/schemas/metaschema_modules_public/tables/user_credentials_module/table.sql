@@ -30,7 +30,6 @@ CREATE TABLE metaschema_modules_public.user_credentials_module (
     CONSTRAINT user_credentials_module_table_fkey FOREIGN KEY (table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
-CREATE INDEX user_credentials_module_database_id_idx ON metaschema_modules_public.user_credentials_module ( database_id );
 CREATE INDEX user_credentials_module_schema_id_idx ON metaschema_modules_public.user_credentials_module ( schema_id );
 CREATE INDEX user_credentials_module_table_id_idx ON metaschema_modules_public.user_credentials_module ( table_id );
 

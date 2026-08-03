@@ -27,5 +27,7 @@ CREATE TABLE metaschema_modules_public.config_secrets_user_module (
 );
 
 CREATE UNIQUE INDEX config_secrets_user_module_database_id_idx ON metaschema_modules_public.config_secrets_user_module ( database_id );
+CREATE INDEX config_secrets_user_module_table_id_idx ON metaschema_modules_public.config_secrets_user_module ( table_id );
+CREATE INDEX config_secrets_user_module_schema_id_idx ON metaschema_modules_public.config_secrets_user_module ( schema_id );
 
 COMMIT;

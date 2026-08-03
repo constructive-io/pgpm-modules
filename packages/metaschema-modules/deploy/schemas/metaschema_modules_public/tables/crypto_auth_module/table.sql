@@ -37,5 +37,10 @@ CREATE TABLE metaschema_modules_public.crypto_auth_module (
 
 -- TOKENS_REMOVAL: tokens_table_fkey comment removed
 CREATE INDEX crypto_auth_module_database_id_idx ON metaschema_modules_public.crypto_auth_module ( database_id );
+CREATE INDEX crypto_auth_module_secrets_table_id_idx ON metaschema_modules_public.crypto_auth_module ( secrets_table_id );
+CREATE INDEX crypto_auth_module_session_credentials_table_id_idx ON metaschema_modules_public.crypto_auth_module ( session_credentials_table_id );
+CREATE INDEX crypto_auth_module_sessions_table_id_idx ON metaschema_modules_public.crypto_auth_module ( sessions_table_id );
+CREATE INDEX crypto_auth_module_users_table_id_idx ON metaschema_modules_public.crypto_auth_module ( users_table_id );
+CREATE INDEX crypto_auth_module_schema_id_idx ON metaschema_modules_public.crypto_auth_module ( schema_id );
 
 COMMIT;

@@ -21,30 +21,30 @@ describe('db_meta_modules', () => {
   });
 
   it('should have all expected module tables', async () => {
-        const expectedModules = [
-          'connected_accounts_module',
-          'crypto_addresses_module', 
-          'crypto_auth_module',
-          'default_ids_module',
-          'emails_module',
-          'infra_secrets_module',
-          'infra_config_module',
-          'internal_secrets_module',
-          'config_secrets_user_module',
-          'invites_module',
-          'events_module',
-          'limits_module',
-          'membership_types_module',
-          'memberships_module',
-          'permissions_module',
-          'phone_numbers_module',
-          'rls_module',
-          'user_state_module',
-          'sessions_module',
-          'user_auth_module',
-          'user_credentials_module',
-          'users_module'
-        ];
+    const expectedModules = [
+      'connected_accounts_module',
+      'crypto_addresses_module', 
+      'crypto_auth_module',
+      'default_ids_module',
+      'emails_module',
+      'infra_secrets_module',
+      'infra_config_module',
+      'internal_secrets_module',
+      'config_secrets_user_module',
+      'invites_module',
+      'events_module',
+      'limits_module',
+      'membership_types_module',
+      'memberships_module',
+      'permissions_module',
+      'phone_numbers_module',
+      'rls_module',
+      'user_state_module',
+      'sessions_module',
+      'user_auth_module',
+      'user_credentials_module',
+      'users_module'
+    ];
 
     // Query for all module tables in metaschema_modules_public schema
     const moduleTables = await pg.any(`

@@ -21,6 +21,5 @@ CREATE TABLE metaschema_public.function (
 );
 
 CREATE INDEX function_database_id_idx ON metaschema_public.function ( database_id );
-CREATE INDEX function_schema_id_idx ON metaschema_public.function ( schema_id );
 
 COMMIT;

@@ -82,7 +82,6 @@ COMMENT ON COLUMN metaschema_modules_public.blueprint.updated_at IS
 
 
 CREATE INDEX blueprint_owner_id_idx ON metaschema_modules_public.blueprint (owner_id);
-CREATE INDEX blueprint_database_id_idx ON metaschema_modules_public.blueprint (database_id);
 CREATE INDEX blueprint_template_id_idx ON metaschema_modules_public.blueprint (template_id);
 CREATE INDEX blueprint_definition_hash_idx ON metaschema_modules_public.blueprint (definition_hash);
 

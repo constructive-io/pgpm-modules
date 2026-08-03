@@ -300,7 +300,9 @@ ALTER TABLE metaschema_public.database
 
 CREATE UNIQUE INDEX databases_database_platform_singleton_idx ON metaschema_public.database (platform) WHERE platform;
 
-COMMENT ON COLUMN metaschema_public.database.schema_hash IS '@omit';
+CREATE INDEX database_owner_id_idx ON metaschema_public.database (owner_id);
+
+COMMENT ON COLUMN metaschema_public.database.schema_hash IS '@behavior -*';
 
 CREATE TABLE metaschema_public.schema (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -327,8 +329,6 @@ CREATE TABLE metaschema_public.schema (
 ALTER TABLE metaschema_public.schema 
   ADD CONSTRAINT schema_namechk 
     CHECK (char_length(name) > 2);
-
-CREATE INDEX schema_database_id_idx ON metaschema_public.schema (database_id);
 
 CREATE TABLE metaschema_public.table (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -378,7 +378,7 @@ ALTER TABLE metaschema_public.table
 
 CREATE INDEX table_schema_id_idx ON metaschema_public.table (schema_id);
 
-CREATE INDEX table_database_id_idx ON metaschema_public.table (database_id);
+CREATE INDEX table_inherits_id_idx ON metaschema_public.table (inherits_id);
 
 CREATE TABLE metaschema_public.check_constraint (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -406,8 +406,6 @@ CREATE TABLE metaschema_public.check_constraint (
   UNIQUE (table_id, name),
   CHECK (field_ids <> '{}')
 );
-
-CREATE INDEX check_constraint_table_id_idx ON metaschema_public.check_constraint (table_id);
 
 CREATE INDEX check_constraint_database_id_idx ON metaschema_public.check_constraint (database_id);
 
@@ -456,8 +454,6 @@ CREATE TABLE metaschema_public.field (
     ON DELETE CASCADE,
   UNIQUE (table_id, name)
 );
-
-CREATE INDEX field_table_id_idx ON metaschema_public.field (table_id);
 
 CREATE INDEX field_database_id_idx ON metaschema_public.field (database_id);
 
@@ -508,9 +504,9 @@ CREATE TABLE metaschema_public.foreign_key_constraint (
   CHECK (ref_field_ids <> '{}')
 );
 
-CREATE INDEX foreign_key_constraint_table_id_idx ON metaschema_public.foreign_key_constraint (table_id);
-
 CREATE INDEX foreign_key_constraint_database_id_idx ON metaschema_public.foreign_key_constraint (database_id);
+
+CREATE INDEX foreign_key_constraint_ref_table_id_idx ON metaschema_public.foreign_key_constraint (ref_table_id);
 
 CREATE TABLE metaschema_public.full_text_search (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -572,8 +568,6 @@ CREATE TABLE metaschema_public.index (
 
 CREATE INDEX index_table_id_idx ON metaschema_public.index (table_id);
 
-CREATE INDEX index_database_id_idx ON metaschema_public.index (database_id);
-
 CREATE TABLE metaschema_public.policy (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   database_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -623,8 +617,6 @@ CREATE TABLE metaschema_public.policy (
 
 COMMENT ON COLUMN metaschema_public.policy.with_check IS 'Optional WITH CHECK override node {"$type": "Authz...", "data": {...}}. Only valid for UPDATE policies; NULL inherits the USING expression.';
 
-CREATE INDEX policy_table_id_idx ON metaschema_public.policy (table_id);
-
 CREATE INDEX policy_database_id_idx ON metaschema_public.policy (database_id);
 
 CREATE INDEX policy_derived_from_table_id_idx ON metaschema_public.policy (derived_from_table_id) WHERE derived_from_table_id IS NOT NULL;
@@ -657,8 +649,6 @@ CREATE TABLE metaschema_public.primary_key_constraint (
   UNIQUE (table_id, name),
   CHECK (field_ids <> '{}')
 );
-
-CREATE INDEX primary_key_constraint_table_id_idx ON metaschema_public.primary_key_constraint (table_id);
 
 CREATE INDEX primary_key_constraint_database_id_idx ON metaschema_public.primary_key_constraint (database_id);
 
@@ -732,8 +722,6 @@ CREATE TABLE metaschema_public.trigger_function (
   UNIQUE (database_id, name)
 );
 
-CREATE INDEX trigger_function_database_id_idx ON metaschema_public.trigger_function (database_id);
-
 CREATE TABLE metaschema_public.trigger (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   database_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -756,8 +744,6 @@ CREATE TABLE metaschema_public.trigger (
     ON DELETE CASCADE,
   UNIQUE (table_id, name)
 );
-
-CREATE INDEX trigger_table_id_idx ON metaschema_public.trigger (table_id);
 
 CREATE INDEX trigger_database_id_idx ON metaschema_public.trigger (database_id);
 
@@ -788,8 +774,6 @@ CREATE TABLE metaschema_public.unique_constraint (
   UNIQUE (table_id, name),
   CHECK (field_ids <> '{}')
 );
-
-CREATE INDEX unique_constraint_table_id_idx ON metaschema_public.unique_constraint (table_id);
 
 CREATE INDEX unique_constraint_database_id_idx ON metaschema_public.unique_constraint (database_id);
 
@@ -830,8 +814,6 @@ CREATE TABLE metaschema_public.view (
   UNIQUE (schema_id, name)
 );
 
-CREATE INDEX view_schema_id_idx ON metaschema_public.view (schema_id);
-
 CREATE INDEX view_database_id_idx ON metaschema_public.view (database_id);
 
 CREATE INDEX view_table_id_idx ON metaschema_public.view (table_id);
@@ -861,8 +843,6 @@ COMMENT ON TABLE metaschema_public.view_table IS 'Junction table linking views t
 
 CREATE INDEX view_table_database_id_idx ON metaschema_public.view_table (database_id);
 
-CREATE INDEX view_table_view_id_idx ON metaschema_public.view_table (view_id);
-
 CREATE INDEX view_table_table_id_idx ON metaschema_public.view_table (table_id);
 
 CREATE TABLE metaschema_public.view_grant (
@@ -883,8 +863,6 @@ CREATE TABLE metaschema_public.view_grant (
     ON DELETE CASCADE,
   UNIQUE (view_id, grantee_name, privilege, is_grant)
 );
-
-CREATE INDEX view_grant_view_id_idx ON metaschema_public.view_grant (view_id);
 
 CREATE INDEX view_grant_database_id_idx ON metaschema_public.view_grant (database_id);
 
@@ -912,8 +890,6 @@ COMMENT ON COLUMN metaschema_public.view_rule.event IS 'INSERT, UPDATE, or DELET
 
 COMMENT ON COLUMN metaschema_public.view_rule.action IS 'NOTHING (for read-only) or custom action';
 
-CREATE INDEX view_rule_view_id_idx ON metaschema_public.view_rule (view_id);
-
 CREATE INDEX view_rule_database_id_idx ON metaschema_public.view_rule (database_id);
 
 CREATE TABLE metaschema_public.default_privilege (
@@ -934,8 +910,6 @@ CREATE TABLE metaschema_public.default_privilege (
     ON DELETE CASCADE,
   UNIQUE (schema_id, object_type, privilege, grantee_name, is_grant)
 );
-
-CREATE INDEX default_privilege_schema_id_idx ON metaschema_public.default_privilege (schema_id);
 
 CREATE INDEX default_privilege_database_id_idx ON metaschema_public.default_privilege (database_id);
 
@@ -960,8 +934,6 @@ CREATE TABLE metaschema_public.enum (
     ON DELETE CASCADE,
   UNIQUE (schema_id, name)
 );
-
-CREATE INDEX enum_schema_id_idx ON metaschema_public.enum (schema_id);
 
 CREATE INDEX enum_database_id_idx ON metaschema_public.enum (database_id);
 
@@ -1028,6 +1000,10 @@ CREATE INDEX embedding_chunks_database_id_idx ON metaschema_public.embedding_chu
 
 CREATE INDEX embedding_chunks_chunks_table_id_idx ON metaschema_public.embedding_chunks (chunks_table_id);
 
+CREATE INDEX embedding_chunks_embedding_field_id_idx ON metaschema_public.embedding_chunks (embedding_field_id);
+
+CREATE INDEX embedding_chunks_parent_fk_field_id_idx ON metaschema_public.embedding_chunks (parent_fk_field_id);
+
 CREATE TABLE metaschema_public.spatial_relation (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   database_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -1072,8 +1048,6 @@ CREATE TABLE metaschema_public.spatial_relation (
   )
 );
 
-CREATE INDEX spatial_relation_table_id_idx ON metaschema_public.spatial_relation (table_id);
-
 CREATE INDEX spatial_relation_field_id_idx ON metaschema_public.spatial_relation (field_id);
 
 CREATE INDEX spatial_relation_database_id_idx ON metaschema_public.spatial_relation (database_id);
@@ -1112,8 +1086,6 @@ CREATE TABLE metaschema_public.function (
 
 CREATE INDEX function_database_id_idx ON metaschema_public.function (database_id);
 
-CREATE INDEX function_schema_id_idx ON metaschema_public.function (schema_id);
-
 CREATE TABLE metaschema_public.partition (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   database_id uuid NOT NULL,
@@ -1145,6 +1117,8 @@ CREATE TABLE metaschema_public.partition (
 
 CREATE INDEX partition_database_id_idx ON metaschema_public.partition (database_id);
 
+CREATE INDEX partition_partition_key_id_idx ON metaschema_public.partition (partition_key_id);
+
 CREATE TABLE metaschema_public.composite_type (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   database_id uuid NOT NULL,
@@ -1166,8 +1140,6 @@ CREATE TABLE metaschema_public.composite_type (
     ON DELETE CASCADE,
   UNIQUE (schema_id, name)
 );
-
-CREATE INDEX composite_type_schema_id_idx ON metaschema_public.composite_type (schema_id);
 
 CREATE INDEX composite_type_database_id_idx ON metaschema_public.composite_type (database_id);
 
@@ -1195,8 +1167,6 @@ CREATE TABLE metaschema_public.domain_type (
     ON DELETE CASCADE,
   UNIQUE (schema_id, name)
 );
-
-CREATE INDEX domain_type_schema_id_idx ON metaschema_public.domain_type (schema_id);
 
 CREATE INDEX domain_type_database_id_idx ON metaschema_public.domain_type (database_id);
 
@@ -1246,8 +1216,6 @@ CREATE TABLE metaschema_public.exclusion_constraint (
   UNIQUE (table_id, name)
 );
 
-CREATE INDEX exclusion_constraint_table_id_idx ON metaschema_public.exclusion_constraint (table_id);
-
 CREATE INDEX exclusion_constraint_database_id_idx ON metaschema_public.exclusion_constraint (database_id);
 
 CREATE TABLE metaschema_public.derives (
@@ -1280,8 +1248,126 @@ CREATE TABLE metaschema_public.derives (
     UNIQUE (table_id, source_table_id)
 );
 
-CREATE INDEX derives_table_id_idx ON metaschema_public.derives (table_id);
-
 CREATE INDEX derives_source_table_id_idx ON metaschema_public.derives (source_table_id);
 
 CREATE INDEX derives_database_id_idx ON metaschema_public.derives (database_id);
+
+CREATE TABLE metaschema_public.table_behavior (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_id uuid NOT NULL REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  modifier char(1) NOT NULL DEFAULT '+',
+  scope text NOT NULL,
+  sort_order int NOT NULL DEFAULT 0,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT table_behavior_modifier_check 
+    CHECK (modifier IN ('+', '-')),
+  CONSTRAINT table_behavior_scope_check 
+    CHECK (scope ~ E'^([a-zA-Z][a-zA-Z0-9]*|\\*)(:([a-zA-Z][a-zA-Z0-9]*|\\*))*$'),
+  CONSTRAINT table_behavior_scope_key 
+    UNIQUE (table_id, scope)
+);
+
+CREATE INDEX table_behavior_database_id_idx ON metaschema_public.table_behavior (database_id);
+
+CREATE TABLE metaschema_public.field_behavior (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL DEFAULT uuid_nil(),
+  field_id uuid NOT NULL REFERENCES metaschema_public.field (id)
+    ON DELETE CASCADE,
+  modifier char(1) NOT NULL DEFAULT '+',
+  scope text NOT NULL,
+  sort_order int NOT NULL DEFAULT 0,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT field_behavior_modifier_check 
+    CHECK (modifier IN ('+', '-')),
+  CONSTRAINT field_behavior_scope_check 
+    CHECK (scope ~ E'^([a-zA-Z][a-zA-Z0-9]*|\\*)(:([a-zA-Z][a-zA-Z0-9]*|\\*))*$'),
+  CONSTRAINT field_behavior_scope_key 
+    UNIQUE (field_id, scope)
+);
+
+CREATE INDEX field_behavior_database_id_idx ON metaschema_public.field_behavior (database_id);
+
+CREATE TABLE metaschema_public.view_behavior (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL DEFAULT uuid_nil(),
+  view_id uuid NOT NULL REFERENCES metaschema_public.view (id)
+    ON DELETE CASCADE,
+  modifier char(1) NOT NULL DEFAULT '+',
+  scope text NOT NULL,
+  sort_order int NOT NULL DEFAULT 0,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT view_behavior_modifier_check 
+    CHECK (modifier IN ('+', '-')),
+  CONSTRAINT view_behavior_scope_check 
+    CHECK (scope ~ E'^([a-zA-Z][a-zA-Z0-9]*|\\*)(:([a-zA-Z][a-zA-Z0-9]*|\\*))*$'),
+  CONSTRAINT view_behavior_scope_key 
+    UNIQUE (view_id, scope)
+);
+
+CREATE INDEX view_behavior_database_id_idx ON metaschema_public.view_behavior (database_id);
+
+CREATE TABLE metaschema_public.foreign_key_constraint_behavior (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL DEFAULT uuid_nil(),
+  foreign_key_constraint_id uuid NOT NULL REFERENCES metaschema_public.foreign_key_constraint (id)
+    ON DELETE CASCADE,
+  modifier char(1) NOT NULL DEFAULT '+',
+  scope text NOT NULL,
+  sort_order int NOT NULL DEFAULT 0,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT foreign_key_constraint_behavior_modifier_check 
+    CHECK (modifier IN ('+', '-')),
+  CONSTRAINT foreign_key_constraint_behavior_scope_check 
+    CHECK (scope ~ E'^([a-zA-Z][a-zA-Z0-9]*|\\*)(:([a-zA-Z][a-zA-Z0-9]*|\\*))*$'),
+  CONSTRAINT foreign_key_constraint_behavior_scope_key 
+    UNIQUE (foreign_key_constraint_id, scope)
+);
+
+CREATE INDEX foreign_key_constraint_behavior_database_id_idx ON metaschema_public.foreign_key_constraint_behavior (database_id);
+
+CREATE TABLE metaschema_public.unique_constraint_behavior (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL DEFAULT uuid_nil(),
+  unique_constraint_id uuid NOT NULL REFERENCES metaschema_public.unique_constraint (id)
+    ON DELETE CASCADE,
+  modifier char(1) NOT NULL DEFAULT '+',
+  scope text NOT NULL,
+  sort_order int NOT NULL DEFAULT 0,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT unique_constraint_behavior_modifier_check 
+    CHECK (modifier IN ('+', '-')),
+  CONSTRAINT unique_constraint_behavior_scope_check 
+    CHECK (scope ~ E'^([a-zA-Z][a-zA-Z0-9]*|\\*)(:([a-zA-Z][a-zA-Z0-9]*|\\*))*$'),
+  CONSTRAINT unique_constraint_behavior_scope_key 
+    UNIQUE (unique_constraint_id, scope)
+);
+
+CREATE INDEX unique_constraint_behavior_database_id_idx ON metaschema_public.unique_constraint_behavior (database_id);

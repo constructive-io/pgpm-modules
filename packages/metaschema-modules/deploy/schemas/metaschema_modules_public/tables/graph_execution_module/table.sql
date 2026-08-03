@@ -80,9 +80,14 @@ CREATE TABLE metaschema_modules_public.graph_execution_module (
     CONSTRAINT graph_execution_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
-CREATE INDEX graph_execution_module_database_id_idx ON metaschema_modules_public.graph_execution_module ( database_id );
-
 -- One execution module per (database, scope) (K8s infra: scopes never share).
 CREATE UNIQUE INDEX graph_execution_module_unique_scope ON metaschema_modules_public.graph_execution_module ( database_id, scope );
+CREATE INDEX graph_execution_module_entity_table_id_idx ON metaschema_modules_public.graph_execution_module ( entity_table_id );
+CREATE INDEX graph_execution_module_executions_table_id_idx ON metaschema_modules_public.graph_execution_module ( executions_table_id );
+CREATE INDEX graph_execution_module_node_states_table_id_idx ON metaschema_modules_public.graph_execution_module ( node_states_table_id );
+CREATE INDEX graph_execution_module_outputs_table_id_idx ON metaschema_modules_public.graph_execution_module ( outputs_table_id );
+CREATE INDEX graph_execution_module_private_schema_id_idx ON metaschema_modules_public.graph_execution_module ( private_schema_id );
+CREATE INDEX graph_execution_module_schema_id_idx ON metaschema_modules_public.graph_execution_module ( schema_id );
+CREATE INDEX graph_execution_module_graph_module_id_idx ON metaschema_modules_public.graph_execution_module ( graph_module_id );
 
 COMMIT;

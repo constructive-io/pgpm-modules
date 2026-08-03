@@ -30,5 +30,9 @@ CREATE TABLE metaschema_modules_public.crypto_addresses_module (
 );
 
 CREATE INDEX crypto_addresses_module_database_id_idx ON metaschema_modules_public.crypto_addresses_module ( database_id );
+CREATE INDEX crypto_addresses_module_owner_table_id_idx ON metaschema_modules_public.crypto_addresses_module ( owner_table_id );
+CREATE INDEX crypto_addresses_module_table_id_idx ON metaschema_modules_public.crypto_addresses_module ( table_id );
+CREATE INDEX crypto_addresses_module_private_schema_id_idx ON metaschema_modules_public.crypto_addresses_module ( private_schema_id );
+CREATE INDEX crypto_addresses_module_schema_id_idx ON metaschema_modules_public.crypto_addresses_module ( schema_id );
 
 COMMIT;

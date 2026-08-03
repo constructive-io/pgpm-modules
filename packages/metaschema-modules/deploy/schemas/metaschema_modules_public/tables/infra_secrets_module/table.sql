@@ -56,11 +56,12 @@ CREATE TABLE metaschema_modules_public.infra_secrets_module (
     CONSTRAINT infra_secrets_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
-CREATE INDEX infra_secrets_module_database_id_idx ON metaschema_modules_public.infra_secrets_module ( database_id );
 CREATE INDEX infra_secrets_module_schema_id_idx ON metaschema_modules_public.infra_secrets_module ( schema_id );
 CREATE INDEX infra_secrets_module_secrets_table_id_idx ON metaschema_modules_public.infra_secrets_module ( secrets_table_id );
 
 CREATE UNIQUE INDEX infra_secrets_module_unique_scope ON metaschema_modules_public.infra_secrets_module ( database_id, scope );
+CREATE INDEX infra_secrets_module_entity_table_id_idx ON metaschema_modules_public.infra_secrets_module ( entity_table_id );
+CREATE INDEX infra_secrets_module_private_schema_id_idx ON metaschema_modules_public.infra_secrets_module ( private_schema_id );
 
 COMMENT ON TABLE metaschema_modules_public.infra_secrets_module IS
     'Namespace-backed PGP-encrypted key-value secrets module. Requires namespace_module and emits namespace:sync_secrets job triggers for K8s Secret synchronization.';

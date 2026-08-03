@@ -66,5 +66,7 @@ CREATE TABLE metaschema_public.embedding_chunks (
 CREATE INDEX embedding_chunks_table_id_idx ON metaschema_public.embedding_chunks ( table_id );
 CREATE INDEX embedding_chunks_database_id_idx ON metaschema_public.embedding_chunks ( database_id );
 CREATE INDEX embedding_chunks_chunks_table_id_idx ON metaschema_public.embedding_chunks ( chunks_table_id );
+CREATE INDEX embedding_chunks_embedding_field_id_idx ON metaschema_public.embedding_chunks ( embedding_field_id );
+CREATE INDEX embedding_chunks_parent_fk_field_id_idx ON metaschema_public.embedding_chunks ( parent_fk_field_id );
 
 COMMIT;

@@ -30,7 +30,8 @@ ALTER TABLE metaschema_public.database
 CREATE UNIQUE INDEX databases_database_platform_singleton_idx
   ON metaschema_public.database (platform)
   WHERE platform;
+CREATE INDEX database_owner_id_idx ON metaschema_public.database ( owner_id );
 
-COMMENT ON COLUMN metaschema_public.database.schema_hash IS '@omit';
+COMMENT ON COLUMN metaschema_public.database.schema_hash IS '@behavior -*';
 
 COMMIT;

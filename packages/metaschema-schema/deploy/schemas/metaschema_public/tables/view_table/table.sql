@@ -29,7 +29,6 @@ CREATE TABLE metaschema_public.view_table (
 COMMENT ON TABLE metaschema_public.view_table IS 'Junction table linking views to their joined tables for referential integrity';
 
 CREATE INDEX view_table_database_id_idx ON metaschema_public.view_table ( database_id );
-CREATE INDEX view_table_view_id_idx ON metaschema_public.view_table ( view_id );
 CREATE INDEX view_table_table_id_idx ON metaschema_public.view_table ( table_id );
 
 COMMIT;

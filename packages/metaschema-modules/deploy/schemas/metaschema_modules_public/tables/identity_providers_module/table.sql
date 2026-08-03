@@ -51,13 +51,13 @@ CREATE TABLE metaschema_modules_public.identity_providers_module (
     CONSTRAINT entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
-CREATE INDEX identity_providers_module_database_id_idx ON metaschema_modules_public.identity_providers_module ( database_id );
 CREATE INDEX identity_providers_module_schema_id_idx ON metaschema_modules_public.identity_providers_module ( schema_id );
 CREATE INDEX identity_providers_module_private_schema_id_idx ON metaschema_modules_public.identity_providers_module ( private_schema_id );
 CREATE INDEX identity_providers_module_table_id_idx ON metaschema_modules_public.identity_providers_module ( table_id );
 
 -- One install per database per scope
 CREATE UNIQUE INDEX identity_providers_module_unique_scope ON metaschema_modules_public.identity_providers_module ( database_id, scope );
+CREATE INDEX identity_providers_module_entity_table_id_idx ON metaschema_modules_public.identity_providers_module ( entity_table_id );
 
 COMMENT ON TABLE metaschema_modules_public.identity_providers_module IS
     'Entity-aware config row for the identity_providers_module, which provisions a per-database
