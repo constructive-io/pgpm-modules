@@ -39,7 +39,6 @@ CREATE TABLE metaschema_public.primary_key_constraint (
 );
 
 
-CREATE INDEX primary_key_constraint_table_id_idx ON metaschema_public.primary_key_constraint ( table_id );
 CREATE INDEX primary_key_constraint_database_id_idx ON metaschema_public.primary_key_constraint ( database_id );
 
 COMMIT;

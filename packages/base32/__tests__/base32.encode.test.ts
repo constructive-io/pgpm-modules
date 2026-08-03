@@ -118,7 +118,7 @@ it('to_base32', async () => {
 cases(
   'base32.encode',
   async (opts: { name: string; result: string }) => {
-      const { encode } = await pg.one(
+    const { encode } = await pg.one(
       `SELECT base32.encode($1::text) AS encode`,
       [opts.name]
     );

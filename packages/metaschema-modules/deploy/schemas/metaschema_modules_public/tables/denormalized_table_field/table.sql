@@ -32,5 +32,9 @@ CREATE TABLE metaschema_modules_public.denormalized_table_field (
 );
 
 CREATE INDEX denormalized_table_field_database_id_idx ON metaschema_modules_public.denormalized_table_field ( database_id );
+CREATE INDEX denormalized_table_field_ref_table_id_idx ON metaschema_modules_public.denormalized_table_field ( ref_table_id );
+CREATE INDEX denormalized_table_field_table_id_idx ON metaschema_modules_public.denormalized_table_field ( table_id );
+CREATE INDEX denormalized_table_field_field_id_idx ON metaschema_modules_public.denormalized_table_field ( field_id );
+CREATE INDEX denormalized_table_field_ref_field_id_idx ON metaschema_modules_public.denormalized_table_field ( ref_field_id );
 
 COMMIT;

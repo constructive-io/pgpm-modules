@@ -86,10 +86,13 @@ CREATE TABLE metaschema_modules_public.app_module (
         ON DELETE CASCADE
 );
 
-CREATE INDEX app_module_database_id_idx
-    ON metaschema_modules_public.app_module (database_id);
-
 CREATE UNIQUE INDEX app_module_unique_scope
     ON metaschema_modules_public.app_module (database_id, scope);
+CREATE INDEX app_module_app_components_table_id_idx ON metaschema_modules_public.app_module ( app_components_table_id );
+CREATE INDEX app_module_apps_table_id_idx ON metaschema_modules_public.app_module ( apps_table_id );
+CREATE INDEX app_module_entity_table_id_idx ON metaschema_modules_public.app_module ( entity_table_id );
+CREATE INDEX app_module_private_schema_id_idx ON metaschema_modules_public.app_module ( private_schema_id );
+CREATE INDEX app_module_schema_id_idx ON metaschema_modules_public.app_module ( schema_id );
+CREATE INDEX app_module_catalog_module_id_idx ON metaschema_modules_public.app_module ( catalog_module_id );
 
 COMMIT;

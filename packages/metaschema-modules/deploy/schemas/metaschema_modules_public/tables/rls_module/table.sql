@@ -38,10 +38,15 @@ CREATE TABLE metaschema_modules_public.rls_module (
 );
 
 
-COMMENT ON CONSTRAINT db_fkey ON metaschema_modules_public.rls_module IS E'@omit';
-COMMENT ON CONSTRAINT session_credentials_table_fkey ON metaschema_modules_public.rls_module IS E'@omit';
-COMMENT ON CONSTRAINT sessions_table_fkey ON metaschema_modules_public.rls_module IS E'@omit';
-COMMENT ON CONSTRAINT users_table_fkey ON metaschema_modules_public.rls_module IS E'@omit';
-CREATE INDEX rls_module_database_id_idx ON metaschema_modules_public.rls_module ( database_id );
+COMMENT ON CONSTRAINT db_fkey ON metaschema_modules_public.rls_module IS E'@behavior -*';
+COMMENT ON CONSTRAINT session_credentials_table_fkey ON metaschema_modules_public.rls_module IS E'@behavior -*';
+COMMENT ON CONSTRAINT sessions_table_fkey ON metaschema_modules_public.rls_module IS E'@behavior -*';
+COMMENT ON CONSTRAINT users_table_fkey ON metaschema_modules_public.rls_module IS E'@behavior -*';
+
+CREATE INDEX rls_module_session_credentials_table_id_idx ON metaschema_modules_public.rls_module ( session_credentials_table_id );
+CREATE INDEX rls_module_sessions_table_id_idx ON metaschema_modules_public.rls_module ( sessions_table_id );
+CREATE INDEX rls_module_users_table_id_idx ON metaschema_modules_public.rls_module ( users_table_id );
+CREATE INDEX rls_module_private_schema_id_idx ON metaschema_modules_public.rls_module ( private_schema_id );
+CREATE INDEX rls_module_schema_id_idx ON metaschema_modules_public.rls_module ( schema_id );
 
 COMMIT;

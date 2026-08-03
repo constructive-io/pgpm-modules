@@ -56,11 +56,12 @@ CREATE TABLE metaschema_modules_public.internal_secrets_module (
     CONSTRAINT internal_secrets_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
-CREATE INDEX internal_secrets_module_database_id_idx ON metaschema_modules_public.internal_secrets_module ( database_id );
 CREATE INDEX internal_secrets_module_schema_id_idx ON metaschema_modules_public.internal_secrets_module ( schema_id );
 CREATE INDEX internal_secrets_module_internal_secrets_table_id_idx ON metaschema_modules_public.internal_secrets_module ( internal_secrets_table_id );
 
 CREATE UNIQUE INDEX internal_secrets_module_unique_scope ON metaschema_modules_public.internal_secrets_module ( database_id, scope );
+CREATE INDEX internal_secrets_module_entity_table_id_idx ON metaschema_modules_public.internal_secrets_module ( entity_table_id );
+CREATE INDEX internal_secrets_module_private_schema_id_idx ON metaschema_modules_public.internal_secrets_module ( private_schema_id );
 
 COMMENT ON TABLE metaschema_modules_public.internal_secrets_module IS
     'App-scoped PGP-encrypted internal secrets store. No namespace_module dependency and no K8s synchronization. Used by identity_providers_module for OAuth2 client_secret storage.';

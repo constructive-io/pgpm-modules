@@ -40,7 +40,6 @@ CREATE TABLE metaschema_public.domain_type (
 );
 
 
-CREATE INDEX domain_type_schema_id_idx ON metaschema_public.domain_type ( schema_id );
 CREATE INDEX domain_type_database_id_idx ON metaschema_public.domain_type ( database_id );
 
 COMMIT;

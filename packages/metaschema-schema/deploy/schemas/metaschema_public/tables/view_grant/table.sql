@@ -26,7 +26,6 @@ CREATE TABLE metaschema_public.view_grant (
 );
 
 
-CREATE INDEX view_grant_view_id_idx ON metaschema_public.view_grant ( view_id );
 CREATE INDEX view_grant_database_id_idx ON metaschema_public.view_grant ( database_id );
 
 COMMIT;

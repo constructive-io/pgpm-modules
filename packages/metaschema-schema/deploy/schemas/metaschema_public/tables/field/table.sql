@@ -70,7 +70,6 @@ CREATE TABLE metaschema_public.field (
 );
 
 
-CREATE INDEX field_table_id_idx ON metaschema_public.field ( table_id );
 CREATE INDEX field_database_id_idx ON metaschema_public.field ( database_id );
 
 COMMIT;

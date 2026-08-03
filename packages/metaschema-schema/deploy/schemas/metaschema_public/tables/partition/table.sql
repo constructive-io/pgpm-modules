@@ -43,5 +43,6 @@ CREATE TABLE metaschema_public.partition (
 
 CREATE INDEX partition_database_id_idx
   ON metaschema_public.partition (database_id);
+CREATE INDEX partition_partition_key_id_idx ON metaschema_public.partition ( partition_key_id );
 
 COMMIT;

@@ -53,6 +53,9 @@ CREATE TABLE metaschema_modules_public.inference_log_module (
   CONSTRAINT inference_log_module_database_id_prefix_unique UNIQUE NULLS NOT DISTINCT (database_id, prefix)
 );
 
-CREATE INDEX inference_log_module_database_id_idx ON metaschema_modules_public.inference_log_module ( database_id );
+CREATE INDEX inference_log_module_inference_log_table_id_idx ON metaschema_modules_public.inference_log_module ( inference_log_table_id );
+CREATE INDEX inference_log_module_usage_summary_table_id_idx ON metaschema_modules_public.inference_log_module ( usage_summary_table_id );
+CREATE INDEX inference_log_module_private_schema_id_idx ON metaschema_modules_public.inference_log_module ( private_schema_id );
+CREATE INDEX inference_log_module_schema_id_idx ON metaschema_modules_public.inference_log_module ( schema_id );
 
 COMMIT;

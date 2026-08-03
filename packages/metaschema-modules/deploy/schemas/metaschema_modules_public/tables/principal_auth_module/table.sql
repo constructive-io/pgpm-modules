@@ -41,17 +41,23 @@ CREATE TABLE metaschema_modules_public.principal_auth_module (
 );
 
 CREATE INDEX principal_auth_module_database_id_idx ON metaschema_modules_public.principal_auth_module ( database_id );
+CREATE INDEX principal_auth_module_principal_entities_table_id_idx ON metaschema_modules_public.principal_auth_module ( principal_entities_table_id );
+CREATE INDEX principal_auth_module_principals_table_id_idx ON metaschema_modules_public.principal_auth_module ( principals_table_id );
+CREATE INDEX principal_auth_module_session_credentials_table_id_idx ON metaschema_modules_public.principal_auth_module ( session_credentials_table_id );
+CREATE INDEX principal_auth_module_sessions_table_id_idx ON metaschema_modules_public.principal_auth_module ( sessions_table_id );
+CREATE INDEX principal_auth_module_users_table_id_idx ON metaschema_modules_public.principal_auth_module ( users_table_id );
+CREATE INDEX principal_auth_module_schema_id_idx ON metaschema_modules_public.principal_auth_module ( schema_id );
 
 COMMENT ON CONSTRAINT principals_table_fkey
-     ON metaschema_modules_public.principal_auth_module IS E'@omit';
+     ON metaschema_modules_public.principal_auth_module IS E'@behavior -*';
 COMMENT ON CONSTRAINT users_table_fkey
-     ON metaschema_modules_public.principal_auth_module IS E'@omit';
+     ON metaschema_modules_public.principal_auth_module IS E'@behavior -*';
 COMMENT ON CONSTRAINT sessions_table_fkey
-     ON metaschema_modules_public.principal_auth_module IS E'@omit';
+     ON metaschema_modules_public.principal_auth_module IS E'@behavior -*';
 COMMENT ON CONSTRAINT session_credentials_table_fkey
-     ON metaschema_modules_public.principal_auth_module IS E'@omit';
+     ON metaschema_modules_public.principal_auth_module IS E'@behavior -*';
 COMMENT ON CONSTRAINT principal_entities_table_fkey
-     ON metaschema_modules_public.principal_auth_module IS E'@omit';
+     ON metaschema_modules_public.principal_auth_module IS E'@behavior -*';
 
 COMMENT ON TABLE metaschema_modules_public.principal_auth_module IS 'Provisions the principals subsystem: a principals table, a principal_entities junction table, create/delete mutations, and org API key management. Supports both human-owned principals (AuthzDirectOwner, AuthzHumanOnly) and org-owned principals (AuthzEntityMembership with is_admin). Org principal and org API key functions are only generated when an org-scoped memberships_module exists for the database.';
 

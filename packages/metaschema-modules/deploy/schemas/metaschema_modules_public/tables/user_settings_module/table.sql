@@ -28,7 +28,9 @@ CREATE TABLE metaschema_modules_public.user_settings_module (
     CONSTRAINT owner_table_fkey FOREIGN KEY (owner_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
-CREATE INDEX user_settings_module_database_id_idx ON metaschema_modules_public.user_settings_module ( database_id );
 CREATE UNIQUE INDEX user_settings_module_unique_per_db ON metaschema_modules_public.user_settings_module ( database_id );
+CREATE INDEX user_settings_module_owner_table_id_idx ON metaschema_modules_public.user_settings_module ( owner_table_id );
+CREATE INDEX user_settings_module_table_id_idx ON metaschema_modules_public.user_settings_module ( table_id );
+CREATE INDEX user_settings_module_schema_id_idx ON metaschema_modules_public.user_settings_module ( schema_id );
 
 COMMIT;

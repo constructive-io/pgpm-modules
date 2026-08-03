@@ -59,7 +59,7 @@ afterEach(async () => {
 });
 
 it('newbie', async () => {
-    const steps = [
+  const steps = [
     'agree_to_terms',
     'accept_cookies',
     'accept_privacy',
@@ -98,7 +98,7 @@ it('newbie', async () => {
 });
 
 it('advanced', async () => {
-    const steps = [
+  const steps = [
     'agree_to_terms',
     'accept_cookies',
     'accept_privacy',
@@ -139,7 +139,7 @@ it('advanced', async () => {
 });
 
 it('advanced part II', async () => {
-    const partII = [['apply_for_verifier'], ['create_action', 2]];
+  const partII = [['apply_for_verifier'], ['create_action', 2]];
 
   for (const [name, required_count = 1] of partII) {
     await pg.any(
@@ -190,7 +190,7 @@ it('advanced part II', async () => {
 });
 
 it('advanced part III', async () => {
-    const partIII = [
+  const partIII = [
     ['apply_for_verifier'],
     ['approved_for_verifier'],
     ['create_action', 2]

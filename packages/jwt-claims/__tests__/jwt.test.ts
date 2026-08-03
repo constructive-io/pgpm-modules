@@ -52,3 +52,24 @@ it('get values', async () => {
   expect({ database_id }).toMatchSnapshot();
   expect({ user_id }).toMatchSnapshot();
 });
+
+it('current_database_id returns the claim when it is set', async () => {
+  await pg.any(`BEGIN`);
+  await pg.any(`SELECT set_config('jwt.claims.database_id', $1, true)`, [
+    jwt.database_id
+  ]);
+  const { database_id } = await pg.one(
+    `select jwt_private.current_database_id() as database_id`
+  );
+  await pg.any(`ROLLBACK`);
+
+  expect(database_id).toEqual(jwt.database_id);
+});
+
+it('current_database_id raises DATABASE_CLAIM_REQUIRED when the claim is absent', async () => {
+  await pg.any(`BEGIN`);
+  await expect(
+    pg.one(`select jwt_private.current_database_id()`)
+  ).rejects.toThrow('DATABASE_CLAIM_REQUIRED');
+  await pg.any(`ROLLBACK`);
+});

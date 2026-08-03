@@ -40,7 +40,6 @@ CREATE TABLE metaschema_public.derives (
   CONSTRAINT derives_table_source_uniq UNIQUE (table_id, source_table_id)
 );
 
-CREATE INDEX derives_table_id_idx ON metaschema_public.derives ( table_id );
 CREATE INDEX derives_source_table_id_idx ON metaschema_public.derives ( source_table_id );
 CREATE INDEX derives_database_id_idx ON metaschema_public.derives ( database_id );
 

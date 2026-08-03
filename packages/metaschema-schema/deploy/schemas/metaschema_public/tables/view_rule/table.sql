@@ -26,7 +26,6 @@ COMMENT ON COLUMN metaschema_public.view_rule.event IS 'INSERT, UPDATE, or DELET
 COMMENT ON COLUMN metaschema_public.view_rule.action IS 'NOTHING (for read-only) or custom action';
 
 
-CREATE INDEX view_rule_view_id_idx ON metaschema_public.view_rule ( view_id );
 CREATE INDEX view_rule_database_id_idx ON metaschema_public.view_rule ( database_id );
 
 COMMIT;

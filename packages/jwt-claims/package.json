@@ -24,6 +24,7 @@
     "pgpm": "^5"
   },
   "dependencies": {
+    "@pgpm/errors": "workspace:*",
     "@pgpm/types": "workspace:*",
     "@pgpm/verify": "workspace:*"
   },

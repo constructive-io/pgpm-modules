@@ -127,7 +127,6 @@ COMMENT ON COLUMN metaschema_modules_public.blueprint_template.updated_at IS
     'Timestamp when this template was last modified.';
 
 
-CREATE INDEX blueprint_template_owner_id_idx ON metaschema_modules_public.blueprint_template (owner_id);
 CREATE INDEX blueprint_template_visibility_idx ON metaschema_modules_public.blueprint_template (visibility);
 CREATE INDEX blueprint_template_forked_from_id_idx ON metaschema_modules_public.blueprint_template (forked_from_id);
 CREATE INDEX blueprint_template_categories_idx ON metaschema_modules_public.blueprint_template USING gin (categories);

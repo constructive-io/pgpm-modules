@@ -1,7 +1,8 @@
 jest.setTimeout(30000);
 
 import { getConnections, PgTestClient } from 'pgsql-test';
-import { FlowGraphHelper, createFlowGraphHelper, VDOMNode } from '../../test-utils';
+
+import { createFlowGraphHelper, FlowGraphHelper, VDOMNode } from '../../test-utils';
 
 /**
  * Transform VDOM tree (storage format) into RuntimeGraph (renderer format)

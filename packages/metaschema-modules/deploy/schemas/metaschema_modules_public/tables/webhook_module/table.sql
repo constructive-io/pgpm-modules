@@ -91,10 +91,16 @@ CREATE TABLE metaschema_modules_public.webhook_module (
         ON DELETE CASCADE
 );
 
-CREATE INDEX webhook_module_database_id_idx
-    ON metaschema_modules_public.webhook_module (database_id);
-
 CREATE UNIQUE INDEX webhook_module_unique_scope
     ON metaschema_modules_public.webhook_module (database_id, scope);
+CREATE INDEX webhook_module_webhook_endpoints_table_id_idx ON metaschema_modules_public.webhook_module ( webhook_endpoints_table_id );
+CREATE INDEX webhook_module_entity_table_id_idx ON metaschema_modules_public.webhook_module ( entity_table_id );
+CREATE INDEX webhook_module_webhook_events_table_id_idx ON metaschema_modules_public.webhook_module ( webhook_events_table_id );
+CREATE INDEX webhook_module_private_schema_id_idx ON metaschema_modules_public.webhook_module ( private_schema_id );
+CREATE INDEX webhook_module_schema_id_idx ON metaschema_modules_public.webhook_module ( schema_id );
+CREATE INDEX webhook_module_function_module_id_idx ON metaschema_modules_public.webhook_module ( function_module_id );
+CREATE INDEX webhook_module_function_invocation_module_id_idx ON metaschema_modules_public.webhook_module ( function_invocation_module_id );
+CREATE INDEX webhook_module_namespace_module_id_idx ON metaschema_modules_public.webhook_module ( namespace_module_id );
+CREATE INDEX webhook_module_infra_secrets_module_id_idx ON metaschema_modules_public.webhook_module ( infra_secrets_module_id );
 
 COMMIT;

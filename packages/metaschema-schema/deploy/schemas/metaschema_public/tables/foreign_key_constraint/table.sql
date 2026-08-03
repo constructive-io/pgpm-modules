@@ -51,7 +51,7 @@ CREATE TABLE metaschema_public.foreign_key_constraint (
 );
 
 
-CREATE INDEX foreign_key_constraint_table_id_idx ON metaschema_public.foreign_key_constraint ( table_id );
 CREATE INDEX foreign_key_constraint_database_id_idx ON metaschema_public.foreign_key_constraint ( database_id );
+CREATE INDEX foreign_key_constraint_ref_table_id_idx ON metaschema_public.foreign_key_constraint ( ref_table_id );
 
 COMMIT;

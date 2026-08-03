@@ -1,7 +1,8 @@
 jest.setTimeout(30000);
 
 import { getConnections, PgTestClient } from 'pgsql-test';
-import { ObjectTreeHelper, createObjectTreeHelper, VDOMNode, CommitInfo } from '../../test-utils';
+
+import { CommitInfo,createObjectTreeHelper, ObjectTreeHelper, VDOMNode } from '../../test-utils';
 
 const scope_id = 'd0f7ab73-356f-4aac-b9cb-d1a4274906d6';
 const store_id = 'c3d4e5f6-a7b8-9012-cdef-123456789012';

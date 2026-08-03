@@ -57,7 +57,6 @@ CREATE TABLE metaschema_public.spatial_relation (
     )
 );
 
-CREATE INDEX spatial_relation_table_id_idx     ON metaschema_public.spatial_relation ( table_id );
 CREATE INDEX spatial_relation_field_id_idx     ON metaschema_public.spatial_relation ( field_id );
 CREATE INDEX spatial_relation_database_id_idx  ON metaschema_public.spatial_relation ( database_id );
 CREATE INDEX spatial_relation_ref_table_id_idx ON metaschema_public.spatial_relation ( ref_table_id );

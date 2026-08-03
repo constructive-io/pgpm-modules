@@ -71,5 +71,6 @@ COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.out_fields IS
 
 CREATE INDEX secure_table_provision_database_id_idx ON metaschema_modules_public.secure_table_provision ( database_id );
 CREATE INDEX secure_table_provision_table_id_idx ON metaschema_modules_public.secure_table_provision ( table_id );
+CREATE INDEX secure_table_provision_schema_id_idx ON metaschema_modules_public.secure_table_provision ( schema_id );
 
 COMMIT;

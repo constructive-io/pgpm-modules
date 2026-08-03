@@ -20,6 +20,4 @@ CREATE TABLE metaschema_public.trigger_function (
   UNIQUE (database_id, name)
 );
 
-CREATE INDEX trigger_function_database_id_idx ON metaschema_public.trigger_function ( database_id );
-
 COMMIT;

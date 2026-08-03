@@ -75,6 +75,16 @@ CREATE TABLE metaschema_modules_public.profiles_module (
     CONSTRAINT profiles_module_unique UNIQUE (database_id, scope, prefix)
 );
 
-CREATE INDEX profiles_module_database_id_idx ON metaschema_modules_public.profiles_module ( database_id );
+CREATE INDEX profiles_module_actor_table_id_idx ON metaschema_modules_public.profiles_module ( actor_table_id );
+CREATE INDEX profiles_module_entity_table_id_idx ON metaschema_modules_public.profiles_module ( entity_table_id );
+CREATE INDEX profiles_module_memberships_table_id_idx ON metaschema_modules_public.profiles_module ( memberships_table_id );
+CREATE INDEX profiles_module_permissions_table_id_idx ON metaschema_modules_public.profiles_module ( permissions_table_id );
+CREATE INDEX profiles_module_profile_definition_grants_table_id_idx ON metaschema_modules_public.profiles_module ( profile_definition_grants_table_id );
+CREATE INDEX profiles_module_profile_grants_table_id_idx ON metaschema_modules_public.profiles_module ( profile_grants_table_id );
+CREATE INDEX profiles_module_profile_permissions_table_id_idx ON metaschema_modules_public.profiles_module ( profile_permissions_table_id );
+CREATE INDEX profiles_module_profile_templates_table_id_idx ON metaschema_modules_public.profiles_module ( profile_templates_table_id );
+CREATE INDEX profiles_module_table_id_idx ON metaschema_modules_public.profiles_module ( table_id );
+CREATE INDEX profiles_module_private_schema_id_idx ON metaschema_modules_public.profiles_module ( private_schema_id );
+CREATE INDEX profiles_module_schema_id_idx ON metaschema_modules_public.profiles_module ( schema_id );
 
 COMMIT;

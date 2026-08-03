@@ -31,7 +31,6 @@ CREATE TABLE metaschema_public.default_privilege (
 );
 
 
-CREATE INDEX default_privilege_schema_id_idx ON metaschema_public.default_privilege ( schema_id );
 CREATE INDEX default_privilege_database_id_idx ON metaschema_public.default_privilege ( database_id );
 
 COMMIT;

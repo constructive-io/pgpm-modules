@@ -152,8 +152,10 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
          (database_id, schema_id, functions_table_id,
           domains_table_id, apis_table_id, sites_table_id, namespaces_table_id,
           resources_table_id, resource_definitions_table_id,
-          resource_installations_table_id, apps_table_id, buckets_table_id, scope)
-       VALUES ($1, $2, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, 'app')`,
+          resource_installations_table_id, apps_table_id, buckets_table_id,
+          sites_web_config_table_id, sites_error_pages_table_id,
+          sites_app_links_table_id, sites_deep_links_table_id, scope)
+       VALUES ($1, $2, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, 'app')`,
       [TENANT_DB, catSchema.id, catTable.id]
     );
   });

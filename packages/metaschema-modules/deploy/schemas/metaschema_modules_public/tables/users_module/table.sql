@@ -29,5 +29,8 @@ CREATE TABLE metaschema_modules_public.users_module (
 );
 
 CREATE INDEX users_module_database_id_idx ON metaschema_modules_public.users_module ( database_id );
+CREATE INDEX users_module_table_id_idx ON metaschema_modules_public.users_module ( table_id );
+CREATE INDEX users_module_type_table_id_idx ON metaschema_modules_public.users_module ( type_table_id );
+CREATE INDEX users_module_schema_id_idx ON metaschema_modules_public.users_module ( schema_id );
 
 COMMIT;

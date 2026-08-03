@@ -29,5 +29,9 @@ CREATE TABLE metaschema_modules_public.connected_accounts_module (
 );
 
 CREATE INDEX connected_accounts_module_database_id_idx ON metaschema_modules_public.connected_accounts_module ( database_id );
+CREATE INDEX connected_accounts_module_owner_table_id_idx ON metaschema_modules_public.connected_accounts_module ( owner_table_id );
+CREATE INDEX connected_accounts_module_table_id_idx ON metaschema_modules_public.connected_accounts_module ( table_id );
+CREATE INDEX connected_accounts_module_private_schema_id_idx ON metaschema_modules_public.connected_accounts_module ( private_schema_id );
+CREATE INDEX connected_accounts_module_schema_id_idx ON metaschema_modules_public.connected_accounts_module ( schema_id );
 
 COMMIT;

@@ -39,7 +39,6 @@ CREATE TABLE metaschema_public.exclusion_constraint (
 );
 
 
-CREATE INDEX exclusion_constraint_table_id_idx ON metaschema_public.exclusion_constraint ( table_id );
 CREATE INDEX exclusion_constraint_database_id_idx ON metaschema_public.exclusion_constraint ( database_id );
 
 COMMIT;

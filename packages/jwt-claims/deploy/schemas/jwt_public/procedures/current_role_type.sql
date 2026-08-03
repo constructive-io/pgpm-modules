@@ -11,17 +11,8 @@ BEGIN;
 CREATE FUNCTION jwt_public.current_role_type()
   RETURNS text
 AS $$
-DECLARE
-  v_role_type text;
-BEGIN
-  v_role_type := current_setting('jwt.claims.role_type', TRUE);
-  IF v_role_type IS NOT NULL AND v_role_type <> '' THEN
-    RETURN v_role_type;
-  ELSE
-    RETURN 'user';
-  END IF;
-END;
+  SELECT coalesce(nullif(current_setting('jwt.claims.role_type', TRUE), ''), 'user');
 $$
-LANGUAGE 'plpgsql' STABLE;
+LANGUAGE 'sql' STABLE LEAKPROOF;
 
 COMMIT;

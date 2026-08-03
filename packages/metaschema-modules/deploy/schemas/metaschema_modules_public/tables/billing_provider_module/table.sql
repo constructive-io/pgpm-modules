@@ -60,6 +60,15 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   CONSTRAINT billing_provider_module_database_id_unique UNIQUE (database_id)
 );
 
-CREATE INDEX billing_provider_module_database_id_idx ON metaschema_modules_public.billing_provider_module ( database_id );
+CREATE INDEX billing_provider_module_billing_customers_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_customers_table_id );
+CREATE INDEX billing_provider_module_billing_prices_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_prices_table_id );
+CREATE INDEX billing_provider_module_billing_products_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_products_table_id );
+CREATE INDEX billing_provider_module_billing_subscriptions_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_subscriptions_table_id );
+CREATE INDEX billing_provider_module_billing_webhook_events_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_webhook_events_table_id );
+CREATE INDEX billing_provider_module_prices_table_id_idx ON metaschema_modules_public.billing_provider_module ( prices_table_id );
+CREATE INDEX billing_provider_module_products_table_id_idx ON metaschema_modules_public.billing_provider_module ( products_table_id );
+CREATE INDEX billing_provider_module_subscriptions_table_id_idx ON metaschema_modules_public.billing_provider_module ( subscriptions_table_id );
+CREATE INDEX billing_provider_module_private_schema_id_idx ON metaschema_modules_public.billing_provider_module ( private_schema_id );
+CREATE INDEX billing_provider_module_schema_id_idx ON metaschema_modules_public.billing_provider_module ( schema_id );
 
 COMMIT;

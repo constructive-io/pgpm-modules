@@ -55,11 +55,12 @@ CREATE TABLE metaschema_modules_public.infra_config_module (
     CONSTRAINT infra_config_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
-CREATE INDEX infra_config_module_database_id_idx ON metaschema_modules_public.infra_config_module ( database_id );
 CREATE INDEX infra_config_module_schema_id_idx ON metaschema_modules_public.infra_config_module ( schema_id );
 CREATE INDEX infra_config_module_config_table_id_idx ON metaschema_modules_public.infra_config_module ( config_table_id );
 
 CREATE UNIQUE INDEX infra_config_module_unique_scope ON metaschema_modules_public.infra_config_module ( database_id, scope );
+CREATE INDEX infra_config_module_entity_table_id_idx ON metaschema_modules_public.infra_config_module ( entity_table_id );
+CREATE INDEX infra_config_module_private_schema_id_idx ON metaschema_modules_public.infra_config_module ( private_schema_id );
 
 COMMENT ON TABLE metaschema_modules_public.infra_config_module IS
     'Namespace-backed plaintext key-value config module. Requires namespace_module and emits namespace:sync_config job triggers for K8s ConfigMap synchronization.';

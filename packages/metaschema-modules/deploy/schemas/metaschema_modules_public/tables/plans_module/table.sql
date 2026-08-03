@@ -61,6 +61,13 @@ CREATE TABLE metaschema_modules_public.plans_module (
   CONSTRAINT plans_module_database_id_unique UNIQUE (database_id)
 );
 
-CREATE INDEX plans_module_database_id_idx ON metaschema_modules_public.plans_module ( database_id );
+CREATE INDEX plans_module_plan_caps_table_id_idx ON metaschema_modules_public.plans_module ( plan_caps_table_id );
+CREATE INDEX plans_module_plan_limits_table_id_idx ON metaschema_modules_public.plans_module ( plan_limits_table_id );
+CREATE INDEX plans_module_plan_meter_limits_table_id_idx ON metaschema_modules_public.plans_module ( plan_meter_limits_table_id );
+CREATE INDEX plans_module_plan_overrides_table_id_idx ON metaschema_modules_public.plans_module ( plan_overrides_table_id );
+CREATE INDEX plans_module_plan_pricing_table_id_idx ON metaschema_modules_public.plans_module ( plan_pricing_table_id );
+CREATE INDEX plans_module_plans_table_id_idx ON metaschema_modules_public.plans_module ( plans_table_id );
+CREATE INDEX plans_module_private_schema_id_idx ON metaschema_modules_public.plans_module ( private_schema_id );
+CREATE INDEX plans_module_schema_id_idx ON metaschema_modules_public.plans_module ( schema_id );
 
 COMMIT;

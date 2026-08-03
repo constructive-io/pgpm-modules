@@ -66,7 +66,6 @@ COMMENT ON COLUMN metaschema_public.policy.with_check IS
   'Optional WITH CHECK override node {"$type": "Authz...", "data": {...}}. Only valid for UPDATE policies; NULL inherits the USING expression.';
 
 
-CREATE INDEX policy_table_id_idx ON metaschema_public.policy ( table_id );
 CREATE INDEX policy_database_id_idx ON metaschema_public.policy ( database_id );
 CREATE INDEX policy_derived_from_table_id_idx ON metaschema_public.policy ( derived_from_table_id ) WHERE derived_from_table_id IS NOT NULL;
 CREATE INDEX policy_derived_from_policy_id_idx ON metaschema_public.policy ( derived_from_policy_id ) WHERE derived_from_policy_id IS NOT NULL;

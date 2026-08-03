@@ -25,7 +25,9 @@ CREATE TABLE metaschema_modules_public.i18n_module (
     CONSTRAINT settings_table_fkey FOREIGN KEY (settings_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
-CREATE INDEX i18n_module_database_id_idx ON metaschema_modules_public.i18n_module ( database_id );
 CREATE UNIQUE INDEX i18n_module_unique_per_db ON metaschema_modules_public.i18n_module ( database_id );
+CREATE INDEX i18n_module_settings_table_id_idx ON metaschema_modules_public.i18n_module ( settings_table_id );
+CREATE INDEX i18n_module_private_schema_id_idx ON metaschema_modules_public.i18n_module ( private_schema_id );
+CREATE INDEX i18n_module_schema_id_idx ON metaschema_modules_public.i18n_module ( schema_id );
 
 COMMIT;

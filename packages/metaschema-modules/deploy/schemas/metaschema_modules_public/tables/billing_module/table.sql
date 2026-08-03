@@ -77,6 +77,14 @@ CREATE TABLE metaschema_modules_public.billing_module (
   CONSTRAINT billing_module_database_id_unique UNIQUE (database_id)
 );
 
-CREATE INDEX billing_module_database_id_idx ON metaschema_modules_public.billing_module ( database_id );
+CREATE INDEX billing_module_balances_table_id_idx ON metaschema_modules_public.billing_module ( balances_table_id );
+CREATE INDEX billing_module_ledger_table_id_idx ON metaschema_modules_public.billing_module ( ledger_table_id );
+CREATE INDEX billing_module_meter_credits_table_id_idx ON metaschema_modules_public.billing_module ( meter_credits_table_id );
+CREATE INDEX billing_module_meter_defaults_table_id_idx ON metaschema_modules_public.billing_module ( meter_defaults_table_id );
+CREATE INDEX billing_module_meter_sources_table_id_idx ON metaschema_modules_public.billing_module ( meter_sources_table_id );
+CREATE INDEX billing_module_meters_table_id_idx ON metaschema_modules_public.billing_module ( meters_table_id );
+CREATE INDEX billing_module_plan_subscriptions_table_id_idx ON metaschema_modules_public.billing_module ( plan_subscriptions_table_id );
+CREATE INDEX billing_module_private_schema_id_idx ON metaschema_modules_public.billing_module ( private_schema_id );
+CREATE INDEX billing_module_schema_id_idx ON metaschema_modules_public.billing_module ( schema_id );
 
 COMMIT;

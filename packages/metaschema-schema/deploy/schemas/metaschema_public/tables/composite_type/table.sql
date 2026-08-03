@@ -30,7 +30,6 @@ CREATE TABLE metaschema_public.composite_type (
   UNIQUE (schema_id, name)
 );
 
-CREATE INDEX composite_type_schema_id_idx ON metaschema_public.composite_type ( schema_id );
 CREATE INDEX composite_type_database_id_idx ON metaschema_public.composite_type ( database_id );
 
 COMMIT;

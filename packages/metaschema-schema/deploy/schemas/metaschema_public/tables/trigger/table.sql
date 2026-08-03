@@ -33,7 +33,6 @@ CREATE TABLE metaschema_public.trigger (
 );
 
 
-CREATE INDEX trigger_table_id_idx ON metaschema_public.trigger ( table_id );
 CREATE INDEX trigger_database_id_idx ON metaschema_public.trigger ( database_id );
 
 COMMIT;

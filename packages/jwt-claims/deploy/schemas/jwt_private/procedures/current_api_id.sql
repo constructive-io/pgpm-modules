@@ -5,30 +5,17 @@
 
 BEGIN;
 
--- Returns the current API UUID from the JWT claims
--- Used for API invocation provenance checks in RLS policies
--- Returns NULL if the claim is not set or invalid
+-- Returns NULL if the claim is not set, empty, or not a valid UUID
+-- pg_input_is_valid() validates without raising, so no EXCEPTION block is
+-- needed: an exception handler would open a subtransaction on every call
 CREATE FUNCTION jwt_private.current_api_id()
   RETURNS uuid
 AS $$
-DECLARE
-  v_identifier_id uuid;
-BEGIN
-  IF current_setting('jwt.claims.api_id', TRUE)
-    IS NOT NULL THEN
-    BEGIN
-      v_identifier_id = current_setting('jwt.claims.api_id', TRUE)::uuid;
-    EXCEPTION
-      WHEN OTHERS THEN
-      RAISE NOTICE 'Invalid UUID value';
-      RETURN NULL;
-    END;
-    RETURN v_identifier_id;
-  ELSE
-    RETURN NULL;
-  END IF;
-END;
+  SELECT CASE
+    WHEN pg_input_is_valid(current_setting('jwt.claims.api_id', TRUE), 'uuid')
+      THEN current_setting('jwt.claims.api_id', TRUE)::uuid
+  END;
 $$
-LANGUAGE 'plpgsql' STABLE;
+LANGUAGE 'sql' STABLE LEAKPROOF;
 
 COMMIT;

@@ -31,7 +31,6 @@ CREATE TABLE metaschema_public.enum (
 );
 
 
-CREATE INDEX enum_schema_id_idx ON metaschema_public.enum ( schema_id );
 CREATE INDEX enum_database_id_idx ON metaschema_public.enum ( database_id );
 
 COMMIT;

@@ -60,20 +60,27 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
 );
 
 CREATE INDEX user_auth_module_database_id_idx ON metaschema_modules_public.user_auth_module ( database_id );
+CREATE INDEX user_auth_module_emails_table_id_idx ON metaschema_modules_public.user_auth_module ( emails_table_id );
+CREATE INDEX user_auth_module_encrypted_table_id_idx ON metaschema_modules_public.user_auth_module ( encrypted_table_id );
+CREATE INDEX user_auth_module_secrets_table_id_idx ON metaschema_modules_public.user_auth_module ( secrets_table_id );
+CREATE INDEX user_auth_module_session_credentials_table_id_idx ON metaschema_modules_public.user_auth_module ( session_credentials_table_id );
+CREATE INDEX user_auth_module_sessions_table_id_idx ON metaschema_modules_public.user_auth_module ( sessions_table_id );
+CREATE INDEX user_auth_module_users_table_id_idx ON metaschema_modules_public.user_auth_module ( users_table_id );
+CREATE INDEX user_auth_module_schema_id_idx ON metaschema_modules_public.user_auth_module ( schema_id );
 
 COMMENT ON CONSTRAINT email_table_fkey
-     ON metaschema_modules_public.user_auth_module IS E'@omit';
+     ON metaschema_modules_public.user_auth_module IS E'@behavior -*';
 COMMENT ON CONSTRAINT users_table_fkey
-     ON metaschema_modules_public.user_auth_module IS E'@omit';
+     ON metaschema_modules_public.user_auth_module IS E'@behavior -*';
 COMMENT ON CONSTRAINT secrets_table_fkey
-     ON metaschema_modules_public.user_auth_module IS E'@omit';
+     ON metaschema_modules_public.user_auth_module IS E'@behavior -*';
 COMMENT ON CONSTRAINT encrypted_table_fkey
-     ON metaschema_modules_public.user_auth_module IS E'@omit';
+     ON metaschema_modules_public.user_auth_module IS E'@behavior -*';
 -- TOKENS_REMOVAL: tokens_table_fkey comment removed
 -- SESSION_MIGRATION: omit comments for sessions and session_credentials foreign keys
 COMMENT ON CONSTRAINT sessions_table_fkey
-     ON metaschema_modules_public.user_auth_module IS E'@omit';
+     ON metaschema_modules_public.user_auth_module IS E'@behavior -*';
 COMMENT ON CONSTRAINT session_credentials_table_fkey
-     ON metaschema_modules_public.user_auth_module IS E'@omit';
+     ON metaschema_modules_public.user_auth_module IS E'@behavior -*';
 
 COMMIT;

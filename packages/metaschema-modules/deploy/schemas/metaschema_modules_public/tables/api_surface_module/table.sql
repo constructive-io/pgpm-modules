@@ -27,14 +27,12 @@ CREATE TABLE metaschema_modules_public.api_surface_module (
     -- Generated table IDs (populated by the generator)
     apis_table_id uuid NOT NULL DEFAULT uuid_nil(),
     api_schemas_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    api_modules_table_id uuid NOT NULL DEFAULT uuid_nil(),
     api_settings_table_id uuid NOT NULL DEFAULT uuid_nil(),
     cors_settings_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- Table names (input to the generator)
     apis_table_name text NOT NULL DEFAULT 'apis',
     api_schemas_table_name text NOT NULL DEFAULT 'api_schemas',
-    api_modules_table_name text NOT NULL DEFAULT 'api_modules',
     api_settings_table_name text NOT NULL DEFAULT 'api_settings',
     cors_settings_table_name text NOT NULL DEFAULT 'cors_settings',
 
@@ -80,10 +78,6 @@ CREATE TABLE metaschema_modules_public.api_surface_module (
         FOREIGN KEY (api_schemas_table_id)
         REFERENCES metaschema_public.table (id)
         ON DELETE CASCADE,
-    CONSTRAINT api_module_api_modules_table_fkey
-        FOREIGN KEY (api_modules_table_id)
-        REFERENCES metaschema_public.table (id)
-        ON DELETE CASCADE,
     CONSTRAINT api_module_api_settings_table_fkey
         FOREIGN KEY (api_settings_table_id)
         REFERENCES metaschema_public.table (id)
@@ -98,10 +92,14 @@ CREATE TABLE metaschema_modules_public.api_surface_module (
         ON DELETE CASCADE
 );
 
-CREATE INDEX api_module_database_id_idx
-    ON metaschema_modules_public.api_surface_module (database_id);
-
 CREATE UNIQUE INDEX api_module_unique_scope
     ON metaschema_modules_public.api_surface_module (database_id, scope);
+CREATE INDEX api_surface_module_api_schemas_table_id_idx ON metaschema_modules_public.api_surface_module ( api_schemas_table_id );
+CREATE INDEX api_surface_module_api_settings_table_id_idx ON metaschema_modules_public.api_surface_module ( api_settings_table_id );
+CREATE INDEX api_surface_module_apis_table_id_idx ON metaschema_modules_public.api_surface_module ( apis_table_id );
+CREATE INDEX api_surface_module_cors_settings_table_id_idx ON metaschema_modules_public.api_surface_module ( cors_settings_table_id );
+CREATE INDEX api_surface_module_entity_table_id_idx ON metaschema_modules_public.api_surface_module ( entity_table_id );
+CREATE INDEX api_surface_module_schema_id_idx ON metaschema_modules_public.api_surface_module ( schema_id );
+CREATE INDEX api_surface_module_catalog_module_id_idx ON metaschema_modules_public.api_surface_module ( catalog_module_id );
 
 COMMIT;

@@ -53,6 +53,9 @@ CREATE TABLE metaschema_modules_public.storage_log_module (
   CONSTRAINT storage_log_module_database_id_scope_unique UNIQUE (database_id, scope)
 );
 
-CREATE INDEX storage_log_module_database_id_idx ON metaschema_modules_public.storage_log_module ( database_id );
+CREATE INDEX storage_log_module_storage_log_table_id_idx ON metaschema_modules_public.storage_log_module ( storage_log_table_id );
+CREATE INDEX storage_log_module_usage_summary_table_id_idx ON metaschema_modules_public.storage_log_module ( usage_summary_table_id );
+CREATE INDEX storage_log_module_private_schema_id_idx ON metaschema_modules_public.storage_log_module ( private_schema_id );
+CREATE INDEX storage_log_module_schema_id_idx ON metaschema_modules_public.storage_log_module ( schema_id );
 
 COMMIT;

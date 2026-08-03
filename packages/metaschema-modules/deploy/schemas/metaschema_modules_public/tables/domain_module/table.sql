@@ -103,10 +103,15 @@ CREATE TABLE metaschema_modules_public.domain_module (
         ON DELETE CASCADE
 );
 
-CREATE INDEX domain_module_database_id_idx
-    ON metaschema_modules_public.domain_module (database_id);
-
 CREATE UNIQUE INDEX domain_module_unique_scope
     ON metaschema_modules_public.domain_module (database_id, scope);
+CREATE INDEX domain_module_domains_table_id_idx ON metaschema_modules_public.domain_module ( domains_table_id );
+CREATE INDEX domain_module_entity_table_id_idx ON metaschema_modules_public.domain_module ( entity_table_id );
+CREATE INDEX domain_module_domain_events_table_id_idx ON metaschema_modules_public.domain_module ( domain_events_table_id );
+CREATE INDEX domain_module_managed_domains_table_id_idx ON metaschema_modules_public.domain_module ( managed_domains_table_id );
+CREATE INDEX domain_module_domain_verifications_table_id_idx ON metaschema_modules_public.domain_module ( domain_verifications_table_id );
+CREATE INDEX domain_module_private_schema_id_idx ON metaschema_modules_public.domain_module ( private_schema_id );
+CREATE INDEX domain_module_schema_id_idx ON metaschema_modules_public.domain_module ( schema_id );
+CREATE INDEX domain_module_catalog_module_id_idx ON metaschema_modules_public.domain_module ( catalog_module_id );
 
 COMMIT;
