@@ -1,6 +1,6 @@
 # pgpm-function-resolution extension
 comment = 'pgpm-function-resolution extension'
-default_version = '0.34.0'
+default_version = '0.35.0'
 module_pathname = '$libdir/pgpm-function-resolution'
 requires = 'plpgsql,pgpm-verify,metaschema-schema,metaschema-modules,pgpm-app-scope,pgpm-database-jobs,pgpm-jwt-claims'
 relocatable = false

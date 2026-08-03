@@ -1,6 +1,6 @@
 # pgpm-ltree-helpers extension
 comment = 'pgpm-ltree-helpers extension'
-default_version = '0.34.0'
+default_version = '0.35.0'
 module_pathname = '$libdir/pgpm-ltree-helpers'
 requires = 'plpgsql,ltree,pgpm-verify'
 relocatable = false
