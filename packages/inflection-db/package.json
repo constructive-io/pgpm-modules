@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/inflection-db",
-  "version": "0.35.0",
+  "version": "0.36.0",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
     "Constructive <developers@constructive.io>"

@@ -1,6 +1,6 @@
 # pgpm-app-scope extension
 comment = 'pgpm-app-scope extension'
-default_version = '0.35.0'
+default_version = '0.36.0'
 module_pathname = '$libdir/pgpm-app-scope'
 requires = 'plpgsql,pgpm-verify,metaschema-schema,metaschema-modules'
 relocatable = false

@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/app-scope",
-  "version": "0.35.0",
+  "version": "0.36.0",
   "description": "Portable scope-chain resolution primitive (ordered scope frames + platform database lookup)",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [

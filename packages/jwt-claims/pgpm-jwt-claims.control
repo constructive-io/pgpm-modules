@@ -1,6 +1,6 @@
 # pgpm-jwt-claims extension
 comment = 'pgpm-jwt-claims extension'
-default_version = '0.35.0'
+default_version = '0.36.0'
 module_pathname = '$libdir/pgpm-jwt-claims'
 requires = 'plpgsql,errors,pgpm-types,pgpm-verify'
 relocatable = false
