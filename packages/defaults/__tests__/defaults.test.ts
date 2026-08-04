@@ -206,6 +206,64 @@ describe('defaults security configurations', () => {
     });
   });
 
+  describe('schema public function grants', () => {
+    beforeEach(async () => {
+      await pg.any(`
+        CREATE FUNCTION public_grant_probe()
+        RETURNS text AS $$
+        BEGIN
+          RETURN 'probe';
+        END;
+        $$ LANGUAGE plpgsql;
+      `);
+    });
+
+    it('grants no role schema-wide execution, not even authenticated', async () => {
+      const [privileges] = await pg.any(`
+        SELECT
+          has_function_privilege('authenticated', 'public_grant_probe()', 'execute') as authenticated_can_execute,
+          has_function_privilege('administrator', 'public_grant_probe()', 'execute') as administrator_can_execute,
+          has_function_privilege('anonymous', 'public_grant_probe()', 'execute') as anonymous_can_execute
+      `);
+
+      // A function in schema public is reachable only by an explicit grant.
+      expect(privileges.authenticated_can_execute).toBe(false);
+      expect(privileges.administrator_can_execute).toBe(false);
+      expect(privileges.anonymous_can_execute).toBe(false);
+    });
+
+    it('leaves an explicit grant as the only way in', async () => {
+      await pg.any(`GRANT EXECUTE ON FUNCTION public_grant_probe() TO authenticated`);
+
+      const [privileges] = await pg.any(`
+        SELECT
+          has_function_privilege('authenticated', 'public_grant_probe()', 'execute') as authenticated_can_execute,
+          has_function_privilege('anonymous', 'public_grant_probe()', 'execute') as anonymous_can_execute
+      `);
+
+      expect(privileges.authenticated_can_execute).toBe(true);
+      expect(privileges.anonymous_can_execute).toBe(false);
+    });
+  });
+
+  describe('extension ordering', () => {
+    // The revoke is prospective, so an extension created after this module
+    // loses PUBLIC's EXECUTE and its functions become uncallable: pgpm-defaults
+    // must be the last requirement of any deployment that installs extensions.
+    it('leaves an extension created after it without PUBLIC execution', async () => {
+      await pg.any(`CREATE EXTENSION IF NOT EXISTS citext`);
+
+      const [privileges] = await pg.any(`
+        SELECT
+          has_function_privilege('public', 'citext_eq(citext,citext)', 'execute') as public_can_execute,
+          has_function_privilege('anonymous', 'citext_eq(citext,citext)', 'execute') as anonymous_can_execute
+      `);
+
+      expect(privileges.public_can_execute).toBe(false);
+      expect(privileges.anonymous_can_execute).toBe(false);
+    });
+  });
+
   describe('privilege inheritance', () => {
     it('should verify that new schemas inherit secure defaults', async () => {
       // Create a new schema
