@@ -19,9 +19,12 @@
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "deps": "pnpm up -r -i -L",
-    "version": "pgpm sync-versions && git add -A"
+    "version": "pgpm sync-versions && git add -A",
+    "policy": "pnpm-policy generate",
+    "policy:check": "pnpm-policy check"
   },
   "devDependencies": {
+    "@constructive-io/pnpm-policy": "0.2.1",
     "@types/jest": "^30.0.0",
     "@types/jest-in-case": "^1.0.3",
     "@types/node": "^22.10.4",
@@ -35,6 +38,7 @@
     "jest-in-case": "^1.0.2",
     "lerna": "^8.2.3",
     "pgsql-test": "^5.4.1",
+    "pnpm-policy": "^0.2.2",
     "prettier": "^3.0.2",
     "rimraf": "4.4.1",
     "ts-jest": "^29.4.5",

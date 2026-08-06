@@ -1,5 +1,79 @@
 packages:
   - packages/*
 
-onlyBuiltDependencies:
-  - nx
+# Exempt from the wait: 6 scope glob(s), 52 first-party package(s).
+# First-party membership comes from what pyramation publishes on npm — waiting on your own release protects nothing.
+minimumReleaseAgeExclude:
+  - "@constructive-db/*"
+  - "@constructive-io/*"
+  - "@launchql/*"
+  - "@pgpm/*"
+  - "@pgpmjs/*"
+  - "@pgsql/*"
+  - 12factor-env
+  - "@agentic-kit/ollama"
+  - "@agentic-kit/protocol"
+  - "@inquirerer/utils"
+  - appstash
+  - constructive-test
+  - csv-to-pg
+  - etag-hash
+  - find-and-require-package-json
+  - genomic
+  - gql-ast
+  - graphile-bucket-provisioner-plugin
+  - graphile-bulk-mutations
+  - graphile-cache
+  - graphile-connection-filter
+  - graphile-i18n
+  - graphile-llm
+  - graphile-ltree
+  - graphile-pg-aggregates
+  - graphile-plugin-utils
+  - graphile-postgis
+  - graphile-presigned-url-plugin
+  - graphile-realtime-subscriptions
+  - graphile-search
+  - graphile-settings
+  - graphile-upload-plugin
+  - inflekt
+  - inquirerer
+  - komoji
+  - libpg-query
+  - mime-bytes
+  - nested-obj
+  - pg-ast
+  - pg-cache
+  - pg-env
+  - pg-proto-parser
+  - pg-query-context
+  - pg-seed
+  - pgpm
+  - pgsql-client
+  - pgsql-deparser
+  - pgsql-parser
+  - pgsql-seed
+  - pgsql-test
+  - plpgsql-deparser
+  - plpgsql-parser
+  - pnpm-policy
+  - query-spec
+  - strfy-js
+  - uuid-hash
+  - yamlize
+  - yanse
+
+# Managed by pnpm-policy — run `pnpm-policy generate` after editing pnpm-policy.yaml.
+
+# A third-party release must be 2d old before it can be installed.
+# Most malicious releases are found and yanked well inside that window.
+minimumReleaseAge: 2880
+
+# Transitive dependencies must come from the registry, not from git or a URL.
+blockExoticSubdeps: true
+
+# The only dependencies permitted to run install scripts.
+allowBuilds:
+  "@launchql/protobufjs": true # compiles protobuf definitions via native bindings, pulled in through pg-proto-parser for the pgpm CLI toolchain
+  nx: true # native task-runner binary
+  unrs-resolver: true # native module resolver used by jest-resolve during test runs
