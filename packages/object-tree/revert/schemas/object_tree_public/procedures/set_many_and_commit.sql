@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION object_tree_public.set_many_and_commit(uuid, uuid, text, jsonb);
+DROP FUNCTION object_tree_public.set_many_and_commit(uuid, uuid, text, jsonb, text);
 
 COMMIT;

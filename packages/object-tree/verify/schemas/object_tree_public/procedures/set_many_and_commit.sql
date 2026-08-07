@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT assert_function('object_tree_public.set_many_and_commit(uuid, uuid, text, jsonb)'::regprocedure);
+SELECT assert_function('object_tree_public.set_many_and_commit(uuid, uuid, text, jsonb, text)'::regprocedure);
 
 ROLLBACK;
