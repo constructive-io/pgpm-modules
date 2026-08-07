@@ -8,6 +8,10 @@ import { getConnections, PgTestClient } from 'pgsql-test';
 // - email: must contain @ (value ~ '@')
 // - image: jsonb object requiring 'url' OR 'id' OR 'key', with type validation, optional bucket/provider/mime/versions (versions is array)
 // - upload: jsonb object requiring 'url' OR 'id' OR 'key', with type validation on all fields, optional bucket/provider/mime
+// both also carry the files-row projection keys: bucket_id (uuid string), size (number), filename (string)
+
+const fileId = '0d1e3d64-1e2a-4c7f-9c3a-6f7f9f2b1c44';
+const bucketId = '9a7f1c2e-4b6d-4a11-8f30-2c5d7e9a0b13';
 
 const validUrls = [
   'http://foo.com/blah_blah',
@@ -67,7 +71,9 @@ const validImages = [
   { key: 'some-image-key' },
   { id: 'private-image', bucket: 'my-bucket', provider: 's3' },
   { url: 'https://example.com/image.png', versions: ['thumb', 'medium', 'large'] },
-  { id: 'image-with-versions', versions: [{ size: 'thumb' }, { size: 'large' }] }
+  { id: 'image-with-versions', versions: [{ size: 'thumb' }, { size: 'large' }] },
+  { id: fileId, key: 'abc', mime: 'image/png', bucket_id: bucketId, size: 12345, filename: 'hero.png' },
+  { id: fileId, bucket_id: bucketId.toUpperCase() }
 ];
 
 const invalidImages = [
@@ -81,6 +87,10 @@ const invalidImages = [
   { url: 'https://example.com/image.png', provider: true },
   { url: 'https://example.com/image.png', mime: ['array'] },
   { url: 'https://example.com/image.png', versions: 'not-an-array' },
+  { id: fileId, bucket_id: 'not-a-uuid' },
+  { id: fileId, bucket_id: bucketId.replace(/-/g, '') },
+  { id: fileId, size: '12345' },
+  { id: fileId, filename: 42 },
   'not-an-object',
   ['array-not-object']
 ];
@@ -93,7 +103,9 @@ const validUploads = [
   { url: 'https://example.com/file.pdf', id: 'with-id' },
   { id: 'some-id', bucket: 'my-bucket', provider: 's3' },
   { key: 'some-key', mime: 'application/pdf' },
-  { url: 'https://example.com/file.pdf', bucket: 'bucket', provider: 'gcs', mime: 'application/pdf' }
+  { url: 'https://example.com/file.pdf', bucket: 'bucket', provider: 'gcs', mime: 'application/pdf' },
+  { id: fileId, key: 'abc', mime: 'application/pdf', bucket_id: bucketId, size: 12345, filename: 'contract.pdf' },
+  { id: fileId, bucket_id: bucketId.toUpperCase() }
 ];
 
 const invalidUploads = [
@@ -106,6 +118,10 @@ const invalidUploads = [
   { url: 'https://example.com/file.pdf', bucket: 123 },
   { url: 'https://example.com/file.pdf', provider: ['array'] },
   { id: 'some-id', mime: { nested: 'object' } },
+  { id: fileId, bucket_id: 'not-a-uuid' },
+  { id: fileId, bucket_id: bucketId.replace(/-/g, '') },
+  { id: fileId, size: '12345' },
+  { id: fileId, filename: 42 },
   'not-an-object',
   ['array-not-object']
 ];
@@ -315,6 +331,49 @@ describe('types', () => {
         }
         expect(failed).toBe(true);
       }
+    });
+  });
+
+  describe.each(['upload', 'image'])('%s files-row projection keys', (column) => {
+    const insert = (value: unknown) =>
+      pg.any(`INSERT INTO customers (${column}) VALUES ($1::json);`, [value]);
+
+    it('accepts the full projection of a files row', async () => {
+      await insert({
+        id: fileId,
+        key: 'e3b0c44298fc1c149afbf4c8996fb924',
+        mime: 'image/png',
+        bucket_id: bucketId,
+        size: 12345,
+        filename: 'hero.png'
+      });
+    });
+
+    it('rejects a bucket_id that is not a uuid', async () => {
+      await expect(insert({ id: fileId, bucket_id: 'not-a-uuid' })).rejects.toThrow();
+      await expect(insert({ id: fileId, bucket_id: '' })).rejects.toThrow();
+      await expect(insert({ id: fileId, bucket_id: `${bucketId}-extra` })).rejects.toThrow();
+      await expect(insert({ id: fileId, bucket_id: bucketId.replace(/-/g, '') })).rejects.toThrow();
+    });
+
+    it('rejects a bucket_id that is not a json string', async () => {
+      await expect(insert({ id: fileId, bucket_id: 12345 })).rejects.toThrow();
+      await expect(insert({ id: fileId, bucket_id: { uuid: bucketId } })).rejects.toThrow();
+    });
+
+    it('keeps url-only external references valid', async () => {
+      await insert({ url: 'https://gravatar.com/avatar/abc', mime: 'image/png' });
+    });
+
+    it('leaves the new keys optional', async () => {
+      await insert({ id: fileId });
+      await insert({ key: 'some-key' });
+    });
+
+    it('constrains size to a number and filename to a string', async () => {
+      await insert({ id: fileId, size: 0, filename: 'a.txt' });
+      await expect(insert({ id: fileId, size: '12345' })).rejects.toThrow();
+      await expect(insert({ id: fileId, filename: 42 })).rejects.toThrow();
     });
   });
 });
