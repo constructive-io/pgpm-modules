@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION inflection.slugify_trigger;
+DROP FUNCTION inflection.slugify_trigger();
 
 COMMIT;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection.upper');
+SELECT assert_function('inflection.upper(text)'::regprocedure);
 
 ROLLBACK;

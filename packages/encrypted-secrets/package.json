@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/encrypted-secrets",
-  "version": "0.36.0",
+  "version": "0.39.0",
   "description": "Encrypted secrets management for PostgreSQL",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [

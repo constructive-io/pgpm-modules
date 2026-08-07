@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT has_function_privilege('partman.run_maintenance_by_id(uuid, boolean)', 'execute');
+SELECT assert_function('partman.run_maintenance_by_id(uuid, bool)'::regprocedure);
 
 ROLLBACK;

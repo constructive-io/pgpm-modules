@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT has_function_privilege('partman.create_parent_by_id(uuid, text, text, text, int, text, boolean)', 'execute');
+SELECT assert_function('partman.create_parent_by_id(uuid, text, text, text, int4, text, bool)'::regprocedure);
 
 ROLLBACK;

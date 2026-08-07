@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT has_function_privilege('partman.remove_parent_by_id(uuid)', 'execute');
+SELECT assert_function('partman.remove_parent_by_id(uuid)'::regprocedure);
 
 ROLLBACK;

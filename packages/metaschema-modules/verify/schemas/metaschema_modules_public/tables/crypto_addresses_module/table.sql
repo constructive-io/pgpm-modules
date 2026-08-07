@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_modules_public.crypto_addresses_module');
+SELECT assert_table('metaschema_modules_public.crypto_addresses_module'::regclass);
 
 ROLLBACK;

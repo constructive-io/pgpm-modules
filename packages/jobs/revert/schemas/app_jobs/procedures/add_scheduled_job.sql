@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.add_scheduled_job;
+DROP FUNCTION app_jobs.add_scheduled_job(text, json, json, text, text, int4, int4);
 
 COMMIT;

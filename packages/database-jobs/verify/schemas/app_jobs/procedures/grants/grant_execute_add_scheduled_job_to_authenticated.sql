@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT has_function_privilege('authenticated', 'app_jobs.add_scheduled_job(text, json, json, text, text, integer, integer, uuid, uuid)', 'EXECUTE');
+SELECT assert_function_grant('app_jobs.add_scheduled_job(text, json, json, text, text, integer, integer, uuid, uuid)'::regprocedure, 'authenticated', 'EXECUTE');
 
 ROLLBACK;

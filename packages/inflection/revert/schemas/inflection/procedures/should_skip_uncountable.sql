@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION inflection.should_skip_uncountable;
+DROP FUNCTION inflection.should_skip_uncountable(text);
 
 COMMIT;

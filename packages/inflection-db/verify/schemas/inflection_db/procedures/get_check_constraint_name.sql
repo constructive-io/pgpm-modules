@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection_db.get_check_constraint_name');
+SELECT assert_function('inflection_db.get_check_constraint_name(text, text[])'::regprocedure);
 
 ROLLBACK;

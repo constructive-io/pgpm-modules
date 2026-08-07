@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_scope.dyn_lookup_uuid;
+DROP FUNCTION app_scope.dyn_lookup_uuid(text, text, text, uuid);
 
 COMMIT;

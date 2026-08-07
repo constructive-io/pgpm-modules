@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.json_build_object_apply;
+DROP FUNCTION app_jobs.json_build_object_apply(text[]);
 
 COMMIT;

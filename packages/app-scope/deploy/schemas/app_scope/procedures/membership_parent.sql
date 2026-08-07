@@ -1,5 +1,6 @@
 -- Deploy schemas/app_scope/procedures/membership_parent to pg
 -- requires: schemas/app_scope/schema
+-- requires: schemas/app_scope/procedures/projected_parent
 -- requires: metaschema-schema:schemas/metaschema_public/tables/table/table
 -- requires: metaschema-modules:schemas/metaschema_modules_public/tables/memberships_module/table
 -- requires: metaschema-modules:schemas/metaschema_modules_public/tables/membership_types_module/table
@@ -10,14 +11,27 @@ BEGIN;
 -- scope to climb to, and the runtime entity table + owner FK column used to walk
 -- to the parent row.
 --
--- The runtime membership_types table (resolved per database) supplies the type
--- ints; metaschema_modules_public.memberships_module supplies the entity table
--- and owner field. Returns no row when the scope is not a membership scope
+-- The type ints come from app_scope.projected_parent — one static query over the
+-- published scope type projection — and fall back to probing the runtime
+-- membership_types table only when the projection cannot answer.
+-- metaschema_modules_public.memberships_module supplies the entity table and owner
+-- field either way. Returns no row when the scope is not a membership scope
 -- (e.g. `app`), signalling the caller to stop the membership walk.
 --
--- The per-database membership_types probe is a dynamic SELECT against a
--- dynamically-named table, built with format()/quote_ident + EXECUTE ... USING
--- (identifier is data, values are bound params). No AST/deparser dependency.
+-- The projection answers in a database deployed from the published platform
+-- modules, where its schema carries the stable name. The fallback covers the two
+-- places that name cannot exist: a live-provisioned platform database, whose
+-- planes sit under the database's schema hash until an export stabilises them,
+-- and a database with no scope plane installed. That probe is a dynamic SELECT
+-- against a dynamically-named table, built with format()/quote_ident +
+-- EXECUTE ... USING (identifier is data, values are bound params) — no
+-- AST/deparser dependency, so it stays portable into any provisioned database.
+--
+-- The two paths must answer identically or the climb is wrong, so they are
+-- asserted against each other in
+-- packages/metaschema/__tests__/modules/scope-types.test.ts. The dynamic half is
+-- deleted once every environment the climb runs in deploys the published module —
+-- see docs/architecture/platform-publication-pipeline.md.
 CREATE FUNCTION app_scope.membership_parent(
     database_id uuid,
     scope text
@@ -39,45 +53,56 @@ DECLARE
     v_entity_table_owner_id uuid;
     v_query text;
 BEGIN
-    SELECT mtm.table_id
-    INTO v_types_table_id
-    FROM metaschema_modules_public.membership_types_module mtm
-    WHERE mtm.database_id = membership_parent.database_id;
-
-    IF v_types_table_id IS NULL THEN
-        RETURN;
-    END IF;
-
-    -- Locate the physical membership_types table (inline schema_and_table).
-    SELECT s.schema_name, t.name
-    INTO v_types_schema, v_types_table
-    FROM metaschema_public.schema s
-    JOIN metaschema_public."table" t ON (t.schema_id = s.id AND t.database_id = s.database_id)
-    WHERE t.id = v_types_table_id;
-
-    IF NOT FOUND THEN
-        RETURN;
-    END IF;
-
-    -- SELECT id, parent_membership_type FROM "<types>" WHERE scope = $1
-    v_query := format(
-        'SELECT id, parent_membership_type FROM %I.%I WHERE scope = $1',
-        v_types_schema, v_types_table
-    );
-    EXECUTE v_query INTO v_membership_type, v_parent_membership_type USING membership_parent.scope;
+    -- Projection first: both hops in one static query, and no metadata lookups to
+    -- locate a hash-named table.
+    SELECT pp.membership_type, pp.parent_scope
+    INTO v_membership_type, v_parent_scope
+    FROM app_scope.projected_parent(
+        membership_parent.database_id,
+        membership_parent.scope
+    ) pp;
 
     IF v_membership_type IS NULL THEN
-        RETURN;
-    END IF;
+        SELECT mtm.table_id
+        INTO v_types_table_id
+        FROM metaschema_modules_public.membership_types_module mtm
+        WHERE mtm.database_id = membership_parent.database_id;
 
-    -- Resolve the parent scope name (custom/org/app parents alike).
-    IF v_parent_membership_type IS NOT NULL THEN
-        -- SELECT scope FROM "<types>" WHERE id = $1
+        IF v_types_table_id IS NULL THEN
+            RETURN;
+        END IF;
+
+        -- Locate the physical membership_types table (inline schema_and_table).
+        SELECT s.schema_name, t.name
+        INTO v_types_schema, v_types_table
+        FROM metaschema_public.schema s
+        JOIN metaschema_public."table" t ON (t.schema_id = s.id AND t.database_id = s.database_id)
+        WHERE t.id = v_types_table_id;
+
+        IF NOT FOUND THEN
+            RETURN;
+        END IF;
+
+        -- SELECT id, parent_membership_type FROM "<types>" WHERE scope = $1
         v_query := format(
-            'SELECT scope FROM %I.%I WHERE id = $1',
+            'SELECT id, parent_membership_type FROM %I.%I WHERE scope = $1',
             v_types_schema, v_types_table
         );
-        EXECUTE v_query INTO v_parent_scope USING v_parent_membership_type;
+        EXECUTE v_query INTO v_membership_type, v_parent_membership_type USING membership_parent.scope;
+
+        IF v_membership_type IS NULL THEN
+            RETURN;
+        END IF;
+
+        -- Resolve the parent scope name (custom/org/app parents alike).
+        IF v_parent_membership_type IS NOT NULL THEN
+            -- SELECT scope FROM "<types>" WHERE id = $1
+            v_query := format(
+                'SELECT scope FROM %I.%I WHERE id = $1',
+                v_types_schema, v_types_table
+            );
+            EXECUTE v_query INTO v_parent_scope USING v_parent_membership_type;
+        END IF;
     END IF;
 
     -- Entity table + owner FK for the current scope (static metaschema config).

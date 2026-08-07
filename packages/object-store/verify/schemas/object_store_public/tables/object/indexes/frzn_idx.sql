@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_index ('object_store_public.object', 'frzn_idx');
+SELECT assert_index('object_store_public.frzn_idx'::regclass, 'object_store_public.object'::regclass);
 
 ROLLBACK;

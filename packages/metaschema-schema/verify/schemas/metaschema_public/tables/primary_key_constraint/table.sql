@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_public.primary_key_constraint');
+SELECT assert_table('metaschema_public.primary_key_constraint'::regclass);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection.no_consecutive_caps');
+SELECT assert_function('inflection.no_consecutive_caps(text)'::regprocedure);
 
 ROLLBACK;

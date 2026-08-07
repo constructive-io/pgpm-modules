@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_public.schema_grant');
+SELECT assert_table('metaschema_public.schema_grant'::regclass);
 
 ROLLBACK;

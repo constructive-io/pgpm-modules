@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_schema ('uuids');
+SELECT assert_schema('uuids'::regnamespace);
 
 ROLLBACK;

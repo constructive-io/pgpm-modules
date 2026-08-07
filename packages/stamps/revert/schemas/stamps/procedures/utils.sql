@@ -2,7 +2,7 @@
 
 BEGIN;
 
-DROP FUNCTION stamps.peoplestamps();
 DROP FUNCTION stamps.timestamps();
+DROP FUNCTION stamps.peoplestamps();
 
 COMMIT;

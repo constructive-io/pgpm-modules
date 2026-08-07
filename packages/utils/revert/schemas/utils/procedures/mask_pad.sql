@@ -2,6 +2,7 @@
 
 BEGIN;
 
-DROP FUNCTION utils.mask_pad;
+DROP FUNCTION utils.bitmask_pad(varbit, int4, text);
+DROP FUNCTION utils.mask_pad(text, int4, text);
 
 COMMIT;

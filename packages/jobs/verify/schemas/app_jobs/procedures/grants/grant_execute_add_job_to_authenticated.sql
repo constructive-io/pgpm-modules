@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT has_function_privilege('authenticated', 'app_jobs.add_job(text, json, text, text, timestamptz, integer, integer)', 'EXECUTE');
+SELECT assert_function_grant('app_jobs.add_job(text, json, text, text, timestamptz, integer, integer)'::regprocedure, 'authenticated', 'EXECUTE');
 
 ROLLBACK;

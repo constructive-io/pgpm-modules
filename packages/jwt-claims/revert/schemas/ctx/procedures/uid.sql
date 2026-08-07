@@ -2,7 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION ctx.uid;
+DROP FUNCTION ctx.uid();
 
 COMMIT;
-

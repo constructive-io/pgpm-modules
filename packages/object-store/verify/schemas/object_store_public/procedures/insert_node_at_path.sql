@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('object_store_public.insert_node_at_path');
+SELECT assert_function('object_store_public.insert_node_at_path(uuid, uuid, text[], jsonb, uuid[], text[])'::regprocedure);
 
 ROLLBACK;

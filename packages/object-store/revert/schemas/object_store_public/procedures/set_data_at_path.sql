@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION object_store_public.set_data_at_path;
+DROP FUNCTION object_store_public.set_data_at_path(uuid, uuid, text[], jsonb);
 
 COMMIT;

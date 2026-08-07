@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_domain ('public.geo_point');
+SELECT assert_domain('public.geo_point'::regtype, 'geometry'::regtype, _constraints => 0);
 
 ROLLBACK;

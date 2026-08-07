@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_schema ('inflection');
+SELECT assert_schema('inflection'::regnamespace);
 
 ROLLBACK;

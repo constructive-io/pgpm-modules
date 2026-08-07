@@ -3,6 +3,6 @@
 BEGIN;
 
 
-SELECT verify_trigger ('app_jobs._900_notify_scheduled_job');
+SELECT assert_trigger('app_jobs.scheduled_jobs'::regclass, '_900_notify_scheduled_job', 'app_jobs.do_notify'::regproc, 5);
 
 ROLLBACK;

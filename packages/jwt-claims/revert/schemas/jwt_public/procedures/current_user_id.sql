@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION jwt_public.current_user_id;
+DROP FUNCTION jwt_public.current_user_id();
 
 COMMIT;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT inflection_db.get_namespace_name(ARRAY['test']::text[]);
+SELECT assert_function('inflection_db.get_namespace_name(text[])'::regprocedure);
 
 ROLLBACK;

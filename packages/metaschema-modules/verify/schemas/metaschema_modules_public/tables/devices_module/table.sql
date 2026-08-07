@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_modules_public.devices_module');
+SELECT assert_table('metaschema_modules_public.devices_module'::regclass);
 
 ROLLBACK;

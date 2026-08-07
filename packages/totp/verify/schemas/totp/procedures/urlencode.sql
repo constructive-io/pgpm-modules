@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('totp.urlencode');
+SELECT assert_function('totp.urlencode(text)'::regprocedure);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.get_scheduled_job;
+DROP FUNCTION app_jobs.get_scheduled_job(text, text[]);
 
 COMMIT;

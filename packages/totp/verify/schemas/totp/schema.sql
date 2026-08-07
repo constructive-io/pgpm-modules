@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_schema ('totp');
+SELECT assert_schema('totp'::regnamespace);
 
 ROLLBACK;

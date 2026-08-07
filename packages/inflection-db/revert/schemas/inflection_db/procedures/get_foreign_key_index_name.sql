@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION inflection_db.get_foreign_key_index_name;
+DROP FUNCTION inflection_db.get_foreign_key_index_name(text, text);
 
 COMMIT;

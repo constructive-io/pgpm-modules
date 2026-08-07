@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION function_resolution.definitions_location;
+DROP FUNCTION function_resolution.definitions_location(uuid, text);
 
 COMMIT;

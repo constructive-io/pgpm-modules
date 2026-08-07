@@ -3,7 +3,7 @@
 exports[`commits create a ref 1`] = `
 [
   {
-    "set_and_commit": "1e6e8275-58c4-5d05-b79a-6d84d119dbfa",
+    "tree_hash": "1e6e8275-58c4-5d05-b79a-6d84d119dbfa",
   },
 ]
 `;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_public.foreign_key_constraint');
+SELECT assert_table('metaschema_public.foreign_key_constraint'::regclass);
 
 ROLLBACK;

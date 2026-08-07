@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_jobs.schedule_min_interval_seconds');
+SELECT assert_function('app_jobs.schedule_min_interval_seconds(json)'::regprocedure);
 
 ROLLBACK;

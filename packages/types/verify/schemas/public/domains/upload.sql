@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_domain ('public.upload');
+SELECT assert_domain('public.upload'::regtype, 'jsonb'::regtype, _constraints => 1);
 
 ROLLBACK;

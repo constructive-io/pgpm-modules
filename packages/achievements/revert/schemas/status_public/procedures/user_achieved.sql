@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION status_public.user_achieved;
+DROP FUNCTION status_public.user_achieved(text, uuid);
 
 COMMIT;

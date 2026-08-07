@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('totp.generate');
+SELECT assert_function('totp.generate(text, int4, int4, timestamptz, text, text, int4)'::regprocedure);
 
 ROLLBACK;

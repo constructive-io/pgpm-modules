@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_jobs.add_job');
+SELECT assert_function('app_jobs.add_job(text, json, text, text, timestamptz, int4, int4, uuid, uuid, text, uuid, text, uuid)'::regprocedure);
 
 ROLLBACK;

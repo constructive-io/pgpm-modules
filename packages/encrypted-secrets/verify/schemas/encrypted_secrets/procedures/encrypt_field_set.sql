@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('encrypted_secrets.encrypt_field_set');
+SELECT assert_function('encrypted_secrets.encrypt_field_set(text)'::regprocedure);
 
 ROLLBACK;

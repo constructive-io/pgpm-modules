@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_index ('app_jobs.scheduled_jobs', 'scheduled_jobs_locked_by_idx');
+SELECT assert_index('app_jobs.scheduled_jobs_locked_by_idx'::regclass, 'app_jobs.scheduled_jobs'::regclass);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('inflection.inflection_rules');
+SELECT assert_table('inflection.inflection_rules'::regclass);
 
 ROLLBACK;

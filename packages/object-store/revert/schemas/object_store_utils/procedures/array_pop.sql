@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION object_store_utils.array_pop;
+DROP FUNCTION object_store_utils.array_pop(anyarray);
 
 COMMIT;

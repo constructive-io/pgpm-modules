@@ -172,7 +172,7 @@ describe('app_scope scope frames (membership climb + platform fall-through)', ()
     ]);
   });
 
-  it('frames(): custom entity climb then full platform fall-through (8 frames)', async () => {
+  it('frames(): custom entity climb then full platform fall-through (9 frames)', async () => {
     const rows = await pg.any(
       `SELECT scope, lookup_database_id, key_value
        FROM app_scope.frames($1, 'team', $2)`,
@@ -184,6 +184,10 @@ describe('app_scope scope frames (membership climb + platform fall-through)', ()
       { scope: 'department', lookup_database_id: TENANT_DB, key_value: DEPT_ID },
       { scope: 'org', lookup_database_id: TENANT_DB, key_value: ORG_ID },
       { scope: 'app', lookup_database_id: TENANT_DB, key_value: null },
+      // the tenant's OWN database frame precedes the platform fall-through, so a
+      // surface the tenant provisioned for itself outranks the shared platform
+      // plane the fall-through serves for the same tenant key.
+      { scope: 'database', lookup_database_id: TENANT_DB, key_value: TENANT_DB },
       // platform database full chain, then the global platform terminal.
       // The fall-through database frame is re-keyed by the EXECUTION database:
       // rows the tenant sees on this shared plane are keyed by the tenant's id.

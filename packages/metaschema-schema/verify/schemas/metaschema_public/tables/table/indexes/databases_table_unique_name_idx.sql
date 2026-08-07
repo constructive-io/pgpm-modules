@@ -1,6 +1,6 @@
 
 BEGIN;
 
-SELECT verify_index ('metaschema_public.table', 'databases_table_unique_name_idx');
+SELECT assert_index('metaschema_public.databases_table_unique_name_idx'::regclass, 'metaschema_public.table'::regclass, true);
 
 ROLLBACK;

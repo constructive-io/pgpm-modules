@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION object_store_public.freeze_objects;
+DROP FUNCTION object_store_public.freeze_objects(uuid, uuid);
 
 COMMIT;

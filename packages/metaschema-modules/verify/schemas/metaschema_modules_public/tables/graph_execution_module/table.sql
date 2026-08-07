@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_modules_public.graph_execution_module');
+SELECT assert_table('metaschema_modules_public.graph_execution_module'::regclass);
 
 ROLLBACK;

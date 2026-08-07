@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION encrypted_secrets.encrypt_field_crypt_verify;
+DROP FUNCTION encrypted_secrets.encrypt_field_crypt_verify(uuid, text, text);
 
 COMMIT;

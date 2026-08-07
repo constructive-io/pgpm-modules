@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection.dashed');
+SELECT assert_function('inflection.dashed(text)'::regprocedure);
 
 ROLLBACK;

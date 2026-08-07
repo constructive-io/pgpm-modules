@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('status_public.user_steps');
+SELECT assert_table('status_public.user_steps'::regclass);
 
 ROLLBACK;

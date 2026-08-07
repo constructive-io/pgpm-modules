@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_schema ('function_resolution');
+SELECT assert_schema('function_resolution'::regnamespace);
 
 ROLLBACK;

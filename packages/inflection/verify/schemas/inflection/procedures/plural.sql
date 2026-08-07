@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection.plural');
+SELECT assert_function('inflection.plural(text)'::regprocedure);
 
 ROLLBACK;

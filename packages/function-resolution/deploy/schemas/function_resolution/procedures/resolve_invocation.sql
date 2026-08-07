@@ -1,7 +1,7 @@
 -- Deploy schemas/function_resolution/procedures/resolve_invocation to pg
 -- requires: schemas/function_resolution/schema
 -- requires: schemas/function_resolution/procedures/resolve
--- requires: schemas/function_resolution/procedures/catalog_location
+-- requires: metaschema-modules:schemas/metaschema_modules_public/tables/catalog_module/table
 -- requires: pgpm-app-scope:schemas/app_scope/procedures/frames
 
 BEGIN;
@@ -16,7 +16,11 @@ BEGIN;
 --     typed functions catalog of the declared scope's frame database. The
 --     scope's lookup database + key come from app_scope.frames, so validation
 --     keys exactly like resolution (e.g. an `org` pair keys by the owning org,
---     not the database). A frame database without a functions catalog raises
+--     not the database). Validation is static SQL against
+--     catalog_private.functions, keyed by the same database_id the catalog-sync
+--     triggers stamp (the scope key at database scope, the writing database
+--     otherwise), so one tenant's pair can never be validated against another's
+--     row. A frame database without a functions catalog raises
 --     FUNCTION_RESOLUTION_CATALOG_UNAVAILABLE (SQLSTATE FR001).
 --   * otherwise: resolve deterministically across scopes. Definition-less
 --     invocations stay allowed (require_definition => false), leaving both
@@ -38,8 +42,7 @@ DECLARE
     v_lookup_db uuid;
     v_probe_key uuid;
     v_found uuid;
-    v_catalog_schema text;
-    v_catalog_table text;
+    v_expected_db uuid;
 BEGIN
     -- API-provenance path (api_binding_id present) must declare its definition
     -- explicitly — the function_callable_check policy verifies the binding
@@ -67,27 +70,42 @@ BEGIN
             v_lookup_db := database_id;
         END IF;
 
-        SELECT l.schema_name, l.table_name
-        INTO v_catalog_schema, v_catalog_table
-        FROM function_resolution.catalog_location(v_lookup_db) l;
-
-        IF v_catalog_schema IS NULL THEN
+        IF NOT EXISTS (
+            SELECT 1
+            FROM metaschema_modules_public.catalog_module cm
+            WHERE cm.database_id = v_lookup_db
+              AND cm.functions_table_id IS NOT NULL
+              AND cm.functions_table_id <> uuid_nil()
+        ) THEN
             RAISE EXCEPTION 'FUNCTION_RESOLUTION_CATALOG_UNAVAILABLE: database % has no functions catalog to validate pair against (task_identifier "%")',
                 v_lookup_db, task_identifier
                 USING ERRCODE = 'FR001';
         END IF;
 
-        -- Same two-pass keying as resolution: the exact scope-key row wins,
-        -- the scope-default (owner_key IS NULL) row only as fallback.
-        EXECUTE format(
-            'SELECT id FROM %I.%I WHERE owner_scope = $1 AND task_identifier = $2 AND owner_key = $3',
-            v_catalog_schema, v_catalog_table
-        ) INTO v_found USING v_scope, task_identifier, v_probe_key;
+        -- Same two-pass keying as resolution: the exact scope-key row wins, the
+        -- scope-default (owner_key IS NULL) row only as fallback. Both carry the
+        -- shared plane's row-identity predicate.
+        v_expected_db := CASE
+            WHEN v_scope = 'database' AND v_probe_key IS NOT NULL THEN v_probe_key
+            ELSE v_lookup_db
+        END;
+
+        SELECT c.id
+        INTO v_found
+        FROM catalog_private.functions c
+        WHERE c.owner_scope = v_scope
+          AND c.task_identifier = resolve_invocation.task_identifier
+          AND c.owner_key = v_probe_key
+          AND c.database_id = v_expected_db;
+
         IF v_found IS NULL THEN
-            EXECUTE format(
-                'SELECT id FROM %I.%I WHERE owner_scope = $1 AND task_identifier = $2 AND owner_key IS NULL',
-                v_catalog_schema, v_catalog_table
-            ) INTO v_found USING v_scope, task_identifier;
+            SELECT c.id
+            INTO v_found
+            FROM catalog_private.functions c
+            WHERE c.owner_scope = v_scope
+              AND c.task_identifier = resolve_invocation.task_identifier
+              AND c.owner_key IS NULL
+              AND c.database_id = v_lookup_db;
         END IF;
 
         IF v_found IS DISTINCT FROM existing_id THEN

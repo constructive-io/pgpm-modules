@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('object_store_public.freeze_objects');
+SELECT assert_function('object_store_public.freeze_objects(uuid, uuid)'::regprocedure);
 
 ROLLBACK;

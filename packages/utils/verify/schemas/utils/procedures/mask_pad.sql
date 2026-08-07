@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('utils.mask_pad');
+SELECT assert_function('utils.mask_pad(text, int4, text)'::regprocedure);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION inflection.camel;
+DROP FUNCTION inflection.camel(text);
 
 COMMIT;

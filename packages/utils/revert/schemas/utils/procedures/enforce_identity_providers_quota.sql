@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION utils.enforce_identity_providers_quota;
+DROP FUNCTION utils.enforce_identity_providers_quota();
 
 COMMIT;

@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT verify_function ('status_private.tg_update_achievements_tg'); 
-SELECT verify_trigger ('status_public.update_achievements_tg');
+SELECT assert_function('status_private.tg_update_achievements_tg()'::regprocedure);
+SELECT assert_trigger('status_public.user_steps'::regclass, 'update_achievements_tg', 'status_private.tg_update_achievements_tg'::regproc, 5);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION ltree_helpers.to_path;
+DROP FUNCTION ltree_helpers.to_path(text);
 
 COMMIT;

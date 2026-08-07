@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_modules_public.phone_numbers_module');
+SELECT assert_table('metaschema_modules_public.phone_numbers_module'::regclass);
 
 ROLLBACK;

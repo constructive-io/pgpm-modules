@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.permanently_fail_jobs;
+DROP FUNCTION app_jobs.permanently_fail_jobs(int8[], text);
 
 COMMIT;

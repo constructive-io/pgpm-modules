@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection.singular');
+SELECT assert_function('inflection.singular(text)'::regprocedure);
 
 ROLLBACK;

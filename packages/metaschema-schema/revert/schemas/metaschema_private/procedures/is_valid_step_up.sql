@@ -2,8 +2,7 @@
 
 BEGIN;
 
-DROP FUNCTION metaschema_private.is_valid_step_up;
-
-DROP FUNCTION metaschema_private.is_valid_step_up_conditions;
+DROP FUNCTION metaschema_private.is_valid_step_up(jsonb);
+DROP FUNCTION metaschema_private.is_valid_step_up_conditions(jsonb);
 
 COMMIT;

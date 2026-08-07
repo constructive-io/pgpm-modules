@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_index ('metaschema_public.field', 'databases_field_uniq_names_idx');
+SELECT assert_index('metaschema_public.databases_field_uniq_names_idx'::regclass, 'metaschema_public.field'::regclass, true);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION object_tree_public.init_empty_repo;
+DROP FUNCTION object_tree_public.init_empty_repo(uuid, uuid);
 
 COMMIT;

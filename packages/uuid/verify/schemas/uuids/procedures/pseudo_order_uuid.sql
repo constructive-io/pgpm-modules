@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('uuids.pseudo_order_uuid');
+SELECT assert_function('uuids.pseudo_order_uuid()'::regprocedure);
 
 ROLLBACK;

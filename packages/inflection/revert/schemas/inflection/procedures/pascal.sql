@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION inflection.pascal;
+DROP FUNCTION inflection.pascal(text);
 
 COMMIT;

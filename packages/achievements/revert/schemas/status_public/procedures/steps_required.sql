@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION status_public.steps_required;
+DROP FUNCTION status_public.steps_required(text, uuid);
 
 COMMIT;

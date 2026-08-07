@@ -22,7 +22,12 @@ BEGIN;
 --   tenant custom entity execution (e.g. `team` owned by `department` owned by
 --   an org):
 --     team -> department -> org -> app       (in the tenant database)
+--       -> database                          (the tenant's own database frame)
 --       -> database -> org -> app -> platform  (in the platform database)
+--   A non-`database` tenant execution inserts the tenant's own `database` frame
+--   before the platform fall-through, so a surface the tenant provisioned for
+--   itself outranks the shared platform plane the fall-through serves for that
+--   same tenant key. A `database` execution already emits it in its local chain.
 --   platform database execution (any scope):
 --     <local chain in the platform database> -> platform
 --   `platform` execution scope (anywhere):
@@ -87,6 +92,22 @@ BEGIN
     -- No platform database registered: the local chain ends the search.
     IF v_platform_db IS NULL THEN
         RETURN;
+    END IF;
+
+    -- Before falling through to the platform's shared planes, a tenant execution
+    -- resolves the execution database's OWN `database` frame: a surface the
+    -- tenant has provisioned for itself must answer ahead of the shared platform
+    -- plane the fall-through would otherwise serve for that same tenant key. The
+    -- fall-through already re-keys the platform `database` frame by this tenant
+    -- (below), so both frames name the identity (database, this tenant); the
+    -- tenant's own is strictly more specific and comes first. Skipped for a
+    -- `database` execution (its local chain already emitted this frame) and for
+    -- the platform database itself (which has no tenant fall-through).
+    IF NOT v_is_platform_db AND frames.execution_scope <> 'database' THEN
+        scope := 'database';
+        lookup_database_id := frames.database_id;
+        key_value := frames.database_id;
+        RETURN NEXT;
     END IF;
 
     -- Fall through to the platform database's OWN full local chain (its

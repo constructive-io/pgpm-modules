@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION encrypted_secrets.secrets_getter;
+DROP FUNCTION encrypted_secrets.secrets_getter(uuid, text, text);
 
 COMMIT;

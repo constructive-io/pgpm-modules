@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_schema ('status_public');
+SELECT assert_schema('status_public'::regnamespace);
 
 ROLLBACK;

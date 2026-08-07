@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_modules_public.storage_module');
+SELECT assert_table('metaschema_modules_public.storage_module'::regclass);
 
 ROLLBACK;

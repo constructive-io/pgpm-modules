@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('ltree_helpers.to_slash');
+SELECT assert_function('ltree_helpers.to_slash(ltree)'::regprocedure);
 
 ROLLBACK;

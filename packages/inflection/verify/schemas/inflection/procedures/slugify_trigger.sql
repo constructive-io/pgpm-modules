@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection.slugify_trigger');
+SELECT assert_function('inflection.slugify_trigger()'::regprocedure);
 
 ROLLBACK;

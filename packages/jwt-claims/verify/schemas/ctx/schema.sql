@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT verify_schema ('ctx');
+SELECT assert_schema('ctx'::regnamespace);
 
 ROLLBACK;
 

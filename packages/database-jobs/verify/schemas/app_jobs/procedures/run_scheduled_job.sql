@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_jobs.run_scheduled_job');
+SELECT assert_function('app_jobs.run_scheduled_job(int8, interval)'::regprocedure);
 
 ROLLBACK;

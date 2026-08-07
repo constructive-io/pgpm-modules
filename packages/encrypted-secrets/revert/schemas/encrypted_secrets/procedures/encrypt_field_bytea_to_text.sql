@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION encrypted_secrets.encrypt_field_bytea_to_text;
+DROP FUNCTION encrypted_secrets.encrypt_field_bytea_to_text(bytea);
 
 COMMIT;

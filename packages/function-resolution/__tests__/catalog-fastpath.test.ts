@@ -13,9 +13,11 @@ const BARE_DB = '55555555-5555-5555-5555-555555555555';
 
 const ids: Record<string, string> = {};
 
-// Catalog resolution proof: resolve answers from ONE typed catalog table per
-// frame database (partial-unique-index probes), ordered by app_scope.frames;
-// a frame database hosting function modules without a catalog fails loud.
+// Catalog resolution proof: resolve answers from the published catalog plane
+// (partial-unique-index probes), ordered by app_scope.frames; a frame database
+// hosting function modules without a catalog module fails loud.
+// The catalog rows here are projected by stand-in sync triggers, so this suite
+// also pins that the projection — not the source table — is what resolution reads.
 describe('function-resolution catalog fast-path', () => {
   beforeAll(async () => {
     ({ pg, teardown } = await getConnections());
@@ -60,9 +62,9 @@ describe('function-resolution catalog fast-path', () => {
     );
 
     // --- Catalog projection: one typed functions table, both scopes ---------
-    await pg.query(`CREATE SCHEMA cat_defs`);
+    await pg.query(`CREATE SCHEMA catalog_private`);
     await pg.query(
-      `CREATE TABLE cat_defs.functions (
+      `CREATE TABLE catalog_private.functions (
          id uuid PRIMARY KEY,
          owner_scope text NOT NULL,
          owner_key uuid,
@@ -72,20 +74,20 @@ describe('function-resolution catalog fast-path', () => {
        )`
     );
     await pg.query(
-      `CREATE UNIQUE INDEX functions_owner_scope_owner_key_task_identifier_idx
-       ON cat_defs.functions (owner_scope, owner_key, task_identifier)
+      `CREATE UNIQUE INDEX functions_db_owner_scope_owner_key_task_idx
+       ON catalog_private.functions (database_id, owner_scope, owner_key, task_identifier)
        WHERE owner_key IS NOT NULL`
     );
     await pg.query(
-      `CREATE UNIQUE INDEX functions_owner_scope_task_identifier_idx
-       ON cat_defs.functions (owner_scope, task_identifier)
+      `CREATE UNIQUE INDEX functions_db_owner_scope_task_idx
+       ON catalog_private.functions (database_id, owner_scope, task_identifier)
        WHERE owner_key IS NULL`
     );
     // Same-txn sync stand-in for the generated catalog_register triggers.
     await pg.query(
-      `CREATE FUNCTION cat_defs.tg_app_sync() RETURNS trigger AS $$
+      `CREATE FUNCTION catalog_private.tg_app_sync() RETURNS trigger AS $$
        BEGIN
-         INSERT INTO cat_defs.functions (id, owner_scope, owner_key, is_visible, database_id, task_identifier)
+         INSERT INTO catalog_private.functions (id, owner_scope, owner_key, is_visible, database_id, task_identifier)
          VALUES (NEW.id, 'app', NULL, COALESCE(NEW.is_published, false), '${TENANT_DB}', NEW.task_identifier)
          ON CONFLICT (id) DO UPDATE SET
            owner_key = EXCLUDED.owner_key,
@@ -97,12 +99,12 @@ describe('function-resolution catalog fast-path', () => {
     );
     await pg.query(
       `CREATE TRIGGER catalog_sync AFTER INSERT OR UPDATE ON app_defs.app_function_definitions
-       FOR EACH ROW EXECUTE FUNCTION cat_defs.tg_app_sync()`
+       FOR EACH ROW EXECUTE FUNCTION catalog_private.tg_app_sync()`
     );
     await pg.query(
-      `CREATE FUNCTION cat_defs.tg_db_sync() RETURNS trigger AS $$
+      `CREATE FUNCTION catalog_private.tg_db_sync() RETURNS trigger AS $$
        BEGIN
-         INSERT INTO cat_defs.functions (id, owner_scope, owner_key, is_visible, database_id, task_identifier)
+         INSERT INTO catalog_private.functions (id, owner_scope, owner_key, is_visible, database_id, task_identifier)
          VALUES (NEW.id, 'database', NEW.database_id, COALESCE(NEW.is_published, false),
                  COALESCE(NEW.database_id, '${TENANT_DB}'), NEW.task_identifier)
          ON CONFLICT (id) DO UPDATE SET
@@ -115,7 +117,7 @@ describe('function-resolution catalog fast-path', () => {
     );
     await pg.query(
       `CREATE TRIGGER catalog_sync AFTER INSERT OR UPDATE ON db_defs.db_function_definitions
-       FOR EACH ROW EXECUTE FUNCTION cat_defs.tg_db_sync()`
+       FOR EACH ROW EXECUTE FUNCTION catalog_private.tg_db_sync()`
     );
 
     // --- Definitions (sync triggers project them into the catalog) ----------
@@ -166,7 +168,7 @@ describe('function-resolution catalog fast-path', () => {
     );
     const catSchema = await pg.one(
       `INSERT INTO metaschema_public.schema (database_id, name, schema_name)
-       VALUES ($1, 'cat_defs', 'cat_defs') RETURNING id`,
+       VALUES ($1, 'catalog_private', 'catalog_private') RETURNING id`,
       [TENANT_DB]
     );
     const catTable = await pg.one(
@@ -197,8 +199,9 @@ describe('function-resolution catalog fast-path', () => {
           resources_table_id, resource_definitions_table_id,
           resource_installations_table_id, apps_table_id, buckets_table_id,
           sites_web_config_table_id, sites_error_pages_table_id,
-          sites_app_links_table_id, sites_deep_links_table_id, scope)
-       VALUES ($1, $2, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, 'app')`,
+          sites_app_links_table_id, sites_deep_links_table_id,
+          bindings_table_id, scope)
+       VALUES ($1, $2, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, 'app')`,
       [TENANT_DB, catSchema.id, catTable.id]
     );
 
@@ -234,22 +237,6 @@ describe('function-resolution catalog fast-path', () => {
   });
 
 
-  it('catalog_location(): resolves the functions catalog table', async () => {
-    const [row] = await pg.any(
-      `SELECT schema_name, table_name FROM function_resolution.catalog_location($1)`,
-      [TENANT_DB]
-    );
-    expect(row).toEqual({ schema_name: 'cat_defs', table_name: 'functions' });
-  });
-
-  it('catalog_location(): no catalog -> no rows', async () => {
-    const rows = await pg.any(
-      `SELECT * FROM function_resolution.catalog_location($1)`,
-      [BARE_DB]
-    );
-    expect(rows).toEqual([]);
-  });
-
   it('resolve(): app-scope hit with owner database', async () => {
     const [row] = await pg.any(
       `SELECT function_definition_id, resolved_scope, owner_database_id
@@ -274,7 +261,7 @@ describe('function-resolution catalog fast-path', () => {
 
   it('resolve(): unpublished (is_visible false) rows still resolve', async () => {
     const [{ is_visible }] = await pg.any(
-      `SELECT is_visible FROM cat_defs.functions WHERE id = $1`,
+      `SELECT is_visible FROM catalog_private.functions WHERE id = $1`,
       [ids.appDef]
     );
     expect(is_visible).toBe(false);
@@ -307,7 +294,7 @@ describe('function-resolution catalog fast-path', () => {
   });
 
   it('resolve(): scope-default row answers when no exact scope-key row exists', async () => {
-    await pg.query(`DELETE FROM cat_defs.functions WHERE id = $1`, [ids.dbExact]);
+    await pg.query(`DELETE FROM catalog_private.functions WHERE id = $1`, [ids.dbExact]);
     const [row] = await pg.any(
       `SELECT function_definition_id, resolved_scope
        FROM function_resolution.resolve($1, 'database', NULL, 'report:run', true)`,
@@ -315,7 +302,7 @@ describe('function-resolution catalog fast-path', () => {
     );
     expect(row).toEqual({ function_definition_id: ids.dbDefault, resolved_scope: 'database' });
     await pg.query(
-      `INSERT INTO cat_defs.functions (id, owner_scope, owner_key, is_visible, database_id, task_identifier)
+      `INSERT INTO catalog_private.functions (id, owner_scope, owner_key, is_visible, database_id, task_identifier)
        VALUES ($1, 'database', $2, false, $2, 'report:run')`,
       [ids.dbExact, TENANT_DB]
     );
@@ -323,7 +310,7 @@ describe('function-resolution catalog fast-path', () => {
 
   it('resolve(): the catalog is authoritative — a removed catalog row no longer resolves', async () => {
     await pg.query(`ALTER TABLE app_defs.app_function_definitions DISABLE TRIGGER catalog_sync`);
-    await pg.query(`DELETE FROM cat_defs.functions WHERE id = $1`, [ids.appDef]);
+    await pg.query(`DELETE FROM catalog_private.functions WHERE id = $1`, [ids.appDef]);
 
     await expect(
       pg.any(
@@ -334,7 +321,7 @@ describe('function-resolution catalog fast-path', () => {
 
     // Restore.
     await pg.query(
-      `INSERT INTO cat_defs.functions (id, owner_scope, owner_key, is_visible, database_id, task_identifier)
+      `INSERT INTO catalog_private.functions (id, owner_scope, owner_key, is_visible, database_id, task_identifier)
        VALUES ($1, 'app', NULL, false, $2, 'email:send')`,
       [ids.appDef, TENANT_DB]
     );
@@ -365,7 +352,7 @@ describe('function-resolution catalog fast-path', () => {
 
   it('resolve_invocation(): a removed catalog row invalidates the pair', async () => {
     await pg.query(`ALTER TABLE app_defs.app_function_definitions DISABLE TRIGGER catalog_sync`);
-    await pg.query(`DELETE FROM cat_defs.functions WHERE id = $1`, [ids.appDef]);
+    await pg.query(`DELETE FROM catalog_private.functions WHERE id = $1`, [ids.appDef]);
 
     await expect(
       pg.any(
@@ -375,7 +362,7 @@ describe('function-resolution catalog fast-path', () => {
     ).rejects.toThrow(/FUNCTION_DEFINITION_INVALID_PAIR/);
 
     await pg.query(
-      `INSERT INTO cat_defs.functions (id, owner_scope, owner_key, is_visible, database_id, task_identifier)
+      `INSERT INTO catalog_private.functions (id, owner_scope, owner_key, is_visible, database_id, task_identifier)
        VALUES ($1, 'app', NULL, false, $2, 'email:send')`,
       [ids.appDef, TENANT_DB]
     );
@@ -402,34 +389,39 @@ describe('function-resolution catalog fast-path', () => {
   });
 
   it('EXPLAIN: catalog probe uses the partial unique indexes', async () => {
-    const [{ schema_name, table_name }] = await pg.any(
-      `SELECT schema_name, table_name FROM function_resolution.catalog_location($1)`,
-      [TENANT_DB]
-    );
     const rows = await pg.any(
       `EXPLAIN (FORMAT text)
        SELECT hit.id
-       FROM unnest($1::text[], $2::uuid[], $3::bigint[]) AS cand(owner_scope, owner_key, ord)
+       FROM unnest($1::text[], $2::uuid[], $3::uuid[], $4::bigint[])
+           AS cand(owner_scope, owner_key, lookup_database_id, ord)
        CROSS JOIN LATERAL (
-           SELECT c.id FROM ${schema_name}.${table_name} c
-           WHERE c.task_identifier = $4
+           SELECT c.id FROM catalog_private.functions c
+           WHERE c.task_identifier = $5
              AND c.owner_scope = cand.owner_scope
              AND c.owner_key = cand.owner_key
              AND cand.owner_key IS NOT NULL
+             AND c.database_id = cand.owner_key
            UNION ALL
-           SELECT c.id FROM ${schema_name}.${table_name} c
-           WHERE c.task_identifier = $4
+           SELECT c.id FROM catalog_private.functions c
+           WHERE c.task_identifier = $5
              AND c.owner_scope = cand.owner_scope
              AND c.owner_key IS NULL
              AND cand.owner_key IS NULL
+             AND c.database_id = cand.lookup_database_id
        ) hit
        ORDER BY cand.ord
        LIMIT 1`,
-      [['database', 'database', 'app'], [TENANT_DB, null, null], [1, 2, 3], 'report:run']
+      [
+        ['database', 'database', 'app'],
+        [TENANT_DB, null, null],
+        [TENANT_DB, TENANT_DB, TENANT_DB],
+        [1, 2, 3],
+        'report:run',
+      ]
     );
     const plan = rows.map((r: any) => r['QUERY PLAN']).join('\n');
-    expect(plan).toMatch(/functions_owner_scope_owner_key_task_identifier_idx/);
-    expect(plan).toMatch(/functions_owner_scope_task_identifier_idx/);
-    expect(plan).not.toMatch(/Seq Scan on cat_defs\.functions/);
+    expect(plan).toMatch(/functions_db_owner_scope_owner_key_task_idx/);
+    expect(plan).toMatch(/functions_db_owner_scope_task_idx/);
+    expect(plan).not.toMatch(/Seq Scan on catalog_private\.functions/);
   });
 });

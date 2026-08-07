@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION encrypted_secrets.encrypt_field_crypt;
+DROP FUNCTION encrypted_secrets.encrypt_field_crypt();
 
 COMMIT;

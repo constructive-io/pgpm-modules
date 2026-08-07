@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection.dns_1123');
+SELECT assert_function('inflection.dns_1123(text)'::regprocedure);
 
 ROLLBACK;

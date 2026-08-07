@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.release_scheduled_jobs;
+DROP FUNCTION app_jobs.release_scheduled_jobs(text, int8[]);
 
 COMMIT;

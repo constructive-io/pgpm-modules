@@ -85,7 +85,7 @@ CREATE TABLE metaschema_modules_public.entity_type_provision (
     -- =========================================================================
     -- Table provisioning override: single jsonb object describing the full
     -- security setup to apply to the entity table, using the same vocabulary
-    -- as metaschema_modules_public.provision_table() and blueprint tables[]
+    -- as metaschema_modules_private.provision_table() and blueprint tables[]
     -- entries (policies[], nodes[], fields[], grants[], use_rls).
     --
     -- Semantics:
@@ -276,7 +276,7 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.skip_entity_po
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.table_provision IS
     'Single jsonb object describing the full security setup to apply to the entity table.
-     Uses the same vocabulary as metaschema_modules_public.provision_table() and blueprint tables[]
+     Uses the same vocabulary as metaschema_modules_private.provision_table() and blueprint tables[]
      entries, so an entity table is configured the same way an ordinary blueprint table is.
      Defaults to NULL; when non-NULL, the five default policies are implicitly replaced by
      table_provision.policies[] (is_visible becomes a no-op on this path).

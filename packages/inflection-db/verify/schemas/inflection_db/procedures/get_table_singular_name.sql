@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection_db.get_table_singular_name');
+SELECT assert_function('inflection_db.get_table_singular_name(text)'::regprocedure);
 
 ROLLBACK;

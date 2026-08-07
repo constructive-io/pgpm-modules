@@ -2,7 +2,9 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection.underscore(text)');
-SELECT verify_function ('inflection.underscore(text[])');
+SELECT assert_function('inflection.underscore(text)'::regprocedure);
+SELECT assert_function('inflection.underscore(text[])'::regprocedure);
+SELECT assert_function('inflection.underscore(text)'::regprocedure);
+SELECT assert_function('inflection.underscore(text[])'::regprocedure);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('object_store_utils.array_pop');
+SELECT assert_function('object_store_utils.array_pop(anyarray)'::regprocedure);
 
 ROLLBACK;

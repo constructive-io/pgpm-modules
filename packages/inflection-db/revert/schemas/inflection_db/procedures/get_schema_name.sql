@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION inflection_db.get_schema_name;
+DROP FUNCTION inflection_db.get_schema_name(text[]);
 
 COMMIT;

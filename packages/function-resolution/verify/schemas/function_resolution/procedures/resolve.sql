@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('function_resolution.resolve');
+SELECT assert_function('function_resolution.resolve(uuid, text, uuid, text, bool)'::regprocedure);
 
 ROLLBACK;

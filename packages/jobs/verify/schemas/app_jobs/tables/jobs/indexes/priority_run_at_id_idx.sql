@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_index ('app_jobs.jobs', 'priority_run_at_id_idx');
+SELECT assert_index('app_jobs.priority_run_at_id_idx'::regclass, 'app_jobs.jobs'::regclass);
 
 ROLLBACK;

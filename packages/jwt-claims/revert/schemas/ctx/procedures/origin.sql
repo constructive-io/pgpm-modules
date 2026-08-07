@@ -2,7 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION ctx.origin;
+DROP FUNCTION ctx.origin();
 
 COMMIT;
-

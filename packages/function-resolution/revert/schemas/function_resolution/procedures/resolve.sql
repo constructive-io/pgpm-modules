@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION function_resolution.resolve;
+DROP FUNCTION function_resolution.resolve(uuid, text, uuid, text, bool);
 
 COMMIT;

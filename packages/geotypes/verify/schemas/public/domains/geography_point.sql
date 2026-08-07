@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_domain ('public.geography_point');
+SELECT assert_domain('public.geography_point'::regtype, 'geography'::regtype, _constraints => 0);
 
 ROLLBACK;

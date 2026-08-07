@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION utils.ensure_singleton;
+DROP FUNCTION utils.ensure_singleton();
 
 COMMIT;

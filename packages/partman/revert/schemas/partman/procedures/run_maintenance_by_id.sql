@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION IF EXISTS partman.run_maintenance_by_id(uuid, boolean);
+DROP FUNCTION partman.run_maintenance_by_id(uuid, bool);
 
 COMMIT;

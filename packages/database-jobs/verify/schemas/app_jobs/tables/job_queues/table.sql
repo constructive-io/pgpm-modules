@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('app_jobs.job_queues');
+SELECT assert_table('app_jobs.job_queues'::regclass);
 
 ROLLBACK;

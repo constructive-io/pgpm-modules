@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection.no_single_underscores');
+SELECT assert_function('inflection.no_single_underscores(text)'::regprocedure);
 
 ROLLBACK;

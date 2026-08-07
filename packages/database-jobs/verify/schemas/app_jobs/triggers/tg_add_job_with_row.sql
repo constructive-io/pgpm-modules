@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_jobs.tg_add_job_with_row');
+SELECT assert_function('app_jobs.tg_add_job_with_row()'::regprocedure);
 
 ROLLBACK;

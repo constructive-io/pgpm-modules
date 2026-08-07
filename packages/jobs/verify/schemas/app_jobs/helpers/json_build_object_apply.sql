@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_jobs.json_build_object_apply');
+SELECT assert_function('app_jobs.json_build_object_apply(text[])'::regprocedure);
 
 ROLLBACK;

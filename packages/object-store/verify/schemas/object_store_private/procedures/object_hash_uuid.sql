@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('object_store_public.object_hash_uuid');
+SELECT assert_function('object_store_public.object_hash_uuid(object_store_public.object)'::regprocedure);
 
 ROLLBACK;

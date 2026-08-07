@@ -2,6 +2,7 @@
 
 BEGIN;
 
-SELECT verify_function ('encrypted_secrets.secrets_delete');
+SELECT assert_function('encrypted_secrets.secrets_delete(uuid, text)'::regprocedure);
+SELECT assert_function('encrypted_secrets.secrets_delete(uuid, text[])'::regprocedure);
 
 ROLLBACK;

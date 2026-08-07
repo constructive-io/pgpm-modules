@@ -2,14 +2,14 @@
 
 BEGIN;
 
-SELECT verify_policy ('can_select_user_achievements', 'status_public.user_achievements');
-SELECT verify_policy ('can_insert_user_achievements', 'status_public.user_achievements');
-SELECT verify_policy ('can_update_user_achievements', 'status_public.user_achievements');
-SELECT verify_policy ('can_delete_user_achievements', 'status_public.user_achievements');
+SELECT assert_policy('status_public.user_achievements'::regclass, 'can_select_user_achievements', 'select', true, true, false);
+SELECT assert_policy('status_public.user_achievements'::regclass, 'can_insert_user_achievements', 'insert', true, false, true);
+SELECT assert_policy('status_public.user_achievements'::regclass, 'can_update_user_achievements', 'update', true, true, false);
+SELECT assert_policy('status_public.user_achievements'::regclass, 'can_delete_user_achievements', 'delete', true, true, false);
 
-SELECT has_table_privilege('authenticated', 'status_public.user_achievements', 'INSERT');
-SELECT has_table_privilege('authenticated', 'status_public.user_achievements', 'SELECT');
-SELECT has_table_privilege('authenticated', 'status_public.user_achievements', 'UPDATE');
-SELECT has_table_privilege('authenticated', 'status_public.user_achievements', 'DELETE');
+SELECT assert_table_grant('status_public.user_achievements'::regclass, 'authenticated', 'INSERT');
+SELECT assert_table_grant('status_public.user_achievements'::regclass, 'authenticated', 'SELECT');
+SELECT assert_table_grant('status_public.user_achievements'::regclass, 'authenticated', 'UPDATE');
+SELECT assert_table_grant('status_public.user_achievements'::regclass, 'authenticated', 'DELETE');
 
 ROLLBACK;

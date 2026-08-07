@@ -2,7 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION ctx.uagent;
+DROP FUNCTION ctx.uagent();
 
 COMMIT;
-

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('status_private.upsert_achievement');
+SELECT assert_function('status_private.upsert_achievement(uuid, text, int4)'::regprocedure);
 
 ROLLBACK;

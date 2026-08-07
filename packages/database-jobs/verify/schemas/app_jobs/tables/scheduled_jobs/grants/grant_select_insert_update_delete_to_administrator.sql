@@ -2,9 +2,9 @@
 
 BEGIN;
 
-  SELECT has_table_privilege('administrator', 'app_jobs.scheduled_jobs', 'SELECT');
-  SELECT has_table_privilege('administrator', 'app_jobs.scheduled_jobs', 'INSERT');
-  SELECT has_table_privilege('administrator', 'app_jobs.scheduled_jobs', 'UPDATE');
-  SELECT has_table_privilege('administrator', 'app_jobs.scheduled_jobs', 'DELETE');
+  SELECT assert_table_grant('app_jobs.scheduled_jobs'::regclass, 'administrator', 'SELECT');
+  SELECT assert_table_grant('app_jobs.scheduled_jobs'::regclass, 'administrator', 'INSERT');
+  SELECT assert_table_grant('app_jobs.scheduled_jobs'::regclass, 'administrator', 'UPDATE');
+  SELECT assert_table_grant('app_jobs.scheduled_jobs'::regclass, 'administrator', 'DELETE');
   
 ROLLBACK;

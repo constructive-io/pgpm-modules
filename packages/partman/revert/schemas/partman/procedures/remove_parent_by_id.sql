@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION IF EXISTS partman.remove_parent_by_id(uuid);
+DROP FUNCTION partman.remove_parent_by_id(uuid);
 
 COMMIT;

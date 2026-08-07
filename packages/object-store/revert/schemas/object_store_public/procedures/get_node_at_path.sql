@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION object_store_public.get_node_at_path;
+DROP FUNCTION object_store_public.get_node_at_path(uuid, uuid, text[]);
 
 COMMIT;

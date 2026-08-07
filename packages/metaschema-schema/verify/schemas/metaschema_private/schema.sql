@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_schema ('metaschema_private');
+SELECT assert_schema('metaschema_private'::regnamespace);
 
 ROLLBACK;

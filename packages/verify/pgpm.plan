@@ -2,23 +2,19 @@
 %project=pgpm-verify
 %uri=pgpm-verify
 
-procedures/get_entity_from_str 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/get_entity_from_str
-procedures/get_schema_from_str 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/get_schema_from_str
-procedures/list_indexes [procedures/get_entity_from_str procedures/get_schema_from_str] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/list_indexes
-procedures/list_memberships 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/list_memberships
-procedures/verify_constraint 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/verify_constraint
-procedures/verify_domain [procedures/get_entity_from_str procedures/get_schema_from_str] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/verify_domain
-procedures/verify_extension 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/verify_extension
-procedures/verify_function [procedures/get_entity_from_str procedures/get_schema_from_str] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/verify_function
-procedures/verify_index [procedures/list_indexes] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/verify_index
-procedures/verify_membership [procedures/list_memberships] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/verify_membership
-procedures/verify_policy [procedures/get_entity_from_str procedures/get_schema_from_str] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/verify_policy
-procedures/verify_role 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/verify_role
-procedures/verify_schema 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/verify_schema
-procedures/verify_security [procedures/get_entity_from_str procedures/get_schema_from_str] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/verify_security
-procedures/verify_table_grant [procedures/get_entity_from_str procedures/get_schema_from_str] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/verify_table_grant
-procedures/verify_table [procedures/get_entity_from_str procedures/get_schema_from_str] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/verify_table
-procedures/verify_trigger [procedures/get_entity_from_str procedures/get_schema_from_str] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/verify_trigger
-procedures/verify_type [procedures/get_entity_from_str procedures/get_schema_from_str] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/verify_type
-procedures/verify_view [procedures/get_entity_from_str procedures/get_schema_from_str] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add procedures/verify_view
-@0.1.0 2025-08-26T23:56:48Z pgpm <pgpm@5b0c196eeb62> # verify
+procedures/assert_relkind_label 2026-08-06T07:00:00Z devin <devin@cognition.ai> # add procedures/assert_relkind_label
+procedures/assert_trigger_type_label 2026-08-06T07:00:00Z devin <devin@cognition.ai> # add procedures/assert_trigger_type_label
+procedures/assert_policy_command_label 2026-08-06T07:00:00Z devin <devin@cognition.ai> # add procedures/assert_policy_command_label
+procedures/assert_function 2026-08-06T07:00:00Z devin <devin@cognition.ai> # add procedures/assert_function
+procedures/assert_table [procedures/assert_relkind_label] 2026-08-06T07:00:00Z devin <devin@cognition.ai> # add procedures/assert_table
+procedures/assert_view [procedures/assert_relkind_label] 2026-08-06T07:00:00Z devin <devin@cognition.ai> # add procedures/assert_view
+procedures/assert_view_rule 2026-08-06T07:00:00Z devin <devin@cognition.ai> # add procedures/assert_view_rule
+procedures/assert_index 2026-08-06T07:00:00Z devin <devin@cognition.ai> # add procedures/assert_index
+procedures/assert_trigger [procedures/assert_trigger_type_label] 2026-08-06T07:00:00Z devin <devin@cognition.ai> # add procedures/assert_trigger
+procedures/assert_policy [procedures/assert_policy_command_label] 2026-08-06T07:00:00Z devin <devin@cognition.ai> # add procedures/assert_policy
+procedures/assert_schema 2026-08-06T12:00:00Z devin <devin@cognition.ai> # add procedures/assert_schema
+procedures/assert_table_grant 2026-08-06T13:00:00Z devin <devin@cognition.ai> # add procedures/assert_table_grant
+procedures/assert_table_security 2026-08-06T14:00:00Z devin <devin@cognition.ai> # add procedures/assert_table_security
+procedures/assert_function_grant 2026-08-06T14:10:00Z devin <devin@cognition.ai> # add procedures/assert_function_grant
+procedures/assert_type 2026-08-06T15:00:00Z devin <devin@cognition.ai> # add procedures/assert_type
+procedures/assert_domain 2026-08-06T15:10:00Z devin <devin@cognition.ai> # add procedures/assert_domain

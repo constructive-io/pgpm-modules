@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('base32.encode');
+SELECT assert_function('base32.encode(text)'::regprocedure);
 
 ROLLBACK;

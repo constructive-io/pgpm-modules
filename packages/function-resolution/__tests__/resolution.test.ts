@@ -119,27 +119,32 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
     );
 
     // --- Typed functions catalog (the resolver's read path) -----------------
-    await pg.query(`CREATE SCHEMA cat_defs`);
+    await pg.query(`CREATE SCHEMA catalog_private`);
     await pg.query(
-      `CREATE TABLE cat_defs.functions (
+      `CREATE TABLE catalog_private.functions (
          id uuid PRIMARY KEY,
          owner_scope text NOT NULL,
          owner_key uuid,
          is_visible boolean NOT NULL DEFAULT false,
          database_id uuid NOT NULL,
-         task_identifier text NOT NULL
+         task_identifier text NOT NULL,
+         queue_name text,
+         priority integer,
+         max_attempts integer
        )`
     );
     await pg.query(
-      `INSERT INTO cat_defs.functions (id, owner_scope, owner_key, is_visible, database_id, task_identifier)
-       VALUES ($1, 'app', NULL, false, $4, 'email:send'),
-              ($2, 'database', $4, false, $4, 'report:run'),
-              ($3, 'database', NULL, false, $4, 'report:run')`,
+      `INSERT INTO catalog_private.functions
+         (id, owner_scope, owner_key, is_visible, database_id, task_identifier,
+          queue_name, priority, max_attempts)
+       VALUES ($1, 'app', NULL, false, $4, 'email:send', 'emails', 5, 3),
+              ($2, 'database', $4, false, $4, 'report:run', 'reports', 9, 10),
+              ($3, 'database', NULL, false, $4, 'report:run', 'reports_default', 1, 2)`,
       [ids.appDef, ids.dbExact, ids.dbDefault, TENANT_DB]
     );
     const catSchema = await pg.one(
       `INSERT INTO metaschema_public.schema (database_id, name, schema_name)
-       VALUES ($1, 'cat_defs', 'cat_defs') RETURNING id`,
+       VALUES ($1, 'catalog_private', 'catalog_private') RETURNING id`,
       [TENANT_DB]
     );
     const catTable = await pg.one(
@@ -154,8 +159,9 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
           resources_table_id, resource_definitions_table_id,
           resource_installations_table_id, apps_table_id, buckets_table_id,
           sites_web_config_table_id, sites_error_pages_table_id,
-          sites_app_links_table_id, sites_deep_links_table_id, scope)
-       VALUES ($1, $2, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, 'app')`,
+          sites_app_links_table_id, sites_deep_links_table_id,
+          bindings_table_id, scope)
+       VALUES ($1, $2, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, 'app')`,
       [TENANT_DB, catSchema.id, catTable.id]
     );
   });
@@ -196,6 +202,8 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
     );
     expect(rows).toEqual([
       { scope: 'app', lookup_database_id: TENANT_DB, key_value: null },
+      // the tenant's OWN database frame precedes the platform fall-through
+      { scope: 'database', lookup_database_id: TENANT_DB, key_value: TENANT_DB },
       { scope: 'database', lookup_database_id: PLATFORM_DB, key_value: TENANT_DB },
       { scope: 'org', lookup_database_id: PLATFORM_DB, key_value: PLATFORM_ORG_ID },
       { scope: 'app', lookup_database_id: PLATFORM_DB, key_value: null },
@@ -226,7 +234,7 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
   it('resolve(): falls back to the scope-default (owner_key IS NULL) row', async () => {
     // Without the exact-key catalog row, the same frame's scope-default
     // (owner_key IS NULL) row wins instead.
-    await pg.query(`DELETE FROM cat_defs.functions WHERE id = $1`, [ids.dbExact]);
+    await pg.query(`DELETE FROM catalog_private.functions WHERE id = $1`, [ids.dbExact]);
     const [row] = await pg.any(
       `SELECT function_definition_id, resolved_scope
        FROM function_resolution.resolve($1, 'database', NULL, 'report:run', true)`,
@@ -234,8 +242,10 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
     );
     expect(row).toEqual({ function_definition_id: ids.dbDefault, resolved_scope: 'database' });
     await pg.query(
-      `INSERT INTO cat_defs.functions (id, owner_scope, owner_key, is_visible, database_id, task_identifier)
-       VALUES ($1, 'database', $2, false, $2, 'report:run')`,
+      `INSERT INTO catalog_private.functions
+         (id, owner_scope, owner_key, is_visible, database_id, task_identifier,
+          queue_name, priority, max_attempts)
+       VALUES ($1, 'database', $2, false, $2, 'report:run', 'reports', 9, 10)`,
       [ids.dbExact, TENANT_DB]
     );
   });
@@ -243,7 +253,7 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
   it('routing(): loads queue metadata from the resolved definition', async () => {
     const [row] = await pg.any(
       `SELECT queue_name, priority, max_attempts
-       FROM function_resolution.routing($1, 'app', $2)`,
+       FROM function_resolution.routing($1, $2)`,
       [TENANT_DB, ids.appDef]
     );
     expect(row).toEqual({ queue_name: 'emails', priority: 5, max_attempts: 3 });

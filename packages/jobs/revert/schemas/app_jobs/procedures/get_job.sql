@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.get_job;
+DROP FUNCTION app_jobs.get_job(text, text[], interval);
 
 COMMIT;

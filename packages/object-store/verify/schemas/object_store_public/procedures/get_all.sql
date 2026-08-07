@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('object_store_public.get_all');
+SELECT assert_function('object_store_public.get_all(uuid, uuid)'::regprocedure);
 
 ROLLBACK;

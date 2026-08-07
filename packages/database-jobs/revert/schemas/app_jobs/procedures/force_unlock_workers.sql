@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.force_unlock_workers;
+DROP FUNCTION app_jobs.force_unlock_workers(text[]);
 
 COMMIT;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_schema ('utils');
+SELECT assert_schema('utils'::regnamespace);
 
 ROLLBACK;

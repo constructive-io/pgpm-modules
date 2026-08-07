@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('function_resolution.definitions_location');
+SELECT assert_function('function_resolution.definitions_location(uuid, text)'::regprocedure);
 
 ROLLBACK;

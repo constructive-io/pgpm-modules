@@ -2,7 +2,6 @@
 
 BEGIN;
 
-SELECT verify_type ('public.origin');
+SELECT assert_domain('public.origin'::regtype, 'text'::regtype, _constraints => 1);
 
 ROLLBACK;
-

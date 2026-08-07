@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION totp.urlencode;
+DROP FUNCTION totp.urlencode(text);
 
 COMMIT;

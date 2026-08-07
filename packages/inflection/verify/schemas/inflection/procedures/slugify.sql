@@ -2,6 +2,7 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection.slugify');
+SELECT assert_function('inflection.slugify(text, bool)'::regprocedure);
+SELECT assert_function('inflection.slugify(text)'::regprocedure);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.tg_update_timestamps;
+DROP FUNCTION app_jobs.tg_update_timestamps();
 
 COMMIT;

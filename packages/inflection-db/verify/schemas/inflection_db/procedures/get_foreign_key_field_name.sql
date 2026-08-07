@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection_db.get_foreign_key_field_name');
+SELECT assert_function('inflection_db.get_foreign_key_field_name(text)'::regprocedure);
 
 ROLLBACK;

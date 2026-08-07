@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('status_public.steps_required');
+SELECT assert_function('status_public.steps_required(text, uuid)'::regprocedure);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('jwt_private.current_session_id');
+SELECT assert_function('jwt_private.current_session_id()'::regprocedure);
 
 ROLLBACK;

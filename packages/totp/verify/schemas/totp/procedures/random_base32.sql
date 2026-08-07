@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('totp.random_base32');
+SELECT assert_function('totp.random_base32(int4)'::regprocedure);
 
 ROLLBACK;

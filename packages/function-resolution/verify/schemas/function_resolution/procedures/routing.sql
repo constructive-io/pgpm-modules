@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('function_resolution.routing');
+SELECT assert_function('function_resolution.routing(uuid, uuid)'::regprocedure);
 
 ROLLBACK;

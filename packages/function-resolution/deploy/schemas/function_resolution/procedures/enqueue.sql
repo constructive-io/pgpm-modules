@@ -125,7 +125,7 @@ BEGIN
 
         SELECT rt.queue_name, rt.priority, rt.max_attempts
         INTO v_queue_name, v_priority, v_max_attempts
-        FROM function_resolution.routing(v_defs_db, v_def_scope, v_fn_id) rt;
+        FROM function_resolution.routing(v_defs_db, v_fn_id) rt;
     END IF;
 
     -- Caller-supplied routing always wins over the definition's; the definition's

@@ -1,6 +1,6 @@
 # pgpm-defaults extension
 comment = 'pgpm-defaults extension'
-default_version = '0.36.0'
+default_version = '0.39.0'
 module_pathname = '$libdir/pgpm-defaults'
 requires = 'plpgsql,pgpm-verify'
 relocatable = false

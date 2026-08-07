@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION IF EXISTS jwt_public.current_principal_id();
+DROP FUNCTION jwt_public.current_principal_id();
 
 COMMIT;

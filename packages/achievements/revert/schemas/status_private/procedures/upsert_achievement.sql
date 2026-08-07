@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION status_private.upsert_achievement;
+DROP FUNCTION status_private.upsert_achievement(uuid, text, int4);
 
 COMMIT;

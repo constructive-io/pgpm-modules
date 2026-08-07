@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_scope.platform_database_id;
+DROP FUNCTION app_scope.platform_database_id();
 
 COMMIT;

@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT verify_function ('jwt_private.current_token_id');
+SELECT assert_function('jwt_private.current_token_id()'::regprocedure);
 
 ROLLBACK;
 

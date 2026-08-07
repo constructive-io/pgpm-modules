@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_public.policy');
+SELECT assert_table('metaschema_public.policy'::regclass);
 
 ROLLBACK;

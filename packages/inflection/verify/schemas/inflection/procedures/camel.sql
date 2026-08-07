@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection.camel');
+SELECT assert_function('inflection.camel(text)'::regprocedure);
 
 ROLLBACK;

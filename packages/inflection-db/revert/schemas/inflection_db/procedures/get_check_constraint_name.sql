@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION inflection_db.get_check_constraint_name;
+DROP FUNCTION inflection_db.get_check_constraint_name(text, text[]);
 
 COMMIT;

@@ -1,6 +1,6 @@
 # inflection-db extension
 comment = 'inflection-db extension'
-default_version = '0.36.0'
+default_version = '0.39.0'
 module_pathname = '$libdir/inflection-db'
 requires = 'pgpm-inflection,pgpm-verify,plpgsql'
 relocatable = false

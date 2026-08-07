@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.remove_job;
+DROP FUNCTION app_jobs.remove_job(text);
 
 COMMIT;
