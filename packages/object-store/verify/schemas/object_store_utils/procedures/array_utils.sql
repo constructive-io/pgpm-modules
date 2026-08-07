@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT verify_function ('object_store_utils.zip_arrays');
-SELECT verify_function ('object_store_utils.unzip_obj_to_ktree_and_kids');
+SELECT assert_function('object_store_utils.zip_arrays(text[], anyarray)'::regprocedure);
+SELECT assert_function('object_store_utils.unzip_obj_to_ktree_and_kids(jsonb)'::regprocedure);
 
 ROLLBACK;

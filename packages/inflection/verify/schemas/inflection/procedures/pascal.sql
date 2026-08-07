@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection.pascal');
+SELECT assert_function('inflection.pascal(text)'::regprocedure);
 
 ROLLBACK;

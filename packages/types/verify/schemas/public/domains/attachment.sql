@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_domain ('public.attachment');
+SELECT assert_domain('public.attachment'::regtype, 'text'::regtype, _constraints => 1);
 
 ROLLBACK;

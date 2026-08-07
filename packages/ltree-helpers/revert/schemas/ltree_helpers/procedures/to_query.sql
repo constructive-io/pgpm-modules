@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION ltree_helpers.to_query;
+DROP FUNCTION ltree_helpers.to_query(text);
 
 COMMIT;

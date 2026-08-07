@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT verify_function ('object_store_private.tg_generate_id_hash'); 
-SELECT verify_trigger ('object_store_public.generate_id_hash');
+SELECT assert_function('object_store_private.tg_generate_id_hash()'::regprocedure);
+SELECT assert_trigger('object_store_public.object'::regclass, 'generate_id_hash', 'object_store_private.tg_generate_id_hash'::regproc, 7);
 
 ROLLBACK;

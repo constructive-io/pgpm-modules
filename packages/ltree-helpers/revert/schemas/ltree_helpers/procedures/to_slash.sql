@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION ltree_helpers.to_slash;
+DROP FUNCTION ltree_helpers.to_slash(ltree);
 
 COMMIT;

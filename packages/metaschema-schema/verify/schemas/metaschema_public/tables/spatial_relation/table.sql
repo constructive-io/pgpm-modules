@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_public.spatial_relation');
+SELECT assert_table('metaschema_public.spatial_relation'::regclass);
 
 ROLLBACK;

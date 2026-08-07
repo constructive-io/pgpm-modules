@@ -60,7 +60,7 @@ describe('commits', () => {
     );
 
     const res = await pg.any(
-      `SELECT * FROM object_tree_public.set_and_commit(
+      `SELECT (object_tree_public.set_and_commit(
         s_id := $1::uuid,
         store_id := $2::uuid,
         refname := $3::text,
@@ -68,7 +68,7 @@ describe('commits', () => {
         data := $5::jsonb,
         kids := $6::uuid[],
         ktree := $7::text[]
-      )`,
+      )).tree_id AS tree_hash`,
       [scope_id, store_id, 'master', ['a', 'b', 'c.yaml'], { content: 'type: hi' }, [], []]
     );
     expect(snapshot(res)).toMatchSnapshot();

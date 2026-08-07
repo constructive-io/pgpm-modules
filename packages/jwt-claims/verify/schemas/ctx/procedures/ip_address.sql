@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT verify_function ('ctx.ip_address');
+SELECT assert_function('ctx.ip_address()'::regprocedure);
 
 ROLLBACK;
 

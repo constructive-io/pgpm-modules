@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION object_store_utils.array_get_last;
+DROP FUNCTION object_store_utils.array_get_last(anyarray);
 
 COMMIT;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('object_tree_public.ref');
+SELECT assert_table('object_tree_public.ref'::regclass);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('object_tree_public.commit');
+SELECT assert_table('object_tree_public.commit'::regclass);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION jwt_private.current_database_id;
+DROP FUNCTION jwt_private.current_database_id();
 
 COMMIT;

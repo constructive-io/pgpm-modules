@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.complete_jobs;
+DROP FUNCTION app_jobs.complete_jobs(int8[]);
 
 COMMIT;

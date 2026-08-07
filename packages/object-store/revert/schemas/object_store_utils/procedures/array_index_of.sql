@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION object_store_utils.array_index_of;
+DROP FUNCTION object_store_utils.array_index_of(anyarray, anyelement);
 
 COMMIT;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_schema ('jwt_public');
+SELECT assert_schema('jwt_public'::regnamespace);
 
 ROLLBACK;

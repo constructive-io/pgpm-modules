@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('faker.dictionary');
+SELECT assert_table('faker.dictionary'::regclass);
 
 ROLLBACK;

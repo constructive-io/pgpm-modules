@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('status_private.user_incompleted_step');
+SELECT assert_function('status_private.user_incompleted_step(text, uuid)'::regprocedure);
 
 ROLLBACK;

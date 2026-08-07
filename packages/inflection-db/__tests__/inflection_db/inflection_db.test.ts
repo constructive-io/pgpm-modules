@@ -1,7 +1,6 @@
 jest.setTimeout(30000);
 
 import { getConnections, PgTestClient } from 'pgsql-test';
-// @ts-expect-error - jest-in-case doesn't have type definitions
 import cases from 'jest-in-case';
 
 let pg: PgTestClient;

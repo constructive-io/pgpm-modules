@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION object_store_utils.array_shift;
+DROP FUNCTION object_store_utils.array_shift(anyarray);
 
 COMMIT;

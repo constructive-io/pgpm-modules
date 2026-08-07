@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION uuids.trigger_set_uuid_related_field;
+DROP FUNCTION uuids.trigger_set_uuid_related_field();
 
 COMMIT;

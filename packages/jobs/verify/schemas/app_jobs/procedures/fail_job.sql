@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_jobs.fail_job');
+SELECT assert_function('app_jobs.fail_job(text, int8, text)'::regprocedure);
 
 ROLLBACK;

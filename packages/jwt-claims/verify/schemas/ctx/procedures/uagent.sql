@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT verify_function ('ctx.uagent');
+SELECT assert_function('ctx.uagent()'::regprocedure);
 
 ROLLBACK;
 

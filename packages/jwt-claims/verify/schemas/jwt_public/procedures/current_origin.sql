@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT verify_function ('jwt_public.current_origin');
+SELECT assert_function('jwt_public.current_origin()'::regprocedure);
 
 ROLLBACK;
 

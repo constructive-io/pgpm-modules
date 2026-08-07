@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_scope.membership_parent;
+DROP FUNCTION app_scope.membership_parent(uuid, text);
 
 COMMIT;

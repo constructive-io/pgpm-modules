@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_schema ('object_tree_private');
+SELECT assert_schema('object_tree_private'::regnamespace);
 
 ROLLBACK;

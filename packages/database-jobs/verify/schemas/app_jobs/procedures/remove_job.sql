@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_jobs.remove_job');
+SELECT assert_function('app_jobs.remove_job(text)'::regprocedure);
 
 ROLLBACK;

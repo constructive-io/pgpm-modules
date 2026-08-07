@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_public.unique_constraint');
+SELECT assert_table('metaschema_public.unique_constraint'::regclass);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION utils.throw;
+DROP FUNCTION utils.throw();
 
 COMMIT;

@@ -37,8 +37,20 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   billing_webhook_events_table_id uuid NOT NULL DEFAULT uuid_nil(),
   billing_webhook_events_table_name text NOT NULL DEFAULT '',
 
+  billing_refunds_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  billing_refunds_table_name text NOT NULL DEFAULT '',
+
+  billing_invoices_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  billing_invoices_table_name text NOT NULL DEFAULT '',
+
   -- Generated functions
   process_billing_event_function text NOT NULL DEFAULT '',
+  record_refund_function text NOT NULL DEFAULT '',
+  upsert_invoice_function text NOT NULL DEFAULT '',
+  -- Usage sync lives here rather than on billing_module: reporting usage needs
+  -- the provider's subscription item, which only this module knows about.
+  list_pending_usage_sync_function text NOT NULL DEFAULT '',
+  mark_usage_synced_function text NOT NULL DEFAULT '',
 
   prefix text NULL,
 
@@ -54,6 +66,8 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   CONSTRAINT billing_prices_table_fkey FOREIGN KEY (billing_prices_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT billing_subscriptions_table_fkey FOREIGN KEY (billing_subscriptions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT billing_webhook_events_table_fkey FOREIGN KEY (billing_webhook_events_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+  CONSTRAINT billing_refunds_table_fkey FOREIGN KEY (billing_refunds_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+  CONSTRAINT billing_invoices_table_fkey FOREIGN KEY (billing_invoices_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT products_table_fkey FOREIGN KEY (products_table_id) REFERENCES metaschema_public.table (id) ON DELETE SET NULL,
   CONSTRAINT prices_table_fkey FOREIGN KEY (prices_table_id) REFERENCES metaschema_public.table (id) ON DELETE SET NULL,
   CONSTRAINT subscriptions_table_fkey FOREIGN KEY (subscriptions_table_id) REFERENCES metaschema_public.table (id) ON DELETE SET NULL,
@@ -65,6 +79,8 @@ CREATE INDEX billing_provider_module_billing_prices_table_id_idx ON metaschema_m
 CREATE INDEX billing_provider_module_billing_products_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_products_table_id );
 CREATE INDEX billing_provider_module_billing_subscriptions_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_subscriptions_table_id );
 CREATE INDEX billing_provider_module_billing_webhook_events_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_webhook_events_table_id );
+CREATE INDEX billing_provider_module_billing_refunds_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_refunds_table_id );
+CREATE INDEX billing_provider_module_billing_invoices_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_invoices_table_id );
 CREATE INDEX billing_provider_module_prices_table_id_idx ON metaschema_modules_public.billing_provider_module ( prices_table_id );
 CREATE INDEX billing_provider_module_products_table_id_idx ON metaschema_modules_public.billing_provider_module ( products_table_id );
 CREATE INDEX billing_provider_module_subscriptions_table_id_idx ON metaschema_modules_public.billing_provider_module ( subscriptions_table_id );

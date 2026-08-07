@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_security ('status_public.user_achievements');
+SELECT assert_table_security('status_public.user_achievements'::regclass);
 
 ROLLBACK;

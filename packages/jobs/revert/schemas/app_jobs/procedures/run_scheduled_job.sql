@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.run_scheduled_job;
+DROP FUNCTION app_jobs.run_scheduled_job(int8, interval);
 
 COMMIT;

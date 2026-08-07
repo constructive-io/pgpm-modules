@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_schema ('faker');
+SELECT assert_schema('faker'::regnamespace);
 
 ROLLBACK;

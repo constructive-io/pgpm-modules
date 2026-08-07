@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION inflection.uncountable_words;
+DROP FUNCTION inflection.uncountable_words();
 
 COMMIT;

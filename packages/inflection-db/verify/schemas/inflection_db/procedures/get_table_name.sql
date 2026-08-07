@@ -2,6 +2,7 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection_db.get_table_name');
+SELECT assert_function('inflection_db.get_table_name(text)'::regprocedure);
+SELECT assert_function('inflection_db.get_table_name(text[])'::regprocedure);
 
 ROLLBACK;

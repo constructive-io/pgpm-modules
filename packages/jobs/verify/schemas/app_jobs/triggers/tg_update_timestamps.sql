@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_jobs.tg_update_timestamps');
+SELECT assert_function('app_jobs.tg_update_timestamps()'::regprocedure);
 
 ROLLBACK;

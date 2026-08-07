@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_schema ('app_jobs');
+SELECT assert_schema('app_jobs'::regnamespace);
 
 ROLLBACK;

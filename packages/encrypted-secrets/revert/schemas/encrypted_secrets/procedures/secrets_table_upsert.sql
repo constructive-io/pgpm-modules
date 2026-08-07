@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION encrypted_secrets.secrets_table_upsert;
+DROP FUNCTION encrypted_secrets.secrets_table_upsert(uuid, json);
 
 COMMIT;

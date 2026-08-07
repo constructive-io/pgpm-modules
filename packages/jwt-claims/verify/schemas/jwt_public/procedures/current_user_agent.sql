@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('jwt_public.current_user_agent');
+SELECT assert_function('jwt_public.current_user_agent()'::regprocedure);
 
 ROLLBACK;

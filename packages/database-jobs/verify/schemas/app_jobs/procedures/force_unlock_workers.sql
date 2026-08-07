@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_jobs.force_unlock_workers');
+SELECT assert_function('app_jobs.force_unlock_workers(text[])'::regprocedure);
 
 ROLLBACK;

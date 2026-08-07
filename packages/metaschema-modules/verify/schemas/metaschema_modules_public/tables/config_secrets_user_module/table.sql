@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_modules_public.config_secrets_user_module');
+SELECT assert_table('metaschema_modules_public.config_secrets_user_module'::regclass);
 
 ROLLBACK;

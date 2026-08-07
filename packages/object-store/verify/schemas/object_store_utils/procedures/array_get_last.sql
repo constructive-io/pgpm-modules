@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('object_store_utils.array_get_last');
+SELECT assert_function('object_store_utils.array_get_last(anyarray)'::regprocedure);
 
 ROLLBACK;

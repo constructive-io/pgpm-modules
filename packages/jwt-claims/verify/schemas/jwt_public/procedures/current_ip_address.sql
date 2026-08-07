@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('jwt_public.current_ip_address');
+SELECT assert_function('jwt_public.current_ip_address()'::regprocedure);
 
 ROLLBACK;

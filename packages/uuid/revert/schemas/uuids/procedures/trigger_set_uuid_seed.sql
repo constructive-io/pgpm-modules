@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION uuids.trigger_set_uuid_seed;
+DROP FUNCTION uuids.trigger_set_uuid_seed();
 
 COMMIT;

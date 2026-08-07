@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection.should_skip_uncountable');
+SELECT assert_function('inflection.should_skip_uncountable(text)'::regprocedure);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.reschedule_jobs;
+DROP FUNCTION app_jobs.reschedule_jobs(int8[], timestamptz, int4, int4, int4);
 
 COMMIT;

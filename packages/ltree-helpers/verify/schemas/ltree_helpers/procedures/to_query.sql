@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('ltree_helpers.to_query');
+SELECT assert_function('ltree_helpers.to_query(text)'::regprocedure);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_index ('app_jobs.job_queues', 'job_queues_locked_by_idx');
+SELECT assert_index('app_jobs.job_queues_locked_by_idx'::regclass, 'app_jobs.job_queues'::regclass);
 
 ROLLBACK;

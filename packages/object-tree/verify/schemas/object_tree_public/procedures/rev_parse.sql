@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('object_tree_public.rev_parse');
+SELECT assert_function('object_tree_public.rev_parse(uuid, uuid, text)'::regprocedure);
 
 ROLLBACK;

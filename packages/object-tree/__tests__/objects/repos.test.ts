@@ -35,7 +35,7 @@ it('create a ref', async () => {
   ]);
 
   const res = await pg.any(
-    `SELECT * FROM object_tree_public.set_and_commit(
+    `SELECT (object_tree_public.set_and_commit(
       s_id := $1::uuid,
       store_id := $2::uuid,
       refname := $3::text,
@@ -43,7 +43,7 @@ it('create a ref', async () => {
       data := $5::jsonb,
       kids := $6::uuid[],
       ktree := $7::text[]
-    )`,
+    )).tree_id AS tree_hash`,
     [
       scope_id,
       store_id,

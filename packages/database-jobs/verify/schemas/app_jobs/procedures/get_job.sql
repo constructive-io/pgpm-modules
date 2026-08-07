@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_jobs.get_job');
+SELECT assert_function('app_jobs.get_job(text, text[], interval)'::regprocedure);
 
 ROLLBACK;

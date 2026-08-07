@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_public.composite_type');
+SELECT assert_table('metaschema_public.composite_type'::regclass);
 
 ROLLBACK;

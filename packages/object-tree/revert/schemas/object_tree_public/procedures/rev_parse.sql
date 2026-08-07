@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION object_tree_public.rev_parse;
+DROP FUNCTION object_tree_public.rev_parse(uuid, uuid, text);
 
 COMMIT;

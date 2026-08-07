@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT verify_function ('ctx.origin');
+SELECT assert_function('ctx.origin()'::regprocedure);
 
 ROLLBACK;
 

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_domain ('public.image');
+SELECT assert_domain('public.image'::regtype, 'jsonb'::regtype, _constraints => 1);
 
 ROLLBACK;

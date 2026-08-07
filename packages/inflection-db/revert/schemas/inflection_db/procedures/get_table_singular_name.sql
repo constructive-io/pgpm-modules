@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION inflection_db.get_table_singular_name;
+DROP FUNCTION inflection_db.get_table_singular_name(text);
 
 COMMIT;

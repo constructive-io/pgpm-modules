@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('utils.throw');
+SELECT assert_function('utils.throw()'::regprocedure);
 
 ROLLBACK;

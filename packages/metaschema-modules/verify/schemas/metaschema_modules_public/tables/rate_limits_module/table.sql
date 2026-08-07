@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_modules_public.rate_limits_module');
+SELECT assert_table('metaschema_modules_public.rate_limits_module'::regclass);
 
 ROLLBACK;

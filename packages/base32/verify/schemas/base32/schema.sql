@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_schema ('base32');
+SELECT assert_schema('base32'::regnamespace);
 
 ROLLBACK;

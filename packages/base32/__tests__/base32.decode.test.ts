@@ -93,3 +93,10 @@ cases(
     { result: 'foobar', name: 'MZXW6YTBOI======' }
   ]
 );
+
+it('base32.decode rejects keys whose bytes contain a NUL', async () => {
+  // text cannot hold a NUL byte; totp.base32_to_hex exists to avoid this path
+  await expect(
+    pg.one(`SELECT base32.decode($1::text) AS decode`, ['AAAAAAAA'])
+  ).rejects.toThrow(/null character not permitted/);
+});

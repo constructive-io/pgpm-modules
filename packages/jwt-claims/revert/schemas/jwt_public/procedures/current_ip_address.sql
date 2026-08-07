@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION jwt_public.current_ip_address;
+DROP FUNCTION jwt_public.current_ip_address();
 
 COMMIT;

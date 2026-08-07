@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('object_tree_public.init_empty_repo');
+SELECT assert_function('object_tree_public.init_empty_repo(uuid, uuid)'::regprocedure);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_scope.frames');
+SELECT assert_function('app_scope.frames(uuid, text, uuid)'::regprocedure);
 
 ROLLBACK;

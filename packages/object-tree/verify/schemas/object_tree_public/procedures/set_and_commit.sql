@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('object_tree_public.set_and_commit');
+SELECT assert_function('object_tree_public.set_and_commit(uuid, uuid, text, text[], jsonb, uuid[], text[])'::regprocedure);
 
 ROLLBACK;

@@ -2,7 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION ctx.ip_address;
+DROP FUNCTION ctx.ip_address();
 
 COMMIT;
-

@@ -6,6 +6,8 @@
 
 BEGIN;
 
+-- One-entry wrapper over object_tree_public.set_many_and_commit, which is
+-- created later in the plan and resolved at call time.
 CREATE FUNCTION object_tree_public.set_and_commit(
   s_id uuid,
   store_id uuid,
@@ -13,76 +15,48 @@ CREATE FUNCTION object_tree_public.set_and_commit(
   path text[],
   data jsonb,
   kids uuid[],
-  ktree text[]
-) returns uuid as $$
-DECLARE
-  hash uuid;
-
-  ref object_tree_public.ref;
-  com object_tree_public.commit; 
-
+  ktree text[],
+  message text DEFAULT NULL
+) returns object_tree_public.commit as $$
 BEGIN
 
-SELECT * FROM
-  object_tree_public.ref r
-    WHERE r.scope_id = s_id
-    AND r.store_id = set_and_commit.store_id
-    AND r.name = refname
-INTO ref;
-
-IF (NOT FOUND) THEN
-  RAISE EXCEPTION 'REF_NOT_FOUND';
-END IF;
-
-SELECT * FROM
-  object_tree_public.commit c
-    WHERE c.scope_id = s_id
-    AND c.store_id = set_and_commit.store_id
-    AND c.id = ref.commit_id
-INTO com;
-
-IF (NOT FOUND) THEN
-  RAISE EXCEPTION 'COMMIT_NOT_FOUND';
-END IF;
-
-SELECT * FROM
-  object_store_public.insert_node_at_path
-  (
-    s_id := s_id,
-    root := com.tree_id,
-    path := set_and_commit.path,
-    data := set_and_commit.data,
-    kids := set_and_commit.kids,
-    ktree := set_and_commit.ktree
+RETURN object_tree_public.set_many_and_commit(
+  s_id := s_id,
+  store_id := set_and_commit.store_id,
+  refname := set_and_commit.refname,
+  message := set_and_commit.message,
+  entries := jsonb_build_array(
+    jsonb_build_object(
+      'path', coalesce(to_jsonb(set_and_commit.path), '[]'::jsonb),
+      'kids', to_jsonb(set_and_commit.kids),
+      'ktree', to_jsonb(set_and_commit.ktree)
+    ) ||
+    -- an absent key means "no data", which is not the same node as one whose
+    -- data is the json value null
+    CASE WHEN set_and_commit.data IS NULL THEN
+      '{}'::jsonb
+    ELSE
+      jsonb_build_object('data', set_and_commit.data)
+    END
   )
-INTO hash;
-
-INSERT INTO object_tree_public.commit (
-  scope_id,
-  store_id,
-  message,
-  parent_ids,
-  tree_id
-) VALUES (s_id, set_and_commit.store_id, NOW(), ARRAY[com.id]::uuid[], hash)
-RETURNING * INTO com;
-
-UPDATE object_tree_public.ref r
-  SET commit_id = com.id 
-WHERE r.id = ref.id;
-
-RETURN hash;
+);
 END;
 $$
 LANGUAGE 'plpgsql' VOLATILE;
 
 
+-- Writes one node's data while keeping the children it already has, then
+-- commits. Not expressible through set_many_and_commit: the batched primitive
+-- takes a node's children as given (an absent kids/ktree means "no children"),
+-- whereas this reads the existing node to carry them over.
 CREATE FUNCTION object_tree_public.set_props_and_commit(
   s_id uuid,
   store_id uuid,
   refname text,
   path text[],
-  data jsonb
-) returns uuid as $$
+  data jsonb,
+  message text DEFAULT NULL
+) returns object_tree_public.commit as $$
 DECLARE
   hash uuid;
 
@@ -124,14 +98,14 @@ INSERT INTO object_tree_public.commit (
   message,
   parent_ids,
   tree_id
-) VALUES (s_id, set_props_and_commit.store_id, NOW(), ARRAY[com.id]::uuid[], hash)
+) VALUES (s_id, set_props_and_commit.store_id, set_props_and_commit.message, ARRAY[com.id]::uuid[], hash)
 RETURNING * INTO com;
 
 UPDATE object_tree_public.ref r
   SET commit_id = com.id 
 WHERE r.id = ref.id;
 
-RETURN hash;
+RETURN com;
 END;
 $$
 LANGUAGE 'plpgsql' VOLATILE;

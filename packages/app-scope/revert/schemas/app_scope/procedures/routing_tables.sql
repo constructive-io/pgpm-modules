@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_scope.routing_tables;
+DROP FUNCTION app_scope.routing_tables(uuid, text);
 
 COMMIT;

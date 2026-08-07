@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION IF EXISTS partman.verify_parent_by_id(uuid);
+DROP FUNCTION partman.verify_parent_by_id(uuid);
 
 COMMIT;

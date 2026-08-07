@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection.uncountable_words');
+SELECT assert_function('inflection.uncountable_words()'::regprocedure);
 
 ROLLBACK;

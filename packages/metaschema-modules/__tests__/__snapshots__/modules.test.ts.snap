@@ -55,6 +55,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "resource_module",
     "rls_module",
     "route_module",
+    "scope_types_module",
     "session_secrets_module",
     "sessions_module",
     "site_surface_module",
@@ -64,6 +65,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "user_auth_module",
     "user_credentials_module",
     "user_settings_module",
+    "user_settings_security_module",
     "user_state_module",
     "users_module",
     "webauthn_auth_module",
@@ -75,8 +77,8 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
-  "moduleTablesCount": 66,
-  "totalTables": 73,
+  "moduleTablesCount": 68,
+  "totalTables": 75,
 }
 `;
 
@@ -143,13 +145,13 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 66,
+  "constraintCount": 68,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 476,
+  "constraintCount": 486,
   "foreignTables": [
     "catalog_module",
     "database",

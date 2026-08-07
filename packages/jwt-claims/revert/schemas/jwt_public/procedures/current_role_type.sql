@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION IF EXISTS jwt_public.current_role_type();
+DROP FUNCTION jwt_public.current_role_type();
 
 COMMIT;

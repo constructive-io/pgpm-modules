@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_public.function');
+SELECT assert_table('metaschema_public.function'::regclass);
 
 ROLLBACK;

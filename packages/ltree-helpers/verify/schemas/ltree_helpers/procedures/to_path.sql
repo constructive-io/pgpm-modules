@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('ltree_helpers.to_path');
+SELECT assert_function('ltree_helpers.to_path(text)'::regprocedure);
 
 ROLLBACK;

@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT verify_index ('app_jobs.jobs', 'jobs_main_index');
-SELECT verify_index ('app_jobs.jobs', 'jobs_no_queue_index');
+SELECT assert_index('app_jobs.jobs_main_index'::regclass, 'app_jobs.jobs'::regclass);
+SELECT assert_index('app_jobs.jobs_no_queue_index'::regclass, 'app_jobs.jobs'::regclass);
 
 ROLLBACK;

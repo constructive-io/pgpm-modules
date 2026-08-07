@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('secrets_schema.secrets_table');
+SELECT assert_table('secrets_schema.secrets_table'::regclass);
 
 ROLLBACK;

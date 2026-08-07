@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_scope.local_frames;
+DROP FUNCTION app_scope.local_frames(uuid, text, uuid);
 
 COMMIT;

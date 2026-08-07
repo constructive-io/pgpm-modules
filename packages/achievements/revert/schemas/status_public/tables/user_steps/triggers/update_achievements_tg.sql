@@ -3,6 +3,6 @@
 BEGIN;
 
 DROP TRIGGER update_achievements_tg ON status_public.user_steps;
-DROP FUNCTION status_private.tg_update_achievements_tg; 
+DROP FUNCTION status_private.tg_update_achievements_tg();
 
 COMMIT;

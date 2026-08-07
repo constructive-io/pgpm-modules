@@ -2,7 +2,7 @@
 
 BEGIN;
 
-SELECT verify_function ('ctx.uid');
+SELECT assert_function('ctx.uid()'::regprocedure);
 
 ROLLBACK;
 

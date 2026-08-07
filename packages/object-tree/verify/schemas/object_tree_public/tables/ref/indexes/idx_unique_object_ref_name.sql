@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_index ('object_tree_public.ref', 'idx_unique_object_ref_name');
+SELECT assert_index('object_tree_public.idx_unique_object_ref_name'::regclass, 'object_tree_public.ref'::regclass, true);
 
 ROLLBACK;

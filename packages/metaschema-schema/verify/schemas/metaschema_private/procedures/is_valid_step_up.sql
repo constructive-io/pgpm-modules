@@ -2,8 +2,8 @@
 
 BEGIN;
 
-SELECT verify_function ('metaschema_private.is_valid_step_up');
+SELECT assert_function('metaschema_private.is_valid_step_up(jsonb)'::regprocedure);
 
-SELECT verify_function ('metaschema_private.is_valid_step_up_conditions');
+SELECT assert_function('metaschema_private.is_valid_step_up_conditions(jsonb)'::regprocedure);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('object_store_utils.array_shift');
+SELECT assert_function('object_store_utils.array_shift(anyarray)'::regprocedure);
 
 ROLLBACK;

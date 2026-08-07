@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.schedule_min_interval_seconds;
+DROP FUNCTION app_jobs.schedule_min_interval_seconds(json);
 
 COMMIT;

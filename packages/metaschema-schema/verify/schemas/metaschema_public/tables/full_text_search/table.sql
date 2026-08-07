@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_public.full_text_search');
+SELECT assert_table('metaschema_public.full_text_search'::regclass);
 
 ROLLBACK;

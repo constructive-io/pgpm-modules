@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection_db.get_identifier');
+SELECT assert_function('inflection_db.get_identifier(text)'::regprocedure);
 
 ROLLBACK;

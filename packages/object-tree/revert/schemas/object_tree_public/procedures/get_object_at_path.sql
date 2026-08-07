@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION object_tree_public.get_object_at_path;
+DROP FUNCTION object_tree_public.get_object_at_path(uuid, uuid, text[], text);
 
 COMMIT;

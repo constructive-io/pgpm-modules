@@ -2,9 +2,9 @@
 
 BEGIN;
 
-  SELECT has_table_privilege('administrator', 'app_jobs.job_queues', 'SELECT');
-  SELECT has_table_privilege('administrator', 'app_jobs.job_queues', 'INSERT');
-  SELECT has_table_privilege('administrator', 'app_jobs.job_queues', 'UPDATE');
-  SELECT has_table_privilege('administrator', 'app_jobs.job_queues', 'DELETE');
+  SELECT assert_table_grant('app_jobs.job_queues'::regclass, 'administrator', 'SELECT');
+  SELECT assert_table_grant('app_jobs.job_queues'::regclass, 'administrator', 'INSERT');
+  SELECT assert_table_grant('app_jobs.job_queues'::regclass, 'administrator', 'UPDATE');
+  SELECT assert_table_grant('app_jobs.job_queues'::regclass, 'administrator', 'DELETE');
   
 ROLLBACK;

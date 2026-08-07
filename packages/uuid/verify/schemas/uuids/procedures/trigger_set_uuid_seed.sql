@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('uuids.trigger_set_uuid_seed');
+SELECT assert_function('uuids.trigger_set_uuid_seed()'::regprocedure);
 
 ROLLBACK;

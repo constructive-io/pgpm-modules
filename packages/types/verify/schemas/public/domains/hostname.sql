@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_domain ('public.hostname');
+SELECT assert_domain('public.hostname'::regtype, 'text'::regtype, _constraints => 1);
 
 ROLLBACK;

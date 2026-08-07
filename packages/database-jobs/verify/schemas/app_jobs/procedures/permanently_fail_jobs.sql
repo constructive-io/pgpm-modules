@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_jobs.permanently_fail_jobs');
+SELECT assert_function('app_jobs.permanently_fail_jobs(int8[], text)'::regprocedure);
 
 ROLLBACK;

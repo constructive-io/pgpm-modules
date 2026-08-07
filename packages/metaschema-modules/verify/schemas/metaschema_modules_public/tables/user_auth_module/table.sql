@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_modules_public.user_auth_module');
+SELECT assert_table('metaschema_modules_public.user_auth_module'::regclass);
 
 ROLLBACK;

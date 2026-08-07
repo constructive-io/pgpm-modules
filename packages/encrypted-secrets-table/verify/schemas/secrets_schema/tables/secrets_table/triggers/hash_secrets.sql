@@ -2,8 +2,8 @@
 
 BEGIN;
 
-SELECT verify_function ('secrets_schema.tg_hash_secrets'); 
-SELECT verify_trigger ('secrets_schema.hash_secrets_update');
-SELECT verify_trigger ('secrets_schema.hash_secrets_insert');
+SELECT assert_function('secrets_schema.tg_hash_secrets()'::regprocedure);
+SELECT assert_trigger('secrets_schema.secrets_table'::regclass, 'hash_secrets_update', 'secrets_schema.tg_hash_secrets'::regproc, 19);
+SELECT assert_trigger('secrets_schema.secrets_table'::regclass, 'hash_secrets_insert', 'secrets_schema.tg_hash_secrets'::regproc, 7);
 
 ROLLBACK;

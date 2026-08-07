@@ -2,7 +2,7 @@
 %project=inflection-db
 %uri=inflection-db
   
-schemas/inflection_db/schema [pgpm-inflection:schemas/inflection/tables/inflection_rules/indexes/inflection_rules_type_idx pgpm-verify:procedures/verify_view] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/inflection_db/schema
+schemas/inflection_db/schema [pgpm-inflection:schemas/inflection/tables/inflection_rules/indexes/inflection_rules_type_idx pgpm-verify:procedures/assert_view] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/inflection_db/schema
 schemas/inflection_db/procedures/get_identifier [schemas/inflection_db/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/inflection_db/procedures/get_identifier
 schemas/inflection_db/procedures/get_table_name [schemas/inflection_db/schema schemas/inflection_db/procedures/get_identifier] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/inflection_db/procedures/get_table_name
 schemas/inflection_db/procedures/get_check_constraint_name [schemas/inflection_db/schema schemas/inflection_db/procedures/get_table_name schemas/inflection_db/procedures/get_identifier] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/inflection_db/procedures/get_check_constraint_name

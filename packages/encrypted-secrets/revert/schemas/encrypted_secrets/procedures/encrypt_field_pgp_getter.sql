@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION encrypted_secrets.encrypt_field_pgp_getter;
+DROP FUNCTION encrypted_secrets.encrypt_field_pgp_getter(uuid, text, text);
 
 COMMIT;

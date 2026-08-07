@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION inflection.lower;
+DROP FUNCTION inflection.lower(text);
 
 COMMIT;

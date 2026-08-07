@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('measurements.quantities');
+SELECT assert_table('measurements.quantities'::regclass);
 
 ROLLBACK;

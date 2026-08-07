@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('jwt_public.current_user_id');
+SELECT assert_function('jwt_public.current_user_id()'::regprocedure);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION jwt_private.current_graph_execution_id;
+DROP FUNCTION jwt_private.current_graph_execution_id();
 
 COMMIT;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('object_store_public.get_path_objects_from_root');
+SELECT assert_function('object_store_public.get_path_objects_from_root(uuid, uuid, text[])'::regprocedure);
 
 ROLLBACK;

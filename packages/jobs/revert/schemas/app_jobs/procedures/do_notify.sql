@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.do_notify;
+DROP FUNCTION app_jobs.do_notify();
 
 COMMIT;

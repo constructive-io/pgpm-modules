@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.trigger_job_with_fields;
+DROP FUNCTION app_jobs.trigger_job_with_fields();
 
 COMMIT;

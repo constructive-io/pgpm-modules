@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_scope.platform_database_id');
+SELECT assert_function('app_scope.platform_database_id()'::regprocedure);
 
 ROLLBACK;

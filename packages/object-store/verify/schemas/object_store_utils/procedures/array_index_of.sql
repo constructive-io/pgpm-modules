@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('object_store_utils.array_index_of');
+SELECT assert_function('object_store_utils.array_index_of(anyarray, anyelement)'::regprocedure);
 
 ROLLBACK;

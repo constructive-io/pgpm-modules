@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('utils.ensure_singleton');
+SELECT assert_function('utils.ensure_singleton()'::regprocedure);
 
 ROLLBACK;

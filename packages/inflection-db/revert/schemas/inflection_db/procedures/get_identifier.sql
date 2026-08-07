@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION inflection_db.get_identifier;
+DROP FUNCTION inflection_db.get_identifier(text);
 
 COMMIT;

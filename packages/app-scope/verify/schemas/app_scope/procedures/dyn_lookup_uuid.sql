@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_scope.dyn_lookup_uuid');
+SELECT assert_function('app_scope.dyn_lookup_uuid(text, text, text, uuid)'::regprocedure);
 
 ROLLBACK;

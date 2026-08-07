@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_modules_public.rls_module');
+SELECT assert_table('metaschema_modules_public.rls_module'::regclass);
 
 ROLLBACK;

@@ -2,8 +2,8 @@
 
 BEGIN;
 
-DROP FUNCTION ctx.security_definer;
-DROP FUNCTION ctx.is_security_definer;
+DROP FUNCTION ctx.security_definer();
+DROP FUNCTION ctx.is_security_definer();
 
 COMMIT;
 

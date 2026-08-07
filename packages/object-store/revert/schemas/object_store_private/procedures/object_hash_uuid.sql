@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION object_store_public.object_hash_uuid;
+DROP FUNCTION object_store_public.object_hash_uuid(object_store_public.object);
 
 COMMIT;

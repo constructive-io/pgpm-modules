@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_scope.membership_parent');
+SELECT assert_function('app_scope.membership_parent(uuid, text)'::regprocedure);
 
 ROLLBACK;

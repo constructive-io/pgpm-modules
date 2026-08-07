@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION object_store_public.get_all_objects_from_root;
+DROP FUNCTION object_store_public.get_all_objects_from_root(uuid, uuid);
 
 COMMIT;

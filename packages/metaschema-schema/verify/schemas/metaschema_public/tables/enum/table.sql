@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('metaschema_public.enum');
+SELECT assert_table('metaschema_public.enum'::regclass);
 
 ROLLBACK;

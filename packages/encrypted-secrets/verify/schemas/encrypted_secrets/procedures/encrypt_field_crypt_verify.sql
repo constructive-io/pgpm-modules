@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('encrypted_secrets.encrypt_field_crypt_verify');
+SELECT assert_function('encrypted_secrets.encrypt_field_crypt_verify(uuid, text, text)'::regprocedure);
 
 ROLLBACK;

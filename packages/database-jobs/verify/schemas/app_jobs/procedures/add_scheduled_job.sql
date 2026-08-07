@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_jobs.add_scheduled_job');
+SELECT assert_function('app_jobs.add_scheduled_job(text, json, json, text, text, int4, int4, uuid, uuid)'::regprocedure);
 
 ROLLBACK;

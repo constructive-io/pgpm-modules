@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('object_tree_public.store');
+SELECT assert_table('object_tree_public.store'::regclass);
 
 ROLLBACK;

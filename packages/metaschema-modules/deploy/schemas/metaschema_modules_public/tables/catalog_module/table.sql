@@ -5,9 +5,9 @@
 BEGIN;
 
 -- Typed catalog module configuration: one row per database installs the typed
--- catalog tables (catalog_public.domains / apis / sites / namespaces /
+-- catalog tables (catalog_private.domains / apis / sites / namespaces /
 -- functions / resources / resource_definitions / resource_installations /
--- apps / buckets). The catalog is
+-- apps / buckets / bindings). The catalog is
 -- a system projection surface holding ALL scopes of each type; scoped source
 -- tables register into it via catalog_register. The stable schema-qualified
 -- table names are load-bearing deployment contracts.
@@ -32,6 +32,7 @@ CREATE TABLE metaschema_modules_public.catalog_module (
     resource_installations_table_id uuid NOT NULL DEFAULT uuid_nil(),
     apps_table_id uuid NOT NULL DEFAULT uuid_nil(),
     buckets_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    bindings_table_id uuid NOT NULL DEFAULT uuid_nil(),
     sites_web_config_table_id uuid NOT NULL DEFAULT uuid_nil(),
     sites_error_pages_table_id uuid NOT NULL DEFAULT uuid_nil(),
     sites_app_links_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -48,6 +49,7 @@ CREATE TABLE metaschema_modules_public.catalog_module (
     resource_installations_table_name text NOT NULL DEFAULT 'resource_installations',
     apps_table_name text NOT NULL DEFAULT 'apps',
     buckets_table_name text NOT NULL DEFAULT 'buckets',
+    bindings_table_name text NOT NULL DEFAULT 'bindings',
     sites_web_config_table_name text NOT NULL DEFAULT 'sites_web_config',
     sites_error_pages_table_name text NOT NULL DEFAULT 'sites_error_pages',
     sites_app_links_table_name text NOT NULL DEFAULT 'sites_app_links',
@@ -121,6 +123,10 @@ CREATE TABLE metaschema_modules_public.catalog_module (
         FOREIGN KEY (buckets_table_id)
         REFERENCES metaschema_public.table (id)
         ON DELETE CASCADE,
+    CONSTRAINT catalog_module_bindings_table_fkey
+        FOREIGN KEY (bindings_table_id)
+        REFERENCES metaschema_public.table (id)
+        ON DELETE CASCADE,
     CONSTRAINT catalog_module_sites_web_config_table_fkey
         FOREIGN KEY (sites_web_config_table_id)
         REFERENCES metaschema_public.table (id)
@@ -150,6 +156,7 @@ CREATE UNIQUE INDEX catalog_module_unique_database
 CREATE INDEX catalog_module_apis_table_id_idx ON metaschema_modules_public.catalog_module ( apis_table_id );
 CREATE INDEX catalog_module_apps_table_id_idx ON metaschema_modules_public.catalog_module ( apps_table_id );
 CREATE INDEX catalog_module_buckets_table_id_idx ON metaschema_modules_public.catalog_module ( buckets_table_id );
+CREATE INDEX catalog_module_bindings_table_id_idx ON metaschema_modules_public.catalog_module ( bindings_table_id );
 CREATE INDEX catalog_module_sites_web_config_table_id_idx ON metaschema_modules_public.catalog_module ( sites_web_config_table_id );
 CREATE INDEX catalog_module_sites_error_pages_table_id_idx ON metaschema_modules_public.catalog_module ( sites_error_pages_table_id );
 CREATE INDEX catalog_module_sites_app_links_table_id_idx ON metaschema_modules_public.catalog_module ( sites_app_links_table_id );

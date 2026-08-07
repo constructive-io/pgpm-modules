@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_jobs.reschedule_jobs');
+SELECT assert_function('app_jobs.reschedule_jobs(int8[], timestamptz, int4, int4, int4)'::regprocedure);
 
 ROLLBACK;

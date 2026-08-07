@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION IF EXISTS partman.create_parent_with_retention(text, text, text, text, int, text, boolean);
+DROP FUNCTION partman.create_parent_with_retention(text, text, text, text, int4, text, bool);
 
 COMMIT;

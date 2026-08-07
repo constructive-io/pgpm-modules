@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('encrypted_secrets.encrypt_field_pgp_get');
+SELECT assert_function('encrypted_secrets.encrypt_field_pgp_get(bytea, text)'::regprocedure);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION jwt_public.current_user_agent;
+DROP FUNCTION jwt_public.current_user_agent();
 
 COMMIT;

@@ -2,9 +2,6 @@
 
 BEGIN;
 
-SELECT has_function_privilege(
-  'metaschema_public.tg_enforce_api_exposure_ratchet()',
-  'execute'
-);
+SELECT assert_function('metaschema_public.tg_enforce_api_exposure_ratchet()'::regprocedure);
 
 ROLLBACK;

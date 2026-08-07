@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION uuids.pseudo_order_uuid;
+DROP FUNCTION uuids.pseudo_order_uuid();
 
 COMMIT;

@@ -3,6 +3,6 @@
 BEGIN;
 
 DROP FUNCTION inflection.slugify(text);
-DROP FUNCTION inflection.slugify(text, boolean);
+DROP FUNCTION inflection.slugify(text, bool);
 
 COMMIT;

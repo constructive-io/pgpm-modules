@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.add_job;
+DROP FUNCTION app_jobs.add_job(text, json, text, text, timestamptz, int4, int4, uuid, uuid, text, uuid, text, uuid);
 
 COMMIT;

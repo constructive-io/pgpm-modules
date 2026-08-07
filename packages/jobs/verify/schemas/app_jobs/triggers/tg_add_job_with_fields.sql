@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('app_jobs.trigger_job_with_fields');
+SELECT assert_function('app_jobs.trigger_job_with_fields()'::regprocedure);
 
 ROLLBACK;

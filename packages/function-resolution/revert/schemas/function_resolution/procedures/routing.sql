@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION function_resolution.routing;
+DROP FUNCTION function_resolution.routing(uuid, uuid);
 
 COMMIT;

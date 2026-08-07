@@ -2,9 +2,6 @@
 
 BEGIN;
 
-SELECT has_function_privilege(
-  'jwt_public.current_role_type()',
-  'execute'
-);
+SELECT assert_function('jwt_public.current_role_type()'::regprocedure);
 
 ROLLBACK;

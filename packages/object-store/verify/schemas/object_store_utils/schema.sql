@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_schema ('object_store_utils');
+SELECT assert_schema('object_store_utils'::regnamespace);
 
 ROLLBACK;

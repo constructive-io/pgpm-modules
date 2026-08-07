@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_index ('object_store_public.object', 'scope_id_idx');
+SELECT assert_index('object_store_public.scope_id_idx'::regclass, 'object_store_public.object'::regclass);
 
 ROLLBACK;

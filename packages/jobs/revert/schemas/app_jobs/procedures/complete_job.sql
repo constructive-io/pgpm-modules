@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION app_jobs.complete_job;
+DROP FUNCTION app_jobs.complete_job(text, int8);
 
 COMMIT;

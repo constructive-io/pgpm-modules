@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION IF EXISTS inflection_db.get_namespace_name (text[]);
+DROP FUNCTION inflection_db.get_namespace_name(text[]);
 
 COMMIT;

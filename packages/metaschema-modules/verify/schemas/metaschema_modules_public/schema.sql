@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT pg_catalog.has_schema_privilege('metaschema_modules_public', 'usage');
+SELECT assert_schema('metaschema_modules_public'::regnamespace);
 
 ROLLBACK;

@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_schema ('ltree_helpers');
+SELECT assert_schema('ltree_helpers'::regnamespace);
 
 ROLLBACK;

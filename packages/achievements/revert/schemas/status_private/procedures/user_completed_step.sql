@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION status_private.user_completed_step;
+DROP FUNCTION status_private.user_completed_step(text, uuid);
 
 COMMIT;

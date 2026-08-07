@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_function ('inflection.lower');
+SELECT assert_function('inflection.lower(text)'::regprocedure);
 
 ROLLBACK;

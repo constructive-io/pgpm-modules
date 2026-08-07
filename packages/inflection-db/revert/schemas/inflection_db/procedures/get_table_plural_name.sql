@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION inflection_db.get_table_plural_name;
+DROP FUNCTION inflection_db.get_table_plural_name(text);
 
 COMMIT;

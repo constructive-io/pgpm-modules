@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT verify_table ('faker.cities');
+SELECT assert_table('faker.cities'::regclass);
 
 ROLLBACK;

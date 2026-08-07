@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION inflection.dashed;
+DROP FUNCTION inflection.dashed(text);
 
 COMMIT;
