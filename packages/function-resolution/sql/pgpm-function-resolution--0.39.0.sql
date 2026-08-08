@@ -427,6 +427,61 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
+CREATE FUNCTION function_resolution.bucket_matches(
+  database_id uuid,
+  scope text,
+  entity_id uuid,
+  tags text[],
+  type_filter text DEFAULT NULL
+) RETURNS TABLE (
+  bucket_id uuid,
+  bucket_key text,
+  bucket_type text,
+  physical_name text,
+  owner_database_id uuid,
+  owner_scope text,
+  owner_key uuid
+) AS $EOFCODE$
+BEGIN
+    RETURN QUERY
+    WITH hits AS (
+        SELECT b.id,
+               b.key,
+               b.type,
+               b.physical_name,
+               b.database_id,
+               b.owner_scope,
+               b.owner_key,
+               cand.ord
+        FROM function_resolution.frame_candidates(
+            bucket_matches.database_id,
+            bucket_matches.scope,
+            bucket_matches.entity_id
+        ) cand
+        JOIN catalog_private.buckets b
+          ON b.owner_scope = cand.owner_scope
+         AND b.owner_key IS NOT DISTINCT FROM cand.owner_key
+         AND b.database_id = CASE
+               WHEN cand.owner_scope = 'database' THEN cand.owner_key
+               ELSE cand.lookup_database_id
+             END
+        WHERE b.tags @> bucket_matches.tags
+          AND (bucket_matches.type_filter IS NULL OR b.type = bucket_matches.type_filter)
+          AND (b.database_id = bucket_matches.database_id OR b.is_visible)
+    )
+    SELECT h.id,
+           h.key,
+           h.type,
+           h.physical_name,
+           h.database_id,
+           h.owner_scope,
+           h.owner_key
+    FROM hits h
+    WHERE h.ord = (SELECT min(hh.ord) FROM hits hh)
+    ORDER BY h.id;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
 CREATE FUNCTION function_resolution.resolve_bucket(
   database_id uuid,
   scope text,
@@ -455,39 +510,15 @@ BEGIN
     -- Every frame in one indexed read, keeping only the matches of the most
     -- specific frame that answered: a nearer frame outranks an outer one, and
     -- ties within that frame are the ambiguity raised below.
-    WITH hits AS (
-        SELECT b.id,
-               b.key,
-               b.type,
-               b.physical_name,
-               b.database_id,
-               b.owner_scope,
-               b.owner_key,
-               cand.ord
-        FROM function_resolution.frame_candidates(
-            resolve_bucket.database_id,
-            resolve_bucket.scope,
-            resolve_bucket.entity_id
-        ) cand
-        JOIN catalog_private.buckets b
-          ON b.owner_scope = cand.owner_scope
-         AND b.owner_key IS NOT DISTINCT FROM cand.owner_key
-         AND b.database_id = CASE
-               WHEN cand.owner_scope = 'database' THEN cand.owner_key
-               ELSE cand.lookup_database_id
-             END
-        WHERE b.tags @> resolve_bucket.tags
-          AND (resolve_bucket.type_filter IS NULL OR b.type = resolve_bucket.type_filter)
-          AND (b.database_id = resolve_bucket.database_id OR b.is_visible)
-    ),
-    nearest AS (
-        SELECT h.*
-        FROM hits h
-        WHERE h.ord = (SELECT min(hh.ord) FROM hits hh)
-    )
-    SELECT COALESCE(jsonb_agg(to_jsonb(n) ORDER BY n.id), '[]'::jsonb)
+    SELECT COALESCE(jsonb_agg(to_jsonb(m) ORDER BY m.bucket_id), '[]'::jsonb)
     INTO v_matches
-    FROM nearest n;
+    FROM function_resolution.bucket_matches(
+        resolve_bucket.database_id,
+        resolve_bucket.scope,
+        resolve_bucket.entity_id,
+        resolve_bucket.tags,
+        resolve_bucket.type_filter
+    ) m;
 
     IF jsonb_array_length(v_matches) = 0 THEN
         RAISE EXCEPTION 'CAPABILITY_BUCKET_NOT_FOUND: no bucket tagged % % resolves in the scope chain starting at scope "%" (database_id=%)',
@@ -503,20 +534,125 @@ BEGIN
             jsonb_array_length(v_matches),
             resolve_bucket.tags,
             COALESCE('of type ' || resolve_bucket.type_filter, '(any type)'),
-            (SELECT string_agg(format('%s (%s)', m->>'key', m->>'id'), ', ' ORDER BY m->>'key')
+            (SELECT string_agg(format('%s (%s)', m->>'bucket_key', m->>'bucket_id'), ', ' ORDER BY m->>'bucket_key')
                FROM jsonb_array_elements(v_matches) m)
             USING ERRCODE = 'FR012';
     END IF;
 
     v_match := v_matches->0;
 
-    resolve_bucket.bucket_id := (v_match->>'id')::uuid;
-    resolve_bucket.bucket_key := v_match->>'key';
-    resolve_bucket.bucket_type := v_match->>'type';
+    resolve_bucket.bucket_id := (v_match->>'bucket_id')::uuid;
+    resolve_bucket.bucket_key := v_match->>'bucket_key';
+    resolve_bucket.bucket_type := v_match->>'bucket_type';
     resolve_bucket.physical_name := v_match->>'physical_name';
-    resolve_bucket.owner_database_id := (v_match->>'database_id')::uuid;
+    resolve_bucket.owner_database_id := (v_match->>'owner_database_id')::uuid;
     resolve_bucket.owner_scope := v_match->>'owner_scope';
     resolve_bucket.owner_key := (v_match->>'owner_key')::uuid;
+
+    RETURN NEXT;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+CREATE FUNCTION function_resolution.default_bucket_tag(
+  public_access boolean
+) RETURNS text AS $EOFCODE$
+    SELECT CASE WHEN default_bucket_tag.public_access THEN 'default-public' ELSE 'default' END;
+$EOFCODE$ LANGUAGE sql IMMUTABLE;
+
+CREATE FUNCTION function_resolution.resolve_default_bucket(
+  database_id uuid,
+  scope text,
+  entity_id uuid,
+  public_access boolean,
+  bucket_key text DEFAULT NULL
+) RETURNS TABLE (
+  bucket_id uuid,
+  resolved_key text,
+  bucket_type text,
+  physical_name text,
+  owner_database_id uuid,
+  owner_scope text,
+  owner_key uuid
+) AS $EOFCODE$
+DECLARE
+    v_tag text;
+    v_matches jsonb;
+    v_match jsonb;
+BEGIN
+    -- A blank override is a caller bug, not a request for the default: falling
+    -- through to tag resolution would turn a broken field binding into a
+    -- silently different bucket.
+    IF resolve_default_bucket.bucket_key IS NOT NULL
+       AND btrim(resolve_default_bucket.bucket_key) = '' THEN
+        PERFORM errors.raise_error(
+            'STORAGE_BUCKET_KEY_BLANK',
+            jsonb_build_object(
+                'database_id', resolve_default_bucket.database_id,
+                'scope', resolve_default_bucket.scope
+            ),
+            'internal'
+        );
+    END IF;
+
+    v_tag := COALESCE(
+        resolve_default_bucket.bucket_key,
+        function_resolution.default_bucket_tag(resolve_default_bucket.public_access)
+    );
+
+    SELECT COALESCE(jsonb_agg(to_jsonb(m) ORDER BY m.bucket_id), '[]'::jsonb)
+    INTO v_matches
+    FROM function_resolution.bucket_matches(
+        resolve_default_bucket.database_id,
+        resolve_default_bucket.scope,
+        resolve_default_bucket.entity_id,
+        ARRAY[v_tag]
+    ) m;
+
+    IF jsonb_array_length(v_matches) = 0 THEN
+        PERFORM errors.raise_error(
+            'STORAGE_DEFAULT_BUCKET_NOT_FOUND',
+            jsonb_build_object(
+                'database_id', resolve_default_bucket.database_id,
+                'scope', resolve_default_bucket.scope,
+                'entity_id', resolve_default_bucket.entity_id,
+                'tag', v_tag,
+                'explicit_key', resolve_default_bucket.bucket_key IS NOT NULL
+            ),
+            'internal'
+        );
+    END IF;
+
+    IF jsonb_array_length(v_matches) > 1 THEN
+        PERFORM errors.raise_error(
+            'STORAGE_DEFAULT_BUCKET_AMBIGUOUS',
+            jsonb_build_object(
+                'database_id', resolve_default_bucket.database_id,
+                'scope', resolve_default_bucket.scope,
+                'entity_id', resolve_default_bucket.entity_id,
+                'tag', v_tag,
+                'explicit_key', resolve_default_bucket.bucket_key IS NOT NULL,
+                'candidates', (
+                    SELECT jsonb_agg(jsonb_build_object(
+                        'bucket_id', c->>'bucket_id',
+                        'key', c->>'bucket_key',
+                        'type', c->>'bucket_type'
+                    ) ORDER BY c->>'bucket_key')
+                    FROM jsonb_array_elements(v_matches) c
+                )
+            ),
+            'internal'
+        );
+    END IF;
+
+    v_match := v_matches->0;
+
+    resolve_default_bucket.bucket_id := (v_match->>'bucket_id')::uuid;
+    resolve_default_bucket.resolved_key := v_match->>'bucket_key';
+    resolve_default_bucket.bucket_type := v_match->>'bucket_type';
+    resolve_default_bucket.physical_name := v_match->>'physical_name';
+    resolve_default_bucket.owner_database_id := (v_match->>'owner_database_id')::uuid;
+    resolve_default_bucket.owner_scope := v_match->>'owner_scope';
+    resolve_default_bucket.owner_key := (v_match->>'owner_key')::uuid;
 
     RETURN NEXT;
 END;
