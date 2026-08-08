@@ -1,6 +1,6 @@
 # pgpm-jobs extension
 comment = 'pgpm-jobs extension'
-default_version = '0.39.0'
+default_version = '0.40.0'
 module_pathname = '$libdir/pgpm-jobs'
 requires = 'plpgsql,pgcrypto,pgpm-verify'
 relocatable = false
