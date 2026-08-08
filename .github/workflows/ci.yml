@@ -9,7 +9,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -35,6 +34,10 @@ jobs:
           - types
           - stamps
           - geotypes
+          - inflection-db
+          - object-store
+          - object-tree
+          - partman
 
     env:
       PGHOST: localhost
@@ -111,9 +114,6 @@ jobs:
       # and synchronous commit avoids checkpoint I/O stalls on CI runners.
       - name: Tune Postgres for CI (disable durability)
         run: pgpm tune --yes
-
-      - name: Build
-        run: pnpm -r build
 
       - name: Seed pg and app_user
         run: |
