@@ -181,6 +181,9 @@ importers:
       '@pgpm/database-jobs':
         specifier: workspace:*
         version: link:../database-jobs
+      '@pgpm/errors':
+        specifier: workspace:*
+        version: link:../errors
       '@pgpm/jwt-claims':
         specifier: workspace:*
         version: link:../jwt-claims

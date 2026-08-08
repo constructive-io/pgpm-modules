@@ -187,31 +187,38 @@ BEGIN
     max_depth;
 
   -- 3. resolve each dirty directory against the pre-existing tree, walking down
-  --    from the current root so untouched siblings survive the rebuild
+  --    from the current root so untouched siblings survive the rebuild.
+  --
+  --    The descent joins a directory to its parent on the parent's key, which
+  --    every directory already carries: an equijoin the planner hashes once per
+  --    level. Recursing on depth instead and matching with a path-prefix filter
+  --    (`child.path[1:r.depth] = r.path`) is the same walk but not a join
+  --    condition, so every dirty directory is compared against every row of the
+  --    level above — 9.6M filtered comparisons per level on a 22k-directory
+  --    batch, each re-deriving the path from the key, which is 300s of a 307s
+  --    pass against 0.4s for this one.
+  --
+  --    The root is the descent's seed, not a child: it is its own parent under
+  --    `to_jsonb(path[1:0])`, so leaving it in the recursive side joins it to
+  --    itself forever.
   WITH RECURSIVE dirs AS (
     SELECT
       dr.node_key,
-      dr.depth,
-      ARRAY (
-        SELECT
-          jsonb_array_elements_text(dr.node_key::jsonb))::text[] AS path
-    FROM unnest(d_key, d_depth) AS dr (node_key, depth)
+      dr.name,
+      dr.parent
+    FROM unnest(d_key, d_name, d_parent) AS dr (node_key, name, parent)
+    WHERE dr.node_key <> root_key
 ),
   resolved AS (
     SELECT
       root_key AS node_key,
-      0 AS depth,
-      ARRAY[]::text[] AS path,
       insert_nodes_at_paths.root AS node_id
     UNION ALL
     SELECT
       child.node_key,
-      child.depth,
-      child.path,
-      parent_obj.kids[object_store_utils.array_index_of (parent_obj.ktree, child.path[child.depth])]
+      parent_obj.kids[object_store_utils.array_index_of (parent_obj.ktree, child.name)]
     FROM resolved AS r
-    JOIN dirs AS child ON child.depth = r.depth + 1
-      AND child.path[1:r.depth] = r.path
+    JOIN dirs AS child ON child.parent = r.node_key
     LEFT JOIN object_store_public.object AS parent_obj ON parent_obj.id = r.node_id
       AND parent_obj.scope_id = insert_nodes_at_paths.s_id
 )

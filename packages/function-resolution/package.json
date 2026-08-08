@@ -26,6 +26,7 @@
   "dependencies": {
     "@pgpm/app-scope": "workspace:*",
     "@pgpm/database-jobs": "workspace:*",
+    "@pgpm/errors": "workspace:*",
     "@pgpm/jwt-claims": "workspace:*",
     "@pgpm/metaschema-modules": "workspace:*",
     "@pgpm/metaschema-schema": "workspace:*",
