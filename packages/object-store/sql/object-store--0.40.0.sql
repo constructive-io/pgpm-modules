@@ -991,4 +991,4 @@ BEGIN
   root_id := pd_id[1];
   RETURN root_id;
 END;
-$EOFCODE$ LANGUAGE plpgsql VOLATILE;
+$EOFCODE$ LANGUAGE plpgsql VOLATILE SET jit TO off SET work_mem TO '64MB' SET plan_cache_mode TO force_custom_plan;

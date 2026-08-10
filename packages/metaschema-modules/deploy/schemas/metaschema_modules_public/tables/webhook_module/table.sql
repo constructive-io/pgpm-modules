@@ -47,7 +47,7 @@ CREATE TABLE metaschema_modules_public.webhook_module (
 
     policies jsonb NULL,
     provisions jsonb NULL,
-    default_permissions text[] DEFAULT NULL,
+    default_capabilities text[] DEFAULT NULL,
 
     CONSTRAINT webhook_module_db_fkey
         FOREIGN KEY (database_id)

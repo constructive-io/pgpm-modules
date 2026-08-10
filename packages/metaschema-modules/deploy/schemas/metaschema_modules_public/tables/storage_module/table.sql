@@ -67,7 +67,7 @@ CREATE TABLE metaschema_modules_public.storage_module (
     -- CORS configuration (NULL = use plugin defaults)
     allowed_origins text[] NULL,                 -- Default CORS origins for all buckets in this database (e.g., ARRAY['https://app.example.com']). ['*'] = open/CDN mode.
 
-    -- Storage permissions: when true, SELECT on files requires read_files permission
+    -- Storage capabilities: when true, SELECT on files requires read_files capability
     -- (opt-in restrictive mode for sensitive entity types like data rooms with confidential docs).
     -- When false (default), any entity member can read all files (baseline = membership).
     restrict_reads boolean NOT NULL DEFAULT false,
@@ -102,9 +102,9 @@ CREATE TABLE metaschema_modules_public.storage_module (
     -- Generated table ID for file_events (populated by the generator when has_audit_log=true)
     file_events_table_id uuid NULL DEFAULT NULL,
 
-    -- Default permissions: permission names auto-granted to new members.
+    -- Default capabilities: capability names auto-granted to new members.
     -- NULL uses the module's built-in defaults; explicit array overrides them.
-    default_permissions text[] DEFAULT NULL,
+    default_capabilities text[] DEFAULT NULL,
 
     -- Constraints
     -- API routing (configurable per-module)

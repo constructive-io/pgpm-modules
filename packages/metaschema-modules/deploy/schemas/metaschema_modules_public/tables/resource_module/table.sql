@@ -85,8 +85,8 @@ CREATE TABLE metaschema_modules_public.resource_module (
     -- Keys are table keys (resources, resource_events).
     provisions jsonb NULL,
 
-    -- Default permissions: permission names auto-granted to new members.
-    default_permissions text[] DEFAULT NULL,
+    -- Default capabilities: capability names auto-granted to new members.
+    default_capabilities text[] DEFAULT NULL,
 
     -- Constraints
     CONSTRAINT resource_module_db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,

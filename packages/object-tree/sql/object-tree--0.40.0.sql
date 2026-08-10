@@ -153,6 +153,11 @@ BEGIN
   UPDATE object_tree_public.ref SET commit_id = vcommit_id
     WHERE id = vref_id;
 
+  -- the store's head tree, kept current from here on by the commit functions
+  UPDATE object_tree_public.store s SET hash = vtree_id
+    WHERE s.id = init_empty_repo.store_id
+      AND s.scope_id = s_id;
+
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
@@ -200,19 +205,19 @@ CREATE FUNCTION object_tree_public.set_props_and_commit(
   message text DEFAULT NULL
 ) RETURNS object_tree_public.commit AS $EOFCODE$
 DECLARE
-  hash uuid;
+  tree uuid;
 
   ref object_tree_public.ref;
   com object_tree_public.commit; 
 
 BEGIN
 
-SELECT * FROM
+SELECT * INTO ref FROM
   object_tree_public.ref r
     WHERE r.scope_id = s_id
     AND r.store_id = set_props_and_commit.store_id
     AND r.name = refname
-INTO ref;
+FOR UPDATE;
 
 IF (NOT FOUND) THEN
   RAISE EXCEPTION 'REF_NOT_FOUND';
@@ -232,7 +237,7 @@ END IF;
 SELECT * FROM
   object_store_public.set_data_at_path
   (s_id, com.tree_id, path, data)
-INTO hash;
+INTO tree;
 
 INSERT INTO object_tree_public.commit (
   scope_id,
@@ -240,12 +245,17 @@ INSERT INTO object_tree_public.commit (
   message,
   parent_ids,
   tree_id
-) VALUES (s_id, set_props_and_commit.store_id, set_props_and_commit.message, ARRAY[com.id]::uuid[], hash)
+) VALUES (s_id, set_props_and_commit.store_id, set_props_and_commit.message, ARRAY[com.id]::uuid[], tree)
 RETURNING * INTO com;
 
 UPDATE object_tree_public.ref r
   SET commit_id = com.id 
 WHERE r.id = ref.id;
+
+UPDATE object_tree_public.store s
+  SET hash = tree
+WHERE s.id = set_props_and_commit.store_id
+  AND s.scope_id = s_id;
 
 RETURN com;
 END;
@@ -282,7 +292,7 @@ CREATE FUNCTION object_tree_public.set_many_and_commit(
   message text DEFAULT NULL
 ) RETURNS object_tree_public.commit AS $EOFCODE$
 DECLARE
-  hash uuid;
+  tree uuid;
   paths jsonb;
   datas jsonb[];
   kids_list jsonb;
@@ -291,13 +301,14 @@ DECLARE
   com object_tree_public.commit;
 BEGIN
   SELECT
-    *
+    * INTO ref
   FROM
     object_tree_public.ref AS r
   WHERE
     r.scope_id = s_id
     AND r.store_id = set_many_and_commit.store_id
-    AND r.name = refname INTO ref;
+    AND r.name = refname
+  FOR UPDATE;
   IF (NOT FOUND) THEN
     RAISE EXCEPTION 'REF_NOT_FOUND';
   END IF;
@@ -327,9 +338,9 @@ BEGIN
   SELECT
     *
   FROM
-    object_store_public.insert_nodes_at_paths (s_id := s_id, root := com.tree_id, paths := paths, datas := datas, kids_list := kids_list, ktree_list := ktree_list) INTO hash;
+    object_store_public.insert_nodes_at_paths (s_id := s_id, root := com.tree_id, paths := paths, datas := datas, kids_list := kids_list, ktree_list := ktree_list) INTO tree;
   INSERT INTO object_tree_public.commit (scope_id, store_id, message, parent_ids, tree_id)
-    VALUES (s_id, set_many_and_commit.store_id, set_many_and_commit.message, ARRAY[com.id]::uuid[], hash)
+    VALUES (s_id, set_many_and_commit.store_id, set_many_and_commit.message, ARRAY[com.id]::uuid[], tree)
   RETURNING
     * INTO com;
   UPDATE
@@ -338,6 +349,15 @@ BEGIN
     commit_id = com.id
   WHERE
     r.id = ref.id;
+  -- store.hash is documented as the store's current head tree, and the
+  -- generated merkle stores keep theirs current; keep this one current too.
+  UPDATE
+    object_tree_public.store AS s
+  SET
+    hash = tree
+  WHERE
+    s.id = set_many_and_commit.store_id
+    AND s.scope_id = s_id;
   RETURN com;
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;

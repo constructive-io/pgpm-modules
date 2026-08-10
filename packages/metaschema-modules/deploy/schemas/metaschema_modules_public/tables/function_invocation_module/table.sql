@@ -54,8 +54,8 @@ CREATE TABLE metaschema_modules_public.function_invocation_module (
     -- Keys are table keys (invocations, execution_logs).
     provisions jsonb NULL,
 
-    -- Default permissions: permission names auto-granted to new members.
-    default_permissions text[] DEFAULT NULL,
+    -- Default capabilities: capability names auto-granted to new members.
+    default_capabilities text[] DEFAULT NULL,
 
     -- Constraints
     CONSTRAINT function_invocation_module_db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,

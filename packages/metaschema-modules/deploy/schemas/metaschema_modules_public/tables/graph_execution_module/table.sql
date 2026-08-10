@@ -62,8 +62,8 @@ CREATE TABLE metaschema_modules_public.graph_execution_module (
     -- Keys are table keys (executions, outputs, node_states).
     provisions jsonb NULL,
 
-    -- Default permissions: permission names auto-granted to new members.
-    default_permissions text[] DEFAULT NULL,
+    -- Default capabilities: capability names auto-granted to new members.
+    default_capabilities text[] DEFAULT NULL,
 
     -- Timestamps
     created_at timestamptz NOT NULL DEFAULT now(),

@@ -156,7 +156,7 @@ CREATE TABLE metaschema_modules_public.entity_type_provision (
 
 COMMENT ON TABLE metaschema_modules_public.entity_type_provision IS
     'Provisions a new membership entity type. Each INSERT creates an entity table, registers a membership type,
-     and installs the required modules (permissions, memberships, limits) plus optional modules (profiles, levels, invites).
+     and installs the required modules (capabilities, memberships, limits) plus optional modules (profiles, levels, invites).
      Uses provision_membership_table() internally. Graceful: duplicate (database_id, prefix) pairs are silently skipped
      via the unique constraint (use INSERT ... ON CONFLICT DO NOTHING).
      Policy behavior: by default the five entity-table RLS policies are applied (gated by is_visible).
@@ -180,7 +180,7 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.name IS
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.prefix IS
     'SQL prefix used for table and module naming, e.g. ''data_room'', ''team_channel''. Required.
-     Drives entity table name (prefix || ''s'' by default), module labels (permissions_module:prefix),
+     Drives entity table name (prefix || ''s'' by default), module labels (capabilities_module:prefix),
      and membership table names (prefix_memberships, prefix_members, etc.).
      Must be unique per database — the (database_id, prefix) constraint ensures graceful ON CONFLICT DO NOTHING.';
 
@@ -231,8 +231,11 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.has_limits IS
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.has_profiles IS
     'Whether to provision profiles_module for this type. Defaults to false.
-     Profiles provide named permission roles (e.g. ''Editor'', ''Viewer'') with pre-configured permission bitmasks.
-     When true, creates profile tables and applies profiles security.';
+     Profiles provide named capability roles (e.g. ''Editor'', ''Viewer'') with pre-configured capability bitmasks.
+     When true, creates profile tables and applies profiles security. A membership may hold
+     any number of profiles: the membership_profiles assignment table holds every profile a
+     membership holds and the membership mask is granted | bit_or(held profile masks), with
+     memberships.profile_id kept as a pointer at one held profile.';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.has_levels IS
     'Whether to provision events_module for this type. Defaults to false.
@@ -270,8 +273,8 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.skip_entity_po
      Defaults (applied when table_provision IS NULL and skip_entity_policies=false):
        - SELECT (parent_member): parent entity members can see child entities (only when is_visible=true)
        - SELECT (self_member):   direct members of the entity can see it
-       - INSERT:                 create_entity permission on the parent entity
-       - UPDATE:                 admin_entity permission on the entity itself
+       - INSERT:                 create_entity capability on the parent entity
+       - UPDATE:                 admin_entity capability on the entity itself
        - DELETE:                 owner of the entity can delete it';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.table_provision IS
@@ -321,7 +324,7 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_entity_tab
     'Output: the name of the created entity table (e.g. ''data_rooms''). Populated by the trigger.';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_installed_modules IS
-    'Output: array of installed module labels (e.g. ARRAY[''permissions_module:data_room'', ''memberships_module:data_room'', ''invites_module:data_room'']).
+    'Output: array of installed module labels (e.g. ARRAY[''capabilities_module:data_room'', ''memberships_module:data_room'', ''invites_module:data_room'']).
      Populated by the trigger. Useful for verifying which modules were provisioned.';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage IS
@@ -339,7 +342,7 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage IS
        - download_url_expiry_seconds   (integer) presigned GET URL expiry override
        - default_max_file_size         (bigint)  global max file size in bytes for this module
        - allowed_origins               (text[])  default CORS origins for all buckets in this module
-       - restrict_reads                (boolean) require read_files permission for SELECT on files
+       - restrict_reads                (boolean) require read_files capability for SELECT on files
        - has_path_shares               (boolean) enable virtual filesystem + path share policies
        - has_versioning                (boolean) enable file version chains
        - has_content_hash              (boolean) enable content hash for dedup
@@ -378,7 +381,7 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.namespaces IS
        - policies  (jsonb array) RLS policy overrides. NULL = apply defaults from apply_namespace_security().
      Creates {prefix}_namespaces (or {prefix}_{key}_namespaces for non-default keys)
      with entity-scoped RLS (AuthzEntityMembership) and a rename proxy trigger.
-     Registers manage_namespaces permission bit on first provision.
+     Registers manage_namespaces capability bit on first provision.
      Example: namespaces := ''[{}]''::jsonb';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.functions IS
@@ -389,7 +392,7 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.functions IS
        - policies  (jsonb array) RLS policy overrides. NULL = apply defaults from apply_function_security().
      Creates {prefix}_function_definitions (or {prefix}_{key}_function_definitions for non-default keys)
      with entity-scoped RLS and a job trigger dispatching function:provision tasks.
-     Registers manage_functions + invoke_functions permission bits on first provision.
+     Registers manage_functions + invoke_functions capability bits on first provision.
      Example: functions := ''[{}]''::jsonb';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.graphs IS
@@ -398,9 +401,9 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.graphs IS
      Each element recognizes (all optional):
        - key       (text) module discriminator. Defaults to ''default''.
        - policies  (jsonb array) RLS policy overrides. NULL = apply defaults from apply_graph_security().
-     Registers manage_graphs + execute_graphs permission bits on first provision.
+     Registers manage_graphs + execute_graphs capability bits on first provision.
      Graph module requires a merkle_store_module_id dependency, so entity_type_provision
-     only registers permissions here. The graph module itself must be provisioned
+     only registers capabilities here. The graph module itself must be provisioned
      separately with the merkle store dependency resolved.
      Example: graphs := ''[{}]''::jsonb';
 

@@ -3,6 +3,7 @@
 -- requires: schemas/object_tree_public/schema
 -- requires: schemas/object_tree_public/tables/commit/table
 -- requires: schemas/object_tree_public/tables/ref/table
+-- requires: schemas/object_tree_public/tables/store/table
 
 BEGIN;
 
@@ -49,6 +50,9 @@ LANGUAGE 'plpgsql' VOLATILE;
 -- commits. Not expressible through set_many_and_commit: the batched primitive
 -- takes a node's children as given (an absent kids/ktree means "no children"),
 -- whereas this reads the existing node to carry them over.
+--
+-- Takes the ref FOR UPDATE for the same reason set_many_and_commit does: read
+-- ref, compute, repoint is a lost update between concurrent writers to one ref.
 CREATE FUNCTION object_tree_public.set_props_and_commit(
   s_id uuid,
   store_id uuid,
@@ -58,19 +62,19 @@ CREATE FUNCTION object_tree_public.set_props_and_commit(
   message text DEFAULT NULL
 ) returns object_tree_public.commit as $$
 DECLARE
-  hash uuid;
+  tree uuid;
 
   ref object_tree_public.ref;
   com object_tree_public.commit; 
 
 BEGIN
 
-SELECT * FROM
+SELECT * INTO ref FROM
   object_tree_public.ref r
     WHERE r.scope_id = s_id
     AND r.store_id = set_props_and_commit.store_id
     AND r.name = refname
-INTO ref;
+FOR UPDATE;
 
 IF (NOT FOUND) THEN
   RAISE EXCEPTION 'REF_NOT_FOUND';
@@ -90,7 +94,7 @@ END IF;
 SELECT * FROM
   object_store_public.set_data_at_path
   (s_id, com.tree_id, path, data)
-INTO hash;
+INTO tree;
 
 INSERT INTO object_tree_public.commit (
   scope_id,
@@ -98,12 +102,17 @@ INSERT INTO object_tree_public.commit (
   message,
   parent_ids,
   tree_id
-) VALUES (s_id, set_props_and_commit.store_id, set_props_and_commit.message, ARRAY[com.id]::uuid[], hash)
+) VALUES (s_id, set_props_and_commit.store_id, set_props_and_commit.message, ARRAY[com.id]::uuid[], tree)
 RETURNING * INTO com;
 
 UPDATE object_tree_public.ref r
   SET commit_id = com.id 
 WHERE r.id = ref.id;
+
+UPDATE object_tree_public.store s
+  SET hash = tree
+WHERE s.id = set_props_and_commit.store_id
+  AND s.scope_id = s_id;
 
 RETURN com;
 END;
