@@ -1,5 +1,5 @@
 EXTENSION = pgpm-function-resolution
-DATA = sql/pgpm-function-resolution--0.40.1.sql
+DATA = sql/pgpm-function-resolution--0.41.0.sql
 
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)

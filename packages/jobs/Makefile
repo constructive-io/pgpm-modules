@@ -1,5 +1,5 @@
 EXTENSION = pgpm-jobs
-DATA = sql/pgpm-jobs--0.40.0.sql
+DATA = sql/pgpm-jobs--0.41.0.sql
 
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)

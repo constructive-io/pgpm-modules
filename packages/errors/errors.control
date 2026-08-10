@@ -1,6 +1,6 @@
 # errors extension
 comment = 'Canonical structured error raising for constructive-db'
-default_version = '0.40.0'
+default_version = '0.41.0'
 module_pathname = '$libdir/errors'
 requires = 'plpgsql'
 relocatable = false
