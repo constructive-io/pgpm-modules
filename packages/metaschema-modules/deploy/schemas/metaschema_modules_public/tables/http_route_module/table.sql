@@ -34,7 +34,7 @@ CREATE TABLE metaschema_modules_public.http_route_module (
 
     policies jsonb NULL,
     provisions jsonb NULL,
-    default_permissions text[] DEFAULT NULL,
+    default_capabilities text[] DEFAULT NULL,
 
     CONSTRAINT http_route_module_db_fkey
         FOREIGN KEY (database_id)

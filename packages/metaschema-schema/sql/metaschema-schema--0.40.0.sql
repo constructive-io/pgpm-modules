@@ -277,7 +277,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE TYPE metaschema_public.object_category AS ENUM ('core', 'module', 'permissions', 'auth', 'memberships', 'app');
+CREATE TYPE metaschema_public.object_category AS ENUM ('core', 'module', 'capabilities', 'auth', 'memberships', 'app');
 
 CREATE TYPE metaschema_public.api_exposure_level AS ENUM ('exposable', 'internal_only', 'never_expose');
 

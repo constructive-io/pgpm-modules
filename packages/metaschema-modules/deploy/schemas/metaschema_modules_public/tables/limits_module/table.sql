@@ -82,6 +82,11 @@ CREATE TABLE metaschema_modules_public.limits_module (
     -- required tables    
     actor_table_id uuid NOT NULL DEFAULT uuid_nil(),
      
+    -- Limit defaults seeded at provision, in seed_limit_defaults' shape:
+    -- [{"name": "api_requests_per_day", "max": 500}, ...]. NULL seeds nothing,
+    -- which is every tenant that existed before this column.
+    limit_defaults jsonb DEFAULT NULL,
+
     -- API routing (configurable per-module)
     api_name text DEFAULT 'usage',
     private_api_name text DEFAULT NULL,

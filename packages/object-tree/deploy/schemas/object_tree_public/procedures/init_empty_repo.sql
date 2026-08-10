@@ -3,6 +3,7 @@
 -- requires: schemas/object_tree_public/schema
 -- requires: schemas/object_tree_public/tables/commit/table
 -- requires: schemas/object_tree_public/tables/ref/table
+-- requires: schemas/object_tree_public/tables/store/table
 
 BEGIN;
 
@@ -35,6 +36,11 @@ BEGIN
 
   UPDATE object_tree_public.ref SET commit_id = vcommit_id
     WHERE id = vref_id;
+
+  -- the store's head tree, kept current from here on by the commit functions
+  UPDATE object_tree_public.store s SET hash = vtree_id
+    WHERE s.id = init_empty_repo.store_id
+      AND s.scope_id = s_id;
 
 END;
 $$

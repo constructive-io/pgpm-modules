@@ -3,6 +3,7 @@
 -- requires: schemas/object_tree_public/schema
 -- requires: schemas/object_tree_public/tables/commit/table
 -- requires: schemas/object_tree_public/tables/ref/table
+-- requires: schemas/object_tree_public/tables/store/table
 
 BEGIN;
 
@@ -18,11 +19,19 @@ BEGIN;
 -- the tree reads .tree_id, and a caller stamping provenance (every generated
 -- merkle writer does) gets .id without re-reading the ref. This is the same
 -- shape the generated stores' {prefix}set_many_and_commit returns.
+--
+-- The ref row is taken FOR UPDATE, so concurrent writers to one ref queue here
+-- rather than each reading the same parent commit and racing to repoint the ref,
+-- which loses whichever write landed first. Two writers of identical content
+-- collide on object_store_public.object's primary key instead, since node ids
+-- are content hashes; different content is exactly the case that does not
+-- collide, so nothing but this lock serializes it. The lock is per ref, so
+-- unrelated stores and unrelated branches never wait on each other.
 CREATE FUNCTION object_tree_public.set_many_and_commit (s_id uuid, store_id uuid, refname text, entries jsonb, message text DEFAULT NULL)
   RETURNS object_tree_public.commit
   AS $$
 DECLARE
-  hash uuid;
+  tree uuid;
   paths jsonb;
   datas jsonb[];
   kids_list jsonb;
@@ -31,13 +40,14 @@ DECLARE
   com object_tree_public.commit;
 BEGIN
   SELECT
-    *
+    * INTO ref
   FROM
     object_tree_public.ref AS r
   WHERE
     r.scope_id = s_id
     AND r.store_id = set_many_and_commit.store_id
-    AND r.name = refname INTO ref;
+    AND r.name = refname
+  FOR UPDATE;
   IF (NOT FOUND) THEN
     RAISE EXCEPTION 'REF_NOT_FOUND';
   END IF;
@@ -67,9 +77,9 @@ BEGIN
   SELECT
     *
   FROM
-    object_store_public.insert_nodes_at_paths (s_id := s_id, root := com.tree_id, paths := paths, datas := datas, kids_list := kids_list, ktree_list := ktree_list) INTO hash;
+    object_store_public.insert_nodes_at_paths (s_id := s_id, root := com.tree_id, paths := paths, datas := datas, kids_list := kids_list, ktree_list := ktree_list) INTO tree;
   INSERT INTO object_tree_public.commit (scope_id, store_id, message, parent_ids, tree_id)
-    VALUES (s_id, set_many_and_commit.store_id, set_many_and_commit.message, ARRAY[com.id]::uuid[], hash)
+    VALUES (s_id, set_many_and_commit.store_id, set_many_and_commit.message, ARRAY[com.id]::uuid[], tree)
   RETURNING
     * INTO com;
   UPDATE
@@ -78,6 +88,15 @@ BEGIN
     commit_id = com.id
   WHERE
     r.id = ref.id;
+  -- store.hash is documented as the store's current head tree, and the
+  -- generated merkle stores keep theirs current; keep this one current too.
+  UPDATE
+    object_tree_public.store AS s
+  SET
+    hash = tree
+  WHERE
+    s.id = set_many_and_commit.store_id
+    AND s.scope_id = s_id;
   RETURN com;
 END;
 $$

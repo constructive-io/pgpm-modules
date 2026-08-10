@@ -8,7 +8,7 @@ SELECT id, database_id, schema_id, private_schema_id,
        invocations_table_name, execution_logs_table_name,
        api_name, private_api_name,
        scope, prefix, entity_table_id,
-       policies, provisions, default_permissions
+       policies, provisions, default_capabilities
 FROM metaschema_modules_public.function_invocation_module
 WHERE false;
 

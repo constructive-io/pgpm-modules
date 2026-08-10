@@ -467,6 +467,34 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql
-VOLATILE;
+VOLATILE
+-- Every query here is driven by unnested arrays, whose row counts the planner
+-- cannot know: it costed one level of a 20k-path batch at 825,000 rows when the
+-- level produced 79, and a cost that high turns JIT on. So each level paid
+-- ~460ms compiling ~90 functions (Optimization 249ms, Emission 179ms) to
+-- execute in single-digit milliseconds: 2.67s of JIT to do 0.32s of work, and
+-- it recurs on every level of every call. The estimates are the defect and they
+-- are not fixable from here, so decline the compiler rather than the plan.
+SET jit = off
+-- The same missing estimates also decide the hash sizes, so every level's
+-- jsonb_object_agg and its joins batch against whatever work_mem happens to be.
+-- At the 4MB default one level spills ~5MB: provisioning constructive wrote
+-- 6,942,736 temp blocks (~53GB) across 10,366 level queries and the phase took
+-- 1118s. Pinning work_mem here took it to 222s with the spill gone -- 5x, from
+-- one setting, on the same box and commit. 64MB is where the spill reaches zero
+-- for that batch shape; larger values measured no faster.
+SET work_mem = '64MB'
+-- And the estimates are only right while the plan is a custom one. unnest's
+-- support function reads the array's real length from the Param, so the first
+-- executions of a level plan it correctly -- but a plpgsql statement switches to
+-- a generic plan on its third execution, and a generic plan has no Param to
+-- read: the level comes out estimated at 1 row, which turns dir_kids into the
+-- inner side of a nested loop and re-aggregates every directory of the level
+-- below once per row of this one. Measured on a 20k-path batch, repeated in one
+-- session: 5.7s, 6.2s, then 73s, 76s, 76s, ... -- and it only appears once the
+-- table has statistics, so whether a run hits it depends on autovacuum, which
+-- is where the ~55s-vs-437s bimodality in CI came from. Replanning each level
+-- costs ~30% on the batches that were already fast and removes the 12x cliff.
+SET plan_cache_mode = 'force_custom_plan';
 
 COMMIT;

@@ -24,9 +24,9 @@ CREATE TABLE metaschema_modules_public.profiles_module (
     table_id uuid NOT NULL DEFAULT uuid_nil(),
     table_name text NOT NULL DEFAULT '',
     
-    -- Profile permissions join table (for UI)
-    profile_permissions_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    profile_permissions_table_name text NOT NULL DEFAULT '',
+    -- Profile capabilities join table (for UI)
+    profile_capabilities_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    profile_capabilities_table_name text NOT NULL DEFAULT '',
     
     -- Profile grants audit table
     profile_grants_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -35,6 +35,12 @@ CREATE TABLE metaschema_modules_public.profiles_module (
     -- Profile definition grants audit table
     profile_definition_grants_table_id uuid NOT NULL DEFAULT uuid_nil(),
     profile_definition_grants_table_name text NOT NULL DEFAULT '',
+
+    -- Profile assignment set: every profile a membership holds, and the only
+    -- profile-derived authorization input. memberships.profile_id is a pointer at
+    -- one of its rows, kept in sync by the generated triggers.
+    membership_profiles_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    membership_profiles_table_name text NOT NULL DEFAULT '',
 
     -- Profile templates table (for seeding profiles into new entities)
     profile_templates_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -51,7 +57,7 @@ CREATE TABLE metaschema_modules_public.profiles_module (
     
     -- Required tables
     actor_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    permissions_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    capabilities_table_id uuid NOT NULL DEFAULT uuid_nil(),
     memberships_table_id uuid NOT NULL DEFAULT uuid_nil(),
     
     -- API routing (configurable per-module)
@@ -63,13 +69,14 @@ CREATE TABLE metaschema_modules_public.profiles_module (
     CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT table_fkey FOREIGN KEY (table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT profile_permissions_table_fkey FOREIGN KEY (profile_permissions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT profile_capabilities_table_fkey FOREIGN KEY (profile_capabilities_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT profile_grants_table_fkey FOREIGN KEY (profile_grants_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT profile_definition_grants_table_fkey FOREIGN KEY (profile_definition_grants_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT membership_profiles_table_fkey FOREIGN KEY (membership_profiles_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT profile_templates_table_fkey FOREIGN KEY (profile_templates_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT actor_table_fkey FOREIGN KEY (actor_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT permissions_table_fkey FOREIGN KEY (permissions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT capabilities_table_fkey FOREIGN KEY (capabilities_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT memberships_table_fkey FOREIGN KEY (memberships_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     
     CONSTRAINT profiles_module_unique UNIQUE (database_id, scope, prefix)
@@ -78,11 +85,12 @@ CREATE TABLE metaschema_modules_public.profiles_module (
 CREATE INDEX profiles_module_actor_table_id_idx ON metaschema_modules_public.profiles_module ( actor_table_id );
 CREATE INDEX profiles_module_entity_table_id_idx ON metaschema_modules_public.profiles_module ( entity_table_id );
 CREATE INDEX profiles_module_memberships_table_id_idx ON metaschema_modules_public.profiles_module ( memberships_table_id );
-CREATE INDEX profiles_module_permissions_table_id_idx ON metaschema_modules_public.profiles_module ( permissions_table_id );
+CREATE INDEX profiles_module_capabilities_table_id_idx ON metaschema_modules_public.profiles_module ( capabilities_table_id );
 CREATE INDEX profiles_module_profile_definition_grants_table_id_idx ON metaschema_modules_public.profiles_module ( profile_definition_grants_table_id );
 CREATE INDEX profiles_module_profile_grants_table_id_idx ON metaschema_modules_public.profiles_module ( profile_grants_table_id );
-CREATE INDEX profiles_module_profile_permissions_table_id_idx ON metaschema_modules_public.profiles_module ( profile_permissions_table_id );
+CREATE INDEX profiles_module_profile_capabilities_table_id_idx ON metaschema_modules_public.profiles_module ( profile_capabilities_table_id );
 CREATE INDEX profiles_module_profile_templates_table_id_idx ON metaschema_modules_public.profiles_module ( profile_templates_table_id );
+CREATE INDEX profiles_module_membership_profiles_table_id_idx ON metaschema_modules_public.profiles_module ( membership_profiles_table_id );
 CREATE INDEX profiles_module_table_id_idx ON metaschema_modules_public.profiles_module ( table_id );
 CREATE INDEX profiles_module_private_schema_id_idx ON metaschema_modules_public.profiles_module ( private_schema_id );
 CREATE INDEX profiles_module_schema_id_idx ON metaschema_modules_public.profiles_module ( schema_id );

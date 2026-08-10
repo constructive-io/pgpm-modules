@@ -49,8 +49,8 @@ CREATE TABLE metaschema_modules_public.database_settings_module (
     -- Per-table provisions overrides from blueprint config
     provisions jsonb NULL,
 
-    -- Default permissions: permission names auto-granted to new members
-    default_permissions text[] DEFAULT NULL,
+    -- Default capabilities: capability names auto-granted to new members
+    default_capabilities text[] DEFAULT NULL,
 
     CONSTRAINT database_settings_module_db_fkey
         FOREIGN KEY (database_id)

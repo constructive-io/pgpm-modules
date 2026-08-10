@@ -40,8 +40,8 @@ CREATE TABLE metaschema_modules_public.memberships_module (
     actor_table_id uuid NOT NULL DEFAULT uuid_nil(),
     limits_table_id uuid NOT NULL DEFAULT uuid_nil(),
     default_limits_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    permissions_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    default_permissions_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    capabilities_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    default_capabilities_table_id uuid NOT NULL DEFAULT uuid_nil(),
     sprt_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     admin_grants_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -73,9 +73,9 @@ CREATE TABLE metaschema_modules_public.memberships_module (
 
     member_profiles_table_id uuid NULL,
 
-    -- Audit tables for permission defaults (created by memberships_module when has_permissions=true)
-    permission_default_permissions_table_id uuid NULL,
-    permission_default_grants_table_id uuid NULL,
+    -- Audit tables for capability defaults (created by memberships_module when has_capabilities=true)
+    capability_default_capabilities_table_id uuid NULL,
+    capability_default_grants_table_id uuid NULL,
 
     -- API routing (configurable per-module)
     api_name text DEFAULT 'admin',
@@ -98,15 +98,15 @@ CREATE TABLE metaschema_modules_public.memberships_module (
     CONSTRAINT limits_table_fkey FOREIGN KEY (limits_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT default_limits_table_fkey FOREIGN KEY (default_limits_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
 
-    CONSTRAINT permissions_table_fkey FOREIGN KEY (permissions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT default_permissions_table_fkey FOREIGN KEY (default_permissions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT capabilities_table_fkey FOREIGN KEY (capabilities_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT default_capabilities_table_fkey FOREIGN KEY (default_capabilities_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
 
     CONSTRAINT memberships_module_unique UNIQUE (database_id, scope, prefix)
 );
 
 CREATE INDEX memberships_module_actor_table_id_idx ON metaschema_modules_public.memberships_module ( actor_table_id );
 CREATE INDEX memberships_module_default_limits_table_id_idx ON metaschema_modules_public.memberships_module ( default_limits_table_id );
-CREATE INDEX memberships_module_default_permissions_table_id_idx ON metaschema_modules_public.memberships_module ( default_permissions_table_id );
+CREATE INDEX memberships_module_default_capabilities_table_id_idx ON metaschema_modules_public.memberships_module ( default_capabilities_table_id );
 CREATE INDEX memberships_module_entity_table_id_idx ON metaschema_modules_public.memberships_module ( entity_table_id );
 CREATE INDEX memberships_module_grants_table_id_idx ON metaschema_modules_public.memberships_module ( grants_table_id );
 CREATE INDEX memberships_module_limits_table_id_idx ON metaschema_modules_public.memberships_module ( limits_table_id );
@@ -114,7 +114,7 @@ CREATE INDEX memberships_module_members_table_id_idx ON metaschema_modules_publi
 CREATE INDEX memberships_module_membership_defaults_table_id_idx ON metaschema_modules_public.memberships_module ( membership_defaults_table_id );
 CREATE INDEX memberships_module_membership_settings_table_id_idx ON metaschema_modules_public.memberships_module ( membership_settings_table_id );
 CREATE INDEX memberships_module_memberships_table_id_idx ON metaschema_modules_public.memberships_module ( memberships_table_id );
-CREATE INDEX memberships_module_permissions_table_id_idx ON metaschema_modules_public.memberships_module ( permissions_table_id );
+CREATE INDEX memberships_module_capabilities_table_id_idx ON metaschema_modules_public.memberships_module ( capabilities_table_id );
 CREATE INDEX memberships_module_sprt_table_id_idx ON metaschema_modules_public.memberships_module ( sprt_table_id );
 CREATE INDEX memberships_module_private_schema_id_idx ON metaschema_modules_public.memberships_module ( private_schema_id );
 CREATE INDEX memberships_module_schema_id_idx ON metaschema_modules_public.memberships_module ( schema_id );

@@ -1,10 +1,10 @@
--- Deploy schemas/metaschema_modules_public/tables/permissions_module/table to pg
+-- Deploy schemas/metaschema_modules_public/tables/capabilities_module/table to pg
 
 -- requires: schemas/metaschema_modules_public/schema
 
 BEGIN;
 
-CREATE TABLE metaschema_modules_public.permissions_module (
+CREATE TABLE metaschema_modules_public.capabilities_module (
     id uuid PRIMARY KEY DEFAULT uuidv7(),
     database_id uuid NOT NULL,
 
@@ -28,9 +28,9 @@ CREATE TABLE metaschema_modules_public.permissions_module (
     default_table_name text NOT NULL DEFAULT '',
     -- 
      
-    -- Default bit-width of the permission mask for this module.
+    -- Default bit-width of the capability mask for this module.
     --
-    -- Chosen to maximize permission headroom without costing extra storage or
+    -- Chosen to maximize capability headroom without costing extra storage or
     -- compute. PostgreSQL lays out heap tuples to MAXALIGN (8 bytes on x86_64),
     -- so the row-size bucket that holds bit(24) already extends up to bit(64):
     --
@@ -42,14 +42,14 @@ CREATE TABLE metaschema_modules_public.permissions_module (
     --   65     |  73       |  81 MB         |  47 MB   <-- next bucket
     --
     -- Bitwise AND/OR on bit(<=64) fits in a single 64-bit machine word, so
-    -- permission checks at 64 cost the same as at 24. Raising the default from
-    -- 24 to 64 gives new modules 6.4x more permission slots before anyone has
-    -- to think about running update_bitlen_permissions, at identical storage
+    -- capability checks at 64 cost the same as at 24. Raising the default from
+    -- 24 to 64 gives new modules 6.4x more capability slots before anyone has
+    -- to think about running update_bitlen_capabilities, at identical storage
     -- and compute cost. Do not raise past 64 casually -- bit(65+) jumps to the
     -- next 8-byte tuple bucket (+~10% heap) and pays on every write.
     --
     -- Existing databases are unaffected; this only changes the default for
-    -- newly inserted permissions_module rows.
+    -- newly inserted capabilities_module rows.
     bitlen int NOT NULL DEFAULT 64,
 
     -- Scope: determines the security level for this module instance.
@@ -86,12 +86,12 @@ CREATE TABLE metaschema_modules_public.permissions_module (
     CONSTRAINT actor_table_fkey FOREIGN KEY (actor_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
-CREATE INDEX permissions_module_database_id_idx ON metaschema_modules_public.permissions_module ( database_id );
-CREATE INDEX permissions_module_actor_table_id_idx ON metaschema_modules_public.permissions_module ( actor_table_id );
-CREATE INDEX permissions_module_default_table_id_idx ON metaschema_modules_public.permissions_module ( default_table_id );
-CREATE INDEX permissions_module_entity_table_id_idx ON metaschema_modules_public.permissions_module ( entity_table_id );
-CREATE INDEX permissions_module_table_id_idx ON metaschema_modules_public.permissions_module ( table_id );
-CREATE INDEX permissions_module_private_schema_id_idx ON metaschema_modules_public.permissions_module ( private_schema_id );
-CREATE INDEX permissions_module_schema_id_idx ON metaschema_modules_public.permissions_module ( schema_id );
+CREATE INDEX capabilities_module_database_id_idx ON metaschema_modules_public.capabilities_module ( database_id );
+CREATE INDEX capabilities_module_actor_table_id_idx ON metaschema_modules_public.capabilities_module ( actor_table_id );
+CREATE INDEX capabilities_module_default_table_id_idx ON metaschema_modules_public.capabilities_module ( default_table_id );
+CREATE INDEX capabilities_module_entity_table_id_idx ON metaschema_modules_public.capabilities_module ( entity_table_id );
+CREATE INDEX capabilities_module_table_id_idx ON metaschema_modules_public.capabilities_module ( table_id );
+CREATE INDEX capabilities_module_private_schema_id_idx ON metaschema_modules_public.capabilities_module ( private_schema_id );
+CREATE INDEX capabilities_module_schema_id_idx ON metaschema_modules_public.capabilities_module ( schema_id );
 
 COMMIT;

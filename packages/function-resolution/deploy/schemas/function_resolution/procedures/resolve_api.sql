@@ -15,9 +15,9 @@ BEGIN;
 -- module has several, and a scope when a module is registered at several:
 --
 --   notifications_module              the module's api surface
---   permissions_module.admin          this api from this module
+--   capabilities_module.admin          this api from this module
 --   limits_module@org                 the module's org-scope registration
---   permissions_module.admin@org      both
+--   capabilities_module.admin@org      both
 --   admin                             an api by its owner-local name
 --
 -- Anything ending in _module (before its suffixes) is a module selector; a

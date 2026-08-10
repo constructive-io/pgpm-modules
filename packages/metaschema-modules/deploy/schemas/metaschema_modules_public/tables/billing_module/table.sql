@@ -56,9 +56,9 @@ CREATE TABLE metaschema_modules_public.billing_module (
   -- NULL seeds nothing (clean catalog).
   default_meter_catalog jsonb DEFAULT NULL,
 
-  -- Default permissions: permission names auto-granted to new members.
+  -- Default capabilities: capability names auto-granted to new members.
   -- NULL uses the module's built-in defaults; explicit array overrides them.
-  default_permissions text[] DEFAULT NULL,
+  default_capabilities text[] DEFAULT NULL,
 
   -- API routing (configurable per-module)
   api_name text DEFAULT 'usage',

@@ -36,7 +36,7 @@ describe('db_meta_modules', () => {
       'limits_module',
       'membership_types_module',
       'memberships_module',
-      'permissions_module',
+      'capabilities_module',
       'phone_numbers_module',
       'rls_module',
       'user_state_module',

@@ -79,6 +79,45 @@ const setManyAndCommit = async (scope_id: string, store_id: string, entries: Ent
   return row.tree_id as string;
 };
 
+const setPropsAndCommit = async (
+  scope_id: string,
+  store_id: string,
+  path: string[],
+  data: unknown
+) => {
+  const [row] = await pg.any(
+    `SELECT (object_tree_public.set_props_and_commit(
+      s_id := $1::uuid,
+      store_id := $2::uuid,
+      refname := 'main',
+      path := $3::text[],
+      data := $4::jsonb
+    )).tree_id AS tree_id`,
+    [scope_id, store_id, path, JSON.stringify(data)]
+  );
+  return row.tree_id as string;
+};
+
+const storeHash = async (scope_id: string, store_id: string) => {
+  const [row] = await pg.any(
+    `SELECT s.hash FROM object_tree_public.store s
+      WHERE s.scope_id = $1::uuid AND s.id = $2::uuid`,
+    [scope_id, store_id]
+  );
+  return row.hash as string;
+};
+
+const treeId = async (scope_id: string, store_id: string) => {
+  const [row] = await pg.any(
+    `SELECT c.tree_id
+       FROM object_tree_public.ref r
+       JOIN object_tree_public.commit c ON c.id = r.commit_id AND c.scope_id = r.scope_id
+      WHERE r.scope_id = $1::uuid AND r.store_id = $2::uuid AND r.name = 'main'`,
+    [scope_id, store_id]
+  );
+  return row.tree_id as string;
+};
+
 const countCommits = async (scope_id: string, store_id: string) => {
   const [row] = await pg.any(
     `SELECT count(*)::int AS n FROM object_tree_public.commit
@@ -141,6 +180,28 @@ describe('set_many_and_commit', () => {
       body: 'c'
     });
     expect(await countCommits(batched_scope, store_id)).toEqual(3);
+  });
+
+  it('the store carries the head tree from initialization onward', async () => {
+    const store_id = '55555555-5555-4555-8555-555555555555';
+    // The other cases never need the store row itself: init_empty_repo writes the
+    // ref and the commit, and the store is the caller's to create.
+    await pg.any(
+      `INSERT INTO object_tree_public.store (id, scope_id, name) VALUES ($1::uuid, $2::uuid, 'head')`,
+      [store_id, batched_scope]
+    );
+    await initRepo(batched_scope, store_id);
+    expect(await storeHash(batched_scope, store_id)).toEqual(
+      await treeId(batched_scope, store_id)
+    );
+
+    const tree_id = await setManyAndCommit(batched_scope, store_id, entries);
+    expect(await storeHash(batched_scope, store_id)).toEqual(tree_id);
+
+    const after_props = await setPropsAndCommit(batched_scope, store_id, ['package.json'], {
+      name: 'renamed'
+    });
+    expect(await storeHash(batched_scope, store_id)).toEqual(after_props);
   });
 
   it('nothing to write leaves the ref alone', async () => {

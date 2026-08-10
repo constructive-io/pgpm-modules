@@ -47,9 +47,9 @@ CREATE TABLE metaschema_modules_public.hierarchy_module (
     get_managers_function text NOT NULL DEFAULT '',
     is_manager_of_function text NOT NULL DEFAULT '',
     
-    -- Default permissions: permission names auto-granted to new members.
+    -- Default capabilities: capability names auto-granted to new members.
     -- NULL uses the module's built-in defaults; explicit array overrides them.
-    default_permissions text[] DEFAULT NULL,
+    default_capabilities text[] DEFAULT NULL,
 
     -- Timestamps
     created_at timestamptz NOT NULL DEFAULT now(),

@@ -76,9 +76,9 @@ CREATE TABLE metaschema_modules_public.agent_module (
   -- secure_table_provision applies the custom grants/policies instead.
   provisions jsonb NULL,
 
-  -- Default permissions: permission names auto-granted to new members.
+  -- Default capabilities: capability names auto-granted to new members.
   -- NULL uses the module's built-in defaults; explicit array overrides them.
-  default_permissions text[] DEFAULT NULL,
+  default_capabilities text[] DEFAULT NULL,
 
   -- Constraints
   CONSTRAINT agent_module_db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,

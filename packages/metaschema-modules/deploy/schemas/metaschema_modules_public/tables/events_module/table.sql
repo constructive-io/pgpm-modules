@@ -56,6 +56,10 @@ CREATE TABLE metaschema_modules_public.events_module (
   tg_check_achievements text NOT NULL DEFAULT '',
   grant_achievement text NOT NULL DEFAULT '',
   tg_achievement_reward text NOT NULL DEFAULT '',
+  revoke_achievement text NOT NULL DEFAULT '',
+  recompute_capabilities text NOT NULL DEFAULT '',
+  tg_level_grant_sync text NOT NULL DEFAULT '',
+  expire_grants text NOT NULL DEFAULT '',
 
   -- Partition lifecycle configuration for events table
   "interval" text NOT NULL DEFAULT '1 month',
@@ -75,9 +79,15 @@ CREATE TABLE metaschema_modules_public.events_module (
   actor_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
 
-  -- Default permissions: permission names auto-granted to new members.
+  -- Default capabilities: capability names auto-granted to new members.
   -- NULL uses the module's built-in defaults; explicit array overrides them.
-  default_permissions text[] DEFAULT NULL,
+  default_capabilities text[] DEFAULT NULL,
+
+  -- Trust ladder seeded at provision, as an array of rungs. NULL seeds nothing;
+  -- the usual value is a content_presets row named by slug, so which evidence
+  -- counts is data. App scope only — an entity ladder belongs to an
+  -- organization that does not exist at provision time.
+  trust_ladder jsonb DEFAULT NULL,
 
   -- API routing (configurable per-module)
   api_name text DEFAULT 'usage',

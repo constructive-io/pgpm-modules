@@ -5,7 +5,7 @@
 BEGIN;
 
 -- never_expose is a one-way ratchet: once set, it cannot be changed via the app.
--- Loosening internal_only → exposable is governed by introspection-layer permissions.
+-- Loosening internal_only → exposable is governed by introspection-layer capabilities.
 CREATE FUNCTION metaschema_public.tg_enforce_api_exposure_ratchet()
 RETURNS TRIGGER AS $$
 BEGIN
