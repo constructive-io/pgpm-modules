@@ -111,7 +111,7 @@ describe('app_scope scope frames (membership climb + platform fall-through)', ()
            database_id, scope, schema_id, private_schema_id,
            memberships_table_id, membership_defaults_table_id, members_table_id,
            grants_table_id, sprt_table_id, actor_table_id, limits_table_id,
-           default_limits_table_id, permissions_table_id, default_permissions_table_id,
+           default_limits_table_id, capabilities_table_id, default_capabilities_table_id,
            entity_table_id, entity_table_owner_id
          ) VALUES (
            $1, $2, $3, $3,

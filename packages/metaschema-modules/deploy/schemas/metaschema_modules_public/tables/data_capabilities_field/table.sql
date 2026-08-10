@@ -83,7 +83,7 @@ CREATE INDEX data_capabilities_field_database_id_idx ON metaschema_modules_publi
 CREATE INDEX data_capabilities_field_table_id_idx ON metaschema_modules_public.data_capabilities_field ( table_id );
 
 -- The bitlen migration asks "every row mask written in this module's vocabulary".
-CREATE INDEX data_capabilities_field_permissions_module_id_idx ON metaschema_modules_public.data_capabilities_field ( capabilities_module_id );
+CREATE INDEX data_capabilities_field_capabilities_module_id_idx ON metaschema_modules_public.data_capabilities_field ( capabilities_module_id );
 
 -- Restamping asks "which protected tables copied this mapping table's mask".
 CREATE INDEX data_capabilities_field_mapping_table_id_idx ON metaschema_modules_public.data_capabilities_field ( mapping_table_id );

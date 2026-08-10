@@ -5383,7 +5383,7 @@ CREATE INDEX data_capabilities_field_database_id_idx ON metaschema_modules_publi
 
 CREATE INDEX data_capabilities_field_table_id_idx ON metaschema_modules_public.data_capabilities_field (table_id);
 
-CREATE INDEX data_capabilities_field_permissions_module_id_idx ON metaschema_modules_public.data_capabilities_field (capabilities_module_id);
+CREATE INDEX data_capabilities_field_capabilities_module_id_idx ON metaschema_modules_public.data_capabilities_field (capabilities_module_id);
 
 CREATE INDEX data_capabilities_field_mapping_table_id_idx ON metaschema_modules_public.data_capabilities_field (mapping_table_id);
 
