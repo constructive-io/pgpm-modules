@@ -1595,3 +1595,56 @@ BEGIN
     );
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+CREATE FUNCTION function_resolution.image_catalog_row(
+  database_id uuid,
+  scope text,
+  entity_id uuid,
+  image_name text
+) RETURNS TABLE (
+  image_id uuid,
+  name text,
+  registry_host text,
+  repository text,
+  tag text,
+  digest text,
+  runtime text,
+  labels jsonb,
+  owner_database_id uuid,
+  owner_scope text,
+  owner_key uuid
+) AS $EOFCODE$
+BEGIN
+    RETURN QUERY
+    SELECT i.id,
+           i.name,
+           i.registry_host,
+           i.repository,
+           i.tag,
+           i.digest,
+           i.runtime,
+           i.labels,
+           i.database_id,
+           i.owner_scope,
+           i.owner_key
+    FROM function_resolution.frame_candidates(
+        image_catalog_row.database_id,
+        image_catalog_row.scope,
+        image_catalog_row.entity_id
+    ) cand
+    JOIN catalog_private.images i
+      ON i.owner_scope = cand.owner_scope
+     AND i.owner_key IS NOT DISTINCT FROM cand.owner_key
+     AND i.database_id = CASE
+           WHEN cand.owner_scope = 'database' THEN cand.owner_key
+           ELSE cand.lookup_database_id
+         END
+    WHERE i.name = image_catalog_row.image_name
+      AND (
+            i.database_id = image_catalog_row.database_id
+            OR (i.is_visible AND NOT i.platform_only)
+          )
+    ORDER BY cand.ord
+    LIMIT 1;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;

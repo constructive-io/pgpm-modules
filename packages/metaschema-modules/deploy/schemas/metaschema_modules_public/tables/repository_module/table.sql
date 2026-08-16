@@ -55,6 +55,15 @@ CREATE TABLE metaschema_modules_public.repository_module (
     -- provisioning raises rather than accepting a file it has nowhere to put.
     has_attachments boolean NOT NULL DEFAULT false,
 
+    -- Search/embedding configuration for the prose tables: dimensions,
+    -- embedding_model, embedding_provider, chunk_size, chunk_overlap,
+    -- chunk_strategy, has_chunks. NULL takes the defaults (768d, paragraph
+    -- chunking, chunks on). One config for the module rather than one per table:
+    -- a proposal and its comments are ranked together, and two embedding models
+    -- would make one result set incomparable.
+    -- Example: {"dimensions": 1536, "embedding_provider": "openai"}
+    search jsonb NULL,
+
     -- API routing (get-or-create: if set, schema is added to this API; if NULL, no API is added)
     api_name text,
     private_api_name text,

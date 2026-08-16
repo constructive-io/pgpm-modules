@@ -31,7 +31,6 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "graph_execution_module",
     "graph_module",
     "hierarchy_module",
-    "http_route_module",
     "i18n_module",
     "identity_providers_module",
     "image_module",
@@ -85,8 +84,8 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
-  "moduleTablesCount": 76,
-  "totalTables": 85,
+  "moduleTablesCount": 75,
+  "totalTables": 84,
 }
 `;
 
@@ -153,13 +152,13 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 76,
+  "constraintCount": 75,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 551,
+  "constraintCount": 544,
   "foreignTables": [
     "catalog_module",
     "database",
@@ -171,10 +170,8 @@ exports[`db_meta_modules should verify module tables have proper foreign key rel
     "infra_secrets_module",
     "merkle_store_module",
     "namespace_module",
-    "resource_module",
     "schema",
     "site_surface_module",
-    "storage_module",
     "table",
   ],
 }

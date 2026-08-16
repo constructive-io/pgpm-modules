@@ -9,6 +9,6 @@ SELECT id, database_id, schema_id, private_schema_id,
        proposals_table_id, proposals_table_name,
        proposal_comments_table_id, proposal_comments_table_name,
        proposal_reactions_table_id, proposal_reactions_table_name,
-       has_builds, scope, prefix, entity_table_id, policies, provisions
+       has_builds, search, scope, prefix, entity_table_id, policies, provisions
 FROM metaschema_modules_public.repository_module
 WHERE FALSE;
