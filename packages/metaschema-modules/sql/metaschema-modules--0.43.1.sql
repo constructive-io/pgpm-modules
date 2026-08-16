@@ -6109,8 +6109,12 @@ CREATE TABLE metaschema_modules_public.image_module (
   private_schema_name text,
   images_table_id uuid NOT NULL DEFAULT uuid_nil(),
   image_grants_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  registries_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  registry_grants_table_id uuid NOT NULL DEFAULT uuid_nil(),
   images_table_name text NOT NULL DEFAULT 'images',
   image_grants_table_name text NOT NULL DEFAULT 'image_grants',
+  registries_table_name text NOT NULL DEFAULT 'registries',
+  registry_grants_table_name text NOT NULL DEFAULT 'registry_grants',
   api_name text,
   private_api_name text,
   scope text NOT NULL,
@@ -6139,6 +6143,14 @@ CREATE TABLE metaschema_modules_public.image_module (
     FOREIGN KEY(image_grants_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
+  CONSTRAINT image_module_registries_table_fkey
+    FOREIGN KEY(registries_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT image_module_registry_grants_table_fkey
+    FOREIGN KEY(registry_grants_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
   CONSTRAINT image_module_entity_table_fkey
     FOREIGN KEY(entity_table_id)
     REFERENCES metaschema_public.table (id)
@@ -6153,6 +6165,10 @@ CREATE INDEX image_module_images_table_id_idx ON metaschema_modules_public.image
 
 CREATE INDEX image_module_image_grants_table_id_idx ON metaschema_modules_public.image_module (image_grants_table_id);
 
+CREATE INDEX image_module_registries_table_id_idx ON metaschema_modules_public.image_module (registries_table_id);
+
+CREATE INDEX image_module_registry_grants_table_id_idx ON metaschema_modules_public.image_module (registry_grants_table_id);
+
 CREATE INDEX image_module_private_schema_id_idx ON metaschema_modules_public.image_module (private_schema_id);
 
 CREATE INDEX image_module_schema_id_idx ON metaschema_modules_public.image_module (schema_id);
@@ -6160,6 +6176,10 @@ CREATE INDEX image_module_schema_id_idx ON metaschema_modules_public.image_modul
 COMMENT ON COLUMN metaschema_modules_public.image_module.images_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.image_module.image_grants_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.image_module.registries_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.image_module.registry_grants_table_id IS '@module_table';
 
 CREATE TABLE metaschema_modules_public.repository_module (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
