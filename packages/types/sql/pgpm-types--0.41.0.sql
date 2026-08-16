@@ -127,3 +127,16 @@ ALTER DOMAIN image ADD CONSTRAINT image_check
     AND (NOT (value ? 'versions')
     OR jsonb_typeof(value -> 'versions') = 'array')
 );
+
+CREATE FUNCTION upload_ids(
+  uploads upload[]
+) RETURNS text[] AS $EOFCODE$
+  SELECT COALESCE(
+    array_agg(u.value ->> 'id' ORDER BY u.ordinality),
+    ARRAY[]::text[]
+  )
+  FROM unnest(uploads) WITH ORDINALITY AS u(value, ordinality)
+  WHERE u.value ? 'id';
+$EOFCODE$ LANGUAGE sql IMMUTABLE STRICT PARALLEL safe;
+
+COMMENT ON FUNCTION upload_ids(upload[]) IS '@omit';

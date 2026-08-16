@@ -43,4 +43,10 @@ COMMENT ON CONSTRAINT session_credentials_table_fkey
 COMMENT ON CONSTRAINT auth_settings_table_fkey
      ON metaschema_modules_public.sessions_module IS E'@fieldName authSettingsTableByAuthSettingsTableId';
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.sessions_module.sessions_table_id IS '@module_table';
+
 COMMIT;

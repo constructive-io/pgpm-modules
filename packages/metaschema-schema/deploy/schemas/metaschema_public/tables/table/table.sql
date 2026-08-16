@@ -59,6 +59,42 @@ COMMENT ON COLUMN metaschema_public.table.step_up IS
 ALTER TABLE metaschema_public.table ADD COLUMN
     inherits_id uuid NULL REFERENCES metaschema_public.table(id);
 
+-- Provenance for a table a module generated: which module installed it, which
+-- instance of that module, and the module's own name for the table's role
+-- ('message', 'thread', ...). A module chooses its tables' names, prefixes them
+-- per install and may move them between schemas, so a consumer that wants "this
+-- module instance's message table" cannot name it — it selects on the
+-- provenance instead. NULL on every table no module generated.
+ALTER TABLE metaschema_public.table
+    ADD COLUMN module_type text NULL,
+    ADD COLUMN module_id uuid NULL,
+    ADD COLUMN module_scope text NULL,
+    ADD COLUMN module_prefix text NULL,
+    ADD COLUMN module_table_key text NULL;
+
+-- One table per (module instance, role): scope and prefix are the
+-- discriminators an instance is installed under, so they participate.
+-- COALESCE because a module without scopes leaves both NULL, and NULLs would
+-- otherwise compare distinct and let a role be claimed twice.
+CREATE UNIQUE INDEX table_module_provenance_uniq
+    ON metaschema_public.table (
+        database_id,
+        module_type,
+        COALESCE(module_scope, ''),
+        COALESCE(module_prefix, ''),
+        module_table_key
+    )
+    WHERE module_type IS NOT NULL AND module_table_key IS NOT NULL;
+
+-- Generator-written machinery, kept off the API the way schema_hash is: a client
+-- that could write these could point a blueprint reference at a table the module
+-- never generated, and reading them is a platform concern, not an app one.
+COMMENT ON COLUMN metaschema_public.table.module_type IS '@behavior -*';
+COMMENT ON COLUMN metaschema_public.table.module_id IS '@behavior -*';
+COMMENT ON COLUMN metaschema_public.table.module_scope IS '@behavior -*';
+COMMENT ON COLUMN metaschema_public.table.module_prefix IS '@behavior -*';
+COMMENT ON COLUMN metaschema_public.table.module_table_key IS '@behavior -*';
+
 
 CREATE INDEX table_schema_id_idx ON metaschema_public.table ( schema_id );
 CREATE INDEX table_inherits_id_idx ON metaschema_public.table ( inherits_id );

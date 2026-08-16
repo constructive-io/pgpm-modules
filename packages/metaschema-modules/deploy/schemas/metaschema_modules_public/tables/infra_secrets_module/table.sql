@@ -66,4 +66,10 @@ CREATE INDEX infra_secrets_module_private_schema_id_idx ON metaschema_modules_pu
 COMMENT ON TABLE metaschema_modules_public.infra_secrets_module IS
     'Namespace-backed PGP-encrypted key-value secrets module. Requires namespace_module and emits namespace:sync_secrets job triggers for K8s Secret synchronization.';
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.infra_secrets_module.secrets_table_id IS '@module_table';
+
 COMMIT;

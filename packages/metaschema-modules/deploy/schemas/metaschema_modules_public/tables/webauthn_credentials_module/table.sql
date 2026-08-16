@@ -37,4 +37,10 @@ CREATE INDEX webauthn_credentials_module_schema_id_idx ON metaschema_modules_pub
 COMMENT ON TABLE metaschema_modules_public.webauthn_credentials_module IS 'Config row for the webauthn_credentials_module, which provisions the per-user WebAuthn/passkey credentials table (public key, counter, transports, device type, backup state) mirroring crypto_addresses_module. The sibling webauthn_auth_module holds RP config and the registration/sign-in challenge state.';
 COMMENT ON COLUMN metaschema_modules_public.webauthn_credentials_module.private_schema_id IS 'Private schema that hosts SECURITY DEFINER helpers which write to webauthn_credentials (registration / counter-bump / delete).';
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.webauthn_credentials_module.table_id IS '@module_table';
+
 COMMIT;

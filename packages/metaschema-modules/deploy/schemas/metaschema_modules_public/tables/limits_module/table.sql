@@ -129,4 +129,21 @@ CREATE INDEX limits_module_table_id_idx ON metaschema_modules_public.limits_modu
 CREATE INDEX limits_module_private_schema_id_idx ON metaschema_modules_public.limits_module ( private_schema_id );
 CREATE INDEX limits_module_schema_id_idx ON metaschema_modules_public.limits_module ( schema_id );
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.limits_module.aggregate_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.limits_module.credit_code_items_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.limits_module.credit_codes_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.limits_module.credit_redemptions_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.limits_module.default_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.limits_module.events_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.limits_module.limit_caps_defaults_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.limits_module.limit_caps_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.limits_module.limit_credits_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.limits_module.limit_warning_state_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.limits_module.limit_warnings_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.limits_module.table_id IS '@module_table';
+
 COMMIT;

@@ -65,4 +65,10 @@ CREATE INDEX infra_config_module_private_schema_id_idx ON metaschema_modules_pub
 COMMENT ON TABLE metaschema_modules_public.infra_config_module IS
     'Namespace-backed plaintext key-value config module. Requires namespace_module and emits namespace:sync_config job triggers for K8s ConfigMap synchronization.';
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.infra_config_module.config_table_id IS '@module_table';
+
 COMMIT;

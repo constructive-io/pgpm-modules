@@ -2,7 +2,8 @@
 
 BEGIN;
 
-SELECT id, database_id, scope, domains_table_id, apis_table_id, sites_table_id
+SELECT id, database_id, scope, domains_table_id, apis_table_id, sites_table_id,
+       redirects_table_id, redirects_table_name
 FROM metaschema_modules_public.catalog_module
 WHERE false;
 

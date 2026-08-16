@@ -36,11 +36,13 @@ CREATE TABLE metaschema_modules_public.route_module (
     routes_table_id uuid NOT NULL DEFAULT uuid_nil(),
     hostname_bindings_table_id uuid NOT NULL DEFAULT uuid_nil(),
     route_bindings_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    redirects_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- Table names (input to the generator)
     routes_table_name text NOT NULL DEFAULT 'routes',
     hostname_bindings_table_name text NOT NULL DEFAULT 'hostname_bindings',
     route_bindings_table_name text NOT NULL DEFAULT 'route_bindings',
+    redirects_table_name text NOT NULL DEFAULT 'redirects',
 
     -- Generated resolver name (populated by the generator)
     resolver_function_name text,
@@ -106,6 +108,10 @@ CREATE TABLE metaschema_modules_public.route_module (
         FOREIGN KEY (route_bindings_table_id)
         REFERENCES metaschema_public.table (id)
         ON DELETE CASCADE,
+    CONSTRAINT route_module_redirects_table_fkey
+        FOREIGN KEY (redirects_table_id)
+        REFERENCES metaschema_public.table (id)
+        ON DELETE CASCADE,
     CONSTRAINT route_module_entity_table_fkey
         FOREIGN KEY (entity_table_id)
         REFERENCES metaschema_public.table (id)
@@ -118,9 +124,19 @@ CREATE INDEX route_module_entity_table_id_idx ON metaschema_modules_public.route
 CREATE INDEX route_module_hostname_bindings_table_id_idx ON metaschema_modules_public.route_module ( hostname_bindings_table_id );
 CREATE INDEX route_module_route_bindings_table_id_idx ON metaschema_modules_public.route_module ( route_bindings_table_id );
 CREATE INDEX route_module_routes_table_id_idx ON metaschema_modules_public.route_module ( routes_table_id );
+CREATE INDEX route_module_redirects_table_id_idx ON metaschema_modules_public.route_module ( redirects_table_id );
 CREATE INDEX route_module_private_schema_id_idx ON metaschema_modules_public.route_module ( private_schema_id );
 CREATE INDEX route_module_schema_id_idx ON metaschema_modules_public.route_module ( schema_id );
 CREATE INDEX route_module_catalog_module_id_idx ON metaschema_modules_public.route_module ( catalog_module_id );
 CREATE INDEX route_module_domain_module_id_idx ON metaschema_modules_public.route_module ( domain_module_id );
+
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.route_module.hostname_bindings_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.route_module.route_bindings_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.route_module.routes_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.route_module.redirects_table_id IS '@module_table';
 
 COMMIT;

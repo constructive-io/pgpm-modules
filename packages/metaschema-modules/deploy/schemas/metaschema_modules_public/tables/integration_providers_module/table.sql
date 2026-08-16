@@ -60,4 +60,10 @@ COMMENT ON TABLE metaschema_modules_public.integration_providers_module IS
      and list the canonical secret/config names required to use them.
      Other modules (function_module, resource_module) match the provider slug as a string.';
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.integration_providers_module.table_id IS '@module_table';
+
 COMMIT;

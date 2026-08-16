@@ -103,7 +103,7 @@ BEGIN
   END IF;
   RETURN database_id;
 END;
-$EOFCODE$ LANGUAGE plpgsql STABLE;
+$EOFCODE$ LANGUAGE plpgsql STABLE LEAKPROOF;
 
 CREATE FUNCTION jwt_private.current_token_id() RETURNS uuid AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.token_id', true), '')::uuid;

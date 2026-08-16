@@ -27,6 +27,10 @@ CREATE TABLE metaschema_public.derives (
   include_mutations boolean NOT NULL DEFAULT false,
   policy_prefix text NOT NULL DEFAULT 'derived',
 
+  -- grant derivation: also mirror the source's table-wide grants onto the
+  -- companion (i18n/history set their own grants and leave this off)
+  include_grants boolean NOT NULL DEFAULT false,
+
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now(),
 

@@ -71,4 +71,10 @@ COMMENT ON TABLE metaschema_modules_public.identity_providers_module IS
        scope=database  → per-database infra, carries database_id';
 COMMENT ON COLUMN metaschema_modules_public.identity_providers_module.private_schema_id IS 'Private schema that hosts SECURITY DEFINER admin helpers which write to identity_providers (create / update / enable / disable / rotate-secret / delete) and the per-app quota check.';
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.identity_providers_module.table_id IS '@module_table';
+
 COMMIT;

@@ -64,4 +64,12 @@ CREATE INDEX rate_limit_meters_module_rate_window_limits_table_id_idx ON metasch
 CREATE INDEX rate_limit_meters_module_private_schema_id_idx ON metaschema_modules_public.rate_limit_meters_module ( private_schema_id );
 CREATE INDEX rate_limit_meters_module_schema_id_idx ON metaschema_modules_public.rate_limit_meters_module ( schema_id );
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.rate_limit_meters_module.rate_limit_overrides_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.rate_limit_meters_module.rate_limit_state_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.rate_limit_meters_module.rate_window_limits_table_id IS '@module_table';
+
 COMMIT;

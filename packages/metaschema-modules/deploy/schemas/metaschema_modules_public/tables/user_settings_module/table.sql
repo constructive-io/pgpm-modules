@@ -33,4 +33,10 @@ CREATE INDEX user_settings_module_owner_table_id_idx ON metaschema_modules_publi
 CREATE INDEX user_settings_module_table_id_idx ON metaschema_modules_public.user_settings_module ( table_id );
 CREATE INDEX user_settings_module_schema_id_idx ON metaschema_modules_public.user_settings_module ( schema_id );
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.user_settings_module.table_id IS '@module_table';
+
 COMMIT;

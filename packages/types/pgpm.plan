@@ -12,3 +12,4 @@ schemas/public/domains/upload [schemas/public/schema] 2017-08-11T08:11:51Z skitc
 schemas/public/domains/url [schemas/public/schema] 2017-08-11T08:11:51Z skitch <skitch@5b0c196eeb62> # add schemas/public/domains/url
 schemas/public/domains/upload_file_ref_keys [schemas/public/domains/upload] 2026-08-07T00:00:00Z constructive <constructive@5b0c196eeb62> # declare bucket_id, size and filename on upload
 schemas/public/domains/image_file_ref_keys [schemas/public/domains/image] 2026-08-07T00:00:00Z constructive <constructive@5b0c196eeb62> # declare bucket_id, size and filename on image
+schemas/public/procedures/upload_ids [schemas/public/domains/upload] 2026-08-15T00:00:00Z constructive <constructive@5b0c196eeb62> # the file ids an upload array refers to

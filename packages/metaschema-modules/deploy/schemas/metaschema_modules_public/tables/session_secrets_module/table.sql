@@ -28,4 +28,10 @@ CREATE INDEX session_secrets_module_sessions_table_id_idx ON metaschema_modules_
 COMMENT ON TABLE metaschema_modules_public.session_secrets_module IS 'Config row for the session_secrets_module, which provisions a DB-private, session-scoped ephemeral key-value store for challenges, nonces, and one-time tokens that must never be readable by end users.';
 COMMENT ON COLUMN metaschema_modules_public.session_secrets_module.sessions_table_id IS 'Resolved reference to sessions_module.sessions_table_name, used to FK session_secrets.session_id with ON DELETE CASCADE.';
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.session_secrets_module.table_id IS '@module_table';
+
 COMMIT;

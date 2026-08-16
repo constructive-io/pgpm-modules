@@ -39,6 +39,9 @@ DECLARE
     -- ref validation (column-to-column comparison)
     v_ref jsonb;
     v_ref_key text;
+
+    -- predicate call leaf argument validation
+    v_arg jsonb;
 BEGIN
     IF cond IS NULL THEN
         RETURN false;
@@ -73,6 +76,51 @@ BEGIN
             RETURN false;
         END IF;
         RETURN metaschema_private.is_valid_step_up_conditions(COALESCE(cond -> 'AND', cond -> 'OR'));
+    END IF;
+
+    -- Predicate call leaf: {schema, function, args?}
+    IF cond ? 'function' THEN
+        FOR v_key IN SELECT key FROM jsonb_each(cond) LOOP
+            IF v_key NOT IN ('schema', 'function', 'args') THEN
+                RETURN false;
+            END IF;
+        END LOOP;
+
+        -- A predicate is always schema-qualified: it is platform SQL named by
+        -- the allow-list, never something resolved out of the search_path.
+        IF jsonb_typeof(cond -> 'schema') IS DISTINCT FROM 'string'
+           OR jsonb_typeof(cond -> 'function') IS DISTINCT FROM 'string' THEN
+            RETURN false;
+        END IF;
+
+        IF cond ? 'args' THEN
+            IF jsonb_typeof(cond -> 'args') != 'array' THEN
+                RETURN false;
+            END IF;
+
+            FOR v_i IN 0..jsonb_array_length(cond -> 'args') - 1 LOOP
+                v_arg := (cond -> 'args') -> v_i;
+                IF jsonb_typeof(v_arg) != 'object' THEN
+                    RETURN false;
+                END IF;
+                FOR v_key IN SELECT key FROM jsonb_each(v_arg) LOOP
+                    IF v_key NOT IN ('field', 'row') THEN
+                        RETURN false;
+                    END IF;
+                END LOOP;
+                IF jsonb_typeof(v_arg -> 'field') IS DISTINCT FROM 'string' THEN
+                    RETURN false;
+                END IF;
+                IF v_arg ? 'row' THEN
+                    IF jsonb_typeof(v_arg -> 'row') != 'string'
+                       OR upper(v_arg ->> 'row') NOT IN ('NEW', 'OLD') THEN
+                        RETURN false;
+                    END IF;
+                END IF;
+            END LOOP;
+        END IF;
+
+        RETURN true;
     END IF;
 
     -- Leaf condition: {field, op, value?, row?, ref?}
@@ -376,6 +424,31 @@ ALTER TABLE metaschema_public.table
     NULL
     REFERENCES metaschema_public.table (id);
 
+ALTER TABLE metaschema_public.table 
+  ADD COLUMN module_type text
+    NULL,
+  ADD COLUMN module_id uuid
+    NULL,
+  ADD COLUMN module_scope text
+    NULL,
+  ADD COLUMN module_prefix text
+    NULL,
+  ADD COLUMN module_table_key text
+    NULL;
+
+CREATE UNIQUE INDEX table_module_provenance_uniq ON metaschema_public.table (database_id, module_type, (COALESCE(module_scope, '')), (COALESCE(module_prefix, '')), module_table_key) WHERE module_type IS NOT NULL
+  AND module_table_key IS NOT NULL;
+
+COMMENT ON COLUMN metaschema_public."table".module_type IS '@behavior -*';
+
+COMMENT ON COLUMN metaschema_public."table".module_id IS '@behavior -*';
+
+COMMENT ON COLUMN metaschema_public."table".module_scope IS '@behavior -*';
+
+COMMENT ON COLUMN metaschema_public."table".module_prefix IS '@behavior -*';
+
+COMMENT ON COLUMN metaschema_public."table".module_table_key IS '@behavior -*';
+
 CREATE INDEX table_schema_id_idx ON metaschema_public.table (schema_id);
 
 CREATE INDEX table_inherits_id_idx ON metaschema_public.table (inherits_id);
@@ -583,6 +656,7 @@ CREATE TABLE metaschema_public.policy (
   smart_tags jsonb,
   derived_from_table_id uuid,
   derived_from_policy_id uuid,
+  column_refs text[],
   category metaschema_public.object_category NOT NULL DEFAULT 'app',
   tags citext[] NOT NULL DEFAULT '{}',
   created_at timestamptz DEFAULT now(),
@@ -614,6 +688,8 @@ CREATE TABLE metaschema_public.policy (
   ),
   UNIQUE (table_id, name)
 );
+
+COMMENT ON COLUMN metaschema_public.policy.column_refs IS 'Columns of this policy''s table that its expression filters on. Stamped when the policy is derived onto a companion table, so a consumer needing those columns (e.g. a chunking worker copying them from the parent row) reads them here instead of re-walking the node type''s parameter schema.';
 
 COMMENT ON COLUMN metaschema_public.policy.with_check IS 'Optional WITH CHECK override node {"$type": "Authz...", "data": {...}}. Only valid for UPDATE policies; NULL inherits the USING expression.';
 
@@ -953,7 +1029,7 @@ CREATE TABLE metaschema_public.embedding_chunks (
   metadata_fields jsonb,
   search_indexes jsonb,
   enqueue_chunking_job boolean NOT NULL DEFAULT true,
-  chunking_task_name text NOT NULL DEFAULT 'embedding:generate_chunks',
+  chunking_task_name text NOT NULL DEFAULT 'embedding:chunk_record',
   embedding_model text,
   embedding_provider text,
   parent_fk_field_id uuid,
@@ -1226,6 +1302,7 @@ CREATE TABLE metaschema_public.derives (
   kind text NOT NULL,
   include_mutations boolean NOT NULL DEFAULT false,
   policy_prefix text NOT NULL DEFAULT 'derived',
+  include_grants boolean NOT NULL DEFAULT false,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now(),
   CONSTRAINT db_fkey

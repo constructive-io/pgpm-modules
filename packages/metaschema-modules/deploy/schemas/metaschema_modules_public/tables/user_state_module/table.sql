@@ -26,4 +26,10 @@ CREATE INDEX user_state_module_database_id_idx ON metaschema_modules_public.user
 CREATE INDEX user_state_module_table_id_idx ON metaschema_modules_public.user_state_module ( table_id );
 CREATE INDEX user_state_module_schema_id_idx ON metaschema_modules_public.user_state_module ( schema_id );
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.user_state_module.table_id IS '@module_table';
+
 COMMIT;

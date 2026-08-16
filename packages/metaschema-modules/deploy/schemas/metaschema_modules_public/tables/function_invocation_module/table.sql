@@ -76,4 +76,12 @@ CREATE INDEX function_invocation_module_execution_logs_table_id_idx ON metaschem
 CREATE INDEX function_invocation_module_private_schema_id_idx ON metaschema_modules_public.function_invocation_module ( private_schema_id );
 CREATE INDEX function_invocation_module_schema_id_idx ON metaschema_modules_public.function_invocation_module ( schema_id );
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.function_invocation_module.attempts_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.function_invocation_module.execution_logs_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.function_invocation_module.invocations_table_id IS '@module_table';
+
 COMMIT;

@@ -41,4 +41,10 @@ CREATE INDEX content_preset_module_private_schema_id_idx ON metaschema_modules_p
 CREATE INDEX content_preset_module_public_schema_id_idx ON metaschema_modules_public.content_preset_module ( public_schema_id );
 CREATE INDEX content_preset_module_merkle_store_module_id_idx ON metaschema_modules_public.content_preset_module ( merkle_store_module_id );
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.content_preset_module.content_presets_table_id IS '@module_table';
+
 COMMIT;
