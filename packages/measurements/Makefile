@@ -1,5 +1,5 @@
 EXTENSION = pgpm-measurements
-DATA = sql/pgpm-measurements--0.41.0.sql
+DATA = sql/pgpm-measurements--0.42.0.sql
 
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
