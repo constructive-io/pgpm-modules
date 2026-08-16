@@ -60,7 +60,11 @@ CREATE TABLE metaschema_modules_public.agent_module (
   -- turning it on *requires* that storage module — an attachment with nowhere to
   -- live fails provisioning rather than accepting a file it cannot store.
   has_attachments boolean NOT NULL DEFAULT false,
-  shared boolean NOT NULL DEFAULT false,
+  -- The DDL default of the thread table's visibility column, and nothing more:
+  -- who may read a thread is decided per row by that column, never by how the
+  -- module was installed. 'private' (owner only) or 'entity' (scope members).
+  default_visibility text NOT NULL DEFAULT 'private'
+    CONSTRAINT default_visibility_chk CHECK (default_visibility IN ('private', 'entity')),
 
   -- API routing (configurable per-module)
   api_name text DEFAULT 'agent',

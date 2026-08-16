@@ -3460,7 +3460,7 @@ CREATE TABLE metaschema_modules_public.agent_module (
   has_agents boolean NOT NULL DEFAULT false,
   has_runs boolean NOT NULL DEFAULT false,
   has_attachments boolean NOT NULL DEFAULT false,
-  shared boolean NOT NULL DEFAULT false,
+  default_visibility text NOT NULL DEFAULT 'private' CONSTRAINT default_visibility_chk CHECK (default_visibility IN ('private', 'entity')),
   api_name text DEFAULT 'agent',
   private_api_name text DEFAULT NULL,
   scope text NOT NULL,
@@ -6245,6 +6245,8 @@ CREATE TABLE metaschema_modules_public.repository_module (
   change_requests_table_id uuid NOT NULL DEFAULT uuid_nil(),
   change_request_comments_table_id uuid NOT NULL DEFAULT uuid_nil(),
   change_request_reactions_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  change_request_reviews_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  change_request_file_views_table_id uuid NOT NULL DEFAULT uuid_nil(),
   repositories_table_name text NOT NULL DEFAULT 'repositories',
   repository_events_table_name text NOT NULL DEFAULT 'repository_events',
   workflows_table_name text NOT NULL DEFAULT 'repository_workflows',
@@ -6253,6 +6255,8 @@ CREATE TABLE metaschema_modules_public.repository_module (
   change_requests_table_name text NOT NULL DEFAULT 'change_requests',
   change_request_comments_table_name text NOT NULL DEFAULT 'change_request_comments',
   change_request_reactions_table_name text NOT NULL DEFAULT 'change_request_reactions',
+  change_request_reviews_table_name text NOT NULL DEFAULT 'change_request_reviews',
+  change_request_file_views_table_name text NOT NULL DEFAULT 'change_request_file_views',
   has_builds boolean NOT NULL DEFAULT false,
   has_attachments boolean NOT NULL DEFAULT false,
   api_name text,
@@ -6307,6 +6311,14 @@ CREATE TABLE metaschema_modules_public.repository_module (
     FOREIGN KEY(change_request_reactions_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
+  CONSTRAINT repository_module_reviews_table_fkey
+    FOREIGN KEY(change_request_reviews_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT repository_module_file_views_table_fkey
+    FOREIGN KEY(change_request_file_views_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
   CONSTRAINT repository_module_entity_table_fkey
     FOREIGN KEY(entity_table_id)
     REFERENCES metaschema_public.table (id)
@@ -6333,6 +6345,10 @@ CREATE INDEX repository_module_comments_table_id_idx ON metaschema_modules_publi
 
 CREATE INDEX repository_module_reactions_table_id_idx ON metaschema_modules_public.repository_module (change_request_reactions_table_id);
 
+CREATE INDEX repository_module_reviews_table_id_idx ON metaschema_modules_public.repository_module (change_request_reviews_table_id);
+
+CREATE INDEX repository_module_file_views_table_id_idx ON metaschema_modules_public.repository_module (change_request_file_views_table_id);
+
 CREATE INDEX repository_module_private_schema_id_idx ON metaschema_modules_public.repository_module (private_schema_id);
 
 CREATE INDEX repository_module_schema_id_idx ON metaschema_modules_public.repository_module (schema_id);
@@ -6352,6 +6368,10 @@ COMMENT ON COLUMN metaschema_modules_public.repository_module.change_requests_ta
 COMMENT ON COLUMN metaschema_modules_public.repository_module.change_request_comments_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.repository_module.change_request_reactions_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.repository_module.change_request_reviews_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.repository_module.change_request_file_views_table_id IS '@module_table';
 
 CREATE TABLE metaschema_modules_public.machine_module (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
