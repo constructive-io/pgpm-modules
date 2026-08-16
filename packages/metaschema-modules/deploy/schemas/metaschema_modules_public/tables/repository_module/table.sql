@@ -27,11 +27,11 @@ CREATE TABLE metaschema_modules_public.repository_module (
     workflows_table_id uuid NOT NULL DEFAULT uuid_nil(),
     builds_table_id uuid NOT NULL DEFAULT uuid_nil(),
     build_steps_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    change_requests_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    change_request_comments_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    change_request_reactions_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    change_request_reviews_table_id uuid NOT NULL DEFAULT uuid_nil(),
-    change_request_file_views_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    proposals_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    proposal_comments_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    proposal_reactions_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    proposal_reviews_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    proposal_file_views_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- Table names (input to the generator)
     repositories_table_name text NOT NULL DEFAULT 'repositories',
@@ -39,11 +39,11 @@ CREATE TABLE metaschema_modules_public.repository_module (
     workflows_table_name text NOT NULL DEFAULT 'repository_workflows',
     builds_table_name text NOT NULL DEFAULT 'builds',
     build_steps_table_name text NOT NULL DEFAULT 'build_steps',
-    change_requests_table_name text NOT NULL DEFAULT 'change_requests',
-    change_request_comments_table_name text NOT NULL DEFAULT 'change_request_comments',
-    change_request_reactions_table_name text NOT NULL DEFAULT 'change_request_reactions',
-    change_request_reviews_table_name text NOT NULL DEFAULT 'change_request_reviews',
-    change_request_file_views_table_name text NOT NULL DEFAULT 'change_request_file_views',
+    proposals_table_name text NOT NULL DEFAULT 'proposals',
+    proposal_comments_table_name text NOT NULL DEFAULT 'proposal_comments',
+    proposal_reactions_table_name text NOT NULL DEFAULT 'proposal_reactions',
+    proposal_reviews_table_name text NOT NULL DEFAULT 'proposal_reviews',
+    proposal_file_views_table_name text NOT NULL DEFAULT 'proposal_file_views',
 
     -- Workflows and builds enqueue jobs that run flow graphs, so they are only
     -- coherent at a scope that has a compute plane; an install without one gets
@@ -73,8 +73,8 @@ CREATE TABLE metaschema_modules_public.repository_module (
 
     -- Per-table provisions overrides from blueprint config. Keys are table keys
     -- (repositories, repository_events, workflows, builds, build_steps,
-    -- change_requests, change_request_comments, change_request_reactions,
-    -- change_request_reviews, change_request_file_views).
+    -- proposals, proposal_comments, proposal_reactions,
+    -- proposal_reviews, proposal_file_views).
     provisions jsonb NULL,
 
     -- Default capabilities: capability names auto-granted to new members.
@@ -88,11 +88,11 @@ CREATE TABLE metaschema_modules_public.repository_module (
     CONSTRAINT repository_module_workflows_table_fkey FOREIGN KEY (workflows_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT repository_module_builds_table_fkey FOREIGN KEY (builds_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT repository_module_build_steps_table_fkey FOREIGN KEY (build_steps_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT repository_module_change_requests_table_fkey FOREIGN KEY (change_requests_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT repository_module_comments_table_fkey FOREIGN KEY (change_request_comments_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT repository_module_reactions_table_fkey FOREIGN KEY (change_request_reactions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT repository_module_reviews_table_fkey FOREIGN KEY (change_request_reviews_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-    CONSTRAINT repository_module_file_views_table_fkey FOREIGN KEY (change_request_file_views_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT repository_module_proposals_table_fkey FOREIGN KEY (proposals_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT repository_module_comments_table_fkey FOREIGN KEY (proposal_comments_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT repository_module_reactions_table_fkey FOREIGN KEY (proposal_reactions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT repository_module_reviews_table_fkey FOREIGN KEY (proposal_reviews_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT repository_module_file_views_table_fkey FOREIGN KEY (proposal_file_views_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT repository_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
@@ -106,11 +106,11 @@ CREATE INDEX repository_module_repository_events_table_id_idx ON metaschema_modu
 CREATE INDEX repository_module_workflows_table_id_idx ON metaschema_modules_public.repository_module ( workflows_table_id );
 CREATE INDEX repository_module_builds_table_id_idx ON metaschema_modules_public.repository_module ( builds_table_id );
 CREATE INDEX repository_module_build_steps_table_id_idx ON metaschema_modules_public.repository_module ( build_steps_table_id );
-CREATE INDEX repository_module_change_requests_table_id_idx ON metaschema_modules_public.repository_module ( change_requests_table_id );
-CREATE INDEX repository_module_comments_table_id_idx ON metaschema_modules_public.repository_module ( change_request_comments_table_id );
-CREATE INDEX repository_module_reactions_table_id_idx ON metaschema_modules_public.repository_module ( change_request_reactions_table_id );
-CREATE INDEX repository_module_reviews_table_id_idx ON metaschema_modules_public.repository_module ( change_request_reviews_table_id );
-CREATE INDEX repository_module_file_views_table_id_idx ON metaschema_modules_public.repository_module ( change_request_file_views_table_id );
+CREATE INDEX repository_module_proposals_table_id_idx ON metaschema_modules_public.repository_module ( proposals_table_id );
+CREATE INDEX repository_module_comments_table_id_idx ON metaschema_modules_public.repository_module ( proposal_comments_table_id );
+CREATE INDEX repository_module_reactions_table_id_idx ON metaschema_modules_public.repository_module ( proposal_reactions_table_id );
+CREATE INDEX repository_module_reviews_table_id_idx ON metaschema_modules_public.repository_module ( proposal_reviews_table_id );
+CREATE INDEX repository_module_file_views_table_id_idx ON metaschema_modules_public.repository_module ( proposal_file_views_table_id );
 CREATE INDEX repository_module_private_schema_id_idx ON metaschema_modules_public.repository_module ( private_schema_id );
 CREATE INDEX repository_module_schema_id_idx ON metaschema_modules_public.repository_module ( schema_id );
 
@@ -123,10 +123,10 @@ COMMENT ON COLUMN metaschema_modules_public.repository_module.repository_events_
 COMMENT ON COLUMN metaschema_modules_public.repository_module.workflows_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.repository_module.builds_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.repository_module.build_steps_table_id IS '@module_table';
-COMMENT ON COLUMN metaschema_modules_public.repository_module.change_requests_table_id IS '@module_table';
-COMMENT ON COLUMN metaschema_modules_public.repository_module.change_request_comments_table_id IS '@module_table';
-COMMENT ON COLUMN metaschema_modules_public.repository_module.change_request_reactions_table_id IS '@module_table';
-COMMENT ON COLUMN metaschema_modules_public.repository_module.change_request_reviews_table_id IS '@module_table';
-COMMENT ON COLUMN metaschema_modules_public.repository_module.change_request_file_views_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.repository_module.proposals_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.repository_module.proposal_comments_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.repository_module.proposal_reactions_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.repository_module.proposal_reviews_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.repository_module.proposal_file_views_table_id IS '@module_table';
 
 COMMIT;
