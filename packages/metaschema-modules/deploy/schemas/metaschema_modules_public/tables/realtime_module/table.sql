@@ -48,4 +48,12 @@ CREATE INDEX realtime_module_change_log_table_id_idx ON metaschema_modules_publi
 CREATE INDEX realtime_module_listener_node_table_id_idx ON metaschema_modules_public.realtime_module ( listener_node_table_id );
 CREATE INDEX realtime_module_source_registry_table_id_idx ON metaschema_modules_public.realtime_module ( source_registry_table_id );
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.realtime_module.change_log_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.realtime_module.listener_node_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.realtime_module.source_registry_table_id IS '@module_table';
+
 COMMIT;

@@ -108,8 +108,11 @@ CREATE TABLE metaschema_modules_public.storage_module (
 
     -- Constraints
     -- API routing (configurable per-module)
-    -- NULL = no automatic API routing (caller must route explicitly or use entity_type_provision).
-    api_name text DEFAULT NULL,
+    -- Storage is its own surface: buckets and files are served on the storage
+    -- API by default, so a module instance is reachable without the caller
+    -- remembering to name an API. Explicit NULL opts out (route elsewhere or
+    -- through entity_type_provision).
+    api_name text DEFAULT 'storage',
     private_api_name text DEFAULT NULL,
 
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
@@ -131,5 +134,14 @@ CREATE INDEX storage_module_files_table_id_idx ON metaschema_modules_public.stor
 CREATE INDEX storage_module_path_shares_table_id_idx ON metaschema_modules_public.storage_module ( path_shares_table_id );
 CREATE INDEX storage_module_private_schema_id_idx ON metaschema_modules_public.storage_module ( private_schema_id );
 CREATE INDEX storage_module_schema_id_idx ON metaschema_modules_public.storage_module ( schema_id );
+
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.storage_module.buckets_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.storage_module.file_events_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.storage_module.files_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.storage_module.path_shares_table_id IS '@module_table';
 
 COMMIT;

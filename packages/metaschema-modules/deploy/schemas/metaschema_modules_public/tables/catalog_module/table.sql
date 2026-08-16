@@ -7,7 +7,7 @@ BEGIN;
 -- Typed catalog module configuration: one row per database installs the typed
 -- catalog tables (catalog_private.domains / apis / sites / namespaces /
 -- functions / resources / resource_definitions / resource_installations /
--- apps / buckets / bindings). The catalog is
+-- apps / buckets / redirects / bindings). The catalog is
 -- a system projection surface holding ALL scopes of each type; scoped source
 -- tables register into it via catalog_register. The stable schema-qualified
 -- table names are load-bearing deployment contracts.
@@ -37,6 +37,7 @@ CREATE TABLE metaschema_modules_public.catalog_module (
     sites_error_pages_table_id uuid NOT NULL DEFAULT uuid_nil(),
     sites_app_links_table_id uuid NOT NULL DEFAULT uuid_nil(),
     sites_deep_links_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    redirects_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- Table names (inputs to the generator; stable load-bearing contracts)
     domains_table_name text NOT NULL DEFAULT 'domains',
@@ -54,6 +55,7 @@ CREATE TABLE metaschema_modules_public.catalog_module (
     sites_error_pages_table_name text NOT NULL DEFAULT 'sites_error_pages',
     sites_app_links_table_name text NOT NULL DEFAULT 'sites_app_links',
     sites_deep_links_table_name text NOT NULL DEFAULT 'sites_deep_links',
+    redirects_table_name text NOT NULL DEFAULT 'redirects',
 
     -- API routing (get-or-create: if set, schema is added to this API)
     api_name text,
@@ -143,6 +145,10 @@ CREATE TABLE metaschema_modules_public.catalog_module (
         FOREIGN KEY (sites_deep_links_table_id)
         REFERENCES metaschema_public.table (id)
         ON DELETE CASCADE,
+    CONSTRAINT catalog_module_redirects_table_fkey
+        FOREIGN KEY (redirects_table_id)
+        REFERENCES metaschema_public.table (id)
+        ON DELETE CASCADE,
     CONSTRAINT catalog_module_entity_table_fkey
         FOREIGN KEY (entity_table_id)
         REFERENCES metaschema_public.table (id)
@@ -161,6 +167,7 @@ CREATE INDEX catalog_module_sites_web_config_table_id_idx ON metaschema_modules_
 CREATE INDEX catalog_module_sites_error_pages_table_id_idx ON metaschema_modules_public.catalog_module ( sites_error_pages_table_id );
 CREATE INDEX catalog_module_sites_app_links_table_id_idx ON metaschema_modules_public.catalog_module ( sites_app_links_table_id );
 CREATE INDEX catalog_module_sites_deep_links_table_id_idx ON metaschema_modules_public.catalog_module ( sites_deep_links_table_id );
+CREATE INDEX catalog_module_redirects_table_id_idx ON metaschema_modules_public.catalog_module ( redirects_table_id );
 CREATE INDEX catalog_module_domains_table_id_idx ON metaschema_modules_public.catalog_module ( domains_table_id );
 CREATE INDEX catalog_module_entity_table_id_idx ON metaschema_modules_public.catalog_module ( entity_table_id );
 CREATE INDEX catalog_module_functions_table_id_idx ON metaschema_modules_public.catalog_module ( functions_table_id );
@@ -170,5 +177,26 @@ CREATE INDEX catalog_module_resource_installations_table_id_idx ON metaschema_mo
 CREATE INDEX catalog_module_resources_table_id_idx ON metaschema_modules_public.catalog_module ( resources_table_id );
 CREATE INDEX catalog_module_sites_table_id_idx ON metaschema_modules_public.catalog_module ( sites_table_id );
 CREATE INDEX catalog_module_schema_id_idx ON metaschema_modules_public.catalog_module ( schema_id );
+
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.apis_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.apps_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.bindings_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.buckets_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.domains_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.functions_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.namespaces_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.resource_definitions_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.resource_installations_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.redirects_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.resources_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.sites_app_links_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.sites_deep_links_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.sites_error_pages_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.sites_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.sites_web_config_table_id IS '@module_table';
 
 COMMIT;

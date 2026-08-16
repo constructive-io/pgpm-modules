@@ -80,4 +80,10 @@ CREATE INDEX http_route_module_function_module_id_idx ON metaschema_modules_publ
 CREATE INDEX http_route_module_resource_module_id_idx ON metaschema_modules_public.http_route_module ( resource_module_id );
 CREATE INDEX http_route_module_storage_module_id_idx ON metaschema_modules_public.http_route_module ( storage_module_id );
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.http_route_module.http_routes_table_id IS '@module_table';
+
 COMMIT;

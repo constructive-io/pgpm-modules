@@ -61,4 +61,12 @@ COMMENT ON CONSTRAINT principal_entities_table_fkey
 
 COMMENT ON TABLE metaschema_modules_public.principal_auth_module IS 'Provisions the principals subsystem: a principals table, a principal_entities junction table, create/delete mutations, and org API key management. Supports both human-owned principals (AuthzDirectOwner, AuthzHumanOnly) and org-owned principals (AuthzEntityMembership with is_admin). Org principal and org API key functions are only generated when an org-scoped memberships_module exists for the database.';
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.principal_auth_module.principal_entities_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.principal_auth_module.principal_scope_overrides_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.principal_auth_module.principals_table_id IS '@module_table';
+
 COMMIT;

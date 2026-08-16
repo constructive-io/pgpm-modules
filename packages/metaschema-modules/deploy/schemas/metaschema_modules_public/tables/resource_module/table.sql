@@ -32,6 +32,10 @@ CREATE TABLE metaschema_modules_public.resource_module (
     resource_usage_summary_table_id uuid NOT NULL DEFAULT uuid_nil(),
     -- Resource-bundles Stage 1: the installation ("release") grouping table.
     resource_installations_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    -- Which registry a namespace pulls from, per lane. Generated here rather
+    -- than by namespace_module because its keys are the namespace and the
+    -- installed registry, which only exist together in this scope.
+    registry_bindings_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- Table names (input to the generator — bare names without scope prefix).
     -- The trigger prepends the scope prefix automatically.
@@ -42,6 +46,7 @@ CREATE TABLE metaschema_modules_public.resource_module (
     resource_usage_log_table_name text NOT NULL DEFAULT 'resource_usage_log',
     resource_usage_summary_table_name text NOT NULL DEFAULT 'resource_usage_summary',
     resource_installations_table_name text NOT NULL DEFAULT 'resource_installations',
+    registry_bindings_table_name text NOT NULL DEFAULT 'registry_bindings',
 
     -- Generated functions (populated by the generator)
     rollup_resource_usage_summary_function text NOT NULL DEFAULT '',
@@ -99,6 +104,7 @@ CREATE TABLE metaschema_modules_public.resource_module (
     CONSTRAINT resource_module_usage_log_table_fkey FOREIGN KEY (resource_usage_log_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT resource_module_usage_summary_table_fkey FOREIGN KEY (resource_usage_summary_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT resource_module_installations_table_fkey FOREIGN KEY (resource_installations_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT resource_module_registry_bindings_table_fkey FOREIGN KEY (registry_bindings_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT resource_module_merkle_store_module_fkey FOREIGN KEY (merkle_store_module_id) REFERENCES metaschema_modules_public.merkle_store_module (id) ON DELETE SET NULL,
     CONSTRAINT resource_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT resource_module_namespace_module_fkey FOREIGN KEY (namespace_module_id) REFERENCES metaschema_modules_public.namespace_module (id) ON DELETE SET NULL
@@ -110,6 +116,7 @@ CREATE INDEX resource_module_resource_definitions_table_id_idx ON metaschema_mod
 CREATE INDEX resource_module_entity_table_id_idx ON metaschema_modules_public.resource_module ( entity_table_id );
 CREATE INDEX resource_module_resource_events_table_id_idx ON metaschema_modules_public.resource_module ( resource_events_table_id );
 CREATE INDEX resource_module_resource_installations_table_id_idx ON metaschema_modules_public.resource_module ( resource_installations_table_id );
+CREATE INDEX resource_module_registry_bindings_table_id_idx ON metaschema_modules_public.resource_module ( registry_bindings_table_id );
 CREATE INDEX resource_module_resources_table_id_idx ON metaschema_modules_public.resource_module ( resources_table_id );
 CREATE INDEX resource_module_resource_status_checks_table_id_idx ON metaschema_modules_public.resource_module ( resource_status_checks_table_id );
 CREATE INDEX resource_module_resource_usage_log_table_id_idx ON metaschema_modules_public.resource_module ( resource_usage_log_table_id );
@@ -118,5 +125,18 @@ CREATE INDEX resource_module_private_schema_id_idx ON metaschema_modules_public.
 CREATE INDEX resource_module_schema_id_idx ON metaschema_modules_public.resource_module ( schema_id );
 CREATE INDEX resource_module_merkle_store_module_id_idx ON metaschema_modules_public.resource_module ( merkle_store_module_id );
 CREATE INDEX resource_module_namespace_module_id_idx ON metaschema_modules_public.resource_module ( namespace_module_id );
+
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.resource_module.resource_definitions_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.resource_module.resource_events_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.resource_module.resource_installations_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.resource_module.registry_bindings_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.resource_module.resource_status_checks_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.resource_module.resource_usage_log_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.resource_module.resource_usage_summary_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.resource_module.resources_table_id IS '@module_table';
 
 COMMIT;

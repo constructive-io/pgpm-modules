@@ -5,7 +5,7 @@
 BEGIN;
 
 -- No-op migration: platform database uniqueness is enforced at the application
--- layer by resolveDatabaseId(), which queries:
+-- layer by resolvePlatformDatabaseId(), which queries:
 --   SELECT database_id FROM function_module WHERE scope = 'platform' LIMIT 1
 --
 -- A hard UNIQUE constraint on ((true)) WHERE scope='platform' would break

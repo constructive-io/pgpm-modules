@@ -83,4 +83,12 @@ CREATE INDEX email_sender_module_site_identities_table_id_idx ON metaschema_modu
 CREATE INDEX email_sender_module_site_surface_module_id_idx ON metaschema_modules_public.email_sender_module ( site_surface_module_id );
 CREATE INDEX email_sender_module_entity_table_id_idx ON metaschema_modules_public.email_sender_module ( entity_table_id );
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.email_sender_module.email_identities_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.email_sender_module.email_provider_accounts_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.email_sender_module.email_site_identities_table_id IS '@module_table';
+
 COMMIT;

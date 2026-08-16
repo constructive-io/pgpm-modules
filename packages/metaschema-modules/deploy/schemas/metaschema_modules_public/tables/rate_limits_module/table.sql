@@ -41,4 +41,12 @@ CREATE INDEX rate_limits_module_rate_limit_settings_table_id_idx ON metaschema_m
 CREATE INDEX rate_limits_module_rate_limits_table_id_idx ON metaschema_modules_public.rate_limits_module ( rate_limits_table_id );
 CREATE INDEX rate_limits_module_schema_id_idx ON metaschema_modules_public.rate_limits_module ( schema_id );
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.rate_limits_module.ip_rate_limits_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.rate_limits_module.rate_limit_settings_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.rate_limits_module.rate_limits_table_id IS '@module_table';
+
 COMMIT;

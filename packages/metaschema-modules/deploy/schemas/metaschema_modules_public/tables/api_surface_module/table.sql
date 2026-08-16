@@ -102,4 +102,13 @@ CREATE INDEX api_surface_module_entity_table_id_idx ON metaschema_modules_public
 CREATE INDEX api_surface_module_schema_id_idx ON metaschema_modules_public.api_surface_module ( schema_id );
 CREATE INDEX api_surface_module_catalog_module_id_idx ON metaschema_modules_public.api_surface_module ( catalog_module_id );
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.api_surface_module.api_schemas_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.api_surface_module.api_settings_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.api_surface_module.apis_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.api_surface_module.cors_settings_table_id IS '@module_table';
+
 COMMIT;

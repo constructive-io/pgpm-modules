@@ -88,4 +88,11 @@ CREATE INDEX function_deployment_module_schema_id_idx ON metaschema_modules_publ
 CREATE INDEX function_deployment_module_function_module_id_idx ON metaschema_modules_public.function_deployment_module ( function_module_id );
 CREATE INDEX function_deployment_module_namespace_module_id_idx ON metaschema_modules_public.function_deployment_module ( namespace_module_id );
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.function_deployment_module.deployment_events_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.function_deployment_module.deployments_table_id IS '@module_table';
+
 COMMIT;

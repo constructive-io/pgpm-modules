@@ -103,4 +103,11 @@ CREATE INDEX webhook_module_function_invocation_module_id_idx ON metaschema_modu
 CREATE INDEX webhook_module_namespace_module_id_idx ON metaschema_modules_public.webhook_module ( namespace_module_id );
 CREATE INDEX webhook_module_infra_secrets_module_id_idx ON metaschema_modules_public.webhook_module ( infra_secrets_module_id );
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.webhook_module.webhook_endpoints_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.webhook_module.webhook_events_table_id IS '@module_table';
+
 COMMIT;

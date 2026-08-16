@@ -34,13 +34,17 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "http_route_module",
     "i18n_module",
     "identity_providers_module",
+    "image_module",
     "inference_log_module",
     "infra_config_module",
     "infra_secrets_module",
     "integration_providers_module",
+    "internal_config_module",
     "internal_secrets_module",
     "invites_module",
+    "k8s_admission_module",
     "limits_module",
+    "machine_module",
     "membership_types_module",
     "memberships_module",
     "merkle_store_module",
@@ -55,6 +59,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "rate_limit_meters_module",
     "rate_limits_module",
     "realtime_module",
+    "repository_module",
     "resource_module",
     "rls_module",
     "route_module",
@@ -80,8 +85,8 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
-  "moduleTablesCount": 71,
-  "totalTables": 80,
+  "moduleTablesCount": 76,
+  "totalTables": 85,
 }
 `;
 
@@ -148,13 +153,13 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 71,
+  "constraintCount": 76,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 505,
+  "constraintCount": 549,
   "foreignTables": [
     "catalog_module",
     "database",

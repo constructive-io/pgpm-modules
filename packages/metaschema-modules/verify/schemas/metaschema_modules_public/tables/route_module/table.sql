@@ -2,7 +2,8 @@
 
 BEGIN;
 
-SELECT id, database_id, scope, routes_table_id
+SELECT id, database_id, scope, routes_table_id,
+       redirects_table_id, redirects_table_name
 FROM metaschema_modules_public.route_module
 WHERE false;
 

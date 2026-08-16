@@ -93,4 +93,15 @@ CREATE INDEX notifications_module_user_settings_table_id_idx ON metaschema_modul
 CREATE INDEX notifications_module_private_schema_id_idx ON metaschema_modules_public.notifications_module ( private_schema_id );
 CREATE INDEX notifications_module_schema_id_idx ON metaschema_modules_public.notifications_module ( schema_id );
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.notifications_module.channels_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.notifications_module.delivery_log_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.notifications_module.notifications_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.notifications_module.preferences_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.notifications_module.read_state_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.notifications_module.suppressions_table_id IS '@module_table';
+
 COMMIT;

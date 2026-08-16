@@ -120,4 +120,23 @@ CREATE INDEX memberships_module_private_schema_id_idx ON metaschema_modules_publ
 CREATE INDEX memberships_module_schema_id_idx ON metaschema_modules_public.memberships_module ( schema_id );
 CREATE INDEX memberships_module_entity_table_owner_id_idx ON metaschema_modules_public.memberships_module ( entity_table_owner_id );
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.memberships_module.admin_grants_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.memberships_module.capability_default_capabilities_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.memberships_module.capability_default_grants_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.memberships_module.grants_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.memberships_module.member_profiles_table_id IS '@module_table';
+-- members_table_id is deliberately unmarked: outside an entity scope the
+-- generator returns the actor table it was handed rather than creating a
+-- members table, so the reference names a table this install generated only
+-- some of the time.
+COMMENT ON COLUMN metaschema_modules_public.memberships_module.membership_defaults_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.memberships_module.membership_settings_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.memberships_module.memberships_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.memberships_module.owner_grants_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.memberships_module.sprt_table_id IS '@module_table';
+
 COMMIT;

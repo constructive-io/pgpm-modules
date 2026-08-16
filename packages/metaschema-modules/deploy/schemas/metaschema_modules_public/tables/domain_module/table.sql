@@ -114,4 +114,13 @@ CREATE INDEX domain_module_private_schema_id_idx ON metaschema_modules_public.do
 CREATE INDEX domain_module_schema_id_idx ON metaschema_modules_public.domain_module ( schema_id );
 CREATE INDEX domain_module_catalog_module_id_idx ON metaschema_modules_public.domain_module ( catalog_module_id );
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.domain_module.domain_events_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.domain_module.domain_verifications_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.domain_module.domains_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.domain_module.managed_domains_table_id IS '@module_table';
+
 COMMIT;

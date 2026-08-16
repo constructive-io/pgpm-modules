@@ -39,6 +39,11 @@ CREATE TABLE metaschema_modules_public.merkle_store_module (
     -- RLS through metaschema_public.database ownership.
     scope text NOT NULL,
 
+    -- The table an entity scope's entities live in, resolved by the insert
+    -- trigger from the memberships module at `scope`. NULL at every non-entity
+    -- scope, which carry an opaque store partition key instead of an owner.
+    entity_table_id uuid NULL,
+
     -- Function name prefix override: NULL (default) inherits from `prefix`;
     -- '' (empty string) generates unprefixed function names (e.g., get_all instead of function_graph_get_all);
     -- any other value is used as-is. Tables always keep their prefix regardless of this setting.
@@ -60,6 +65,7 @@ CREATE TABLE metaschema_modules_public.merkle_store_module (
     CONSTRAINT store_table_fkey FOREIGN KEY (store_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT commit_table_fkey FOREIGN KEY (commit_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT ref_table_fkey FOREIGN KEY (ref_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT merkle_store_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
 
     -- Only one merkle store module per database + prefix combination
     CONSTRAINT merkle_store_module_database_prefix_unique UNIQUE (database_id, prefix)
@@ -71,5 +77,15 @@ CREATE INDEX merkle_store_module_object_table_id_idx ON metaschema_modules_publi
 CREATE INDEX merkle_store_module_ref_table_id_idx ON metaschema_modules_public.merkle_store_module ( ref_table_id );
 CREATE INDEX merkle_store_module_store_table_id_idx ON metaschema_modules_public.merkle_store_module ( store_table_id );
 CREATE INDEX merkle_store_module_schema_id_idx ON metaschema_modules_public.merkle_store_module ( schema_id );
+CREATE INDEX merkle_store_module_entity_table_id_idx ON metaschema_modules_public.merkle_store_module ( entity_table_id );
+
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.merkle_store_module.commit_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.merkle_store_module.object_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.merkle_store_module.ref_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.merkle_store_module.store_table_id IS '@module_table';
 
 COMMIT;

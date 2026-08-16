@@ -41,4 +41,10 @@ COMMENT ON TABLE metaschema_modules_public.user_credentials_module IS
      Always user-scoped with AuthzDirectOwner RLS. Consumed by user_auth_module,
      identity_providers_module, and bootstrap procedures.';
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.user_credentials_module.table_id IS '@module_table';
+
 COMMIT;

@@ -30,6 +30,9 @@ CREATE TABLE metaschema_modules_public.agent_module (
   agent_table_id uuid DEFAULT NULL,
   persona_table_id uuid DEFAULT NULL,
   resource_table_id uuid DEFAULT NULL,
+  run_table_id uuid DEFAULT NULL,
+  event_table_id uuid DEFAULT NULL,
+  workspace_table_id uuid DEFAULT NULL,
 
   -- Table names (input to the generator)
   thread_table_name text NOT NULL DEFAULT 'agent_thread',
@@ -40,11 +43,23 @@ CREATE TABLE metaschema_modules_public.agent_module (
   agent_table_name text NOT NULL DEFAULT 'agent',
   persona_table_name text NOT NULL DEFAULT 'agent_persona',
   resource_table_name text NOT NULL DEFAULT 'agent_resource',
+  run_table_name text NOT NULL DEFAULT 'agent_run',
+  event_table_name text NOT NULL DEFAULT 'agent_event',
+  workspace_table_name text NOT NULL DEFAULT 'agent_run_workspace',
 
   -- Feature flags
   has_plans boolean NOT NULL DEFAULT false,
   has_resources boolean NOT NULL DEFAULT false,
   has_agents boolean NOT NULL DEFAULT false,
+  -- The coding-agent execution surface: runs and their append-only transcripts.
+  -- Off by default, so a conversation-only install provisions exactly what it did
+  -- before this flag existed.
+  has_runs boolean NOT NULL DEFAULT false,
+  -- Files carried by a message: an upload[] column on the message table, managed
+  -- by the storage module installed at this same scope. Off by default because
+  -- turning it on *requires* that storage module — an attachment with nowhere to
+  -- live fails provisioning rather than accepting a file it cannot store.
+  has_attachments boolean NOT NULL DEFAULT false,
   shared boolean NOT NULL DEFAULT false,
 
   -- API routing (configurable per-module)
@@ -92,6 +107,9 @@ CREATE TABLE metaschema_modules_public.agent_module (
   CONSTRAINT agent_module_agent_table_fkey FOREIGN KEY (agent_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT agent_module_persona_table_fkey FOREIGN KEY (persona_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT agent_module_resource_table_fkey FOREIGN KEY (resource_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+  CONSTRAINT agent_module_run_table_fkey FOREIGN KEY (run_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+  CONSTRAINT agent_module_event_table_fkey FOREIGN KEY (event_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+  CONSTRAINT agent_module_workspace_table_fkey FOREIGN KEY (workspace_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT agent_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
@@ -104,9 +122,28 @@ CREATE INDEX agent_module_persona_table_id_idx ON metaschema_modules_public.agen
 CREATE INDEX agent_module_plan_table_id_idx ON metaschema_modules_public.agent_module ( plan_table_id );
 CREATE INDEX agent_module_prompts_table_id_idx ON metaschema_modules_public.agent_module ( prompts_table_id );
 CREATE INDEX agent_module_resource_table_id_idx ON metaschema_modules_public.agent_module ( resource_table_id );
+CREATE INDEX agent_module_run_table_id_idx ON metaschema_modules_public.agent_module ( run_table_id );
+CREATE INDEX agent_module_event_table_id_idx ON metaschema_modules_public.agent_module ( event_table_id );
+CREATE INDEX agent_module_workspace_table_id_idx ON metaschema_modules_public.agent_module ( workspace_table_id );
 CREATE INDEX agent_module_task_table_id_idx ON metaschema_modules_public.agent_module ( task_table_id );
 CREATE INDEX agent_module_thread_table_id_idx ON metaschema_modules_public.agent_module ( thread_table_id );
 CREATE INDEX agent_module_private_schema_id_idx ON metaschema_modules_public.agent_module ( private_schema_id );
 CREATE INDEX agent_module_schema_id_idx ON metaschema_modules_public.agent_module ( schema_id );
+
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.agent_module.agent_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.agent_module.message_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.agent_module.persona_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.agent_module.plan_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.agent_module.prompts_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.agent_module.resource_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.agent_module.task_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.agent_module.thread_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.agent_module.run_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.agent_module.event_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.agent_module.workspace_table_id IS '@module_table';
 
 COMMIT;

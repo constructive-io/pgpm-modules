@@ -66,4 +66,10 @@ CREATE INDEX internal_secrets_module_private_schema_id_idx ON metaschema_modules
 COMMENT ON TABLE metaschema_modules_public.internal_secrets_module IS
     'App-scoped PGP-encrypted internal secrets store. No namespace_module dependency and no K8s synchronization. Used by identity_providers_module for OAuth2 client_secret storage.';
 
+-- Tables this module generates, as opposed to tables it is handed (an
+-- entity or users table it points at): the @module_table marker is what
+-- metaschema_modules_private.tg_module_install_provenance attributes to this
+-- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.internal_secrets_module.internal_secrets_table_id IS '@module_table';
+
 COMMIT;
