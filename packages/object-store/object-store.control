@@ -1,6 +1,6 @@
 # object-store extension
 comment = 'object-store extension - content-addressable Merkle tree storage'
-default_version = '0.43.0'
+default_version = '0.43.1'
 module_pathname = '$libdir/object-store'
 requires = 'plpgsql,pgcrypto,uuid-ossp,pgpm-verify'
 relocatable = false
