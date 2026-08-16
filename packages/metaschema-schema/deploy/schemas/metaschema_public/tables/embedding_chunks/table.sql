@@ -37,7 +37,7 @@ CREATE TABLE metaschema_public.embedding_chunks (
 
     -- job configuration
     enqueue_chunking_job boolean NOT NULL DEFAULT true,
-    chunking_task_name text NOT NULL DEFAULT 'embedding:generate_chunks',
+    chunking_task_name text NOT NULL DEFAULT 'embedding:chunk_record',
 
     -- model config (optional — worker falls back to runtime config when null)
     embedding_model text,

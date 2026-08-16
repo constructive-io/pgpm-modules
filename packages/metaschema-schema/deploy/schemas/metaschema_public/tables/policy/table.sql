@@ -35,6 +35,10 @@ CREATE TABLE metaschema_public.policy (
   derived_from_table_id uuid,
   derived_from_policy_id uuid,
 
+  -- columns of this policy's own table that its expression filters on, resolved
+  -- from the node type's parameter schema when the policy was derived
+  column_refs text[],
+
   category metaschema_public.object_category NOT NULL DEFAULT 'app',
 
   tags citext[] NOT NULL DEFAULT '{}',
@@ -61,6 +65,9 @@ CREATE TABLE metaschema_public.policy (
 
   UNIQUE (table_id, name)
 );
+
+COMMENT ON COLUMN metaschema_public.policy.column_refs IS
+  'Columns of this policy''s table that its expression filters on. Stamped when the policy is derived onto a companion table, so a consumer needing those columns (e.g. a chunking worker copying them from the parent row) reads them here instead of re-walking the node type''s parameter schema.';
 
 COMMENT ON COLUMN metaschema_public.policy.with_check IS
   'Optional WITH CHECK override node {"$type": "Authz...", "data": {...}}. Only valid for UPDATE policies; NULL inherits the USING expression.';

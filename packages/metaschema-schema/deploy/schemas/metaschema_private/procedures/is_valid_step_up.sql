@@ -37,8 +37,16 @@ BEGIN;
 --     =, !=, >, <, >=, <=, LIKE, NOT LIKE, IS NULL, IS NOT NULL,
 --     IS DISTINCT FROM; row is NEW or OLD; comparison ops require exactly
 --     one of value (scalar) or ref ({field, row?}).
+--   - predicate call leaf: {schema, function, args?} — schema and function name
+--     are separate keys, as in the FieldGeneration DSL, and each arg is a column
+--     reference ({field, row?}).
 -- Field existence and AST safety are enforced at apply time by
--- build_condition_expr + ast_validate.validate_column_expression_ast.
+-- build_condition_expr + ast_validate.validate_column_expression_ast, and so
+-- is *which* predicate a call may name: the allow-list lives in
+-- metaschema_generators.allowed_condition_calls(), which this immutable
+-- shape check cannot reach across modules. A well-shaped call to an
+-- unlisted predicate is therefore stored and rejected when the guard is
+-- built, the same way a well-shaped reference to a missing column is.
 CREATE FUNCTION metaschema_private.is_valid_step_up_conditions(cond jsonb)
 RETURNS boolean AS $$
 DECLARE
@@ -52,6 +60,9 @@ DECLARE
     -- ref validation (column-to-column comparison)
     v_ref jsonb;
     v_ref_key text;
+
+    -- predicate call leaf argument validation
+    v_arg jsonb;
 BEGIN
     IF cond IS NULL THEN
         RETURN false;
@@ -86,6 +97,51 @@ BEGIN
             RETURN false;
         END IF;
         RETURN metaschema_private.is_valid_step_up_conditions(COALESCE(cond -> 'AND', cond -> 'OR'));
+    END IF;
+
+    -- Predicate call leaf: {schema, function, args?}
+    IF cond ? 'function' THEN
+        FOR v_key IN SELECT key FROM jsonb_each(cond) LOOP
+            IF v_key NOT IN ('schema', 'function', 'args') THEN
+                RETURN false;
+            END IF;
+        END LOOP;
+
+        -- A predicate is always schema-qualified: it is platform SQL named by
+        -- the allow-list, never something resolved out of the search_path.
+        IF jsonb_typeof(cond -> 'schema') IS DISTINCT FROM 'string'
+           OR jsonb_typeof(cond -> 'function') IS DISTINCT FROM 'string' THEN
+            RETURN false;
+        END IF;
+
+        IF cond ? 'args' THEN
+            IF jsonb_typeof(cond -> 'args') != 'array' THEN
+                RETURN false;
+            END IF;
+
+            FOR v_i IN 0..jsonb_array_length(cond -> 'args') - 1 LOOP
+                v_arg := (cond -> 'args') -> v_i;
+                IF jsonb_typeof(v_arg) != 'object' THEN
+                    RETURN false;
+                END IF;
+                FOR v_key IN SELECT key FROM jsonb_each(v_arg) LOOP
+                    IF v_key NOT IN ('field', 'row') THEN
+                        RETURN false;
+                    END IF;
+                END LOOP;
+                IF jsonb_typeof(v_arg -> 'field') IS DISTINCT FROM 'string' THEN
+                    RETURN false;
+                END IF;
+                IF v_arg ? 'row' THEN
+                    IF jsonb_typeof(v_arg -> 'row') != 'string'
+                       OR upper(v_arg ->> 'row') NOT IN ('NEW', 'OLD') THEN
+                        RETURN false;
+                    END IF;
+                END IF;
+            END LOOP;
+        END IF;
+
+        RETURN true;
     END IF;
 
     -- Leaf condition: {field, op, value?, row?, ref?}

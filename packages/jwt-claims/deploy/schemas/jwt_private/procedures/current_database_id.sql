@@ -16,6 +16,11 @@ BEGIN;
 --
 -- pg_input_is_valid() validates without raising, so no EXCEPTION block is
 -- needed: an exception handler would open a subtransaction on every call
+--
+-- LEAKPROOF like its sibling claim readers: it takes no arguments, so it can
+-- leak nothing about the row a policy is testing, and the planner may push the
+-- claim comparison down instead of treating every policy that reads a claim as
+-- a barrier. Its one error path depends on the session, never on a value.
 CREATE FUNCTION jwt_private.current_database_id()
   RETURNS uuid
 AS $$
@@ -35,6 +40,6 @@ BEGIN
   RETURN database_id;
 END;
 $$
-LANGUAGE 'plpgsql' STABLE;
+LANGUAGE 'plpgsql' STABLE LEAKPROOF;
 
 COMMIT;

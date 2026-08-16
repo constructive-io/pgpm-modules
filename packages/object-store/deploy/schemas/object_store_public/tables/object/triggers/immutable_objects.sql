@@ -18,6 +18,10 @@ BEGIN
         IF (OLD.frzn IS TRUE) THEN
             RAISE EXCEPTION 'you cannot delete an immutable record.';
         END IF;
+        -- A BEFORE DELETE trigger returning NULL cancels the delete: returning
+        -- NEW here made every delete of an unfrozen object a silent no-op
+        -- (DELETE 0, row still there).
+        RETURN OLD;
     END IF;
     RETURN NEW;
 END;

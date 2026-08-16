@@ -9,7 +9,8 @@ SELECT
     source_table_id,
     kind,
     include_mutations,
-    policy_prefix
+    policy_prefix,
+    include_grants
 FROM metaschema_public.derives
 WHERE FALSE;
 
