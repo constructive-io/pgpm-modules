@@ -33,13 +33,19 @@ CREATE TABLE metaschema_modules_public.compute_log_module (
   retention text NOT NULL DEFAULT '12 months',
   premake int NOT NULL DEFAULT 2,
 
-  -- Scope configuration: 'app' = per-app usage (actor_id RLS)
+  -- Scope the log plane is installed at. Rows are read through
+  -- entity membership on entity_id at every scope, plus the actor's own rows
+  -- outside the constructive scopes.
   scope text NOT NULL,
-  actor_fk_table_id uuid NULL,
-  entity_fk_table_id uuid NULL,
 
   -- Table name prefix. Auto-derived from scope by the trigger when empty.
   prefix text NOT NULL DEFAULT '',
+
+  -- Name of the AST-generated rollup function in the private schema. It
+  -- carries the same prefix as the tables, so two scopes of this module
+  -- share one private schema without colliding, and a reader (the worker's
+  -- rollup pass) calls the function belonging to the instance it loaded.
+  rollup_function_name text NOT NULL DEFAULT '',
 
   -- API routing (configurable per-module)
   api_name text DEFAULT 'usage',

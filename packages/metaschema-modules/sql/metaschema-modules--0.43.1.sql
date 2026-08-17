@@ -3133,9 +3133,8 @@ CREATE TABLE metaschema_modules_public.inference_log_module (
   retention text NOT NULL DEFAULT '12 months',
   premake int NOT NULL DEFAULT 2,
   scope text NOT NULL,
-  actor_fk_table_id uuid NULL,
-  entity_fk_table_id uuid NULL,
   prefix text NOT NULL DEFAULT '',
+  rollup_function_name text NOT NULL DEFAULT '',
   api_name text DEFAULT 'usage',
   private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
@@ -3190,9 +3189,8 @@ CREATE TABLE metaschema_modules_public.compute_log_module (
   retention text NOT NULL DEFAULT '12 months',
   premake int NOT NULL DEFAULT 2,
   scope text NOT NULL,
-  actor_fk_table_id uuid NULL,
-  entity_fk_table_id uuid NULL,
   prefix text NOT NULL DEFAULT '',
+  rollup_function_name text NOT NULL DEFAULT '',
   api_name text DEFAULT 'usage',
   private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
@@ -3247,9 +3245,8 @@ CREATE TABLE metaschema_modules_public.transfer_log_module (
   retention text NOT NULL DEFAULT '12 months',
   premake int NOT NULL DEFAULT 2,
   scope text NOT NULL,
-  actor_fk_table_id uuid NULL,
-  entity_fk_table_id uuid NULL,
   prefix text NOT NULL DEFAULT '',
+  rollup_function_name text NOT NULL DEFAULT '',
   api_name text DEFAULT 'usage',
   private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
@@ -3304,9 +3301,8 @@ CREATE TABLE metaschema_modules_public.storage_log_module (
   retention text NOT NULL DEFAULT '12 months',
   premake int NOT NULL DEFAULT 2,
   scope text NOT NULL,
-  actor_fk_table_id uuid NULL,
-  entity_fk_table_id uuid NULL,
   prefix text NOT NULL DEFAULT '',
+  rollup_function_name text NOT NULL DEFAULT '',
   api_name text DEFAULT 'usage',
   private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
@@ -4865,80 +4861,6 @@ COMMENT ON COLUMN metaschema_modules_public.webhook_module.webhook_endpoints_tab
 
 COMMENT ON COLUMN metaschema_modules_public.webhook_module.webhook_events_table_id IS '@module_table';
 
-CREATE TABLE metaschema_modules_public.http_route_module (
-  id uuid PRIMARY KEY DEFAULT uuidv7(),
-  database_id uuid NOT NULL,
-  entity_field text,
-  schema_id uuid NOT NULL DEFAULT uuid_nil(),
-  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
-  public_schema_name text,
-  private_schema_name text,
-  http_routes_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  http_routes_table_name text NOT NULL DEFAULT 'http_routes',
-  resolver_function_name text,
-  function_module_id uuid,
-  resource_module_id uuid,
-  storage_module_id uuid,
-  api_name text,
-  private_api_name text,
-  scope text NOT NULL,
-  prefix text NOT NULL DEFAULT '',
-  entity_table_id uuid NULL,
-  policies jsonb NULL,
-  provisions jsonb NULL,
-  default_capabilities text[] DEFAULT NULL,
-  CONSTRAINT http_route_module_db_fkey
-    FOREIGN KEY(database_id)
-    REFERENCES metaschema_public.database (id)
-    ON DELETE CASCADE,
-  CONSTRAINT http_route_module_schema_fkey
-    FOREIGN KEY(schema_id)
-    REFERENCES metaschema_public.schema (id)
-    ON DELETE CASCADE,
-  CONSTRAINT http_route_module_private_schema_fkey
-    FOREIGN KEY(private_schema_id)
-    REFERENCES metaschema_public.schema (id)
-    ON DELETE CASCADE,
-  CONSTRAINT http_route_module_routes_table_fkey
-    FOREIGN KEY(http_routes_table_id)
-    REFERENCES metaschema_public.table (id)
-    ON DELETE CASCADE,
-  CONSTRAINT http_route_module_function_module_fkey
-    FOREIGN KEY(function_module_id)
-    REFERENCES metaschema_modules_public.function_module (id)
-    ON DELETE CASCADE,
-  CONSTRAINT http_route_module_resource_module_fkey
-    FOREIGN KEY(resource_module_id)
-    REFERENCES metaschema_modules_public.resource_module (id)
-    ON DELETE CASCADE,
-  CONSTRAINT http_route_module_storage_module_fkey
-    FOREIGN KEY(storage_module_id)
-    REFERENCES metaschema_modules_public.storage_module (id)
-    ON DELETE CASCADE,
-  CONSTRAINT http_route_module_entity_table_fkey
-    FOREIGN KEY(entity_table_id)
-    REFERENCES metaschema_public.table (id)
-    ON DELETE CASCADE
-);
-
-CREATE UNIQUE INDEX http_route_module_unique_scope ON metaschema_modules_public.http_route_module (database_id, scope);
-
-CREATE INDEX http_route_module_entity_table_id_idx ON metaschema_modules_public.http_route_module (entity_table_id);
-
-CREATE INDEX http_route_module_http_routes_table_id_idx ON metaschema_modules_public.http_route_module (http_routes_table_id);
-
-CREATE INDEX http_route_module_private_schema_id_idx ON metaschema_modules_public.http_route_module (private_schema_id);
-
-CREATE INDEX http_route_module_schema_id_idx ON metaschema_modules_public.http_route_module (schema_id);
-
-CREATE INDEX http_route_module_function_module_id_idx ON metaschema_modules_public.http_route_module (function_module_id);
-
-CREATE INDEX http_route_module_resource_module_id_idx ON metaschema_modules_public.http_route_module (resource_module_id);
-
-CREATE INDEX http_route_module_storage_module_id_idx ON metaschema_modules_public.http_route_module (storage_module_id);
-
-COMMENT ON COLUMN metaschema_modules_public.http_route_module.http_routes_table_id IS '@module_table';
-
 CREATE TABLE metaschema_modules_public.catalog_module (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   database_id uuid NOT NULL,
@@ -4954,6 +4876,7 @@ CREATE TABLE metaschema_modules_public.catalog_module (
   resource_installations_table_id uuid NOT NULL DEFAULT uuid_nil(),
   apps_table_id uuid NOT NULL DEFAULT uuid_nil(),
   buckets_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  images_table_id uuid NOT NULL DEFAULT uuid_nil(),
   bindings_table_id uuid NOT NULL DEFAULT uuid_nil(),
   sites_web_config_table_id uuid NOT NULL DEFAULT uuid_nil(),
   sites_error_pages_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -4970,6 +4893,7 @@ CREATE TABLE metaschema_modules_public.catalog_module (
   resource_installations_table_name text NOT NULL DEFAULT 'resource_installations',
   apps_table_name text NOT NULL DEFAULT 'apps',
   buckets_table_name text NOT NULL DEFAULT 'buckets',
+  images_table_name text NOT NULL DEFAULT 'images',
   bindings_table_name text NOT NULL DEFAULT 'bindings',
   sites_web_config_table_name text NOT NULL DEFAULT 'sites_web_config',
   sites_error_pages_table_name text NOT NULL DEFAULT 'sites_error_pages',
@@ -5031,6 +4955,10 @@ CREATE TABLE metaschema_modules_public.catalog_module (
     FOREIGN KEY(buckets_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
+  CONSTRAINT catalog_module_images_table_fkey
+    FOREIGN KEY(images_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
   CONSTRAINT catalog_module_bindings_table_fkey
     FOREIGN KEY(bindings_table_id)
     REFERENCES metaschema_public.table (id)
@@ -5068,6 +4996,8 @@ CREATE INDEX catalog_module_apis_table_id_idx ON metaschema_modules_public.catal
 CREATE INDEX catalog_module_apps_table_id_idx ON metaschema_modules_public.catalog_module (apps_table_id);
 
 CREATE INDEX catalog_module_buckets_table_id_idx ON metaschema_modules_public.catalog_module (buckets_table_id);
+
+CREATE INDEX catalog_module_images_table_id_idx ON metaschema_modules_public.catalog_module (images_table_id);
 
 CREATE INDEX catalog_module_bindings_table_id_idx ON metaschema_modules_public.catalog_module (bindings_table_id);
 
@@ -5110,6 +5040,8 @@ COMMENT ON COLUMN metaschema_modules_public.catalog_module.buckets_table_id IS '
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.domains_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.functions_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.images_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.namespaces_table_id IS '@module_table';
 
@@ -6177,8 +6109,12 @@ CREATE TABLE metaschema_modules_public.image_module (
   private_schema_name text,
   images_table_id uuid NOT NULL DEFAULT uuid_nil(),
   image_grants_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  registries_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  registry_grants_table_id uuid NOT NULL DEFAULT uuid_nil(),
   images_table_name text NOT NULL DEFAULT 'images',
   image_grants_table_name text NOT NULL DEFAULT 'image_grants',
+  registries_table_name text NOT NULL DEFAULT 'registries',
+  registry_grants_table_name text NOT NULL DEFAULT 'registry_grants',
   api_name text,
   private_api_name text,
   scope text NOT NULL,
@@ -6207,6 +6143,14 @@ CREATE TABLE metaschema_modules_public.image_module (
     FOREIGN KEY(image_grants_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
+  CONSTRAINT image_module_registries_table_fkey
+    FOREIGN KEY(registries_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT image_module_registry_grants_table_fkey
+    FOREIGN KEY(registry_grants_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
   CONSTRAINT image_module_entity_table_fkey
     FOREIGN KEY(entity_table_id)
     REFERENCES metaschema_public.table (id)
@@ -6221,6 +6165,10 @@ CREATE INDEX image_module_images_table_id_idx ON metaschema_modules_public.image
 
 CREATE INDEX image_module_image_grants_table_id_idx ON metaschema_modules_public.image_module (image_grants_table_id);
 
+CREATE INDEX image_module_registries_table_id_idx ON metaschema_modules_public.image_module (registries_table_id);
+
+CREATE INDEX image_module_registry_grants_table_id_idx ON metaschema_modules_public.image_module (registry_grants_table_id);
+
 CREATE INDEX image_module_private_schema_id_idx ON metaschema_modules_public.image_module (private_schema_id);
 
 CREATE INDEX image_module_schema_id_idx ON metaschema_modules_public.image_module (schema_id);
@@ -6228,6 +6176,10 @@ CREATE INDEX image_module_schema_id_idx ON metaschema_modules_public.image_modul
 COMMENT ON COLUMN metaschema_modules_public.image_module.images_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.image_module.image_grants_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.image_module.registries_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.image_module.registry_grants_table_id IS '@module_table';
 
 CREATE TABLE metaschema_modules_public.repository_module (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -6259,6 +6211,7 @@ CREATE TABLE metaschema_modules_public.repository_module (
   proposal_file_views_table_name text NOT NULL DEFAULT 'proposal_file_views',
   has_builds boolean NOT NULL DEFAULT false,
   has_attachments boolean NOT NULL DEFAULT false,
+  search jsonb NULL,
   api_name text,
   private_api_name text,
   scope text NOT NULL,

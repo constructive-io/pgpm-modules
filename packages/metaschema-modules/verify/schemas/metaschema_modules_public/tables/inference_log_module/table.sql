@@ -14,8 +14,6 @@ SELECT
   "interval",
   retention,
   premake,
-  actor_fk_table_id,
-  entity_fk_table_id,
   prefix
 FROM metaschema_modules_public.inference_log_module
 WHERE FALSE;

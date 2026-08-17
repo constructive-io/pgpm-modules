@@ -24,10 +24,17 @@ CREATE TABLE metaschema_modules_public.image_module (
     -- Generated table IDs (populated by the generator)
     images_table_id uuid NOT NULL DEFAULT uuid_nil(),
     image_grants_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    -- The registry endpoint catalog installs with the artifact catalog: a
+    -- registry row is (kind, host, base_path, auth) whatever the ecosystem, so
+    -- it is one table here rather than one per artifact kind.
+    registries_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    registry_grants_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- Table names (input to the generator)
     images_table_name text NOT NULL DEFAULT 'images',
     image_grants_table_name text NOT NULL DEFAULT 'image_grants',
+    registries_table_name text NOT NULL DEFAULT 'registries',
+    registry_grants_table_name text NOT NULL DEFAULT 'registry_grants',
 
     -- API routing (get-or-create: if set, schema is added to this API; if NULL, no API is added)
     api_name text,
@@ -46,7 +53,7 @@ CREATE TABLE metaschema_modules_public.image_module (
     policies jsonb NULL,
 
     -- Per-table provisions overrides from blueprint config.
-    -- Keys are table keys (images, image_grants).
+    -- Keys are table keys (images, image_grants, registries, registry_grants).
     provisions jsonb NULL,
 
     -- Default capabilities: capability names auto-granted to new members.
@@ -57,6 +64,8 @@ CREATE TABLE metaschema_modules_public.image_module (
     CONSTRAINT image_module_private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT image_module_images_table_fkey FOREIGN KEY (images_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT image_module_grants_table_fkey FOREIGN KEY (image_grants_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT image_module_registries_table_fkey FOREIGN KEY (registries_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT image_module_registry_grants_table_fkey FOREIGN KEY (registry_grants_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT image_module_entity_table_fkey FOREIGN KEY (entity_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
@@ -66,6 +75,8 @@ CREATE UNIQUE INDEX image_module_unique_scope ON metaschema_modules_public.image
 CREATE INDEX image_module_entity_table_id_idx ON metaschema_modules_public.image_module ( entity_table_id );
 CREATE INDEX image_module_images_table_id_idx ON metaschema_modules_public.image_module ( images_table_id );
 CREATE INDEX image_module_image_grants_table_id_idx ON metaschema_modules_public.image_module ( image_grants_table_id );
+CREATE INDEX image_module_registries_table_id_idx ON metaschema_modules_public.image_module ( registries_table_id );
+CREATE INDEX image_module_registry_grants_table_id_idx ON metaschema_modules_public.image_module ( registry_grants_table_id );
 CREATE INDEX image_module_private_schema_id_idx ON metaschema_modules_public.image_module ( private_schema_id );
 CREATE INDEX image_module_schema_id_idx ON metaschema_modules_public.image_module ( schema_id );
 
@@ -75,5 +86,7 @@ CREATE INDEX image_module_schema_id_idx ON metaschema_modules_public.image_modul
 -- install, keyed by the role name in the column.
 COMMENT ON COLUMN metaschema_modules_public.image_module.images_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.image_module.image_grants_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.image_module.registries_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.image_module.registry_grants_table_id IS '@module_table';
 
 COMMIT;
