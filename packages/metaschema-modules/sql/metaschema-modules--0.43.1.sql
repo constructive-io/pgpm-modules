@@ -265,35 +265,6 @@ CREATE INDEX emails_module_schema_id_idx ON metaschema_modules_public.emails_mod
 
 COMMENT ON COLUMN metaschema_modules_public.emails_module.table_id IS '@module_table';
 
-CREATE TABLE metaschema_modules_public.config_secrets_user_module (
-  id uuid PRIMARY KEY DEFAULT uuidv7(),
-  database_id uuid NOT NULL,
-  entity_field text,
-  schema_id uuid NOT NULL DEFAULT uuid_nil(),
-  table_id uuid NOT NULL DEFAULT uuid_nil(),
-  table_name text NOT NULL DEFAULT 'user_secrets',
-  api_name text DEFAULT 'config',
-  private_api_name text DEFAULT NULL,
-  CONSTRAINT db_fkey
-    FOREIGN KEY(database_id)
-    REFERENCES metaschema_public.database (id)
-    ON DELETE CASCADE,
-  CONSTRAINT schema_fkey
-    FOREIGN KEY(schema_id)
-    REFERENCES metaschema_public.schema (id)
-    ON DELETE CASCADE,
-  CONSTRAINT table_fkey
-    FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
-    ON DELETE CASCADE
-);
-
-CREATE UNIQUE INDEX config_secrets_user_module_database_id_idx ON metaschema_modules_public.config_secrets_user_module (database_id);
-
-CREATE INDEX config_secrets_user_module_table_id_idx ON metaschema_modules_public.config_secrets_user_module (table_id);
-
-CREATE INDEX config_secrets_user_module_schema_id_idx ON metaschema_modules_public.config_secrets_user_module (schema_id);
-
 CREATE TABLE metaschema_modules_public.invites_module (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   database_id uuid NOT NULL,
@@ -6400,3 +6371,91 @@ COMMENT ON COLUMN metaschema_modules_public.machine_module.machines_table_id IS 
 COMMENT ON COLUMN metaschema_modules_public.machine_module.machine_sessions_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.machine_module.machine_messages_table_id IS '@module_table';
+
+CREATE TABLE metaschema_modules_public.cluster_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  entity_field text,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  public_schema_name text,
+  private_schema_name text,
+  clusters_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  cluster_events_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  database_servers_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  physical_databases_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  database_placements_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  clusters_table_name text NOT NULL DEFAULT 'clusters',
+  cluster_events_table_name text NOT NULL DEFAULT 'cluster_events',
+  database_servers_table_name text NOT NULL DEFAULT 'database_servers',
+  physical_databases_table_name text NOT NULL DEFAULT 'physical_databases',
+  database_placements_table_name text NOT NULL DEFAULT 'database_placements',
+  api_name text,
+  private_api_name text,
+  scope text NOT NULL DEFAULT 'platform',
+  prefix text NOT NULL DEFAULT '',
+  policies jsonb NULL,
+  provisions jsonb NULL,
+  default_capabilities text[] DEFAULT NULL,
+  partition_interval text NOT NULL DEFAULT '1 month',
+  retention text NOT NULL DEFAULT '12 months',
+  premake int NOT NULL DEFAULT 2,
+  CONSTRAINT cluster_module_db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT cluster_module_schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT cluster_module_private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT cluster_module_clusters_table_fkey
+    FOREIGN KEY(clusters_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT cluster_module_events_table_fkey
+    FOREIGN KEY(cluster_events_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT cluster_module_servers_table_fkey
+    FOREIGN KEY(database_servers_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT cluster_module_physical_dbs_table_fkey
+    FOREIGN KEY(physical_databases_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT cluster_module_placements_table_fkey
+    FOREIGN KEY(database_placements_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX cluster_module_schema_id_idx ON metaschema_modules_public.cluster_module (schema_id);
+
+CREATE INDEX cluster_module_private_schema_id_idx ON metaschema_modules_public.cluster_module (private_schema_id);
+
+CREATE INDEX cluster_module_clusters_table_id_idx ON metaschema_modules_public.cluster_module (clusters_table_id);
+
+CREATE INDEX cluster_module_cluster_events_table_id_idx ON metaschema_modules_public.cluster_module (cluster_events_table_id);
+
+CREATE INDEX cluster_module_database_servers_table_id_idx ON metaschema_modules_public.cluster_module (database_servers_table_id);
+
+CREATE INDEX cluster_module_physical_databases_table_id_idx ON metaschema_modules_public.cluster_module (physical_databases_table_id);
+
+CREATE INDEX cluster_module_database_placements_table_id_idx ON metaschema_modules_public.cluster_module (database_placements_table_id);
+
+CREATE UNIQUE INDEX cluster_module_unique_scope ON metaschema_modules_public.cluster_module (database_id, scope, prefix);
+
+COMMENT ON COLUMN metaschema_modules_public.cluster_module.clusters_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.cluster_module.cluster_events_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.cluster_module.database_servers_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.cluster_module.physical_databases_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.cluster_module.database_placements_table_id IS '@module_table';

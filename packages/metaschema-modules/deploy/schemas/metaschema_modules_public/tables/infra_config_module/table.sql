@@ -13,7 +13,9 @@ CREATE TABLE metaschema_modules_public.infra_config_module (
     -- trigger via metaschema_generators.scope_key_column(scope, key): database ->
     -- 'database_id', entity -> the module's key ('entity_id' here), global -> NULL.
     entity_field text,
-    -- Schema references (resolved by BEFORE INSERT trigger when uuid_nil)
+    -- Schema references (resolved by BEFORE INSERT trigger when uuid_nil):
+    -- schema_id is this module's PUBLIC schema, private_schema_id its PRIVATE
+    -- schema, the same convention every other module row records.
     schema_id uuid NOT NULL DEFAULT uuid_nil(),
     private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
 
