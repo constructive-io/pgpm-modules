@@ -12,7 +12,6 @@ CREATE FUNCTION ctx.uagent()
 AS $$
   SELECT nullif(current_setting('jwt.claims.user_agent', true), '');
 $$
-LANGUAGE 'sql' STABLE;
+LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 
 COMMIT;
-

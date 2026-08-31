@@ -2,6 +2,6 @@
 
 BEGIN;
 
-REVOKE EXECUTE ON FUNCTION app_jobs.add_scheduled_job(text, json, json, text, text, integer, integer, uuid, uuid) FROM authenticated;
+REVOKE EXECUTE ON FUNCTION app_jobs.add_scheduled_job(text, json, json, text, text, integer, integer, uuid, uuid, text, uuid, uuid, uuid) FROM authenticated;
 
 COMMIT;

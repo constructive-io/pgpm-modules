@@ -14,6 +14,14 @@ CREATE TABLE metaschema_modules_public.route_module (
     -- trigger via metaschema_generators.scope_key_column(scope, key).
     entity_field text,
 
+    -- Column on the generated routes table carrying the site whose surface a
+    -- route serves, recorded by the generator when it creates that field. It is
+    -- read the same way entity_field is: a portable install engine consults the
+    -- registration and stamps the column it names, so the fact "a route can say
+    -- which site it renders as" travels with the plane instead of living in the
+    -- generated verbs. NULL for a routing plane that carries no such column.
+    serving_site_field text,
+
     -- Schema references (if uuid_nil, resolved from schema name or default)
     schema_id uuid NOT NULL DEFAULT uuid_nil(),
     private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -63,6 +71,13 @@ CREATE TABLE metaschema_modules_public.route_module (
 
     -- Table name prefix. Auto-derived from scope by the trigger when empty.
     prefix text NOT NULL DEFAULT '',
+
+    -- Which of the scope's storage planes a route may target
+    -- (routes.target_bucket_id FKs that plane's buckets table). A scope may
+    -- carry several storage planes, each with its own semantic key, so the
+    -- binding is named rather than guessed; 'default' is the plane a blueprint
+    -- installs when it declares no storage keys.
+    storage_key text NOT NULL DEFAULT 'default',
 
     -- Entity table for RLS (NULL for non-entity scopes)
     entity_table_id uuid NULL,

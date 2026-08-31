@@ -52,6 +52,11 @@ CREATE TABLE metaschema_modules_public.function_module (
     -- Naming-only: instances are unique per (database_id, scope).
     prefix text NOT NULL DEFAULT '',
 
+    -- Which of the scope's storage planes a capability binding may target
+    -- (bucket_id FKs that plane's buckets table). Storage is the one plane kind
+    -- a scope may carry several of, so the binding names its key.
+    storage_key text NOT NULL DEFAULT 'default',
+
     -- Entity table for RLS (NULL for app-level functions, entity table for entity-scoped functions)
     entity_table_id uuid NULL,
 

@@ -42,8 +42,8 @@ COMMENT ON COLUMN app_jobs.jobs.id IS 'Auto-incrementing job identifier';
 COMMENT ON COLUMN app_jobs.jobs.database_id IS 'Database this job belongs to; every job is owned by exactly one database';
 COMMENT ON COLUMN app_jobs.jobs.actor_id IS 'User who triggered this job, read from JWT claims at enqueue time';
 COMMENT ON COLUMN app_jobs.jobs.principal_id IS 'Principal that triggered this job; equals actor_id for human-triggered jobs, differs when an agent/API-key acts on behalf of a user';
-COMMENT ON COLUMN app_jobs.jobs.entity_id IS 'Entity (org/team) this job is scoped to for billing; NULL means platform-level (resolved via database_id → owner_id)';
-COMMENT ON COLUMN app_jobs.jobs.organization_id IS 'Top-level organization for this entity; resolved at enqueue time via get_organization_id(entity_type, entity_id)';
+COMMENT ON COLUMN app_jobs.jobs.entity_id IS 'Entity this job is attributed to for billing; read from the transaction entity claim at enqueue time; NULL means the claim was absent, not platform-level';
+COMMENT ON COLUMN app_jobs.jobs.organization_id IS 'Organization this job is attributed to; resolved from the entity pair via get_organization_id at enqueue time by callers that know it (e.g. data-job triggers) — never read from a claim';
 COMMENT ON COLUMN app_jobs.jobs.entity_type IS 'Entity type prefix (org, team, app, etc.) for interpreting entity_id';
 COMMENT ON COLUMN app_jobs.jobs.function_definition_id IS 'For function jobs: the exact function definition resolved at enqueue time (scope-chain winner). NULL for handler/system tasks that have no function definition. Not an FK — definitions live in per-scope tables across databases; integrity is enforced by the resolver at enqueue.';
 COMMENT ON COLUMN app_jobs.jobs.definition_scope IS 'For function jobs: the scope (database/org/app/platform) the winning definition was resolved at. Together with function_definition_id and database_id it identifies the exact physical definition to execute. NULL when function_definition_id is NULL.';
@@ -61,4 +61,3 @@ COMMENT ON COLUMN app_jobs.jobs.locked_by IS 'Identifier of the worker that curr
 COMMENT ON COLUMN app_jobs.jobs.is_available IS 'Generated column: true when job is unlocked and has remaining attempts';
 
 COMMIT;
-

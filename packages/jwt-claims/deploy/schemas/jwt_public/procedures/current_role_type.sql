@@ -13,6 +13,6 @@ CREATE FUNCTION jwt_public.current_role_type()
 AS $$
   SELECT coalesce(nullif(current_setting('jwt.claims.role_type', TRUE), ''), 'user');
 $$
-LANGUAGE 'sql' STABLE LEAKPROOF;
+LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 
 COMMIT;

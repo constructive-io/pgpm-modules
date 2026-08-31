@@ -8,6 +8,7 @@ const PLATFORM_DB = '11111111-1111-1111-1111-111111111111';
 const TENANT_DB = '22222222-2222-2222-2222-222222222222';
 const ORG_ID = '33333333-3333-3333-3333-333333333333';
 const PLATFORM_ORG_ID = '44444444-4444-4444-4444-444444444444';
+const ACTOR_ID = '55555555-5555-5555-5555-555555555555';
 
 // Ids captured during seeding.
 const ids: Record<string, string> = {};
@@ -155,13 +156,15 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
     await pg.query(
       `INSERT INTO metaschema_modules_public.catalog_module
          (database_id, schema_id, functions_table_id,
-          domains_table_id, apis_table_id, sites_table_id, namespaces_table_id,
+          domains_table_id, managed_domains_table_id,
+          apis_table_id, sites_table_id, namespaces_table_id,
           resources_table_id, resource_definitions_table_id,
           resource_installations_table_id, apps_table_id, buckets_table_id,
           sites_web_config_table_id, sites_error_pages_table_id,
           sites_app_links_table_id, sites_deep_links_table_id,
-          redirects_table_id, bindings_table_id, images_table_id, scope)
-       VALUES ($1, $2, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, 'app')`,
+          images_table_id, redirects_table_id,
+          app_store_identities_table_id, bindings_table_id, scope)
+       VALUES ($1, $2, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, 'app')`,
       [TENANT_DB, catSchema.id, catTable.id]
     );
   });
@@ -323,10 +326,17 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
   });
 
   it('enqueue(): full portable path resolves, routes, and inserts a job', async () => {
-    // enqueue reads the execution database from jwt_private.current_database_id()
+    // enqueue reads the execution database from jwt_private.require_database_id()
     // (the jwt.claims.database_id GUC), set transaction-locally around the call.
+    // app_jobs.add_job attributes the job from the same claims, and refuses a job
+    // with neither an actor nor an entity, so an actor claim is part of the frame.
     await pg.begin();
-    await pg.query(`SELECT set_config('jwt.claims.database_id', $1, true)`, [TENANT_DB]);
+    await pg.query(
+      `SELECT set_config('jwt.claims.database_id', $1, true),
+              set_config('jwt.claims.user_id', $2, true),
+              set_config('jwt.claims.principal_id', $2, true)`,
+      [TENANT_DB, ACTOR_ID]
+    );
     const job = await pg.one(
       `SELECT * FROM function_resolution.enqueue(
          task_identifier := 'email:send',
@@ -346,7 +356,12 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
 
   it('enqueue(): NULL scope is a hard error', async () => {
     await pg.begin();
-    await pg.query(`SELECT set_config('jwt.claims.database_id', $1, true)`, [TENANT_DB]);
+    await pg.query(
+      `SELECT set_config('jwt.claims.database_id', $1, true),
+              set_config('jwt.claims.user_id', $2, true),
+              set_config('jwt.claims.principal_id', $2, true)`,
+      [TENANT_DB, ACTOR_ID]
+    );
     await expect(
       pg.one(`SELECT * FROM function_resolution.enqueue(task_identifier := 'email:send')`)
     ).rejects.toThrow(/ENQUEUE_SCOPE_REQUIRED/);

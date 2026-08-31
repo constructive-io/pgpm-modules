@@ -12,7 +12,6 @@ CREATE FUNCTION ctx.ip_address()
 AS $$
   SELECT nullif(current_setting('jwt.claims.ip_address', true), '')::inet;
 $$
-LANGUAGE 'sql' STABLE;
+LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 
 COMMIT;
-

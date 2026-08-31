@@ -12,7 +12,6 @@ CREATE FUNCTION ctx.uid()
 AS $$
   SELECT nullif(current_setting('jwt.claims.user_id', true), '')::uuid;
 $$
-LANGUAGE 'sql' STABLE;
+LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 
 COMMIT;
-

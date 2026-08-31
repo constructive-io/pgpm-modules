@@ -6,7 +6,10 @@ CREATE TABLE app_jobs.scheduled_jobs (
   id bigserial PRIMARY KEY,
   database_id uuid NOT NULL,
   actor_id uuid,
+  principal_id uuid,
   entity_id uuid,
+  organization_id uuid,
+  entity_type text,
   queue_name text DEFAULT NULL,
   task_identifier text NOT NULL,
   payload json DEFAULT '{}' ::json NOT NULL,
@@ -30,7 +33,10 @@ COMMENT ON TABLE app_jobs.scheduled_jobs IS 'Recurring/cron-style job definition
 COMMENT ON COLUMN app_jobs.scheduled_jobs.id IS 'Auto-incrementing scheduled job identifier';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.database_id IS 'Database this scheduled job belongs to; every scheduled job is owned by exactly one database';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.actor_id IS 'User who created this scheduled job, read from JWT claims at creation time';
-COMMENT ON COLUMN app_jobs.scheduled_jobs.entity_id IS 'Entity (org/team) this scheduled job is scoped to for billing; NULL means platform-level (resolved via database_id → owner_id)';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.principal_id IS 'Principal that triggered this scheduled job; equals actor_id for human-triggered jobs, differs when an agent/API-key acts on behalf of a user';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.entity_id IS 'Entity this scheduled job is attributed to for billing; read from the transaction entity claim at registration time; NULL means the claim was absent, not platform-level';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.organization_id IS 'Organization this scheduled job is attributed to; resolved from the entity pair via get_organization_id at registration time by callers that know it (e.g. data-job triggers) — never read from a claim';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.entity_type IS 'Entity type prefix (org, team, app, etc.) for interpreting entity_id';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.queue_name IS 'Name of the queue spawned jobs are placed into';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.task_identifier IS 'Task type identifier for spawned jobs';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.payload IS 'JSON payload passed to each spawned job';
@@ -44,4 +50,3 @@ COMMENT ON COLUMN app_jobs.scheduled_jobs.last_scheduled IS 'Timestamp when a jo
 COMMENT ON COLUMN app_jobs.scheduled_jobs.last_scheduled_id IS 'ID of the last job spawned from this schedule';
 
 COMMIT;
-

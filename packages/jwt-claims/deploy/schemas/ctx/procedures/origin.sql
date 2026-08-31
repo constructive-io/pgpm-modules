@@ -12,7 +12,6 @@ CREATE FUNCTION ctx.origin()
 AS $$
   SELECT nullif(current_setting('jwt.claims.origin', true), '')::origin;
 $$
-LANGUAGE 'sql' STABLE;
+LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 
 COMMIT;
-

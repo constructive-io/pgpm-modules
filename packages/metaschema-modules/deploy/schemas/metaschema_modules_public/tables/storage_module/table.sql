@@ -35,8 +35,17 @@ CREATE TABLE metaschema_modules_public.storage_module (
     scope text NOT NULL,
 
     -- Table name prefix. Auto-derived from scope by the trigger when empty.
-    -- Override to create multiple module instances at the same scope.
+    -- Naming only: it decides whether the tables are `buckets` or `org_buckets`.
     prefix text NOT NULL DEFAULT '',
+
+    -- Semantic identity of this plane WITHIN its scope, and the only thing a
+    -- consumer binds to. Storage is the one plane kind a scope may legitimately
+    -- have several of (a blueprint's entity type declares storage keys, e.g.
+    -- `default` plus `media`), so a consumer that references "the scope's
+    -- buckets table" — sites.bucket_id, routes.target_bucket_id — must name
+    -- WHICH plane it means. It names this key, never the prefix, which is a
+    -- table-naming artifact.
+    key text NOT NULL DEFAULT 'default',
 
     -- Configurable security policies (NULL = use defaults based on scope).
     -- When provided, replaces the default policy set in apply_storage_security.
@@ -125,7 +134,14 @@ CREATE TABLE metaschema_modules_public.storage_module (
     CONSTRAINT file_events_table_fkey FOREIGN KEY (file_events_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE
 );
 
--- Unique constraint: one storage module per database per scope per prefix.
+-- Semantic identity: one storage plane per (database, scope, key). Every
+-- sibling plane module (api_surface/site_surface/resource/function/domain/
+-- route/app) is UNIQUE (database_id, scope) because a scope has exactly one of
+-- them; storage is the exception, so it carries an explicit key and consumers
+-- bind to it. This is what makes the typed bucket references unambiguous
+-- instead of "whichever plane the lookup happened to read first".
+CREATE UNIQUE INDEX storage_module_unique_key ON metaschema_modules_public.storage_module ( database_id, scope, key );
+-- Physical identity: two planes in a scope cannot claim the same table names.
 CREATE UNIQUE INDEX storage_module_unique_scope ON metaschema_modules_public.storage_module ( database_id, scope, prefix );
 CREATE INDEX storage_module_buckets_table_id_idx ON metaschema_modules_public.storage_module ( buckets_table_id );
 CREATE INDEX storage_module_entity_table_id_idx ON metaschema_modules_public.storage_module ( entity_table_id );

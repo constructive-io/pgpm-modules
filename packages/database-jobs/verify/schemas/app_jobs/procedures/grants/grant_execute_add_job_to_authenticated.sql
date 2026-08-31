@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT assert_function_grant('app_jobs.add_job(text, json, text, text, timestamptz, integer, integer, uuid, uuid, text, uuid, text, uuid)'::regprocedure, 'authenticated', 'EXECUTE');
+SELECT assert_function_grant('app_jobs.add_job(text, json, text, text, timestamptz, integer, integer, uuid, uuid, text, uuid, text, uuid, uuid, uuid)'::regprocedure, 'authenticated', 'EXECUTE');
 
 ROLLBACK;

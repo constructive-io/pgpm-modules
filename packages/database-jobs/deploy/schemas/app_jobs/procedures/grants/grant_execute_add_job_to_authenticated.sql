@@ -5,6 +5,6 @@
 
 BEGIN;
 
-GRANT EXECUTE ON FUNCTION app_jobs.add_job(text, json, text, text, timestamptz, integer, integer, uuid, uuid, text, uuid, text, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION app_jobs.add_job(text, json, text, text, timestamptz, integer, integer, uuid, uuid, text, uuid, text, uuid, uuid, uuid) TO authenticated;
 
 COMMIT;

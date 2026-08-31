@@ -34,6 +34,25 @@ CREATE TABLE metaschema_modules_public.pages_module (
     -- metadata, themes — so it is named for the site, not for pages.
     store_name_prefix text NOT NULL DEFAULT 'site:',
 
+    -- Generated release-manifest reader function name (populated by the
+    -- generator when the site surface provisions a releases head; NULL
+    -- otherwise). Read as a fact — never re-derived from the prefix.
+    release_manifest_function_name text,
+
+    -- Generated preview-commit reader function name (populated by the
+    -- generator when the site surface provisions a releases head; NULL
+    -- otherwise). This is the two-argument reader (site_id, name).
+    -- Read as a fact — never re-derived from the prefix.
+    preview_commit_function_name text,
+
+    -- Generated preview setter function name (populated by the generator
+    -- when the site surface provisions a releases head; NULL otherwise).
+    -- This is the three-argument writer (site_id, name, commit_id).
+    -- Read as a fact — never re-derived from the prefix.
+    preview_set_function_name text,
+    preview_token_mint_function_name text,
+    preview_token_verifier_function_name text,
+
     api_name text,
     private_api_name text,
     entity_table_id uuid NULL,

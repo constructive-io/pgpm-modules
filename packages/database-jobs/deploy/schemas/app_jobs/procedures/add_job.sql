@@ -2,7 +2,10 @@
 -- requires: schemas/app_jobs/schema
 -- requires: schemas/app_jobs/tables/jobs/table
 -- requires: schemas/app_jobs/tables/job_queues/table
--- requires: pgpm-jwt-claims:schemas/jwt_private/procedures/current_database_id
+-- requires: pgpm-jwt-claims:schemas/jwt_private/procedures/current_entity_id
+-- requires: pgpm-jwt-claims:schemas/jwt_private/procedures/current_entity_type
+-- requires: pgpm-jwt-claims:schemas/jwt_private/procedures/require_database_id
+-- requires: pgpm-jwt-claims:schemas/jwt_private/procedures/assert_attribution
 -- requires: pgpm-jwt-claims:schemas/jwt_public/procedures/current_user_id
 -- requires: pgpm-jwt-claims:schemas/jwt_public/procedures/current_principal_id
 
@@ -15,12 +18,17 @@ CREATE FUNCTION app_jobs.add_job (
   run_at timestamptz DEFAULT now(),
   max_attempts integer DEFAULT 25,
   priority integer DEFAULT 0,
-  entity_id uuid DEFAULT NULL,
+  entity_id uuid DEFAULT jwt_private.current_entity_id(),
+  -- The organization is never a claim: it is derived from the entity pair by
+  -- get_organization_id at the point of recording, so only a caller that
+  -- already resolved it (a data-job trigger with an entity field) passes one.
   organization_id uuid DEFAULT NULL,
-  entity_type text DEFAULT NULL,
+  entity_type text DEFAULT jwt_private.current_entity_type(),
   function_definition_id uuid DEFAULT NULL,
   definition_scope text DEFAULT NULL,
-  db_id uuid DEFAULT jwt_private.current_database_id()
+  db_id uuid DEFAULT jwt_private.require_database_id(),
+  actor_id uuid DEFAULT jwt_public.current_user_id(),
+  principal_id uuid DEFAULT jwt_public.current_principal_id()
 )
   RETURNS app_jobs.jobs
   AS $$
@@ -29,6 +37,7 @@ DECLARE
   v_database_id uuid;
   v_actor_id uuid;
   v_principal_id uuid;
+  v_queue_name text;
 BEGIN
   -- db_id defaults to the session's database claim; only callers that act on
   -- behalf of a different database (e.g. platform-owned births) pass it
@@ -36,9 +45,20 @@ BEGIN
   -- session with no explicit db_id is rejected by the default expression rather
   -- than producing an unattributable job.
   v_database_id := db_id;
-  v_actor_id := jwt_public.current_user_id();
-
-  v_principal_id := jwt_public.current_principal_id();
+  v_actor_id := add_job.actor_id;
+  v_principal_id := add_job.principal_id;
+  -- queue_name is a mutual-exclusion lock, never a routing label: get_job holds
+  -- the queue row for the whole job and claims nothing else on it, and no worker
+  -- selects work by queue. A name shared by unrelated jobs therefore serializes
+  -- all of them, and 'default' is precisely that name -- what a function
+  -- definition carries when its author asked for no serialization at all. Read
+  -- it, and the empty string, as no lock.
+  v_queue_name := nullif(nullif(add_job.queue_name, ''), 'default');
+  PERFORM jwt_private.assert_attribution(
+    v_actor_id,
+    add_job.entity_id,
+    add_job.entity_type
+  );
 
   IF job_key IS NOT NULL THEN
     -- Upsert job
@@ -69,7 +89,7 @@ BEGIN
         add_job.definition_scope,
         identifier,
         coalesce(payload, '{}'::json),
-        queue_name,
+        v_queue_name,
         coalesce(run_at, now()),
         coalesce(max_attempts, 25),
         job_key,
@@ -135,7 +155,7 @@ BEGIN
     add_job.definition_scope,
     identifier,
     payload,
-    queue_name,
+    v_queue_name,
     run_at,
     max_attempts,
     priority

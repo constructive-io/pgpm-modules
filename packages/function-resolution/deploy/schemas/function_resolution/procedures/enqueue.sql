@@ -4,7 +4,9 @@
 -- requires: schemas/function_resolution/procedures/routing
 -- requires: pgpm-app-scope:schemas/app_scope/procedures/frames
 -- requires: pgpm-database-jobs:schemas/app_jobs/procedures/add_job
--- requires: pgpm-jwt-claims:schemas/jwt_private/procedures/current_database_id
+-- requires: pgpm-jwt-claims:schemas/jwt_private/procedures/require_database_id
+-- requires: pgpm-jwt-claims:schemas/jwt_public/procedures/current_user_id
+-- requires: pgpm-jwt-claims:schemas/jwt_public/procedures/current_principal_id
 
 BEGIN;
 
@@ -62,7 +64,9 @@ CREATE FUNCTION function_resolution.enqueue(
     should_resolve boolean DEFAULT true,
     resolution_scope text DEFAULT NULL,
     resolution_key uuid DEFAULT NULL,
-    db_id uuid DEFAULT jwt_private.current_database_id()
+    db_id uuid DEFAULT jwt_private.require_database_id(),
+    actor_id uuid DEFAULT jwt_public.current_user_id(),
+    principal_id uuid DEFAULT jwt_public.current_principal_id()
 ) RETURNS app_jobs.jobs AS $$
 DECLARE
     v_database_id uuid;
@@ -143,12 +147,14 @@ BEGIN
         entity_type := entity_type,
         function_definition_id := v_fn_id,
         definition_scope := v_def_scope,
-        db_id := v_database_id
+        db_id := v_database_id,
+        actor_id := enqueue.actor_id,
+        principal_id := enqueue.principal_id
     );
 END;
 $$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 
-COMMENT ON FUNCTION function_resolution.enqueue(text, json, text, uuid, uuid, text, text, text, timestamptz, integer, integer, uuid, text, boolean, text, uuid, uuid) IS
+COMMENT ON FUNCTION function_resolution.enqueue(text, json, text, uuid, uuid, text, text, text, timestamptz, integer, integer, uuid, text, boolean, text, uuid, uuid, uuid, uuid) IS
 'Resolver-aware job enqueue: resolves (or trusts a supplied) function definition for the execution (database, scope, entity, task_identifier), stamps the (function_definition_id, definition_scope) pair and the definition''s queue routing, then delegates the insert to app_jobs.add_job. The single enqueue path for function jobs; definition-less tasks enqueue with a NULL pair. Portable: built only on app_scope + the metaschema catalog + app_jobs, no AST/deparser runtime.';
 
 COMMIT;
