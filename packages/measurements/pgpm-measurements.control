@@ -1,6 +1,6 @@
 # pgpm-measurements extension
 comment = 'pgpm-measurements extension'
-default_version = '0.43.1'
+default_version = '0.44.0'
 module_pathname = '$libdir/pgpm-measurements'
 requires = 'plpgsql,pgpm-verify'
 relocatable = false

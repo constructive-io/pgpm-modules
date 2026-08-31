@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/jobs",
-  "version": "0.43.2",
+  "version": "0.44.0",
   "description": "Core job system for background task processing in PostgreSQL",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [

@@ -1,6 +1,6 @@
 # pgpm-utils extension
 comment = 'pgpm-utils extension'
-default_version = '0.43.1'
+default_version = '0.44.0'
 module_pathname = '$libdir/pgpm-utils'
 requires = 'plpgsql,pgpm-verify'
 relocatable = false

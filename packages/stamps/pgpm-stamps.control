@@ -1,6 +1,6 @@
 # pgpm-stamps extension
 comment = 'pgpm-stamps extension'
-default_version = '0.43.1'
+default_version = '0.44.0'
 module_pathname = '$libdir/pgpm-stamps'
 requires = 'plpgsql,pgpm-jwt-claims,pgpm-verify'
 relocatable = false

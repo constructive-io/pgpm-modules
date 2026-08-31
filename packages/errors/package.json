@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/errors",
-  "version": "0.43.1",
+  "version": "0.44.0",
   "description": "Canonical structured error raising for PostgreSQL (errors.raise_error)",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
