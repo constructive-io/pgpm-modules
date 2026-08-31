@@ -2,6 +2,7 @@
 -- requires: schemas/app_jobs/schema
 -- requires: schemas/app_jobs/tables/jobs/table
 -- requires: schemas/app_jobs/tables/scheduled_jobs/table
+-- requires: pgpm-jwt-claims:schemas/jwt_private/procedures/assert_attribution
 
 BEGIN;
 CREATE FUNCTION app_jobs.run_scheduled_job (id bigint, job_expiry interval DEFAULT '1 hours')
@@ -43,6 +44,12 @@ BEGIN
     END IF;
   END IF;
 
+  PERFORM jwt_private.assert_attribution(
+    sched.actor_id,
+    sched.entity_id,
+    sched.entity_type
+  );
+
   -- a job carrying this key that is already in flight covers this tick, and the
   -- keyed upsert below cannot refresh a locked row
   IF (sched.key IS NOT NULL) THEN
@@ -64,7 +71,10 @@ BEGIN
   INSERT INTO app_jobs.jobs (
     database_id,
     actor_id,
+    principal_id,
     entity_id,
+    organization_id,
+    entity_type,
     queue_name,
     task_identifier,
     payload,
@@ -74,8 +84,14 @@ BEGIN
   ) VALUES (
     sched.database_id,
     sched.actor_id,
+    sched.principal_id,
     sched.entity_id,
-    sched.queue_name,
+    sched.organization_id,
+    sched.entity_type,
+    -- same reading as app_jobs.add_job: the shared literal 'default' (copied
+    -- onto a schedule from its function definition) is not a lock domain, so a
+    -- tick of one schedule must not block every other job in the database.
+    nullif(nullif(sched.queue_name, ''), 'default'),
     sched.task_identifier,
     sched.payload,
     sched.priority,
@@ -84,7 +100,8 @@ BEGIN
   )
   ON CONFLICT (KEY)
     DO UPDATE SET
-      database_id = excluded.database_id, actor_id = excluded.actor_id, entity_id = excluded.entity_id,
+      database_id = excluded.database_id, actor_id = excluded.actor_id, principal_id = excluded.principal_id,
+      entity_id = excluded.entity_id, organization_id = excluded.organization_id, entity_type = excluded.entity_type,
       task_identifier = excluded.task_identifier, payload = excluded.payload, queue_name = excluded.queue_name, max_attempts = excluded.max_attempts, priority = excluded.priority, run_at = excluded.run_at,
       -- always reset error/retry state
       attempts = 0, last_error = NULL

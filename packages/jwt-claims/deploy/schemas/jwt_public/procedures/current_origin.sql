@@ -12,7 +12,6 @@ CREATE FUNCTION jwt_public.current_origin()
 AS $$
   SELECT nullif(current_setting('jwt.claims.origin', true), '')::origin;
 $$
-LANGUAGE 'sql' STABLE;
+LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 
 COMMIT;
-

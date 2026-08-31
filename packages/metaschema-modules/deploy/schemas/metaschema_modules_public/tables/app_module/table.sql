@@ -33,6 +33,10 @@ CREATE TABLE metaschema_modules_public.app_module (
     -- Table names (input to the generator)
     apps_table_name text NOT NULL DEFAULT 'apps',
     app_components_table_name text NOT NULL DEFAULT 'app_components',
+    -- Mobile-store identity owned by the app (platform, bundle id / package
+    -- name, team id, signing fingerprints, store URL). A site's app-link
+    -- association names a row here rather than restating it per host.
+    app_store_identities_table_name text NOT NULL DEFAULT 'app_store_identities',
 
     -- API routing (get-or-create: if set, schema is added to this API)
     api_name text,

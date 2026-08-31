@@ -12,7 +12,6 @@ CREATE FUNCTION jwt_private.current_token_id()
 AS $$
   SELECT nullif(current_setting('jwt.claims.token_id', true), '')::uuid;
 $$
-LANGUAGE 'sql' STABLE;
+LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 
 COMMIT;
-

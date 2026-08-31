@@ -170,13 +170,15 @@ describe('function-resolution capability resolution', () => {
     await pg.query(
       `INSERT INTO metaschema_modules_public.catalog_module
          (database_id, schema_id, functions_table_id,
-          domains_table_id, apis_table_id, sites_table_id, namespaces_table_id,
+          domains_table_id, managed_domains_table_id,
+          apis_table_id, sites_table_id, namespaces_table_id,
           resources_table_id, resource_definitions_table_id,
           resource_installations_table_id, apps_table_id, buckets_table_id,
           sites_web_config_table_id, sites_error_pages_table_id,
           sites_app_links_table_id, sites_deep_links_table_id,
-          redirects_table_id, bindings_table_id, images_table_id, scope)
-       VALUES ($1, $2, $3, $3, $4, $3, $3, $3, $3, $3, $3, $5, $3, $3, $3, $3, $3, $6, $3, 'database')`,
+          images_table_id, redirects_table_id,
+          app_store_identities_table_id, bindings_table_id, scope)
+       VALUES ($1, $2, $3, $3, $3, $3, $4, $3, $3, $3, $3, $3, $3, $5, $3, $3, $3, $3, $3, $3, $6, 'database')`,
       [
         TENANT_DB,
         catFunctions.schemaId,

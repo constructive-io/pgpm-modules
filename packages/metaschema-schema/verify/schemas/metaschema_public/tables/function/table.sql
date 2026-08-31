@@ -2,6 +2,10 @@
 
 BEGIN;
 
-SELECT assert_table('metaschema_public.function'::regclass);
+SELECT id, database_id, schema_id, name, kind, arguments, returns, volatility,
+       is_strict, security_invoker, function_type, data, body_ast, smart_tags,
+       api_exposed, category, tags
+FROM metaschema_public.function
+WHERE FALSE;
 
 ROLLBACK;

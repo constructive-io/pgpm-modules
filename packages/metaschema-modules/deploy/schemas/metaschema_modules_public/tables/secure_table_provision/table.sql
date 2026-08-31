@@ -15,6 +15,10 @@ CREATE TABLE metaschema_modules_public.secure_table_provision (
 
     table_name text DEFAULT NULL,
 
+    module jsonb DEFAULT NULL,
+
+    owns jsonb NOT NULL DEFAULT '[]',
+
     nodes jsonb NOT NULL DEFAULT '[]',
 
     use_rls boolean NOT NULL DEFAULT true,
@@ -33,7 +37,7 @@ CREATE TABLE metaschema_modules_public.secure_table_provision (
 );
 
 COMMENT ON TABLE metaschema_modules_public.secure_table_provision IS
-    'Provisions security, fields, grants, and policies onto a table. Each row can independently: (1) create fields via nodes[] array (supporting multiple Data* modules per row), (2) grant privileges via grants[] array (supporting per-role privilege targeting), (3) create RLS policies via policies[] array (supporting multiple Authz* policies per row). Multiple rows can target the same table to compose different concerns. All three concerns are optional and independent.';
+    'Provisions security, fields, grants, and policies onto a table. Each row can independently: (1) create fields via nodes[] array (supporting multiple Data* modules per row), (2) grant privileges via grants[] array (supporting per-role privilege targeting), (3) create RLS policies via policies[] array (supporting multiple Authz* policies per row). Multiple rows can target the same table to compose different concerns. All three concerns are optional and independent. The target table is addressed by table_id, by table_name, or symbolically by a module reference in module. A row that lists a concern in owns[] replaces that concern on the target table instead of composing with what is already there.';
 
 COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.id IS
     'Unique identifier for this provision row.';
@@ -49,6 +53,12 @@ COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.table_id IS
 
 COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.table_name IS
     'Name of the target table. Used to create or look up the table when table_id is not provided. If omitted, it is backfilled from the resolved table.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.module IS
+    'Module reference naming a module-generated target table symbolically, instead of by table_id or table_name: a jsonb object with keys "type" (text, required — the module type, e.g. "image"), "table" (text, required — the module''s own table key, e.g. "registries"), "scope" (text, optional — the install scope) and "prefix" (text, optional — disambiguates multiple installs of the same module). Resolved through metaschema_modules_private.resolve_module_table(), so it raises the same errors blueprint module references do (BLUEPRINT_MODULE_REF_INVALID, BLUEPRINT_MODULE_NOT_INSTALLED, BLUEPRINT_MODULE_REF_AMBIGUOUS, BLUEPRINT_MODULE_TABLE_UNKNOWN). Mutually exclusive with table_name and with an explicit table_id. Example: {"type":"image","scope":"org","table":"registries"}. Defaults to NULL.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.owns IS
+    'Security concerns this row owns on the target table, as a jsonb array of "grants" and/or "policies". A listed concern is replaced: the target table''s existing grants (or its non-derived policies) are dropped before this row''s grants[] (or policies[]) are applied, so the row''s array is the table''s whole set — this is how a module-generated table''s default security is superseded rather than layered on. An unlisted concern composes, which is the default and the historical behavior. A concern may only be owned when this row supplies a non-empty array for it; owning a concern with nothing to install would leave the table with RLS enabled and no policy, and raises instead. Example: ["policies","grants"]. Defaults to ''[]'' (compose everything).';
 
 COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.nodes IS
     'Array of node objects to apply to the table. Each element is a jsonb object with a required "$type" key (one of: DataId, DataDirectOwner, DataEntityMembership, DataOwnershipInEntity, DataTimestamps, DataPeoplestamps, DataPublishable, DataSoftDelete, DataEmbedding, DataFullTextSearch, DataSlug, etc.) and an optional "data" key containing generator-specific configuration. Supports multiple nodes per row, matching the blueprint definition format. Example: [{"$type": "DataId"}, {"$type": "DataTimestamps"}, {"$type": "DataDirectOwner", "data": {"owner_field_name": "author_id"}}]. Defaults to ''[]'' (no node processing).';

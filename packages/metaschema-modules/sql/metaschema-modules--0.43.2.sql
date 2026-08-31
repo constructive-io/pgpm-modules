@@ -1434,6 +1434,8 @@ CREATE TABLE metaschema_modules_public.secure_table_provision (
   schema_id uuid NOT NULL DEFAULT uuid_nil(),
   table_id uuid NOT NULL DEFAULT uuid_nil(),
   table_name text DEFAULT NULL,
+  module jsonb DEFAULT NULL,
+  owns jsonb NOT NULL DEFAULT '[]',
   nodes jsonb NOT NULL DEFAULT '[]',
   use_rls boolean NOT NULL DEFAULT true,
   fields jsonb[] NOT NULL DEFAULT '{}',
@@ -1454,7 +1456,7 @@ CREATE TABLE metaschema_modules_public.secure_table_provision (
     ON DELETE CASCADE
 );
 
-COMMENT ON TABLE metaschema_modules_public.secure_table_provision IS 'Provisions security, fields, grants, and policies onto a table. Each row can independently: (1) create fields via nodes[] array (supporting multiple Data* modules per row), (2) grant privileges via grants[] array (supporting per-role privilege targeting), (3) create RLS policies via policies[] array (supporting multiple Authz* policies per row). Multiple rows can target the same table to compose different concerns. All three concerns are optional and independent.';
+COMMENT ON TABLE metaschema_modules_public.secure_table_provision IS 'Provisions security, fields, grants, and policies onto a table. Each row can independently: (1) create fields via nodes[] array (supporting multiple Data* modules per row), (2) grant privileges via grants[] array (supporting per-role privilege targeting), (3) create RLS policies via policies[] array (supporting multiple Authz* policies per row). Multiple rows can target the same table to compose different concerns. All three concerns are optional and independent. The target table is addressed by table_id, by table_name, or symbolically by a module reference in module. A row that lists a concern in owns[] replaces that concern on the target table instead of composing with what is already there.';
 
 COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.id IS 'Unique identifier for this provision row.';
 
@@ -1465,6 +1467,10 @@ COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.schema_id IS 
 COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.table_id IS 'Target table to provision. Defaults to uuid_nil(); the trigger creates or resolves the table via table_name if not explicitly provided.';
 
 COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.table_name IS 'Name of the target table. Used to create or look up the table when table_id is not provided. If omitted, it is backfilled from the resolved table.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.module IS 'Module reference naming a module-generated target table symbolically, instead of by table_id or table_name: a jsonb object with keys "type" (text, required — the module type, e.g. "image"), "table" (text, required — the module''s own table key, e.g. "registries"), "scope" (text, optional — the install scope) and "prefix" (text, optional — disambiguates multiple installs of the same module). Resolved through metaschema_modules_private.resolve_module_table(), so it raises the same errors blueprint module references do (BLUEPRINT_MODULE_REF_INVALID, BLUEPRINT_MODULE_NOT_INSTALLED, BLUEPRINT_MODULE_REF_AMBIGUOUS, BLUEPRINT_MODULE_TABLE_UNKNOWN). Mutually exclusive with table_name and with an explicit table_id. Example: {"type":"image","scope":"org","table":"registries"}. Defaults to NULL.';
+
+COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.owns IS 'Security concerns this row owns on the target table, as a jsonb array of "grants" and/or "policies". A listed concern is replaced: the target table''s existing grants (or its non-derived policies) are dropped before this row''s grants[] (or policies[]) are applied, so the row''s array is the table''s whole set — this is how a module-generated table''s default security is superseded rather than layered on. An unlisted concern composes, which is the default and the historical behavior. A concern may only be owned when this row supplies a non-empty array for it; owning a concern with nothing to install would leave the table with RLS enabled and no policy, and raises instead. Example: ["policies","grants"]. Defaults to ''[]'' (compose everything).';
 
 COMMENT ON COLUMN metaschema_modules_public.secure_table_provision.nodes IS 'Array of node objects to apply to the table. Each element is a jsonb object with a required "$type" key (one of: DataId, DataDirectOwner, DataEntityMembership, DataOwnershipInEntity, DataTimestamps, DataPeoplestamps, DataPublishable, DataSoftDelete, DataEmbedding, DataFullTextSearch, DataSlug, etc.) and an optional "data" key containing generator-specific configuration. Supports multiple nodes per row, matching the blueprint definition format. Example: [{"$type": "DataId"}, {"$type": "DataTimestamps"}, {"$type": "DataDirectOwner", "data": {"owner_field_name": "author_id"}}]. Defaults to ''[]'' (no node processing).';
 
@@ -1842,6 +1848,7 @@ CREATE TABLE metaschema_modules_public.storage_module (
   files_table_name text NOT NULL DEFAULT 'files',
   scope text NOT NULL,
   prefix text NOT NULL DEFAULT '',
+  key text NOT NULL DEFAULT 'default',
   policies jsonb NULL,
   provisions jsonb NULL,
   entity_table_id uuid NULL,
@@ -1903,6 +1910,8 @@ CREATE TABLE metaschema_modules_public.storage_module (
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE
 );
+
+CREATE UNIQUE INDEX storage_module_unique_key ON metaschema_modules_public.storage_module (database_id, scope, key);
 
 CREATE UNIQUE INDEX storage_module_unique_scope ON metaschema_modules_public.storage_module (database_id, scope, prefix);
 
@@ -2853,11 +2862,26 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   billing_refunds_table_name text NOT NULL DEFAULT '',
   billing_invoices_table_id uuid NOT NULL DEFAULT uuid_nil(),
   billing_invoices_table_name text NOT NULL DEFAULT '',
+  billing_disputes_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  billing_disputes_table_name text NOT NULL DEFAULT '',
   process_billing_event_function text NOT NULL DEFAULT '',
   record_refund_function text NOT NULL DEFAULT '',
   upsert_invoice_function text NOT NULL DEFAULT '',
   list_pending_usage_sync_function text NOT NULL DEFAULT '',
   mark_usage_synced_function text NOT NULL DEFAULT '',
+  get_billing_customer_function text NOT NULL DEFAULT '',
+  upsert_billing_customer_function text NOT NULL DEFAULT '',
+  get_billing_product_function text NOT NULL DEFAULT '',
+  upsert_billing_product_function text NOT NULL DEFAULT '',
+  get_billing_price_function text NOT NULL DEFAULT '',
+  upsert_billing_price_function text NOT NULL DEFAULT '',
+  get_billing_subscription_function text NOT NULL DEFAULT '',
+  upsert_billing_subscription_function text NOT NULL DEFAULT '',
+  sweep_overdue_subscriptions_function text NOT NULL DEFAULT '',
+  get_active_plan_pricing_function text NOT NULL DEFAULT '',
+  get_fallback_free_plan_function text NOT NULL DEFAULT '',
+  record_dispute_function text NOT NULL DEFAULT '',
+  activate_plan_subscription_function text NOT NULL DEFAULT '',
   prefix text NULL,
   api_name text DEFAULT NULL,
   private_api_name text DEFAULT NULL,
@@ -2901,6 +2925,10 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
     FOREIGN KEY(billing_invoices_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
+  CONSTRAINT billing_disputes_table_fkey
+    FOREIGN KEY(billing_disputes_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
   CONSTRAINT products_table_fkey
     FOREIGN KEY(products_table_id)
     REFERENCES metaschema_public.table (id)
@@ -2931,6 +2959,8 @@ CREATE INDEX billing_provider_module_billing_refunds_table_id_idx ON metaschema_
 
 CREATE INDEX billing_provider_module_billing_invoices_table_id_idx ON metaschema_modules_public.billing_provider_module (billing_invoices_table_id);
 
+CREATE INDEX billing_provider_module_billing_disputes_table_id_idx ON metaschema_modules_public.billing_provider_module (billing_disputes_table_id);
+
 CREATE INDEX billing_provider_module_prices_table_id_idx ON metaschema_modules_public.billing_provider_module (prices_table_id);
 
 CREATE INDEX billing_provider_module_products_table_id_idx ON metaschema_modules_public.billing_provider_module (products_table_id);
@@ -2942,6 +2972,8 @@ CREATE INDEX billing_provider_module_private_schema_id_idx ON metaschema_modules
 CREATE INDEX billing_provider_module_schema_id_idx ON metaschema_modules_public.billing_provider_module (schema_id);
 
 COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_customers_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_disputes_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_invoices_table_id IS '@module_table';
 
@@ -3408,6 +3440,7 @@ CREATE TABLE metaschema_modules_public.agent_module (
   agent_table_id uuid DEFAULT NULL,
   persona_table_id uuid DEFAULT NULL,
   resource_table_id uuid DEFAULT NULL,
+  resource_repository_table_id uuid DEFAULT NULL,
   run_table_id uuid DEFAULT NULL,
   event_table_id uuid DEFAULT NULL,
   workspace_table_id uuid DEFAULT NULL,
@@ -3419,12 +3452,14 @@ CREATE TABLE metaschema_modules_public.agent_module (
   agent_table_name text NOT NULL DEFAULT 'agent',
   persona_table_name text NOT NULL DEFAULT 'agent_persona',
   resource_table_name text NOT NULL DEFAULT 'agent_resource',
+  resource_repository_table_name text NOT NULL DEFAULT 'agent_resource_repository',
   run_table_name text NOT NULL DEFAULT 'agent_run',
   event_table_name text NOT NULL DEFAULT 'agent_event',
   workspace_table_name text NOT NULL DEFAULT 'agent_run_workspace',
   has_plans boolean NOT NULL DEFAULT false,
   has_resources boolean NOT NULL DEFAULT false,
   has_agents boolean NOT NULL DEFAULT false,
+  has_repository_resources boolean NOT NULL DEFAULT false,
   has_runs boolean NOT NULL DEFAULT false,
   has_attachments boolean NOT NULL DEFAULT false,
   default_visibility text NOT NULL DEFAULT 'private' CONSTRAINT default_visibility_chk CHECK (default_visibility IN ('private', 'entity')),
@@ -3481,6 +3516,10 @@ CREATE TABLE metaschema_modules_public.agent_module (
     FOREIGN KEY(resource_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
+  CONSTRAINT agent_module_resource_repository_table_fkey
+    FOREIGN KEY(resource_repository_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
   CONSTRAINT agent_module_run_table_fkey
     FOREIGN KEY(run_table_id)
     REFERENCES metaschema_public.table (id)
@@ -3515,6 +3554,8 @@ CREATE INDEX agent_module_prompts_table_id_idx ON metaschema_modules_public.agen
 
 CREATE INDEX agent_module_resource_table_id_idx ON metaschema_modules_public.agent_module (resource_table_id);
 
+CREATE INDEX agent_module_resource_repository_table_id_idx ON metaschema_modules_public.agent_module (resource_repository_table_id);
+
 CREATE INDEX agent_module_run_table_id_idx ON metaschema_modules_public.agent_module (run_table_id);
 
 CREATE INDEX agent_module_event_table_id_idx ON metaschema_modules_public.agent_module (event_table_id);
@@ -3540,6 +3581,8 @@ COMMENT ON COLUMN metaschema_modules_public.agent_module.plan_table_id IS '@modu
 COMMENT ON COLUMN metaschema_modules_public.agent_module.prompts_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.agent_module.resource_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.agent_module.resource_repository_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.agent_module.task_table_id IS '@module_table';
 
@@ -3976,6 +4019,7 @@ CREATE TABLE metaschema_modules_public.function_module (
   private_api_name text,
   scope text NOT NULL,
   prefix text NOT NULL DEFAULT '',
+  storage_key text NOT NULL DEFAULT 'default',
   entity_table_id uuid NULL,
   policies jsonb NULL,
   provisions jsonb NULL,
@@ -4548,6 +4592,7 @@ CREATE TABLE metaschema_modules_public.resource_module (
   resource_usage_summary_table_id uuid NOT NULL DEFAULT uuid_nil(),
   resource_installations_table_id uuid NOT NULL DEFAULT uuid_nil(),
   registry_bindings_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  builder_bindings_table_id uuid NOT NULL DEFAULT uuid_nil(),
   resources_table_name text NOT NULL DEFAULT 'resources',
   resource_events_table_name text NOT NULL DEFAULT 'resource_events',
   resource_status_checks_table_name text NOT NULL DEFAULT 'resource_status_checks',
@@ -4556,6 +4601,7 @@ CREATE TABLE metaschema_modules_public.resource_module (
   resource_usage_summary_table_name text NOT NULL DEFAULT 'resource_usage_summary',
   resource_installations_table_name text NOT NULL DEFAULT 'resource_installations',
   registry_bindings_table_name text NOT NULL DEFAULT 'registry_bindings',
+  builder_bindings_table_name text NOT NULL DEFAULT 'builder_bindings',
   rollup_resource_usage_summary_function text NOT NULL DEFAULT '',
   resource_billing_rollup_function text NOT NULL DEFAULT '',
   resolved_requirements_view_name text,
@@ -4615,6 +4661,10 @@ CREATE TABLE metaschema_modules_public.resource_module (
     FOREIGN KEY(registry_bindings_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
+  CONSTRAINT resource_module_builder_bindings_table_fkey
+    FOREIGN KEY(builder_bindings_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
   CONSTRAINT resource_module_merkle_store_module_fkey
     FOREIGN KEY(merkle_store_module_id)
     REFERENCES metaschema_modules_public.merkle_store_module (id)
@@ -4638,6 +4688,8 @@ CREATE INDEX resource_module_entity_table_id_idx ON metaschema_modules_public.re
 CREATE INDEX resource_module_resource_events_table_id_idx ON metaschema_modules_public.resource_module (resource_events_table_id);
 
 CREATE INDEX resource_module_resource_installations_table_id_idx ON metaschema_modules_public.resource_module (resource_installations_table_id);
+
+CREATE INDEX resource_module_builder_bindings_table_id_idx ON metaschema_modules_public.resource_module (builder_bindings_table_id);
 
 CREATE INDEX resource_module_registry_bindings_table_id_idx ON metaschema_modules_public.resource_module (registry_bindings_table_id);
 
@@ -4664,6 +4716,8 @@ COMMENT ON COLUMN metaschema_modules_public.resource_module.resource_events_tabl
 COMMENT ON COLUMN metaschema_modules_public.resource_module.resource_installations_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.resource_module.registry_bindings_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.resource_module.builder_bindings_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.resource_module.resource_status_checks_table_id IS '@module_table';
 
@@ -4838,6 +4892,7 @@ CREATE TABLE metaschema_modules_public.catalog_module (
   schema_id uuid NOT NULL DEFAULT uuid_nil(),
   public_schema_name text,
   domains_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  managed_domains_table_id uuid NOT NULL DEFAULT uuid_nil(),
   apis_table_id uuid NOT NULL DEFAULT uuid_nil(),
   sites_table_id uuid NOT NULL DEFAULT uuid_nil(),
   namespaces_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -4853,8 +4908,10 @@ CREATE TABLE metaschema_modules_public.catalog_module (
   sites_error_pages_table_id uuid NOT NULL DEFAULT uuid_nil(),
   sites_app_links_table_id uuid NOT NULL DEFAULT uuid_nil(),
   sites_deep_links_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  app_store_identities_table_id uuid NOT NULL DEFAULT uuid_nil(),
   redirects_table_id uuid NOT NULL DEFAULT uuid_nil(),
   domains_table_name text NOT NULL DEFAULT 'domains',
+  managed_domains_table_name text NOT NULL DEFAULT 'managed_domains',
   apis_table_name text NOT NULL DEFAULT 'apis',
   sites_table_name text NOT NULL DEFAULT 'sites',
   namespaces_table_name text NOT NULL DEFAULT 'namespaces',
@@ -4870,6 +4927,7 @@ CREATE TABLE metaschema_modules_public.catalog_module (
   sites_error_pages_table_name text NOT NULL DEFAULT 'sites_error_pages',
   sites_app_links_table_name text NOT NULL DEFAULT 'sites_app_links',
   sites_deep_links_table_name text NOT NULL DEFAULT 'sites_deep_links',
+  app_store_identities_table_name text NOT NULL DEFAULT 'app_store_identities',
   redirects_table_name text NOT NULL DEFAULT 'redirects',
   api_name text,
   private_api_name text,
@@ -4888,6 +4946,10 @@ CREATE TABLE metaschema_modules_public.catalog_module (
     ON DELETE CASCADE,
   CONSTRAINT catalog_module_domains_table_fkey
     FOREIGN KEY(domains_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT catalog_module_managed_domains_table_fkey
+    FOREIGN KEY(managed_domains_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
   CONSTRAINT catalog_module_apis_table_fkey
@@ -4950,6 +5012,10 @@ CREATE TABLE metaschema_modules_public.catalog_module (
     FOREIGN KEY(sites_deep_links_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
+  CONSTRAINT catalog_module_app_store_identities_table_fkey
+    FOREIGN KEY(app_store_identities_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
   CONSTRAINT catalog_module_redirects_table_fkey
     FOREIGN KEY(redirects_table_id)
     REFERENCES metaschema_public.table (id)
@@ -4980,9 +5046,13 @@ CREATE INDEX catalog_module_sites_app_links_table_id_idx ON metaschema_modules_p
 
 CREATE INDEX catalog_module_sites_deep_links_table_id_idx ON metaschema_modules_public.catalog_module (sites_deep_links_table_id);
 
+CREATE INDEX catalog_module_app_store_identities_table_id_idx ON metaschema_modules_public.catalog_module (app_store_identities_table_id);
+
 CREATE INDEX catalog_module_redirects_table_id_idx ON metaschema_modules_public.catalog_module (redirects_table_id);
 
 CREATE INDEX catalog_module_domains_table_id_idx ON metaschema_modules_public.catalog_module (domains_table_id);
+
+CREATE INDEX catalog_module_managed_domains_table_id_idx ON metaschema_modules_public.catalog_module (managed_domains_table_id);
 
 CREATE INDEX catalog_module_entity_table_id_idx ON metaschema_modules_public.catalog_module (entity_table_id);
 
@@ -5010,6 +5080,8 @@ COMMENT ON COLUMN metaschema_modules_public.catalog_module.buckets_table_id IS '
 
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.domains_table_id IS '@module_table';
 
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.managed_domains_table_id IS '@module_table';
+
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.functions_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.images_table_id IS '@module_table';
@@ -5027,6 +5099,8 @@ COMMENT ON COLUMN metaschema_modules_public.catalog_module.resources_table_id IS
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.sites_app_links_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.sites_deep_links_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.app_store_identities_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.sites_error_pages_table_id IS '@module_table';
 
@@ -5217,6 +5291,7 @@ CREATE TABLE metaschema_modules_public.site_surface_module (
   site_metadata_table_id uuid NOT NULL DEFAULT uuid_nil(),
   site_modules_table_id uuid NOT NULL DEFAULT uuid_nil(),
   site_themes_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  site_releases_table_id uuid NOT NULL DEFAULT uuid_nil(),
   site_app_links_table_id uuid NOT NULL DEFAULT uuid_nil(),
   site_deep_links_table_id uuid NOT NULL DEFAULT uuid_nil(),
   site_web_config_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -5225,6 +5300,7 @@ CREATE TABLE metaschema_modules_public.site_surface_module (
   site_metadata_table_name text NOT NULL DEFAULT 'site_metadata',
   site_modules_table_name text NOT NULL DEFAULT 'site_modules',
   site_themes_table_name text NOT NULL DEFAULT 'site_themes',
+  site_releases_table_name text NOT NULL DEFAULT 'site_releases',
   site_app_links_table_name text NOT NULL DEFAULT 'site_app_links',
   site_deep_links_table_name text NOT NULL DEFAULT 'site_deep_links',
   site_web_config_table_name text NOT NULL DEFAULT 'site_web_config',
@@ -5233,6 +5309,7 @@ CREATE TABLE metaschema_modules_public.site_surface_module (
   private_api_name text,
   scope text NOT NULL,
   prefix text NOT NULL DEFAULT '',
+  storage_key text NOT NULL DEFAULT 'default',
   entity_table_id uuid NULL,
   policies jsonb NULL,
   provisions jsonb NULL,
@@ -5269,6 +5346,10 @@ CREATE TABLE metaschema_modules_public.site_surface_module (
     FOREIGN KEY(site_themes_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
+  CONSTRAINT site_module_site_releases_table_fkey
+    FOREIGN KEY(site_releases_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
   CONSTRAINT site_module_site_app_links_table_fkey
     FOREIGN KEY(site_app_links_table_id)
     REFERENCES metaschema_public.table (id)
@@ -5300,6 +5381,8 @@ CREATE INDEX site_surface_module_site_metadata_table_id_idx ON metaschema_module
 CREATE INDEX site_surface_module_site_modules_table_id_idx ON metaschema_modules_public.site_surface_module (site_modules_table_id);
 
 CREATE INDEX site_surface_module_site_themes_table_id_idx ON metaschema_modules_public.site_surface_module (site_themes_table_id);
+
+CREATE INDEX site_surface_module_site_releases_table_id_idx ON metaschema_modules_public.site_surface_module (site_releases_table_id);
 
 CREATE INDEX site_surface_module_site_app_links_table_id_idx ON metaschema_modules_public.site_surface_module (site_app_links_table_id);
 
@@ -5335,6 +5418,7 @@ CREATE TABLE metaschema_modules_public.route_module (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   database_id uuid NOT NULL,
   entity_field text,
+  serving_site_field text,
   schema_id uuid NOT NULL DEFAULT uuid_nil(),
   private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
   public_schema_name text,
@@ -5356,6 +5440,7 @@ CREATE TABLE metaschema_modules_public.route_module (
   private_api_name text,
   scope text NOT NULL,
   prefix text NOT NULL DEFAULT '',
+  storage_key text NOT NULL DEFAULT 'default',
   entity_table_id uuid NULL,
   policies jsonb NULL,
   provisions jsonb NULL,
@@ -5443,6 +5528,7 @@ CREATE TABLE metaschema_modules_public.app_module (
   app_components_table_id uuid NOT NULL DEFAULT uuid_nil(),
   apps_table_name text NOT NULL DEFAULT 'apps',
   app_components_table_name text NOT NULL DEFAULT 'app_components',
+  app_store_identities_table_name text NOT NULL DEFAULT 'app_store_identities',
   api_name text,
   private_api_name text,
   scope text NOT NULL,
@@ -5587,6 +5673,11 @@ CREATE TABLE metaschema_modules_public.pages_module (
   sites_table_id uuid NOT NULL DEFAULT uuid_nil(),
   pages_table_id uuid NOT NULL DEFAULT uuid_nil(),
   store_name_prefix text NOT NULL DEFAULT 'site:',
+  release_manifest_function_name text,
+  preview_commit_function_name text,
+  preview_set_function_name text,
+  preview_token_mint_function_name text,
+  preview_token_verifier_function_name text,
   api_name text,
   private_api_name text,
   entity_table_id uuid NULL,
@@ -6162,6 +6253,7 @@ CREATE TABLE metaschema_modules_public.repository_module (
   private_schema_name text,
   repositories_table_id uuid NOT NULL DEFAULT uuid_nil(),
   repository_events_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  repository_required_checks_table_id uuid NOT NULL DEFAULT uuid_nil(),
   workflows_table_id uuid NOT NULL DEFAULT uuid_nil(),
   builds_table_id uuid NOT NULL DEFAULT uuid_nil(),
   build_steps_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -6172,6 +6264,7 @@ CREATE TABLE metaschema_modules_public.repository_module (
   proposal_file_views_table_id uuid NOT NULL DEFAULT uuid_nil(),
   repositories_table_name text NOT NULL DEFAULT 'repositories',
   repository_events_table_name text NOT NULL DEFAULT 'repository_events',
+  repository_required_checks_table_name text NOT NULL DEFAULT 'repository_required_checks',
   workflows_table_name text NOT NULL DEFAULT 'repository_workflows',
   builds_table_name text NOT NULL DEFAULT 'builds',
   build_steps_table_name text NOT NULL DEFAULT 'build_steps',
@@ -6209,6 +6302,10 @@ CREATE TABLE metaschema_modules_public.repository_module (
     ON DELETE CASCADE,
   CONSTRAINT repository_module_events_table_fkey
     FOREIGN KEY(repository_events_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT repository_module_required_checks_table_fkey
+    FOREIGN KEY(repository_required_checks_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
   CONSTRAINT repository_module_workflows_table_fkey
@@ -6256,6 +6353,8 @@ CREATE INDEX repository_module_entity_table_id_idx ON metaschema_modules_public.
 CREATE INDEX repository_module_repositories_table_id_idx ON metaschema_modules_public.repository_module (repositories_table_id);
 
 CREATE INDEX repository_module_repository_events_table_id_idx ON metaschema_modules_public.repository_module (repository_events_table_id);
+
+CREATE INDEX repository_module_repository_required_checks_table_id_idx ON metaschema_modules_public.repository_module (repository_required_checks_table_id);
 
 CREATE INDEX repository_module_workflows_table_id_idx ON metaschema_modules_public.repository_module (workflows_table_id);
 

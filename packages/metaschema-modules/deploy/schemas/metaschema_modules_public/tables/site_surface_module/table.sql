@@ -32,6 +32,7 @@ CREATE TABLE metaschema_modules_public.site_surface_module (
     site_metadata_table_id uuid NOT NULL DEFAULT uuid_nil(),
     site_modules_table_id uuid NOT NULL DEFAULT uuid_nil(),
     site_themes_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    site_releases_table_id uuid NOT NULL DEFAULT uuid_nil(),
     site_app_links_table_id uuid NOT NULL DEFAULT uuid_nil(),
     site_deep_links_table_id uuid NOT NULL DEFAULT uuid_nil(),
     -- Serving-config companions (the distribution tier's typed behavior):
@@ -45,6 +46,7 @@ CREATE TABLE metaschema_modules_public.site_surface_module (
     site_metadata_table_name text NOT NULL DEFAULT 'site_metadata',
     site_modules_table_name text NOT NULL DEFAULT 'site_modules',
     site_themes_table_name text NOT NULL DEFAULT 'site_themes',
+    site_releases_table_name text NOT NULL DEFAULT 'site_releases',
     site_app_links_table_name text NOT NULL DEFAULT 'site_app_links',
     site_deep_links_table_name text NOT NULL DEFAULT 'site_deep_links',
     site_web_config_table_name text NOT NULL DEFAULT 'site_web_config',
@@ -59,6 +61,13 @@ CREATE TABLE metaschema_modules_public.site_surface_module (
 
     -- Table name prefix. Auto-derived from scope by the trigger when empty.
     prefix text NOT NULL DEFAULT '',
+
+    -- Which of the scope's storage planes backs a site (sites.bucket_id FKs
+    -- that plane's buckets table). A scope may carry several storage planes,
+    -- each with its own semantic key, so the binding is named rather than
+    -- guessed; 'default' is the plane a blueprint installs when it declares no
+    -- storage keys.
+    storage_key text NOT NULL DEFAULT 'default',
 
     -- Entity table for RLS (NULL for non-entity scopes)
     entity_table_id uuid NULL,
@@ -104,6 +113,10 @@ CREATE TABLE metaschema_modules_public.site_surface_module (
         FOREIGN KEY (site_themes_table_id)
         REFERENCES metaschema_public.table (id)
         ON DELETE CASCADE,
+    CONSTRAINT site_module_site_releases_table_fkey
+        FOREIGN KEY (site_releases_table_id)
+        REFERENCES metaschema_public.table (id)
+        ON DELETE CASCADE,
     CONSTRAINT site_module_site_app_links_table_fkey
         FOREIGN KEY (site_app_links_table_id)
         REFERENCES metaschema_public.table (id)
@@ -132,6 +145,7 @@ CREATE INDEX site_surface_module_entity_table_id_idx ON metaschema_modules_publi
 CREATE INDEX site_surface_module_site_metadata_table_id_idx ON metaschema_modules_public.site_surface_module ( site_metadata_table_id );
 CREATE INDEX site_surface_module_site_modules_table_id_idx ON metaschema_modules_public.site_surface_module ( site_modules_table_id );
 CREATE INDEX site_surface_module_site_themes_table_id_idx ON metaschema_modules_public.site_surface_module ( site_themes_table_id );
+CREATE INDEX site_surface_module_site_releases_table_id_idx ON metaschema_modules_public.site_surface_module ( site_releases_table_id );
 CREATE INDEX site_surface_module_site_app_links_table_id_idx ON metaschema_modules_public.site_surface_module ( site_app_links_table_id );
 CREATE INDEX site_surface_module_site_deep_links_table_id_idx ON metaschema_modules_public.site_surface_module ( site_deep_links_table_id );
 CREATE INDEX site_surface_module_site_web_config_table_id_idx ON metaschema_modules_public.site_surface_module ( site_web_config_table_id );

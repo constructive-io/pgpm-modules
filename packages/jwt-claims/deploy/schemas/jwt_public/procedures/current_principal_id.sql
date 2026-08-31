@@ -17,6 +17,6 @@ AS $$
       THEN current_setting('jwt.claims.principal_id', TRUE)::uuid
   END;
 $$
-LANGUAGE 'sql' STABLE LEAKPROOF;
+LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 
 COMMIT;

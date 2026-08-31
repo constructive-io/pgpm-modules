@@ -13,6 +13,6 @@ CREATE FUNCTION jwt_public.current_user_agent()
 AS $$
   SELECT current_setting('jwt.claims.user_agent', TRUE);
 $$
-LANGUAGE 'sql' STABLE;
+LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 
 COMMIT;

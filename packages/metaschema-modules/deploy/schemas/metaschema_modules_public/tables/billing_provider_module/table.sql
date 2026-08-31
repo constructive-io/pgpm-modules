@@ -43,6 +43,9 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   billing_invoices_table_id uuid NOT NULL DEFAULT uuid_nil(),
   billing_invoices_table_name text NOT NULL DEFAULT '',
 
+  billing_disputes_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  billing_disputes_table_name text NOT NULL DEFAULT '',
+
   -- Generated functions
   process_billing_event_function text NOT NULL DEFAULT '',
   record_refund_function text NOT NULL DEFAULT '',
@@ -51,6 +54,27 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   -- the provider's subscription item, which only this module knows about.
   list_pending_usage_sync_function text NOT NULL DEFAULT '',
   mark_usage_synced_function text NOT NULL DEFAULT '',
+  -- Reconcile seams: the system-only read/write path the billing sync workers
+  -- use to mirror provider objects into the mapping tables.
+  get_billing_customer_function text NOT NULL DEFAULT '',
+  upsert_billing_customer_function text NOT NULL DEFAULT '',
+  get_billing_product_function text NOT NULL DEFAULT '',
+  upsert_billing_product_function text NOT NULL DEFAULT '',
+  get_billing_price_function text NOT NULL DEFAULT '',
+  upsert_billing_price_function text NOT NULL DEFAULT '',
+  get_billing_subscription_function text NOT NULL DEFAULT '',
+  upsert_billing_subscription_function text NOT NULL DEFAULT '',
+  sweep_overdue_subscriptions_function text NOT NULL DEFAULT '',
+  -- Read seams over the plan tables the module points at: which active pricing
+  -- a plan bills through, and which plan an overdue entity falls back to.
+  get_active_plan_pricing_function text NOT NULL DEFAULT '',
+  get_fallback_free_plan_function text NOT NULL DEFAULT '',
+  -- Disputes are recorded separately from refunds: the bank opens them, they
+  -- are adjudicated, and credits are clawed back only on a lost outcome.
+  record_dispute_function text NOT NULL DEFAULT '',
+  -- The webhook side of a completed purchase: the system-only seam that moves
+  -- an entity onto the plan a verified provider event names.
+  activate_plan_subscription_function text NOT NULL DEFAULT '',
 
   prefix text NULL,
 
@@ -68,6 +92,7 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   CONSTRAINT billing_webhook_events_table_fkey FOREIGN KEY (billing_webhook_events_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT billing_refunds_table_fkey FOREIGN KEY (billing_refunds_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT billing_invoices_table_fkey FOREIGN KEY (billing_invoices_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+  CONSTRAINT billing_disputes_table_fkey FOREIGN KEY (billing_disputes_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT products_table_fkey FOREIGN KEY (products_table_id) REFERENCES metaschema_public.table (id) ON DELETE SET NULL,
   CONSTRAINT prices_table_fkey FOREIGN KEY (prices_table_id) REFERENCES metaschema_public.table (id) ON DELETE SET NULL,
   CONSTRAINT subscriptions_table_fkey FOREIGN KEY (subscriptions_table_id) REFERENCES metaschema_public.table (id) ON DELETE SET NULL,
@@ -81,6 +106,7 @@ CREATE INDEX billing_provider_module_billing_subscriptions_table_id_idx ON metas
 CREATE INDEX billing_provider_module_billing_webhook_events_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_webhook_events_table_id );
 CREATE INDEX billing_provider_module_billing_refunds_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_refunds_table_id );
 CREATE INDEX billing_provider_module_billing_invoices_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_invoices_table_id );
+CREATE INDEX billing_provider_module_billing_disputes_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_disputes_table_id );
 CREATE INDEX billing_provider_module_prices_table_id_idx ON metaschema_modules_public.billing_provider_module ( prices_table_id );
 CREATE INDEX billing_provider_module_products_table_id_idx ON metaschema_modules_public.billing_provider_module ( products_table_id );
 CREATE INDEX billing_provider_module_subscriptions_table_id_idx ON metaschema_modules_public.billing_provider_module ( subscriptions_table_id );
@@ -92,6 +118,7 @@ CREATE INDEX billing_provider_module_schema_id_idx ON metaschema_modules_public.
 -- metaschema_modules_private.tg_module_install_provenance attributes to this
 -- install, keyed by the role name in the column.
 COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_customers_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_disputes_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_invoices_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_prices_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_products_table_id IS '@module_table';

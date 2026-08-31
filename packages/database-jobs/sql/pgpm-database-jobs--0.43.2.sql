@@ -120,7 +120,10 @@ CREATE TABLE app_jobs.scheduled_jobs (
   id bigserial PRIMARY KEY,
   database_id uuid NOT NULL,
   actor_id uuid,
+  principal_id uuid,
   entity_id uuid,
+  organization_id uuid,
+  entity_type text,
   queue_name text DEFAULT NULL,
   task_identifier text NOT NULL,
   payload pg_catalog.json DEFAULT '{}'::json NOT NULL,
@@ -148,7 +151,13 @@ COMMENT ON COLUMN app_jobs.scheduled_jobs.database_id IS 'Database this schedule
 
 COMMENT ON COLUMN app_jobs.scheduled_jobs.actor_id IS 'User who created this scheduled job, read from JWT claims at creation time';
 
-COMMENT ON COLUMN app_jobs.scheduled_jobs.entity_id IS 'Entity (org/team) this scheduled job is scoped to for billing; NULL means platform-level (resolved via database_id → owner_id)';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.principal_id IS 'Principal that triggered this scheduled job; equals actor_id for human-triggered jobs, differs when an agent/API-key acts on behalf of a user';
+
+COMMENT ON COLUMN app_jobs.scheduled_jobs.entity_id IS 'Entity this scheduled job is attributed to for billing; read from the transaction entity claim at registration time; NULL means the claim was absent, not platform-level';
+
+COMMENT ON COLUMN app_jobs.scheduled_jobs.organization_id IS 'Organization this scheduled job is attributed to; resolved from the entity pair via get_organization_id at registration time by callers that know it (e.g. data-job triggers) — never read from a claim';
+
+COMMENT ON COLUMN app_jobs.scheduled_jobs.entity_type IS 'Entity type prefix (org, team, app, etc.) for interpreting entity_id';
 
 COMMENT ON COLUMN app_jobs.scheduled_jobs.queue_name IS 'Name of the queue spawned jobs are placed into';
 
@@ -235,9 +244,9 @@ COMMENT ON COLUMN app_jobs.jobs.actor_id IS 'User who triggered this job, read f
 
 COMMENT ON COLUMN app_jobs.jobs.principal_id IS 'Principal that triggered this job; equals actor_id for human-triggered jobs, differs when an agent/API-key acts on behalf of a user';
 
-COMMENT ON COLUMN app_jobs.jobs.entity_id IS 'Entity (org/team) this job is scoped to for billing; NULL means platform-level (resolved via database_id → owner_id)';
+COMMENT ON COLUMN app_jobs.jobs.entity_id IS 'Entity this job is attributed to for billing; read from the transaction entity claim at enqueue time; NULL means the claim was absent, not platform-level';
 
-COMMENT ON COLUMN app_jobs.jobs.organization_id IS 'Top-level organization for this entity; resolved at enqueue time via get_organization_id(entity_type, entity_id)';
+COMMENT ON COLUMN app_jobs.jobs.organization_id IS 'Organization this job is attributed to; resolved from the entity pair via get_organization_id at enqueue time by callers that know it (e.g. data-job triggers) — never read from a claim';
 
 COMMENT ON COLUMN app_jobs.jobs.entity_type IS 'Entity type prefix (org, team, app, etc.) for interpreting entity_id';
 
@@ -433,6 +442,12 @@ BEGIN
     END IF;
   END IF;
 
+  PERFORM jwt_private.assert_attribution(
+    sched.actor_id,
+    sched.entity_id,
+    sched.entity_type
+  );
+
   -- a job carrying this key that is already in flight covers this tick, and the
   -- keyed upsert below cannot refresh a locked row
   IF (sched.key IS NOT NULL) THEN
@@ -454,7 +469,10 @@ BEGIN
   INSERT INTO app_jobs.jobs (
     database_id,
     actor_id,
+    principal_id,
     entity_id,
+    organization_id,
+    entity_type,
     queue_name,
     task_identifier,
     payload,
@@ -464,8 +482,14 @@ BEGIN
   ) VALUES (
     sched.database_id,
     sched.actor_id,
+    sched.principal_id,
     sched.entity_id,
-    sched.queue_name,
+    sched.organization_id,
+    sched.entity_type,
+    -- same reading as app_jobs.add_job: the shared literal 'default' (copied
+    -- onto a schedule from its function definition) is not a lock domain, so a
+    -- tick of one schedule must not block every other job in the database.
+    nullif(nullif(sched.queue_name, ''), 'default'),
     sched.task_identifier,
     sched.payload,
     sched.priority,
@@ -474,7 +498,8 @@ BEGIN
   )
   ON CONFLICT (KEY)
     DO UPDATE SET
-      database_id = excluded.database_id, actor_id = excluded.actor_id, entity_id = excluded.entity_id,
+      database_id = excluded.database_id, actor_id = excluded.actor_id, principal_id = excluded.principal_id,
+      entity_id = excluded.entity_id, organization_id = excluded.organization_id, entity_type = excluded.entity_type,
       task_identifier = excluded.task_identifier, payload = excluded.payload, queue_name = excluded.queue_name, max_attempts = excluded.max_attempts, priority = excluded.priority, run_at = excluded.run_at,
       -- always reset error/retry state
       attempts = 0, last_error = NULL
@@ -772,13 +797,18 @@ CREATE FUNCTION app_jobs.add_scheduled_job(
   queue_name text DEFAULT NULL,
   max_attempts int DEFAULT 25,
   priority int DEFAULT 0,
-  entity_id uuid DEFAULT NULL,
-  db_id uuid DEFAULT jwt_private.current_database_id()
+  entity_id uuid DEFAULT jwt_private.current_entity_id(),
+  db_id uuid DEFAULT jwt_private.require_database_id(),
+  entity_type text DEFAULT jwt_private.current_entity_type(),
+  organization_id uuid DEFAULT NULL,
+  actor_id uuid DEFAULT jwt_public.current_user_id(),
+  principal_id uuid DEFAULT jwt_public.current_principal_id()
 ) RETURNS app_jobs.scheduled_jobs AS $EOFCODE$
 DECLARE
   v_job app_jobs.scheduled_jobs;
   v_database_id uuid;
   v_actor_id uuid;
+  v_principal_id uuid;
 BEGIN
   -- db_id defaults to the session's database claim; only callers that act on
   -- behalf of a different database (e.g. provisioning triggers, platform-owned
@@ -787,7 +817,13 @@ BEGIN
   -- scheduled_jobs.database_id NOT NULL constraint rather than producing an
   -- unattributable job.
   v_database_id := db_id;
-  v_actor_id := jwt_public.current_user_id();
+  v_actor_id := add_scheduled_job.actor_id;
+  v_principal_id := add_scheduled_job.principal_id;
+  PERFORM jwt_private.assert_attribution(
+    v_actor_id,
+    add_scheduled_job.entity_id,
+    add_scheduled_job.entity_type
+  );
 
   IF job_key IS NOT NULL THEN
 
@@ -795,7 +831,10 @@ BEGIN
     INSERT INTO app_jobs.scheduled_jobs (
       database_id,
       actor_id,
+      principal_id,
       entity_id,
+      organization_id,
+      entity_type,
       task_identifier,
       payload,
       queue_name,
@@ -806,7 +845,10 @@ BEGIN
       ) VALUES (
         v_database_id,
         v_actor_id,
+        v_principal_id,
         add_scheduled_job.entity_id,
+        add_scheduled_job.organization_id,
+        add_scheduled_job.entity_type,
         identifier,
         coalesce(payload, '{}'::json),
         queue_name,
@@ -817,6 +859,12 @@ BEGIN
     )
     ON CONFLICT (key)
       DO UPDATE SET
+        database_id = EXCLUDED.database_id,
+        actor_id = EXCLUDED.actor_id,
+        principal_id = EXCLUDED.principal_id,
+        entity_id = EXCLUDED.entity_id,
+        organization_id = EXCLUDED.organization_id,
+        entity_type = EXCLUDED.entity_type,
         task_identifier = EXCLUDED.task_identifier,
         payload = EXCLUDED.payload,
         queue_name = EXCLUDED.queue_name,
@@ -846,7 +894,10 @@ BEGIN
   INSERT INTO app_jobs.scheduled_jobs (
     database_id,
     actor_id,
+    principal_id,
     entity_id,
+    organization_id,
+    entity_type,
     task_identifier,
     payload,
     queue_name,
@@ -856,7 +907,10 @@ BEGIN
     ) VALUES (
     v_database_id,
     v_actor_id,
+    v_principal_id,
     add_scheduled_job.entity_id,
+    add_scheduled_job.organization_id,
+    add_scheduled_job.entity_type,
     identifier,
     payload,
     queue_name,
@@ -868,7 +922,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 
-GRANT EXECUTE ON FUNCTION app_jobs.add_scheduled_job(text, pg_catalog.json, pg_catalog.json, text, text, int, int, uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION app_jobs.add_scheduled_job(text, pg_catalog.json, pg_catalog.json, text, text, int, int, uuid, uuid, text, uuid, uuid, uuid) TO authenticated;
 
 CREATE FUNCTION app_jobs.schedule_min_interval_seconds(
   schedule_info pg_catalog.json
@@ -953,18 +1007,21 @@ CREATE FUNCTION app_jobs.add_job(
   run_at timestamptz DEFAULT now(),
   max_attempts int DEFAULT 25,
   priority int DEFAULT 0,
-  entity_id uuid DEFAULT NULL,
+  entity_id uuid DEFAULT jwt_private.current_entity_id(),
   organization_id uuid DEFAULT NULL,
-  entity_type text DEFAULT NULL,
+  entity_type text DEFAULT jwt_private.current_entity_type(),
   function_definition_id uuid DEFAULT NULL,
   definition_scope text DEFAULT NULL,
-  db_id uuid DEFAULT jwt_private.current_database_id()
+  db_id uuid DEFAULT jwt_private.require_database_id(),
+  actor_id uuid DEFAULT jwt_public.current_user_id(),
+  principal_id uuid DEFAULT jwt_public.current_principal_id()
 ) RETURNS app_jobs.jobs AS $EOFCODE$
 DECLARE
   v_job app_jobs.jobs;
   v_database_id uuid;
   v_actor_id uuid;
   v_principal_id uuid;
+  v_queue_name text;
 BEGIN
   -- db_id defaults to the session's database claim; only callers that act on
   -- behalf of a different database (e.g. platform-owned births) pass it
@@ -972,9 +1029,20 @@ BEGIN
   -- session with no explicit db_id is rejected by the default expression rather
   -- than producing an unattributable job.
   v_database_id := db_id;
-  v_actor_id := jwt_public.current_user_id();
-
-  v_principal_id := jwt_public.current_principal_id();
+  v_actor_id := add_job.actor_id;
+  v_principal_id := add_job.principal_id;
+  -- queue_name is a mutual-exclusion lock, never a routing label: get_job holds
+  -- the queue row for the whole job and claims nothing else on it, and no worker
+  -- selects work by queue. A name shared by unrelated jobs therefore serializes
+  -- all of them, and 'default' is precisely that name -- what a function
+  -- definition carries when its author asked for no serialization at all. Read
+  -- it, and the empty string, as no lock.
+  v_queue_name := nullif(nullif(add_job.queue_name, ''), 'default');
+  PERFORM jwt_private.assert_attribution(
+    v_actor_id,
+    add_job.entity_id,
+    add_job.entity_type
+  );
 
   IF job_key IS NOT NULL THEN
     -- Upsert job
@@ -1005,7 +1073,7 @@ BEGIN
         add_job.definition_scope,
         identifier,
         coalesce(payload, '{}'::json),
-        queue_name,
+        v_queue_name,
         coalesce(run_at, now()),
         coalesce(max_attempts, 25),
         job_key,
@@ -1071,7 +1139,7 @@ BEGIN
     add_job.definition_scope,
     identifier,
     payload,
-    queue_name,
+    v_queue_name,
     run_at,
     max_attempts,
     priority
@@ -1082,7 +1150,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 
-GRANT EXECUTE ON FUNCTION app_jobs.add_job(text, pg_catalog.json, text, text, timestamptz, int, int, uuid, uuid, text, uuid, text, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION app_jobs.add_job(text, pg_catalog.json, text, text, timestamptz, int, int, uuid, uuid, text, uuid, text, uuid, uuid, uuid) TO authenticated;
 
 CREATE FUNCTION app_jobs.remove_job(
   job_key text

@@ -17,6 +17,6 @@ AS $$
       THEN trim(current_setting('jwt.claims.ip_address', TRUE))::inet
   END;
 $$
-LANGUAGE 'sql' STABLE;
+LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 
 COMMIT;

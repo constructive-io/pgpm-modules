@@ -30,6 +30,7 @@ CREATE TABLE metaschema_modules_public.agent_module (
   agent_table_id uuid DEFAULT NULL,
   persona_table_id uuid DEFAULT NULL,
   resource_table_id uuid DEFAULT NULL,
+  resource_repository_table_id uuid DEFAULT NULL,
   run_table_id uuid DEFAULT NULL,
   event_table_id uuid DEFAULT NULL,
   workspace_table_id uuid DEFAULT NULL,
@@ -43,6 +44,7 @@ CREATE TABLE metaschema_modules_public.agent_module (
   agent_table_name text NOT NULL DEFAULT 'agent',
   persona_table_name text NOT NULL DEFAULT 'agent_persona',
   resource_table_name text NOT NULL DEFAULT 'agent_resource',
+  resource_repository_table_name text NOT NULL DEFAULT 'agent_resource_repository',
   run_table_name text NOT NULL DEFAULT 'agent_run',
   event_table_name text NOT NULL DEFAULT 'agent_event',
   workspace_table_name text NOT NULL DEFAULT 'agent_run_workspace',
@@ -51,6 +53,12 @@ CREATE TABLE metaschema_modules_public.agent_module (
   has_plans boolean NOT NULL DEFAULT false,
   has_resources boolean NOT NULL DEFAULT false,
   has_agents boolean NOT NULL DEFAULT false,
+  -- Attaches resources to the repositories they apply to, through a junction
+  -- table. Requires a repository module at this same scope and has_resources:
+  -- with no repository catalog to point at there is nothing to attach to, and
+  -- the junction is simply not created. Same scope only, as everywhere else — a
+  -- pointer into another scope's catalog is not adjudicable by any policy.
+  has_repository_resources boolean NOT NULL DEFAULT false,
   -- The coding-agent execution surface: runs and their append-only transcripts.
   -- Off by default, so a conversation-only install provisions exactly what it did
   -- before this flag existed.
@@ -111,6 +119,7 @@ CREATE TABLE metaschema_modules_public.agent_module (
   CONSTRAINT agent_module_agent_table_fkey FOREIGN KEY (agent_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT agent_module_persona_table_fkey FOREIGN KEY (persona_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT agent_module_resource_table_fkey FOREIGN KEY (resource_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+  CONSTRAINT agent_module_resource_repository_table_fkey FOREIGN KEY (resource_repository_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT agent_module_run_table_fkey FOREIGN KEY (run_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT agent_module_event_table_fkey FOREIGN KEY (event_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT agent_module_workspace_table_fkey FOREIGN KEY (workspace_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
@@ -126,6 +135,7 @@ CREATE INDEX agent_module_persona_table_id_idx ON metaschema_modules_public.agen
 CREATE INDEX agent_module_plan_table_id_idx ON metaschema_modules_public.agent_module ( plan_table_id );
 CREATE INDEX agent_module_prompts_table_id_idx ON metaschema_modules_public.agent_module ( prompts_table_id );
 CREATE INDEX agent_module_resource_table_id_idx ON metaschema_modules_public.agent_module ( resource_table_id );
+CREATE INDEX agent_module_resource_repository_table_id_idx ON metaschema_modules_public.agent_module ( resource_repository_table_id );
 CREATE INDEX agent_module_run_table_id_idx ON metaschema_modules_public.agent_module ( run_table_id );
 CREATE INDEX agent_module_event_table_id_idx ON metaschema_modules_public.agent_module ( event_table_id );
 CREATE INDEX agent_module_workspace_table_id_idx ON metaschema_modules_public.agent_module ( workspace_table_id );
@@ -144,6 +154,7 @@ COMMENT ON COLUMN metaschema_modules_public.agent_module.persona_table_id IS '@m
 COMMENT ON COLUMN metaschema_modules_public.agent_module.plan_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.agent_module.prompts_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.agent_module.resource_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.agent_module.resource_repository_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.agent_module.task_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.agent_module.thread_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.agent_module.run_table_id IS '@module_table';

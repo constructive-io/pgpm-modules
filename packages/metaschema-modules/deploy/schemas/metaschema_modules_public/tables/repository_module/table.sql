@@ -24,6 +24,7 @@ CREATE TABLE metaschema_modules_public.repository_module (
     -- Generated table IDs (populated by the generator)
     repositories_table_id uuid NOT NULL DEFAULT uuid_nil(),
     repository_events_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    repository_required_checks_table_id uuid NOT NULL DEFAULT uuid_nil(),
     workflows_table_id uuid NOT NULL DEFAULT uuid_nil(),
     builds_table_id uuid NOT NULL DEFAULT uuid_nil(),
     build_steps_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -36,6 +37,7 @@ CREATE TABLE metaschema_modules_public.repository_module (
     -- Table names (input to the generator)
     repositories_table_name text NOT NULL DEFAULT 'repositories',
     repository_events_table_name text NOT NULL DEFAULT 'repository_events',
+    repository_required_checks_table_name text NOT NULL DEFAULT 'repository_required_checks',
     workflows_table_name text NOT NULL DEFAULT 'repository_workflows',
     builds_table_name text NOT NULL DEFAULT 'builds',
     build_steps_table_name text NOT NULL DEFAULT 'build_steps',
@@ -94,6 +96,7 @@ CREATE TABLE metaschema_modules_public.repository_module (
     CONSTRAINT repository_module_private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT repository_module_repositories_table_fkey FOREIGN KEY (repositories_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT repository_module_events_table_fkey FOREIGN KEY (repository_events_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+    CONSTRAINT repository_module_required_checks_table_fkey FOREIGN KEY (repository_required_checks_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT repository_module_workflows_table_fkey FOREIGN KEY (workflows_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT repository_module_builds_table_fkey FOREIGN KEY (builds_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT repository_module_build_steps_table_fkey FOREIGN KEY (build_steps_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
@@ -112,6 +115,7 @@ CREATE UNIQUE INDEX repository_module_unique_scope ON metaschema_modules_public.
 CREATE INDEX repository_module_entity_table_id_idx ON metaschema_modules_public.repository_module ( entity_table_id );
 CREATE INDEX repository_module_repositories_table_id_idx ON metaschema_modules_public.repository_module ( repositories_table_id );
 CREATE INDEX repository_module_repository_events_table_id_idx ON metaschema_modules_public.repository_module ( repository_events_table_id );
+CREATE INDEX repository_module_repository_required_checks_table_id_idx ON metaschema_modules_public.repository_module ( repository_required_checks_table_id );
 CREATE INDEX repository_module_workflows_table_id_idx ON metaschema_modules_public.repository_module ( workflows_table_id );
 CREATE INDEX repository_module_builds_table_id_idx ON metaschema_modules_public.repository_module ( builds_table_id );
 CREATE INDEX repository_module_build_steps_table_id_idx ON metaschema_modules_public.repository_module ( build_steps_table_id );

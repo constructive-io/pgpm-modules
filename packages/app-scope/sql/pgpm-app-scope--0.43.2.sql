@@ -175,6 +175,110 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
+CREATE FUNCTION app_scope.actor_entity(
+  database_id uuid,
+  actor_id uuid
+) RETURNS TABLE (
+  entity_id uuid,
+  entity_type text
+) AS $EOFCODE$
+DECLARE
+    users_schema text;
+    users_table text;
+    principals_schema text;
+    principals_table text;
+
+    -- the actor's own row, and the owner row a principal actor resolves to
+    actor_type integer;
+    owner_id uuid;
+    owner_type integer;
+
+    resolved_id uuid;
+    resolved_type integer;
+    resolved_scope text;
+BEGIN
+    IF actor_entity.actor_id IS NULL THEN
+        RAISE EXCEPTION 'ACTOR_REQUIRED: actor_entity needs an actor to type'
+            USING ERRCODE = '22004';
+    END IF;
+
+    -- The principals table is LEFT JOINed: a database may install users without
+    -- principal_auth (the minimal preset does), and that only matters if the
+    -- actor turns out to be a principal.
+    SELECT users_schema_row.schema_name, users_table_row.name,
+           principals_schema_row.schema_name, principals_table_row.name
+    INTO users_schema, users_table, principals_schema, principals_table
+    FROM metaschema_modules_public.users_module um
+    JOIN metaschema_public."table" users_table_row
+        ON (users_table_row.id = um.table_id)
+    JOIN metaschema_public.schema users_schema_row
+        ON (users_schema_row.id = users_table_row.schema_id
+            AND users_schema_row.database_id = users_table_row.database_id)
+    LEFT JOIN metaschema_modules_public.principal_auth_module pam
+        ON (pam.database_id = um.database_id)
+    LEFT JOIN metaschema_public."table" principals_table_row
+        ON (principals_table_row.id = pam.principals_table_id)
+    LEFT JOIN metaschema_public.schema principals_schema_row
+        ON (principals_schema_row.id = principals_table_row.schema_id
+            AND principals_schema_row.database_id = principals_table_row.database_id)
+    WHERE um.database_id = actor_entity.database_id;
+
+    IF users_schema IS NULL THEN
+        RAISE EXCEPTION 'ACTOR_ENTITY_UNRESOLVED: database % installs no users module, so an actor has no entity to carry', actor_entity.database_id
+            USING ERRCODE = '42704';
+    END IF;
+
+    IF principals_schema IS NULL THEN
+        -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the generated users table is dynamically named, while actor_id stays a bound parameter
+        EXECUTE format(
+            'SELECT u.type FROM %I.%I u WHERE u.id = $1',
+            users_schema, users_table
+        ) INTO actor_type USING actor_entity.actor_id;
+    ELSE
+        -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the generated users and principals tables are dynamically named, while actor_id stays a bound parameter
+        EXECUTE format(
+            'SELECT u.type, owner.id, owner.type'
+            '  FROM %I.%I u'
+            '  LEFT JOIN %I.%I p ON p.user_id = u.id'
+            '  LEFT JOIN %I.%I owner ON owner.id = p.owner_id'
+            ' WHERE u.id = $1',
+            users_schema, users_table,
+            principals_schema, principals_table,
+            users_schema, users_table
+        ) INTO actor_type, owner_id, owner_type USING actor_entity.actor_id;
+    END IF;
+
+    IF actor_type IS NULL THEN
+        RAISE EXCEPTION 'ACTOR_ENTITY_UNRESOLVED: actor % has no users row in database %', actor_entity.actor_id, actor_entity.database_id
+            USING ERRCODE = '42704';
+    END IF;
+
+    IF actor_type = 3 THEN
+        resolved_id := owner_id;
+        resolved_type := owner_type;
+    ELSE
+        resolved_id := actor_entity.actor_id;
+        resolved_type := actor_type;
+    END IF;
+
+    resolved_scope := CASE resolved_type
+        WHEN 1 THEN 'app'
+        WHEN 2 THEN 'org'
+    END;
+
+    -- Unresolvable: an unknown users.type, a principal with no owner row, or a
+    -- principal owned by another principal.
+    IF resolved_id IS NULL OR resolved_scope IS NULL THEN
+        RAISE EXCEPTION 'ACTOR_ENTITY_UNRESOLVED: actor % of users.type % resolves to no entity in database %', actor_entity.actor_id, actor_type, actor_entity.database_id
+            USING ERRCODE = '42704';
+    END IF;
+
+    RETURN QUERY SELECT resolved_id, resolved_scope;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+COMMENT ON FUNCTION app_scope.actor_entity(uuid, uuid) IS 'Resolves an actor to a complete entity pair from its users.type, or to the owner pair for a principal. Raises ACTOR_ENTITY_UNRESOLVED rather than returning a partial pair.';
+
 CREATE FUNCTION app_scope.local_frames(
   database_id uuid,
   execution_scope text,
@@ -602,3 +706,57 @@ END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
 COMMENT ON FUNCTION app_scope.routing_tables(uuid, text) IS 'Physical (schema, table) names of the scoped routing source/settings tables serving an execution at the given scope, resolved from the api_surface_module, site_surface_module, domain_module, route_module and app_module registrations. Scope resolution one layer above app_scope.frames: each surface is located independently by walking frames (exact-scope frames first, then most-specific first), so an inner frame''s apis surface never hijacks the domain/site/route planes served by an outer frame. No platform special-casing. Surfaces not provisioned on any frame come back NULL; a registration pointing at a missing table raises ROUTING_TABLES_NOT_FOUND.';
+
+CREATE FUNCTION app_scope.frame_owns(
+  database_id uuid,
+  scope text,
+  entity_id uuid,
+  owner_scope text,
+  owner_key uuid,
+  owner_database_id uuid
+) RETURNS boolean AS $EOFCODE$
+DECLARE
+    v_owns boolean;
+BEGIN
+    -- A row whose owning frame is not fully identified cannot be proved to be
+    -- on the chain, and an ownership check reports "not owned" rather than
+    -- guessing. The execution's own database is equally required: the frame walk
+    -- has no starting point without it.
+    IF frame_owns.database_id IS NULL
+       OR frame_owns.scope IS NULL
+       OR frame_owns.owner_scope IS NULL
+       OR frame_owns.owner_database_id IS NULL THEN
+        RETURN false;
+    END IF;
+
+    SELECT EXISTS (
+        SELECT 1
+        FROM app_scope.frames(
+            frame_owns.database_id,
+            frame_owns.scope,
+            frame_owns.entity_id
+        ) AS f(scope, lookup_database_id, key_value)
+        WHERE f.scope = frame_owns.owner_scope
+          AND (
+                (
+                    frame_owns.owner_key IS NOT NULL
+                    AND f.key_value = frame_owns.owner_key
+                    AND frame_owns.owner_database_id = CASE
+                            WHEN frame_owns.owner_scope = 'database'
+                                THEN frame_owns.owner_key
+                            ELSE f.lookup_database_id
+                        END
+                )
+                OR (
+                    frame_owns.owner_key IS NULL
+                    AND frame_owns.owner_database_id = f.lookup_database_id
+                )
+              )
+    )
+    INTO v_owns;
+
+    RETURN v_owns;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+COMMENT ON FUNCTION app_scope.frame_owns(uuid, text, uuid, text, uuid, uuid) IS 'True when the frame that owns a catalog row — its (owner_scope, owner_key, owner_database_id) triple — is one of the frames app_scope.frames returns for the given execution. The identity test is the one function_resolution.resolve probes the catalog with, so a write-path ownership guard admits exactly what the read path would resolve. The chain is ancestry, not visibility: the execution''s own scopes, its database, then the platform database''s chain — never a peer or another keyed owner. Returns false rather than raising when the row''s owning frame is not fully identified.';

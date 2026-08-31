@@ -798,31 +798,6 @@ CREATE TABLE metaschema_public.trigger_function (
   UNIQUE (database_id, name)
 );
 
-CREATE TABLE metaschema_public.trigger (
-  id uuid PRIMARY KEY DEFAULT uuidv7(),
-  database_id uuid NOT NULL DEFAULT uuid_nil(),
-  table_id uuid NOT NULL,
-  name text NOT NULL,
-  event text,
-  function_name text,
-  smart_tags jsonb,
-  category metaschema_public.object_category NOT NULL DEFAULT 'app',
-  tags citext[] NOT NULL DEFAULT '{}',
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now(),
-  CONSTRAINT db_fkey
-    FOREIGN KEY(database_id)
-    REFERENCES metaschema_public.database (id)
-    ON DELETE CASCADE,
-  CONSTRAINT table_fkey
-    FOREIGN KEY(table_id)
-    REFERENCES metaschema_public.table (id)
-    ON DELETE CASCADE,
-  UNIQUE (table_id, name)
-);
-
-CREATE INDEX trigger_database_id_idx ON metaschema_public.trigger (database_id);
-
 CREATE TABLE metaschema_public.unique_constraint (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   database_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -1149,6 +1124,64 @@ CREATE TABLE metaschema_public.function (
   database_id uuid NOT NULL,
   schema_id uuid NOT NULL,
   name text NOT NULL,
+  kind text NOT NULL DEFAULT 'reservation',
+  arguments jsonb NOT NULL DEFAULT '[]',
+  returns jsonb,
+  volatility text,
+  is_strict boolean NOT NULL DEFAULT false,
+  security_invoker boolean NOT NULL DEFAULT true,
+  function_type text,
+  data jsonb DEFAULT '{}',
+  body_ast jsonb,
+  smart_tags jsonb,
+  api_exposed boolean NOT NULL DEFAULT false,
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
+  tags citext[] NOT NULL DEFAULT '{}',
+  CONSTRAINT function_kind_valid 
+    CHECK (kind IN ('reservation', 'sql', 'plpgsql', 'trigger')),
+  CONSTRAINT function_volatility_valid 
+    CHECK (
+    volatility IS NULL
+      OR volatility IN ('IMMUTABLE', 'STABLE', 'VOLATILE')
+  ),
+  CONSTRAINT function_security_invoker_only 
+    CHECK (security_invoker),
+  CONSTRAINT function_reservation_not_api_exposed 
+    CHECK (
+    kind <> 'reservation'
+      OR NOT (api_exposed)
+  ),
+  CONSTRAINT function_reservation_has_no_definition 
+    CHECK (
+    kind <> 'reservation'
+      OR (arguments = '[]'::jsonb
+      AND returns IS NULL
+      AND volatility IS NULL
+      AND function_type IS NULL
+      AND body_ast IS NULL)
+  ),
+  CONSTRAINT function_trigger_signature 
+    CHECK (
+    kind <> 'trigger'
+      OR (arguments = '[]'::jsonb
+      AND returns = '{"type": {"name": "trigger"}}'::jsonb
+      AND volatility = 'VOLATILE'
+      AND function_type IS NULL
+      AND body_ast IS NOT NULL)
+  ),
+  CONSTRAINT function_trigger_not_api_exposed 
+    CHECK (
+    kind <> 'trigger'
+      OR NOT (api_exposed)
+  ),
+  CONSTRAINT function_definition_complete 
+    CHECK (
+    kind = 'reservation'
+      OR (returns IS NOT NULL
+      AND volatility IS NOT NULL
+      AND (function_type IS NOT NULL
+      OR body_ast IS NOT NULL))
+  ),
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -1161,6 +1194,72 @@ CREATE TABLE metaschema_public.function (
 );
 
 CREATE INDEX function_database_id_idx ON metaschema_public.function (database_id);
+
+CREATE INDEX function_kind_idx ON metaschema_public.function (kind);
+
+CREATE TABLE metaschema_public.trigger (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL DEFAULT uuid_nil(),
+  table_id uuid NOT NULL,
+  name text NOT NULL,
+  event text,
+  function_name text,
+  kind text NOT NULL DEFAULT 'reservation',
+  function_id uuid,
+  timing text,
+  events text[],
+  for_each_row boolean,
+  when_ast jsonb,
+  smart_tags jsonb,
+  category metaschema_public.object_category NOT NULL DEFAULT 'app',
+  tags citext[] NOT NULL DEFAULT '{}',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT table_fkey
+    FOREIGN KEY(table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT function_fkey
+    FOREIGN KEY(function_id)
+    REFERENCES metaschema_public.function (id)
+    ON DELETE RESTRICT,
+  CONSTRAINT trigger_kind_valid 
+    CHECK (kind IN ('reservation', 'attachment')),
+  CONSTRAINT trigger_kind_matches_attachment 
+    CHECK ((kind = 'attachment') = (function_id IS NOT NULL)),
+  CONSTRAINT trigger_reservation_has_no_definition 
+    CHECK (
+    kind <> 'reservation'
+      OR (timing IS NULL
+      AND (COALESCE(cardinality(events), 0)) = 0
+      AND for_each_row IS NULL
+      AND when_ast IS NULL)
+  ),
+  CONSTRAINT trigger_attachment_has_no_legacy_definition 
+    CHECK (
+    kind <> 'attachment'
+      OR (event IS NULL
+      AND function_name IS NULL)
+  ),
+  CONSTRAINT trigger_customer_attachment_shape 
+    CHECK (
+    function_id IS NULL
+      OR (timing = 'AFTER'
+      AND for_each_row
+      AND events IS NOT NULL
+      AND cardinality(events) > 0
+      AND events <@ ARRAY['INSERT', 'UPDATE', 'DELETE'])
+  ),
+  UNIQUE (table_id, name)
+);
+
+CREATE INDEX trigger_database_id_idx ON metaschema_public.trigger (database_id);
+
+CREATE INDEX trigger_function_id_idx ON metaschema_public.trigger (function_id);
 
 CREATE TABLE metaschema_public.partition (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -1448,3 +1547,22 @@ CREATE TABLE metaschema_public.unique_constraint_behavior (
 );
 
 CREATE INDEX unique_constraint_behavior_database_id_idx ON metaschema_public.unique_constraint_behavior (database_id);
+
+CREATE TABLE metaschema_public.identity_provider_registry (
+  slug text PRIMARY KEY,
+  kind text NOT NULL CHECK (kind IN ('oauth2', 'oidc')),
+  display_name text NOT NULL,
+  issuer_url text,
+  authorization_url text,
+  token_url text,
+  userinfo_url text,
+  scopes text[] NOT NULL DEFAULT CAST('{}' AS text[]),
+  CHECK (
+    (kind = 'oidc'
+      AND issuer_url IS NOT NULL)
+      OR (kind = 'oauth2'
+      AND authorization_url IS NOT NULL
+      AND token_url IS NOT NULL
+      AND userinfo_url IS NOT NULL)
+  )
+);
