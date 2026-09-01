@@ -22,8 +22,13 @@ BEGIN;
 --
 -- The bindings document is a JSON array whose every entry NAMES ITS TARGET KIND:
 --
---   {"path": "/login", "target": "function", "task_identifier": "mantra:signin"}
+--   {"path": "/login", "target": "function", "task_identifier": "mantra:signin", "anonymous": true}
 --   {"path": "/app",   "target": "service",  "service_id": "<uuid>"}
+--
+-- An entry may declare `anonymous`, which is the route's half of the anonymous
+-- contract: the URL answers callers carrying no identity. It opens nothing on
+-- its own — the definition behind it must declare anonymous_callable too — and
+-- defaults to false, so a document that says nothing installs closed routes.
 --
 -- The kind is never inferred from which key happens to be present, and an entry
 -- carrying keys for two kinds is a malformed document rather than a precedence
@@ -124,6 +129,7 @@ DECLARE
     entry_target text;
     entry_task text;
     entry_service uuid;
+    entry_anonymous boolean;
     target_column text;
     target_id uuid;
     service_found boolean;
@@ -374,6 +380,7 @@ BEGIN
     LOOP
         entry_path := entry ->> 'path';
         entry_target := entry ->> 'target';
+        entry_anonymous := coalesce((entry ->> 'anonymous')::boolean, false);
 
         IF entry_target = 'function' THEN
             entry_task := entry ->> 'task_identifier';
@@ -426,8 +433,8 @@ BEGIN
 
         -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: insert into the routes plane named by app_scope.routing_tables; every value is a bound parameter
         query := format(
-            'INSERT INTO %I.%I (%s%sdomain_id, path, %I)
-             SELECT %s%s$1, $2, $3
+            'INSERT INTO %I.%I (%s%sdomain_id, path, anonymous, %I)
+             SELECT %s%s$1, $2, $6, $3
               WHERE NOT EXISTS (
                     SELECT 1 FROM %I.%I AS x
                      WHERE x.domain_id = $1 AND x.path = $2%s)',
@@ -447,7 +454,7 @@ BEGIN
         );
 
         EXECUTE query USING domain_id, entry_path, target_id, key_value,
-            install_route_bindings.site_id;
+            install_route_bindings.site_id, entry_anonymous;
         GET DIAGNOSTICS inserted = ROW_COUNT;
 
         IF inserted > 0 THEN
