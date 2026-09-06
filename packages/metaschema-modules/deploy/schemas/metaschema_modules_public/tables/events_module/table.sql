@@ -44,6 +44,7 @@ CREATE TABLE metaschema_modules_public.events_module (
   achievement_rewards_table_name text NOT NULL DEFAULT '',
 
   record_event text NOT NULL DEFAULT '',
+  record_error text NOT NULL DEFAULT '',
   remove_event text NOT NULL DEFAULT '',
   tg_event text NOT NULL DEFAULT '',
   tg_event_toggle text NOT NULL DEFAULT '',
