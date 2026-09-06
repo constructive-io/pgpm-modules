@@ -6558,3 +6558,8 @@ COMMENT ON COLUMN metaschema_modules_public.cluster_module.database_servers_tabl
 COMMENT ON COLUMN metaschema_modules_public.cluster_module.physical_databases_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.cluster_module.database_placements_table_id IS '@module_table';
+
+ALTER TABLE metaschema_modules_public.events_module 
+  ADD COLUMN record_error text
+    NOT NULL
+    DEFAULT '';
