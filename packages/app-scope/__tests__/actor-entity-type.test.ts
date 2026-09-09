@@ -178,13 +178,14 @@ describe('app_scope.actor_entity', () => {
          (
            database_id,
            schema_id,
+           private_schema_id,
            principals_table_id,
            principal_entities_table_id,
            users_table_id,
            sessions_table_id,
            session_credentials_table_id
          )
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+       VALUES ($1, $2, $2, $3, $4, $5, $6, $7)`,
       [
         PRINCIPAL_DATABASE_ID,
         principalSchema.id,
