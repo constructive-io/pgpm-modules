@@ -35,6 +35,11 @@ BEGIN
       app_jobs.jobs js
     WHERE
       js.id = sched.last_scheduled_id
+      -- a job out of attempts never runs again (get_job skips it), so it
+      -- covers nothing: fail_job cleared its locked_at, which otherwise reads
+      -- as "never been run" and wedges the schedule on a permanently failed
+      -- job. The keyed upsert below replaces it with a fresh attempt instead.
+      AND js.attempts < js.max_attempts
       AND (js.locked_at IS NULL -- never been run
         OR js.locked_at >= (NOW() - job_expiry)
         -- still running within a safe interval

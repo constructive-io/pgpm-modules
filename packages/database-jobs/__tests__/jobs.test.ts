@@ -457,6 +457,39 @@ describe('scheduled jobs', () => {
     });
   });
 
+  it('run_scheduled_job re-runs a keyed job that is out of attempts instead of wedging on it', async () => {
+    // constructive-planning#2013: a per-minute schedule with max_attempts = 1
+    // whose first tick failed (fail_job clears locked_at, so the dead job read
+    // as "never been run") raised ALREADY_SCHEDULED on every later tick.
+    const scheduled = await pg.one(
+      `INSERT INTO app_jobs.scheduled_jobs (
+         database_id, task_identifier, schedule_info, key, max_attempts
+       ) VALUES ($1, $2, $3, $4, 1)
+       RETURNING id, key`,
+      [database_id, 'dead_keyed_job', { rule: '0 * * * * *' }, 'dead_keyed_job']
+    );
+    const [first] = await pg.any(`SELECT * FROM app_jobs.run_scheduled_job($1)`, [scheduled.id]);
+
+    // A tick while the job is still waiting to run is covered by it.
+    await expect(
+      pg.any(`SELECT * FROM app_jobs.run_scheduled_job($1)`, [scheduled.id])
+    ).rejects.toThrow('ALREADY_SCHEDULED');
+
+    // The worker claims it, fails it, and the attempt budget is gone.
+    await pg.any(`SELECT * FROM app_jobs.get_job('worker-1', ARRAY[$1::text])`, ['dead_keyed_job']);
+    await pg.any(`SELECT * FROM app_jobs.fail_job('worker-1', $1, $2)`, [
+      first.id,
+      'Function "dead_keyed_job" is not registered in function_definitions'
+    ]);
+    const dead = await pg.one(`SELECT attempts, max_attempts, locked_at FROM app_jobs.jobs WHERE id = $1`, [first.id]);
+    expect(dead).toEqual({ attempts: 1, max_attempts: 1, locked_at: null });
+
+    // The next tick replaces it with a fresh attempt on the same row.
+    const [again] = await pg.any(`SELECT * FROM app_jobs.run_scheduled_job($1)`, [scheduled.id]);
+    expect(again.id).toBe(first.id);
+    expect({ attempts: again.attempts, last_error: again.last_error }).toEqual({ attempts: 0, last_error: null });
+  });
+
   it('run_scheduled_job rejects a malformed entity pair under strict attribution', async () => {
     const task_identifier = 'malformed_scheduled_job';
     await pg.any(`BEGIN`);

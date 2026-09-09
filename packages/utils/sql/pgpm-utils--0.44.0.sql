@@ -103,3 +103,15 @@ BEGIN
   RETURN NEW;
 END;
 $EOFCODE$ LANGUAGE plpgsql;
+
+CREATE FUNCTION utils.default_self_reference() RETURNS trigger AS $EOFCODE$
+DECLARE
+  column_name text := TG_ARGV[0];
+BEGIN
+  IF (to_jsonb(NEW) ->> column_name) IS NULL THEN
+    NEW := jsonb_populate_record(NEW, jsonb_build_object(column_name, NEW.id));
+  END IF;
+
+  RETURN NEW;
+END;
+$EOFCODE$ LANGUAGE plpgsql;

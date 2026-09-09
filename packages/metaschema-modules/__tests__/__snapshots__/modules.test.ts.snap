@@ -58,6 +58,7 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
     "rate_limit_meters_module",
     "rate_limits_module",
     "realtime_module",
+    "refusal_log_module",
     "repository_module",
     "resource_module",
     "rls_module",
@@ -84,8 +85,8 @@ exports[`db_meta_modules should have all expected module tables 1`] = `
 
 exports[`db_meta_modules should verify all module tables exist in metaschema_modules_public schema 1`] = `
 {
-  "moduleTablesCount": 75,
-  "totalTables": 84,
+  "moduleTablesCount": 76,
+  "totalTables": 85,
 }
 `;
 
@@ -152,13 +153,13 @@ exports[`db_meta_modules should verify emails_module table structure 1`] = `
 
 exports[`db_meta_modules should verify module table structures have database_id foreign keys 1`] = `
 {
-  "constraintCount": 75,
+  "constraintCount": 76,
 }
 `;
 
 exports[`db_meta_modules should verify module tables have proper foreign key relationships 1`] = `
 {
-  "constraintCount": 558,
+  "constraintCount": 566,
   "foreignTables": [
     "catalog_module",
     "database",

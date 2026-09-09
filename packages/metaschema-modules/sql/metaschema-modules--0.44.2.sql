@@ -1220,6 +1220,7 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   database_id uuid NOT NULL,
   schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
   emails_table_id uuid NOT NULL DEFAULT uuid_nil(),
   users_table_id uuid NOT NULL DEFAULT uuid_nil(),
   secrets_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -1243,6 +1244,8 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
   sign_in_cross_origin_function text NOT NULL DEFAULT 'sign_in_cross_origin',
   request_cross_origin_token_function text NOT NULL DEFAULT 'request_cross_origin_token',
   extend_token_expires text NOT NULL DEFAULT 'extend_token_expires',
+  revoke_session_tree_function text NOT NULL DEFAULT 'revoke_session_tree',
+  sweep_expired_sessions_function text NOT NULL DEFAULT 'sweep_expired_sessions',
   api_name text DEFAULT 'auth',
   private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
@@ -1251,6 +1254,10 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
     ON DELETE CASCADE,
   CONSTRAINT schema_fkey
     FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT private_schema_fkey
+    FOREIGN KEY(private_schema_id)
     REFERENCES metaschema_public.schema (id)
     ON DELETE CASCADE,
   CONSTRAINT email_table_fkey
@@ -1294,6 +1301,8 @@ CREATE INDEX user_auth_module_sessions_table_id_idx ON metaschema_modules_public
 CREATE INDEX user_auth_module_users_table_id_idx ON metaschema_modules_public.user_auth_module (users_table_id);
 
 CREATE INDEX user_auth_module_schema_id_idx ON metaschema_modules_public.user_auth_module (schema_id);
+
+CREATE INDEX user_auth_module_private_schema_id_idx ON metaschema_modules_public.user_auth_module (private_schema_id);
 
 COMMENT ON CONSTRAINT email_table_fkey ON metaschema_modules_public.user_auth_module IS '@behavior -*';
 
@@ -3133,6 +3142,8 @@ CREATE TABLE metaschema_modules_public.inference_log_module (
   inference_log_table_name text NOT NULL DEFAULT '',
   usage_summary_table_id uuid NOT NULL DEFAULT uuid_nil(),
   usage_summary_table_name text NOT NULL DEFAULT '',
+  inference_price_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  inference_price_table_name text NOT NULL DEFAULT '',
   "interval" text NOT NULL DEFAULT '1 month',
   retention text NOT NULL DEFAULT '12 months',
   premake int NOT NULL DEFAULT 2,
@@ -3161,6 +3172,10 @@ CREATE TABLE metaschema_modules_public.inference_log_module (
     FOREIGN KEY(usage_summary_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
+  CONSTRAINT inference_price_table_fkey
+    FOREIGN KEY(inference_price_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
   CONSTRAINT inference_log_module_database_id_prefix_unique 
     UNIQUE NULLS NOT DISTINCT (database_id, prefix)
 );
@@ -3169,6 +3184,8 @@ CREATE INDEX inference_log_module_inference_log_table_id_idx ON metaschema_modul
 
 CREATE INDEX inference_log_module_usage_summary_table_id_idx ON metaschema_modules_public.inference_log_module (usage_summary_table_id);
 
+CREATE INDEX inference_log_module_inference_price_table_id_idx ON metaschema_modules_public.inference_log_module (inference_price_table_id);
+
 CREATE INDEX inference_log_module_private_schema_id_idx ON metaschema_modules_public.inference_log_module (private_schema_id);
 
 CREATE INDEX inference_log_module_schema_id_idx ON metaschema_modules_public.inference_log_module (schema_id);
@@ -3176,6 +3193,8 @@ CREATE INDEX inference_log_module_schema_id_idx ON metaschema_modules_public.inf
 COMMENT ON COLUMN metaschema_modules_public.inference_log_module.inference_log_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.inference_log_module.usage_summary_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.inference_log_module.inference_price_table_id IS '@module_table';
 
 CREATE TABLE metaschema_modules_public.compute_log_module (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -3457,6 +3476,7 @@ CREATE TABLE metaschema_modules_public.agent_module (
   run_table_name text NOT NULL DEFAULT 'agent_run',
   event_table_name text NOT NULL DEFAULT 'agent_event',
   workspace_table_name text NOT NULL DEFAULT 'agent_run_workspace',
+  settle_run_cost_function_name text NOT NULL DEFAULT '',
   has_plans boolean NOT NULL DEFAULT false,
   has_resources boolean NOT NULL DEFAULT false,
   has_agents boolean NOT NULL DEFAULT false,
@@ -4500,6 +4520,7 @@ CREATE TABLE metaschema_modules_public.principal_auth_module (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   database_id uuid NOT NULL,
   schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
   principals_table_id uuid NOT NULL DEFAULT uuid_nil(),
   principal_entities_table_id uuid NOT NULL DEFAULT uuid_nil(),
   principal_scope_overrides_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -4514,6 +4535,7 @@ CREATE TABLE metaschema_modules_public.principal_auth_module (
   delete_org_principal_function text NOT NULL DEFAULT 'delete_org_principal',
   create_org_api_key_function text NOT NULL DEFAULT 'create_org_api_key',
   revoke_org_api_key_function text NOT NULL DEFAULT 'revoke_org_api_key',
+  sweep_expired_principals_function text NOT NULL DEFAULT 'sweep_expired_principals',
   api_name text DEFAULT 'auth',
   CONSTRAINT db_fkey
     FOREIGN KEY(database_id)
@@ -4521,6 +4543,10 @@ CREATE TABLE metaschema_modules_public.principal_auth_module (
     ON DELETE CASCADE,
   CONSTRAINT schema_fkey
     FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT private_schema_fkey
+    FOREIGN KEY(private_schema_id)
     REFERENCES metaschema_public.schema (id)
     ON DELETE CASCADE,
   CONSTRAINT principals_table_fkey
@@ -4558,6 +4584,8 @@ CREATE INDEX principal_auth_module_sessions_table_id_idx ON metaschema_modules_p
 CREATE INDEX principal_auth_module_users_table_id_idx ON metaschema_modules_public.principal_auth_module (users_table_id);
 
 CREATE INDEX principal_auth_module_schema_id_idx ON metaschema_modules_public.principal_auth_module (schema_id);
+
+CREATE INDEX principal_auth_module_private_schema_id_idx ON metaschema_modules_public.principal_auth_module (private_schema_id);
 
 COMMENT ON CONSTRAINT principals_table_fkey ON metaschema_modules_public.principal_auth_module IS '@behavior -*';
 
@@ -6559,3 +6587,65 @@ COMMENT ON COLUMN metaschema_modules_public.cluster_module.database_servers_tabl
 COMMENT ON COLUMN metaschema_modules_public.cluster_module.physical_databases_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.cluster_module.database_placements_table_id IS '@module_table';
+
+CREATE TABLE metaschema_modules_public.refusal_log_module (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  database_id uuid NOT NULL,
+  entity_field text,
+  schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
+  public_schema_name text,
+  private_schema_name text,
+  log_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  log_table_name text NOT NULL DEFAULT '',
+  summary_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  summary_table_name text NOT NULL DEFAULT '',
+  record_refusals_function text NOT NULL DEFAULT '',
+  rollup_refusal_usage_summary_function text NOT NULL DEFAULT '',
+  log_interval text NOT NULL DEFAULT '1 day',
+  log_retention text NOT NULL DEFAULT '7 days',
+  log_premake int NOT NULL DEFAULT 2,
+  summary_interval text NOT NULL DEFAULT '1 month',
+  summary_retention text NOT NULL DEFAULT '3 months',
+  summary_premake int NOT NULL DEFAULT 2,
+  scope text NOT NULL,
+  prefix text NOT NULL DEFAULT '',
+  api_name text DEFAULT 'usage',
+  private_api_name text DEFAULT NULL,
+  CONSTRAINT db_fkey
+    FOREIGN KEY(database_id)
+    REFERENCES metaschema_public.database (id)
+    ON DELETE CASCADE,
+  CONSTRAINT schema_fkey
+    FOREIGN KEY(schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT private_schema_fkey
+    FOREIGN KEY(private_schema_id)
+    REFERENCES metaschema_public.schema (id)
+    ON DELETE CASCADE,
+  CONSTRAINT log_table_fkey
+    FOREIGN KEY(log_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT summary_table_fkey
+    FOREIGN KEY(summary_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT refusal_log_module_database_id_scope_unique 
+    UNIQUE (database_id, scope)
+);
+
+CREATE INDEX refusal_log_module_log_table_id_idx ON metaschema_modules_public.refusal_log_module (log_table_id);
+
+CREATE INDEX refusal_log_module_summary_table_id_idx ON metaschema_modules_public.refusal_log_module (summary_table_id);
+
+CREATE INDEX refusal_log_module_private_schema_id_idx ON metaschema_modules_public.refusal_log_module (private_schema_id);
+
+CREATE INDEX refusal_log_module_schema_id_idx ON metaschema_modules_public.refusal_log_module (schema_id);
+
+COMMENT ON COLUMN metaschema_modules_public.refusal_log_module.log_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.refusal_log_module.summary_table_id IS '@module_table';
+
+CREATE UNIQUE INDEX refusal_log_module_one_platform_scope ON metaschema_modules_public.refusal_log_module (database_id) WHERE scope = 'platform';

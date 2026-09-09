@@ -21,11 +21,37 @@ BEGIN;
 --                           table. Object with exactly {table_id (uuid),
 --                           fk_field (text), min_age_field (text)}. Requires
 --                           min_age as the fallback default. UPDATE/DELETE only.
+--       min_age_anchor (optional): measure min_age from a related row's
+--                           timestamp instead of the guarded row's created_at,
+--                           for a configuration row that is replaced rather
+--                           than edited. Object with exactly {table_id (uuid),
+--                           fk_field (text), timestamp_field (text)}. Requires
+--                           min_age, excludes min_age_lookup. UPDATE/DELETE only.
+--       min_age_unless (optional): conditions tree (same grammar as
+--                           conditions) that forfeits the min_age grace: a row
+--                           younger than min_age is still guarded when it
+--                           matches. Requires min_age; excludes min_age_lookup
+--                           and min_age_anchor. UPDATE/DELETE only.
+--       allow_system (optional): boolean; when true the system role
+--                           (jwt.claims.role_type = 'system') skips the guard so
+--                           provisioning paths without a session can write.
 --       conditions (optional): declarative WHEN-clause tree gating the guard
 --                           (compiled by metaschema_generators.build_condition_expr
 --                           and validated through the ast_validate framework at
 --                           apply time). Shape-validated here via
 --                           is_valid_step_up_conditions.
+--       related_conditions (optional): the guard arms on the row the written
+--                           row points at rather than on the written row.
+--                           Object with exactly {table_id (uuid), fk_field
+--                           (text), conditions (tree over the related table)}.
+--                           Tested in the trigger body, since a WHEN clause
+--                           may not hold a subquery. Excludes min_age_lookup
+--                           and min_age_anchor.
+--       name (optional):    identifies one of several guards on a verb.
+--   - a non-empty array of such objects when one verb needs guards of
+--     differing posture. Names are unique lowercase snake_case; at most one
+--     element is unnamed (the verb's default guard, keeping its historical
+--     trigger name).
 
 -- Shape validator for the conditions tree accepted by the declarative
 -- step_up field. Mirrors the grammar of
@@ -231,8 +257,28 @@ DECLARE
     v_lookup_key text;
     v_lookup_table_id uuid;
 
+    -- min_age_anchor validation (window measured from a related row)
+    v_min_age_anchor jsonb;
+    v_anchor_key text;
+    v_anchor_table_id uuid;
+
+    -- min_age_unless validation (grace forfeited when the tree matches)
+    v_min_age_unless jsonb;
+
+    -- allow_system validation (system-role exemption)
+    v_allow_system jsonb;
+
     -- conditions validation (declarative WHEN-clause tree)
     v_conditions jsonb;
+
+    -- related_conditions validation (guard arms on a related row)
+    v_related_conditions jsonb;
+    v_related_key text;
+    v_related_table_id uuid;
+
+    -- named-guard array validation
+    v_guard jsonb;
+    v_guard_names text[];
 BEGIN
     IF step_up IS NULL THEN
         RETURN false;
@@ -251,6 +297,35 @@ BEGIN
             RETURN false;
         END IF;
 
+        -- A list of guards: every element is an object that would be valid
+        -- on its own, and carries a name no sibling shares (one may go
+        -- unnamed: the verb's default guard).
+        IF jsonb_typeof(v_value) = 'array' THEN
+            IF jsonb_array_length(v_value) = 0 THEN
+                RETURN false;
+            END IF;
+            v_guard_names := ARRAY[]::text[];
+            FOR v_guard IN SELECT elem FROM jsonb_array_elements(v_value) AS g(elem) LOOP
+                IF jsonb_typeof(v_guard) != 'object' THEN
+                    RETURN false;
+                END IF;
+                IF v_guard ? 'name' THEN
+                    IF jsonb_typeof(v_guard -> 'name') != 'string'
+                       OR (v_guard ->> 'name') !~ '^[a-z][a-z0-9_]*$' THEN
+                        RETURN false;
+                    END IF;
+                END IF;
+                IF COALESCE(v_guard ->> 'name', '') = ANY(v_guard_names) THEN
+                    RETURN false;
+                END IF;
+                v_guard_names := v_guard_names || COALESCE(v_guard ->> 'name', '');
+                IF NOT metaschema_private.is_valid_step_up(jsonb_build_object(v_key, v_guard - 'name')) THEN
+                    RETURN false;
+                END IF;
+            END LOOP;
+            CONTINUE;
+        END IF;
+
         IF jsonb_typeof(v_value) = 'boolean' THEN
             IF v_value = 'false'::jsonb THEN
                 RETURN false;
@@ -265,7 +340,7 @@ BEGIN
             END IF;
 
             FOR v_obj_key IN SELECT key FROM jsonb_each(v_value) LOOP
-                IF v_obj_key NOT IN ('type', 'min_age', 'min_age_lookup', 'conditions') THEN
+                IF v_obj_key NOT IN ('type', 'min_age', 'min_age_lookup', 'min_age_anchor', 'min_age_unless', 'allow_system', 'conditions', 'related_conditions') THEN
                     RETURN false;
                 END IF;
             END LOOP;
@@ -331,9 +406,100 @@ BEGIN
                 END;
             END IF;
 
+            v_min_age_anchor := v_value -> 'min_age_anchor';
+            IF v_min_age_anchor IS NOT NULL THEN
+                -- an anchor says where the window is measured from, so it
+                -- needs a window, and INSERT has no window at all
+                IF v_key = 'INSERT' OR v_min_age IS NULL THEN
+                    RETURN false;
+                END IF;
+
+                -- the two are alternative sources for the same window
+                IF v_min_age_lookup IS NOT NULL THEN
+                    RETURN false;
+                END IF;
+
+                IF jsonb_typeof(v_min_age_anchor) != 'object' THEN
+                    RETURN false;
+                END IF;
+
+                FOR v_anchor_key IN SELECT key FROM jsonb_each(v_min_age_anchor) LOOP
+                    IF v_anchor_key NOT IN ('table_id', 'fk_field', 'timestamp_field') THEN
+                        RETURN false;
+                    END IF;
+                END LOOP;
+
+                IF jsonb_typeof(v_min_age_anchor -> 'table_id') IS DISTINCT FROM 'string'
+                   OR jsonb_typeof(v_min_age_anchor -> 'fk_field') IS DISTINCT FROM 'string'
+                   OR jsonb_typeof(v_min_age_anchor -> 'timestamp_field') IS DISTINCT FROM 'string' THEN
+                    RETURN false;
+                END IF;
+
+                BEGIN
+                    v_anchor_table_id := (v_min_age_anchor ->> 'table_id')::uuid;
+                EXCEPTION WHEN OTHERS THEN
+                    RETURN false;
+                END;
+            END IF;
+
+            v_min_age_unless := v_value -> 'min_age_unless';
+            IF v_min_age_unless IS NOT NULL THEN
+                -- forfeiting a grace needs a grace to forfeit, and only a
+                -- static window can be forfeited
+                IF v_key = 'INSERT' OR v_min_age IS NULL
+                   OR v_min_age_lookup IS NOT NULL OR v_min_age_anchor IS NOT NULL THEN
+                    RETURN false;
+                END IF;
+
+                IF NOT metaschema_private.is_valid_step_up_conditions(v_min_age_unless) THEN
+                    RETURN false;
+                END IF;
+            END IF;
+
+            v_allow_system := v_value -> 'allow_system';
+            IF v_allow_system IS NOT NULL THEN
+                IF jsonb_typeof(v_allow_system) != 'boolean' THEN
+                    RETURN false;
+                END IF;
+            END IF;
+
             v_conditions := v_value -> 'conditions';
             IF v_conditions IS NOT NULL THEN
                 IF NOT metaschema_private.is_valid_step_up_conditions(v_conditions) THEN
+                    RETURN false;
+                END IF;
+            END IF;
+
+            v_related_conditions := v_value -> 'related_conditions';
+            IF v_related_conditions IS NOT NULL THEN
+                -- the body belongs to one mechanism: a lookup or anchored
+                -- window already occupies it
+                IF v_min_age_lookup IS NOT NULL OR v_min_age_anchor IS NOT NULL THEN
+                    RETURN false;
+                END IF;
+
+                IF jsonb_typeof(v_related_conditions) != 'object' THEN
+                    RETURN false;
+                END IF;
+
+                FOR v_related_key IN SELECT key FROM jsonb_each(v_related_conditions) LOOP
+                    IF v_related_key NOT IN ('table_id', 'fk_field', 'conditions') THEN
+                        RETURN false;
+                    END IF;
+                END LOOP;
+
+                IF jsonb_typeof(v_related_conditions -> 'table_id') IS DISTINCT FROM 'string'
+                   OR jsonb_typeof(v_related_conditions -> 'fk_field') IS DISTINCT FROM 'string' THEN
+                    RETURN false;
+                END IF;
+
+                BEGIN
+                    v_related_table_id := (v_related_conditions ->> 'table_id')::uuid;
+                EXCEPTION WHEN OTHERS THEN
+                    RETURN false;
+                END;
+
+                IF NOT metaschema_private.is_valid_step_up_conditions(v_related_conditions -> 'conditions') THEN
                     RETURN false;
                 END IF;
             END IF;

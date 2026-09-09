@@ -28,6 +28,12 @@ CREATE TABLE metaschema_modules_public.inference_log_module (
   usage_summary_table_id uuid NOT NULL DEFAULT uuid_nil(),
   usage_summary_table_name text NOT NULL DEFAULT '',
 
+  -- Provider/model price catalog: internal per-million-token rates a BEFORE
+  -- INSERT trigger uses to stamp inference_log.cost (COGS, never a customer
+  -- meter).
+  inference_price_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  inference_price_table_name text NOT NULL DEFAULT '',
+
   -- Partition lifecycle configuration
   "interval" text NOT NULL DEFAULT '1 month',
   retention text NOT NULL DEFAULT '12 months',
@@ -56,11 +62,13 @@ CREATE TABLE metaschema_modules_public.inference_log_module (
   CONSTRAINT private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
   CONSTRAINT inference_log_table_fkey FOREIGN KEY (inference_log_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT usage_summary_table_fkey FOREIGN KEY (usage_summary_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+  CONSTRAINT inference_price_table_fkey FOREIGN KEY (inference_price_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT inference_log_module_database_id_prefix_unique UNIQUE NULLS NOT DISTINCT (database_id, prefix)
 );
 
 CREATE INDEX inference_log_module_inference_log_table_id_idx ON metaschema_modules_public.inference_log_module ( inference_log_table_id );
 CREATE INDEX inference_log_module_usage_summary_table_id_idx ON metaschema_modules_public.inference_log_module ( usage_summary_table_id );
+CREATE INDEX inference_log_module_inference_price_table_id_idx ON metaschema_modules_public.inference_log_module ( inference_price_table_id );
 CREATE INDEX inference_log_module_private_schema_id_idx ON metaschema_modules_public.inference_log_module ( private_schema_id );
 CREATE INDEX inference_log_module_schema_id_idx ON metaschema_modules_public.inference_log_module ( schema_id );
 
@@ -70,5 +78,6 @@ CREATE INDEX inference_log_module_schema_id_idx ON metaschema_modules_public.inf
 -- install, keyed by the role name in the column.
 COMMENT ON COLUMN metaschema_modules_public.inference_log_module.inference_log_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.inference_log_module.usage_summary_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.inference_log_module.inference_price_table_id IS '@module_table';
 
 COMMIT;

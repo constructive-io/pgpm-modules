@@ -9,6 +9,8 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
     database_id uuid NOT NULL,
 
     schema_id uuid NOT NULL DEFAULT uuid_nil(),
+    -- auth_private: server-only procedures (revoke_session_tree, sweep_expired_sessions)
+    private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
     emails_table_id uuid NOT NULL DEFAULT uuid_nil(),
     users_table_id uuid NOT NULL DEFAULT uuid_nil(),
     secrets_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -41,6 +43,11 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
     request_cross_origin_token_function text NOT NULL DEFAULT 'request_cross_origin_token',
     extend_token_expires text NOT NULL DEFAULT 'extend_token_expires',
 
+    -- Session tree: private cascade helper and the sessions:expire_sweep
+    -- maintenance function the worker resolves through this row.
+    revoke_session_tree_function text NOT NULL DEFAULT 'revoke_session_tree',
+    sweep_expired_sessions_function text NOT NULL DEFAULT 'sweep_expired_sessions',
+
     -- UNIQUE(api_id),
 
     -- API routing (configurable per-module)
@@ -49,6 +56,7 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
 
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
     CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
+    CONSTRAINT private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT email_table_fkey FOREIGN KEY (emails_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT users_table_fkey FOREIGN KEY (users_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT secrets_table_fkey FOREIGN KEY (secrets_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
@@ -67,6 +75,7 @@ CREATE INDEX user_auth_module_session_credentials_table_id_idx ON metaschema_mod
 CREATE INDEX user_auth_module_sessions_table_id_idx ON metaschema_modules_public.user_auth_module ( sessions_table_id );
 CREATE INDEX user_auth_module_users_table_id_idx ON metaschema_modules_public.user_auth_module ( users_table_id );
 CREATE INDEX user_auth_module_schema_id_idx ON metaschema_modules_public.user_auth_module ( schema_id );
+CREATE INDEX user_auth_module_private_schema_id_idx ON metaschema_modules_public.user_auth_module ( private_schema_id );
 
 COMMENT ON CONSTRAINT email_table_fkey
      ON metaschema_modules_public.user_auth_module IS E'@behavior -*';

@@ -1566,6 +1566,9 @@ BEGIN
         'configs', coalesce(v_definition->'required_configs', '[]'::jsonb),
         'integrations', coalesce(v_definition->'integrations', '[]'::jsonb),
         'access_channels', coalesce(v_definition->'access_channels', '[]'::jsonb),
+        -- Not coalesced: NULL means the handler declared nothing and gets the
+        -- full platform set, an empty array means it declared none.
+        'capabilities', v_definition->'required_capabilities',
         'payload', function_resolution.resolve_payload_refs(
             resolve_capabilities.database_id,
             resolve_capabilities.scope,
@@ -1695,6 +1698,7 @@ DECLARE
     entry_target text;
     entry_task text;
     entry_service uuid;
+    entry_anonymous boolean;
     target_column text;
     target_id uuid;
     service_found boolean;
@@ -1945,6 +1949,7 @@ BEGIN
     LOOP
         entry_path := entry ->> 'path';
         entry_target := entry ->> 'target';
+        entry_anonymous := coalesce((entry ->> 'anonymous')::boolean, false);
 
         IF entry_target = 'function' THEN
             entry_task := entry ->> 'task_identifier';
@@ -1997,8 +2002,8 @@ BEGIN
 
         -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: insert into the routes plane named by app_scope.routing_tables; every value is a bound parameter
         query := format(
-            'INSERT INTO %I.%I (%s%sdomain_id, path, %I)
-             SELECT %s%s$1, $2, $3
+            'INSERT INTO %I.%I (%s%sdomain_id, path, anonymous, %I)
+             SELECT %s%s$1, $2, $6, $3
               WHERE NOT EXISTS (
                     SELECT 1 FROM %I.%I AS x
                      WHERE x.domain_id = $1 AND x.path = $2%s)',
@@ -2018,7 +2023,7 @@ BEGIN
         );
 
         EXECUTE query USING domain_id, entry_path, target_id, key_value,
-            install_route_bindings.site_id;
+            install_route_bindings.site_id, entry_anonymous;
         GET DIAGNOSTICS inserted = ROW_COUNT;
 
         IF inserted > 0 THEN
