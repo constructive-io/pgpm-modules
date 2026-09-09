@@ -9,6 +9,8 @@ CREATE TABLE metaschema_modules_public.principal_auth_module (
     database_id uuid NOT NULL,
 
     schema_id uuid NOT NULL DEFAULT uuid_nil(),
+    -- auth_private: server-only procedures (sweep_expired_principals)
+    private_schema_id uuid NOT NULL DEFAULT uuid_nil(),
     principals_table_id uuid NOT NULL DEFAULT uuid_nil(),
     principal_entities_table_id uuid NOT NULL DEFAULT uuid_nil(),
     principal_scope_overrides_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -29,10 +31,14 @@ CREATE TABLE metaschema_modules_public.principal_auth_module (
     create_org_api_key_function text NOT NULL DEFAULT 'create_org_api_key',
     revoke_org_api_key_function text NOT NULL DEFAULT 'revoke_org_api_key',
 
+    -- principals:expire_sweep maintenance function the worker resolves through this row
+    sweep_expired_principals_function text NOT NULL DEFAULT 'sweep_expired_principals',
+
     api_name text DEFAULT 'auth',
 
     CONSTRAINT db_fkey FOREIGN KEY (database_id) REFERENCES metaschema_public.database (id) ON DELETE CASCADE,
     CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
+    CONSTRAINT private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
     CONSTRAINT principals_table_fkey FOREIGN KEY (principals_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT principal_entities_table_fkey FOREIGN KEY (principal_entities_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
     CONSTRAINT users_table_fkey FOREIGN KEY (users_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
@@ -47,6 +53,7 @@ CREATE INDEX principal_auth_module_session_credentials_table_id_idx ON metaschem
 CREATE INDEX principal_auth_module_sessions_table_id_idx ON metaschema_modules_public.principal_auth_module ( sessions_table_id );
 CREATE INDEX principal_auth_module_users_table_id_idx ON metaschema_modules_public.principal_auth_module ( users_table_id );
 CREATE INDEX principal_auth_module_schema_id_idx ON metaschema_modules_public.principal_auth_module ( schema_id );
+CREATE INDEX principal_auth_module_private_schema_id_idx ON metaschema_modules_public.principal_auth_module ( private_schema_id );
 
 COMMENT ON CONSTRAINT principals_table_fkey
      ON metaschema_modules_public.principal_auth_module IS E'@behavior -*';

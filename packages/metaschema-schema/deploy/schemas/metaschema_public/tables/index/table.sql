@@ -21,6 +21,9 @@ CREATE TABLE metaschema_public.index (
   index_params jsonb,
   where_clause jsonb,
   is_unique boolean NOT NULL default false,
+  -- UNIQUE ... NULLS NOT DISTINCT: NULL key values collide, so a nullable
+  -- attribution column can be part of an upsert's conflict target.
+  nulls_not_distinct boolean NOT NULL default false,
 
   options jsonb,
   op_classes text[],

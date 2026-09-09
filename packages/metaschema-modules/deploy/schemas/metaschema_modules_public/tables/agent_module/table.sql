@@ -49,6 +49,13 @@ CREATE TABLE metaschema_modules_public.agent_module (
   event_table_name text NOT NULL DEFAULT 'agent_event',
   workspace_table_name text NOT NULL DEFAULT 'agent_run_workspace',
 
+  -- Name of the AST-generated run cost settlement function in the private
+  -- schema (agent_run.total_cost / token_usage from priced inference_log
+  -- rows). Prefixed like the tables so two scopes share one private schema;
+  -- stays '' when the module has no runs or the scope has no inference log,
+  -- and the 'agent_run:settle_cost' maintenance task then skips this row.
+  settle_run_cost_function_name text NOT NULL DEFAULT '',
+
   -- Feature flags
   has_plans boolean NOT NULL DEFAULT false,
   has_resources boolean NOT NULL DEFAULT false,

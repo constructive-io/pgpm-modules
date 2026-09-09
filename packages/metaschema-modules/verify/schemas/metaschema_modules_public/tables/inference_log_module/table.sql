@@ -11,6 +11,8 @@ SELECT
   inference_log_table_name,
   usage_summary_table_id,
   usage_summary_table_name,
+  inference_price_table_id,
+  inference_price_table_name,
   "interval",
   retention,
   premake,

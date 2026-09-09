@@ -265,6 +265,9 @@ BEGIN
         'configs', coalesce(v_definition->'required_configs', '[]'::jsonb),
         'integrations', coalesce(v_definition->'integrations', '[]'::jsonb),
         'access_channels', coalesce(v_definition->'access_channels', '[]'::jsonb),
+        -- Not coalesced: NULL means the handler declared nothing and gets the
+        -- full platform set, an empty array means it declared none.
+        'capabilities', v_definition->'required_capabilities',
         'payload', function_resolution.resolve_payload_refs(
             resolve_capabilities.database_id,
             resolve_capabilities.scope,

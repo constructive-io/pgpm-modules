@@ -39,7 +39,8 @@ describe('function-resolution capability resolution', () => {
          required_buckets text[] NOT NULL DEFAULT '{}',
          required_modules text[] NOT NULL DEFAULT '{}',
          required_models text[] NOT NULL DEFAULT '{}',
-         integrations text[] NOT NULL DEFAULT '{}'
+         integrations text[] NOT NULL DEFAULT '{}',
+         required_capabilities jsonb
        )`
     );
     await pg.query(
@@ -176,9 +177,10 @@ describe('function-resolution capability resolution', () => {
           resource_installations_table_id, apps_table_id, buckets_table_id,
           sites_web_config_table_id, sites_error_pages_table_id,
           sites_app_links_table_id, sites_deep_links_table_id,
+          app_store_identities_table_id,
           images_table_id, redirects_table_id,
-          app_store_identities_table_id, bindings_table_id, scope)
-       VALUES ($1, $2, $3, $3, $3, $3, $4, $3, $3, $3, $3, $3, $3, $5, $3, $3, $3, $3, $3, $3, $6, 'database')`,
+          bindings_table_id, scope)
+       VALUES ($1, $2, $3, $3, $3, $4, $3, $3, $3, $3, $3, $3, $5, $3, $3, $3, $3, $3, $3, $3, $6, 'database')`,
       [
         TENANT_DB,
         catFunctions.schemaId,
@@ -272,8 +274,17 @@ describe('function-resolution capability resolution', () => {
       [TENANT_DB]
     );
     ids.ambiguous = ambiguous.id;
+    const declaring = await pg.one(
+      `INSERT INTO cap_defs.function_definitions
+         (database_id, task_identifier, access_channels, required_buckets, required_capabilities)
+       VALUES ($1, 'signup:welcome', ARRAY['api'], ARRAY['exports'],
+               '[{"name":"email","version":"1.0.0"},{"name":"events","version":"1.0.0","declaration":{"stream":"signups"}}]'::jsonb)
+       RETURNING id`,
+      [TENANT_DB]
+    );
+    ids.declaring = declaring.id;
 
-    for (const id of [ids.exporter, ids.ambiguous]) {
+    for (const id of [ids.exporter, ids.ambiguous, ids.declaring]) {
       await pg.query(
         `INSERT INTO catalog_private.functions (id, owner_scope, owner_key, is_visible, database_id, task_identifier)
          SELECT d.id, 'database', d.database_id, false, d.database_id, d.task_identifier
@@ -512,6 +523,20 @@ describe('function-resolution capability resolution', () => {
     expect(bundle.apis['notifications_module'].api_id).toBe(ids.adminApi);
     expect(bundle.models).toEqual(['gpt-4o']);
     expect(bundle.payload).toEqual({ subject: 'monthly' });
+    // A definition that declared no capabilities echoes null, not [] — the
+    // runtime mounts the full platform set for it.
+    expect(bundle.capabilities).toBeNull();
+  });
+
+  it('resolve_capabilities(): echoes required_capabilities as declared', async () => {
+    const [{ bundle }] = await pg.any(
+      `SELECT function_resolution.resolve_capabilities($1, 'database', $1, $2, 'database', $1, '{}'::jsonb, 'api') AS bundle`,
+      [TENANT_DB, ids.declaring]
+    );
+    expect(bundle.capabilities).toEqual([
+      { name: 'email', version: '1.0.0' },
+      { name: 'events', version: '1.0.0', declaration: { stream: 'signups' } },
+    ]);
   });
 
   it('resolve_capabilities(): an explicit binding overrides tag discovery', async () => {

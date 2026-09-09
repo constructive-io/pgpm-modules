@@ -31,7 +31,6 @@ describe('db_meta_modules', () => {
       'infra_config_module',
       'internal_secrets_module',
       'internal_config_module',
-      'cluster_module',
       'invites_module',
       'events_module',
       'limits_module',
