@@ -18,6 +18,8 @@ CREATE TABLE metaschema_modules_public.billing_module (
   -- Meters table: defines what you track (quota, boolean, credit_pool)
   meters_table_id uuid NOT NULL DEFAULT uuid_nil(),
   meters_table_name text NOT NULL DEFAULT '',
+  credit_packs_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  credit_packs_table_name text NOT NULL DEFAULT '',
 
   -- Plan subscriptions table: assigns plans to entities with lifecycle
   plan_subscriptions_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -45,6 +47,7 @@ CREATE TABLE metaschema_modules_public.billing_module (
 
   -- Generated functions
   record_usage_function text NOT NULL DEFAULT '',
+  grant_meter_credits_function text NOT NULL DEFAULT '',
   sweep_expired_subscriptions_function text NOT NULL DEFAULT '',
   rollup_usage_summary_function text NOT NULL DEFAULT '',
 
@@ -68,6 +71,7 @@ CREATE TABLE metaschema_modules_public.billing_module (
   CONSTRAINT schema_fkey FOREIGN KEY (schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
   CONSTRAINT private_schema_fkey FOREIGN KEY (private_schema_id) REFERENCES metaschema_public.schema (id) ON DELETE CASCADE,
   CONSTRAINT meters_table_fkey FOREIGN KEY (meters_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+  CONSTRAINT credit_packs_table_fkey FOREIGN KEY (credit_packs_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT plan_subscriptions_table_fkey FOREIGN KEY (plan_subscriptions_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT ledger_table_fkey FOREIGN KEY (ledger_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT balances_table_fkey FOREIGN KEY (balances_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
@@ -83,6 +87,7 @@ CREATE INDEX billing_module_meter_credits_table_id_idx ON metaschema_modules_pub
 CREATE INDEX billing_module_meter_defaults_table_id_idx ON metaschema_modules_public.billing_module ( meter_defaults_table_id );
 CREATE INDEX billing_module_meter_sources_table_id_idx ON metaschema_modules_public.billing_module ( meter_sources_table_id );
 CREATE INDEX billing_module_meters_table_id_idx ON metaschema_modules_public.billing_module ( meters_table_id );
+CREATE INDEX billing_module_credit_packs_table_id_idx ON metaschema_modules_public.billing_module ( credit_packs_table_id );
 CREATE INDEX billing_module_plan_subscriptions_table_id_idx ON metaschema_modules_public.billing_module ( plan_subscriptions_table_id );
 CREATE INDEX billing_module_private_schema_id_idx ON metaschema_modules_public.billing_module ( private_schema_id );
 CREATE INDEX billing_module_schema_id_idx ON metaschema_modules_public.billing_module ( schema_id );
@@ -97,6 +102,7 @@ COMMENT ON COLUMN metaschema_modules_public.billing_module.meter_credits_table_i
 COMMENT ON COLUMN metaschema_modules_public.billing_module.meter_defaults_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.billing_module.meter_sources_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.billing_module.meters_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.billing_module.credit_packs_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.billing_module.plan_subscriptions_table_id IS '@module_table';
 
 COMMIT;

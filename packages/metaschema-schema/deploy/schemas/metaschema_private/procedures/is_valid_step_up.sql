@@ -24,9 +24,14 @@ BEGIN;
 --       min_age_anchor (optional): measure min_age from a related row's
 --                           timestamp instead of the guarded row's created_at,
 --                           for a configuration row that is replaced rather
---                           than edited. Object with exactly {table_id (uuid),
---                           fk_field (text), timestamp_field (text)}. Requires
---                           min_age, excludes min_age_lookup. UPDATE/DELETE only.
+--                           than edited. Object with {table_id (uuid),
+--                           timestamp_field (text)} and exactly one of
+--                           fk_field (text: the anchor row is the one the
+--                           guarded row points at) or conditions (tree over
+--                           the anchor table: the anchor is its earliest
+--                           matching row, for a singleton whose subject is
+--                           the database itself). Requires min_age, excludes
+--                           min_age_lookup. UPDATE/DELETE only.
 --       min_age_unless (optional): conditions tree (same grammar as
 --                           conditions) that forfeits the min_age grace: a row
 --                           younger than min_age is still guarded when it
@@ -35,6 +40,11 @@ BEGIN;
 --       allow_system (optional): boolean; when true the system role
 --                           (jwt.claims.role_type = 'system') skips the guard so
 --                           provisioning paths without a session can write.
+--       human_only (optional): boolean; when true the trigger body refuses a
+--                           principal caller (jwt.claims.principal_id set and
+--                           distinct from the human's user_id) before it calls
+--                           require_step_up, which a bypass_step_up principal
+--                           would otherwise satisfy on its claims alone.
 --       conditions (optional): declarative WHEN-clause tree gating the guard
 --                           (compiled by metaschema_generators.build_condition_expr
 --                           and validated through the ast_validate framework at
@@ -268,6 +278,9 @@ DECLARE
     -- allow_system validation (system-role exemption)
     v_allow_system jsonb;
 
+    -- human_only validation (principal-caller refusal)
+    v_human_only jsonb;
+
     -- conditions validation (declarative WHEN-clause tree)
     v_conditions jsonb;
 
@@ -340,7 +353,7 @@ BEGIN
             END IF;
 
             FOR v_obj_key IN SELECT key FROM jsonb_each(v_value) LOOP
-                IF v_obj_key NOT IN ('type', 'min_age', 'min_age_lookup', 'min_age_anchor', 'min_age_unless', 'allow_system', 'conditions', 'related_conditions') THEN
+                IF v_obj_key NOT IN ('type', 'min_age', 'min_age_lookup', 'min_age_anchor', 'min_age_unless', 'allow_system', 'human_only', 'conditions', 'related_conditions') THEN
                     RETURN false;
                 END IF;
             END LOOP;
@@ -424,14 +437,28 @@ BEGIN
                 END IF;
 
                 FOR v_anchor_key IN SELECT key FROM jsonb_each(v_min_age_anchor) LOOP
-                    IF v_anchor_key NOT IN ('table_id', 'fk_field', 'timestamp_field') THEN
+                    IF v_anchor_key NOT IN ('table_id', 'fk_field', 'conditions', 'timestamp_field') THEN
                         RETURN false;
                     END IF;
                 END LOOP;
 
                 IF jsonb_typeof(v_min_age_anchor -> 'table_id') IS DISTINCT FROM 'string'
-                   OR jsonb_typeof(v_min_age_anchor -> 'fk_field') IS DISTINCT FROM 'string'
                    OR jsonb_typeof(v_min_age_anchor -> 'timestamp_field') IS DISTINCT FROM 'string' THEN
+                    RETURN false;
+                END IF;
+
+                -- the anchor row is found one way: by key or by conditions
+                IF (v_min_age_anchor ? 'fk_field') = (v_min_age_anchor ? 'conditions') THEN
+                    RETURN false;
+                END IF;
+
+                IF v_min_age_anchor ? 'fk_field'
+                   AND jsonb_typeof(v_min_age_anchor -> 'fk_field') IS DISTINCT FROM 'string' THEN
+                    RETURN false;
+                END IF;
+
+                IF v_min_age_anchor ? 'conditions'
+                   AND NOT metaschema_private.is_valid_step_up_conditions(v_min_age_anchor -> 'conditions') THEN
                     RETURN false;
                 END IF;
 
@@ -459,6 +486,13 @@ BEGIN
             v_allow_system := v_value -> 'allow_system';
             IF v_allow_system IS NOT NULL THEN
                 IF jsonb_typeof(v_allow_system) != 'boolean' THEN
+                    RETURN false;
+                END IF;
+            END IF;
+
+            v_human_only := v_value -> 'human_only';
+            IF v_human_only IS NOT NULL THEN
+                IF jsonb_typeof(v_human_only) != 'boolean' THEN
                     RETURN false;
                 END IF;
             END IF;

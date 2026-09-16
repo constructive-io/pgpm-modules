@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION function_resolution.resolve_capabilities(uuid, text, uuid, uuid, text, uuid, jsonb, text);
+DROP FUNCTION function_resolution.resolve_capabilities(uuid, text, uuid, uuid, text, jsonb, text);
 
 COMMIT;

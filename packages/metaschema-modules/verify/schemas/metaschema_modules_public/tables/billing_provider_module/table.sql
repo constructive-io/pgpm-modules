@@ -22,6 +22,9 @@ SELECT
   billing_webhook_events_table_id,
   billing_webhook_events_table_name,
   process_billing_event_function,
+  get_billing_subscription_by_entity_function,
+  get_billing_subscription_by_external_id_function,
+  get_plan_pricing_by_external_price_function,
   prefix
 FROM metaschema_modules_public.billing_provider_module
 WHERE FALSE;

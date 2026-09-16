@@ -19,6 +19,12 @@ CREATE TABLE metaschema_public.embedding_chunks (
     -- content field configuration
     content_field_name text NOT NULL DEFAULT 'content',
 
+    -- parent columns the chunks are cut from (json array of field names);
+    -- the enqueue trigger fires only once one of them is populated, and
+    -- passes them to the worker so it chunks exactly that text.
+    -- NULL means every content column the worker can read, on every write.
+    source_fields jsonb,
+
     -- embedding configuration
     dimensions int NOT NULL DEFAULT 768,
     metric text NOT NULL DEFAULT 'cosine',

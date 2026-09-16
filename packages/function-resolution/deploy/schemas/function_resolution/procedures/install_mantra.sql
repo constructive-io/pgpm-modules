@@ -74,19 +74,29 @@ BEGIN
             USING ERRCODE = 'FR060';
     END IF;
 
+    -- Two shapes only: a page ({path, task_identifier}, no target kind — it is
+    -- always a function), or a redirect ({path, target: 'redirect', to_path}) a
+    -- host given over to the page set uses to send its root at sign-in. A
+    -- service binding, or a page that names a kind, is a broken preset.
     IF EXISTS (
         SELECT 1
         FROM jsonb_array_elements(install_mantra.bindings) AS b
         WHERE jsonb_typeof(b) <> 'object'
            OR coalesce(b ->> 'path', '') = ''
-           OR coalesce(b ->> 'task_identifier', '') = ''
-           OR b ? 'target'
+           OR CASE b ->> 'target'
+                WHEN 'redirect' THEN coalesce(b ->> 'to_path', '') = '' OR b ? 'task_identifier'
+                ELSE coalesce(b ->> 'task_identifier', '') = '' OR b ? 'target'
+              END
     ) THEN
-        RAISE EXCEPTION 'MANTRA_BINDINGS_INVALID: every binding must carry a non-empty path and task_identifier, and no target kind'
+        RAISE EXCEPTION 'MANTRA_BINDINGS_INVALID: every binding must carry a non-empty path and either a task_identifier with no target kind, or target "redirect" with a to_path'
             USING ERRCODE = 'FR060';
     END IF;
 
-    SELECT jsonb_agg(b || jsonb_build_object('target', 'function'))
+    SELECT jsonb_agg(
+        CASE WHEN b ->> 'target' = 'redirect' THEN b
+             ELSE b || jsonb_build_object('target', 'function')
+        END
+    )
     INTO function_bindings
     FROM jsonb_array_elements(install_mantra.bindings) AS b;
 
@@ -102,6 +112,6 @@ END;
 $$ LANGUAGE plpgsql VOLATILE;
 
 COMMENT ON FUNCTION function_resolution.install_mantra(uuid, regclass, uuid, jsonb, uuid) IS
-'Install the Mantra page set (a JSON array of {path, task_identifier}, which the generated verb reads from the content_presets catalog at kind ''route_bindings'') onto one site as ordinary function-target routes. The sites plane arrives by reference as a regclass, so a generated caller never spells a schema name in a bare string literal the platform export''s AST rename cannot follow. A thin wrapper holding the Mantra document contract — every entry names a task, none names a target kind — over function_resolution.install_route_bindings, which owns the one-scope install: scope and ownership key read from the sites plane''s own registration, the routes plane from app_scope.routing_tables, resolution at that same (scope, entity), idempotent per (domain_id, path).';
+'Install the Mantra page set (a JSON array of {path, task_identifier}, which the generated verb reads from the content_presets catalog at kind ''route_bindings'') onto one site as ordinary function-target routes. The sites plane arrives by reference as a regclass, so a generated caller never spells a schema name in a bare string literal the platform export''s AST rename cannot follow. A thin wrapper holding the Mantra document contract — every entry names a task and no target kind, or is a {target: "redirect", to_path} entry sending a path (a dedicated host''s root) at one of the pages — over function_resolution.install_route_bindings, which owns the one-scope install: scope and ownership key read from the sites plane''s own registration, the routes plane from app_scope.routing_tables, resolution at that same (scope, entity), idempotent per (domain_id, path).';
 
 COMMIT;

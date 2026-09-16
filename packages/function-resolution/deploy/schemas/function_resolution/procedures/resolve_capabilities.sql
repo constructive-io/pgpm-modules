@@ -8,6 +8,7 @@
 -- requires: schemas/function_resolution/procedures/bound_bucket_id
 -- requires: schemas/function_resolution/procedures/resolve_api
 -- requires: schemas/function_resolution/procedures/resolve_payload_refs
+-- requires: pgpm-app-scope:schemas/app_scope/procedures/frames
 
 BEGIN;
 
@@ -29,11 +30,22 @@ BEGIN;
 -- definition is invoked inside a tenant's (or an org's, or a department's)
 -- frame chain and RLS world, which is why the execution triple
 -- (database_id, scope, entity_id) is taken apart from the definition's
--- (definition_scope, definition_database_id). Every requirement resolves
+-- (function_definition_id, definition_scope). Every requirement resolves
 -- against the *execution's* frames, so one image serves every scope.
 -- Every capability therefore has exactly one answer here, or the invocation
 -- fails loudly before any code runs — a function never receives a half-built
 -- context, and never selects a resource itself.
+--
+-- Where the definition's row physically lives is decided by app_scope.frames,
+-- never by the caller. The execution's frames at definition_scope are walked
+-- in order and each frame's lookup database is asked for its function module
+-- (definitions_location); the row is read from the first surface that holds
+-- it, keyed by that frame's key_value in the module's recorded entity_field.
+-- That is what lets a hosted tenant — one with no function module of its own —
+-- run a `database`-scope definition that lives on the platform database's
+-- shared surface: the table is the platform's, the row is the tenant's
+-- (database_id = the tenant), and a row keyed to any other tenant is not found
+-- on that table. Global frames (app/platform) carry no key and no key column.
 --
 -- Buckets resolve in three tiers, and only the third one reaches this
 -- declaration path:
@@ -53,55 +65,81 @@ CREATE FUNCTION function_resolution.resolve_capabilities(
     entity_id uuid,
     function_definition_id uuid,
     definition_scope text,
-    definition_database_id uuid DEFAULT NULL,
     payload jsonb DEFAULT '{}'::jsonb,
     channel text DEFAULT NULL
 ) RETURNS jsonb AS $$
 DECLARE
-    v_defn_database_id uuid;
-    v_defs_schema text;
-    v_defs_table text;
-    v_query text;
-    v_definition jsonb;
-    v_access_channels text[];
-    v_key text;
-    v_bound_bucket_id uuid;
+    -- The frame whose function surface holds the definition: where the row
+    -- physically is (lookup database, schema, table) and whose it is (key).
+    frame record;
+    surface_found boolean := false;
+    definition_database_id uuid;
+    definition_query text;
+    definition jsonb;
+    access_channels text[];
+    unreachable_key text;
+    unreachable_bucket_id uuid;
     -- The keys a tenant fulfilled with an explicit binding, paired positionally
     -- with the bucket each binding names: the two resolution routes are disjoint
     -- sets of keys, resolved by one query each rather than key by key.
-    v_bound_keys text[];
-    v_bound_ids uuid[];
-    v_buckets jsonb := '{}'::jsonb;
-    v_apis jsonb := '{}'::jsonb;
+    bound_keys text[];
+    bound_ids uuid[];
+    buckets jsonb := '{}'::jsonb;
+    apis jsonb := '{}'::jsonb;
 BEGIN
-    v_defn_database_id := coalesce(
-        resolve_capabilities.definition_database_id,
-        resolve_capabilities.database_id
-    );
+    FOR frame IN
+        SELECT f.lookup_database_id, f.key_value, l.schema_name, l.table_name, l.entity_field
+        FROM app_scope.frames(
+            resolve_capabilities.database_id,
+            resolve_capabilities.scope,
+            resolve_capabilities.entity_id
+        ) WITH ORDINALITY AS f(scope, lookup_database_id, key_value, ord)
+        CROSS JOIN LATERAL function_resolution.definitions_location(f.lookup_database_id, f.scope) l
+        WHERE f.scope = resolve_capabilities.definition_scope
+        ORDER BY f.ord
+    LOOP
+        surface_found := true;
 
-    SELECT l.schema_name, l.table_name
-    INTO v_defs_schema, v_defs_table
-    FROM function_resolution.definitions_location(v_defn_database_id, resolve_capabilities.definition_scope) l;
+        -- to_jsonb of the row rather than a column list: the declaration set
+        -- grows, and a resolver that names columns fails on a database whose
+        -- function module predates the newest one. The row must carry the
+        -- frame's key in the module's recorded scope-key column; a global frame
+        -- has neither, and its key is asserted NULL.
+        -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the definitions table is located per frame
+        definition_query := format(
+            'SELECT to_jsonb(d) FROM %I.%I d WHERE d.id = $1 AND %s',
+            frame.schema_name,
+            frame.table_name,
+            CASE
+                WHEN frame.entity_field IS NULL THEN '$2::uuid IS NULL'
+                ELSE format('d.%I = $2', frame.entity_field)
+            END
+        );
 
-    IF v_defs_schema IS NULL THEN
-        RAISE EXCEPTION 'CAPABILITY_DEFINITION_SCOPE_UNPROVISIONED: database % has no function module at scope "%"',
-            v_defn_database_id, resolve_capabilities.definition_scope
+        EXECUTE definition_query
+        INTO definition
+        USING resolve_capabilities.function_definition_id, frame.key_value;
+
+        IF definition IS NOT NULL THEN
+            definition_database_id := frame.lookup_database_id;
+            EXIT;
+        END IF;
+    END LOOP;
+
+    IF NOT surface_found THEN
+        RAISE EXCEPTION 'CAPABILITY_DEFINITION_SCOPE_UNPROVISIONED: no frame of database % (scope "%") has a function module at scope "%"',
+            resolve_capabilities.database_id,
+            resolve_capabilities.scope,
+            resolve_capabilities.definition_scope
             USING ERRCODE = 'FR040';
     END IF;
 
-    -- to_jsonb of the row rather than a column list: the declaration set grows,
-    -- and a resolver that names columns fails on a database whose function
-    -- module predates the newest one.
-    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the definitions table is located per scope
-    v_query := format('SELECT to_jsonb(d) FROM %I.%I d WHERE d.id = $1', v_defs_schema, v_defs_table);
-
-    EXECUTE v_query INTO v_definition USING resolve_capabilities.function_definition_id;
-
-    IF v_definition IS NULL THEN
-        RAISE EXCEPTION 'CAPABILITY_DEFINITION_NOT_FOUND: no function definition % at scope "%" in database %',
+    IF definition IS NULL THEN
+        RAISE EXCEPTION 'CAPABILITY_DEFINITION_NOT_FOUND: no function definition % at scope "%" reachable from database % (scope "%")',
             resolve_capabilities.function_definition_id,
             resolve_capabilities.definition_scope,
-            v_defn_database_id
+            resolve_capabilities.database_id,
+            resolve_capabilities.scope
             USING ERRCODE = 'FR040';
     END IF;
 
@@ -110,14 +148,14 @@ BEGIN
     -- refused here rather than at the image, which cannot know.
     IF resolve_capabilities.channel IS NOT NULL THEN
         SELECT array_agg(c.channel)
-        INTO v_access_channels
-        FROM jsonb_array_elements_text(coalesce(v_definition->'access_channels', '[]'::jsonb)) AS c(channel);
+        INTO access_channels
+        FROM jsonb_array_elements_text(coalesce(definition->'access_channels', '[]'::jsonb)) AS c(channel);
 
-        IF NOT coalesce(v_access_channels, ARRAY[]::text[]) @> ARRAY[resolve_capabilities.channel] THEN
+        IF NOT coalesce(access_channels, ARRAY[]::text[]) @> ARRAY[resolve_capabilities.channel] THEN
             RAISE EXCEPTION 'CAPABILITY_CHANNEL_REFUSED: function % does not declare the "%" access channel (declares: %)',
                 resolve_capabilities.function_definition_id,
                 resolve_capabilities.channel,
-                coalesce(array_to_string(v_access_channels, ', '), '')
+                coalesce(array_to_string(access_channels, ', '), '')
                 USING ERRCODE = 'FR041';
         END IF;
     END IF;
@@ -135,7 +173,7 @@ BEGIN
     -- function is not evaluated.
     -- =========================================================================
     SELECT array_agg(b.key ORDER BY b.ord), array_agg(b.bucket_id ORDER BY b.ord)
-    INTO v_bound_keys, v_bound_ids
+    INTO bound_keys, bound_ids
     FROM (
         SELECT k.key,
                k.ord,
@@ -147,7 +185,7 @@ BEGIN
                    k.key
                ) AS bucket_id
         FROM jsonb_array_elements_text(
-            coalesce(v_definition->'required_buckets', '[]'::jsonb)
+            coalesce(definition->'required_buckets', '[]'::jsonb)
         ) WITH ORDINALITY AS k(key, ord)
     ) b
     WHERE b.bucket_id IS NOT NULL;
@@ -157,10 +195,10 @@ BEGIN
     -- invocation. The generated binding guard cannot check this — compute's
     -- published modules may not reference storage — so it is checked here, where
     -- a function would otherwise be handed the bucket.
-    IF v_bound_keys IS NOT NULL THEN
+    IF bound_keys IS NOT NULL THEN
         SELECT b.key, b.bucket_id
-        INTO v_key, v_bound_bucket_id
-        FROM unnest(v_bound_keys, v_bound_ids) AS b(key, bucket_id)
+        INTO unreachable_key, unreachable_bucket_id
+        FROM unnest(bound_keys, bound_ids) AS b(key, bucket_id)
         WHERE NOT EXISTS (
             SELECT 1
             FROM function_resolution.bucket_catalog_row(
@@ -175,9 +213,9 @@ BEGIN
 
         IF FOUND THEN
             RAISE EXCEPTION 'CAPABILITY_BINDING_UNREACHABLE: capability "%" of function % is bound to bucket %, which database % may not reach',
-                v_key,
+                unreachable_key,
                 resolve_capabilities.function_definition_id,
-                v_bound_bucket_id,
+                unreachable_bucket_id,
                 resolve_capabilities.database_id
                 USING ERRCODE = 'FR013';
         END IF;
@@ -190,8 +228,8 @@ BEGIN
             'database_id', c.owner_database_id,
             'source', 'binding'
         ))
-        INTO v_buckets
-        FROM unnest(v_bound_keys, v_bound_ids) AS b(key, bucket_id)
+        INTO buckets
+        FROM unnest(bound_keys, bound_ids) AS b(key, bucket_id)
         CROSS JOIN LATERAL function_resolution.bucket_catalog_row(
             resolve_capabilities.database_id,
             resolve_capabilities.scope,
@@ -207,11 +245,11 @@ BEGIN
     WITH unbound AS MATERIALIZED (
         SELECT k.key
         FROM jsonb_array_elements_text(
-            coalesce(v_definition->'required_buckets', '[]'::jsonb)
+            coalesce(definition->'required_buckets', '[]'::jsonb)
         ) AS k(key)
-        WHERE NOT k.key = ANY(coalesce(v_bound_keys, ARRAY[]::text[]))
+        WHERE NOT k.key = ANY(coalesce(bound_keys, ARRAY[]::text[]))
     )
-    SELECT coalesce(v_buckets, '{}'::jsonb) || coalesce(jsonb_object_agg(k.key, jsonb_build_object(
+    SELECT coalesce(buckets, '{}'::jsonb) || coalesce(jsonb_object_agg(k.key, jsonb_build_object(
         'bucket_id', r.bucket_id,
         'key', r.bucket_key,
         'type', r.bucket_type,
@@ -219,7 +257,7 @@ BEGIN
         'database_id', r.owner_database_id,
         'source', 'tags'
     )), '{}'::jsonb)
-    INTO v_buckets
+    INTO buckets
     FROM unbound k
     CROSS JOIN LATERAL function_resolution.resolve_bucket(
         resolve_capabilities.database_id,
@@ -240,9 +278,9 @@ BEGIN
         'name', a.api_name,
         'database_id', a.owner_database_id
     )), '{}'::jsonb)
-    INTO v_apis
+    INTO apis
     FROM jsonb_array_elements_text(
-        coalesce(v_definition->'required_modules', '[]'::jsonb)
+        coalesce(definition->'required_modules', '[]'::jsonb)
     ) AS s(selector)
     CROSS JOIN LATERAL function_resolution.resolve_api(
         resolve_capabilities.database_id,
@@ -254,20 +292,20 @@ BEGIN
     RETURN jsonb_build_object(
         'function_definition_id', resolve_capabilities.function_definition_id,
         'definition_scope', resolve_capabilities.definition_scope,
-        'definition_database_id', v_defn_database_id,
+        'definition_database_id', definition_database_id,
         'database_id', resolve_capabilities.database_id,
         'scope', resolve_capabilities.scope,
         'entity_id', resolve_capabilities.entity_id,
-        'buckets', v_buckets,
-        'apis', v_apis,
-        'models', coalesce(v_definition->'required_models', '[]'::jsonb),
-        'secrets', coalesce(v_definition->'required_secrets', '[]'::jsonb),
-        'configs', coalesce(v_definition->'required_configs', '[]'::jsonb),
-        'integrations', coalesce(v_definition->'integrations', '[]'::jsonb),
-        'access_channels', coalesce(v_definition->'access_channels', '[]'::jsonb),
+        'buckets', buckets,
+        'apis', apis,
+        'models', coalesce(definition->'required_models', '[]'::jsonb),
+        'secrets', coalesce(definition->'required_secrets', '[]'::jsonb),
+        'configs', coalesce(definition->'required_configs', '[]'::jsonb),
+        'integrations', coalesce(definition->'integrations', '[]'::jsonb),
+        'access_channels', coalesce(definition->'access_channels', '[]'::jsonb),
         -- Not coalesced: NULL means the handler declared nothing and gets the
         -- full platform set, an empty array means it declared none.
-        'capabilities', v_definition->'required_capabilities',
+        'capabilities', definition->'required_capabilities',
         'payload', function_resolution.resolve_payload_refs(
             resolve_capabilities.database_id,
             resolve_capabilities.scope,
