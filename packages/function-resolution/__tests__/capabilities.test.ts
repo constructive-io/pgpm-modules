@@ -508,7 +508,7 @@ describe('function-resolution capability resolution', () => {
 
   it('resolve_capabilities(): declarations become one resolved bundle', async () => {
     const [{ bundle }] = await pg.any(
-      `SELECT function_resolution.resolve_capabilities($1, 'database', $1, $2, 'database', $1, $3::jsonb, 'api') AS bundle`,
+      `SELECT function_resolution.resolve_capabilities($1, 'database', $1, $2, 'database', $3::jsonb, 'api') AS bundle`,
       [TENANT_DB, ids.exporter, JSON.stringify({ subject: 'monthly' })]
     );
 
@@ -530,7 +530,7 @@ describe('function-resolution capability resolution', () => {
 
   it('resolve_capabilities(): echoes required_capabilities as declared', async () => {
     const [{ bundle }] = await pg.any(
-      `SELECT function_resolution.resolve_capabilities($1, 'database', $1, $2, 'database', $1, '{}'::jsonb, 'api') AS bundle`,
+      `SELECT function_resolution.resolve_capabilities($1, 'database', $1, $2, 'database', '{}'::jsonb, 'api') AS bundle`,
       [TENANT_DB, ids.declaring]
     );
     expect(bundle.capabilities).toEqual([
@@ -548,7 +548,7 @@ describe('function-resolution capability resolution', () => {
     );
 
     const [{ bundle }] = await pg.any(
-      `SELECT function_resolution.resolve_capabilities($1, 'database', $1, $2, 'database', $1) AS bundle`,
+      `SELECT function_resolution.resolve_capabilities($1, 'database', $1, $2, 'database') AS bundle`,
       [TENANT_DB, ids.ambiguous]
     );
     expect(bundle.buckets.variants.bucket_id).toBe(ids.publicVariants);
@@ -563,7 +563,7 @@ describe('function-resolution capability resolution', () => {
 
     await expect(
       pg.any(
-        `SELECT function_resolution.resolve_capabilities($1, 'database', $1, $2, 'database', $1)`,
+        `SELECT function_resolution.resolve_capabilities($1, 'database', $1, $2, 'database')`,
         [TENANT_DB, ids.ambiguous]
       )
     ).rejects.toThrow(/CAPABILITY_BINDING_UNREACHABLE/);
@@ -576,7 +576,7 @@ describe('function-resolution capability resolution', () => {
   it('resolve_capabilities(): an undeclared channel is refused', async () => {
     await expect(
       pg.any(
-        `SELECT function_resolution.resolve_capabilities($1, 'database', $1, $2, 'database', $1, '{}'::jsonb, 'cron')`,
+        `SELECT function_resolution.resolve_capabilities($1, 'database', $1, $2, 'database', '{}'::jsonb, 'cron')`,
         [TENANT_DB, ids.exporter]
       )
     ).rejects.toThrow(/CAPABILITY_CHANNEL_REFUSED/);
@@ -585,7 +585,7 @@ describe('function-resolution capability resolution', () => {
   it('resolve_capabilities(): a missing definition raises', async () => {
     await expect(
       pg.any(
-        `SELECT function_resolution.resolve_capabilities($1, 'database', $1, gen_random_uuid(), 'database', $1)`,
+        `SELECT function_resolution.resolve_capabilities($1, 'database', $1, gen_random_uuid(), 'database')`,
         [TENANT_DB]
       )
     ).rejects.toThrow(/CAPABILITY_DEFINITION_NOT_FOUND/);
@@ -593,13 +593,13 @@ describe('function-resolution capability resolution', () => {
 
   it('validate_capabilities(): passes when resolvable, raises when not', async () => {
     await pg.query(
-      `SELECT function_resolution.validate_capabilities($1, 'database', $1, $2, 'database', $1)`,
+      `SELECT function_resolution.validate_capabilities($1, 'database', $1, $2, 'database')`,
       [TENANT_DB, ids.exporter]
     );
 
     await expect(
       pg.any(
-        `SELECT function_resolution.validate_capabilities($1, 'database', $1, $2, 'database', $1)`,
+        `SELECT function_resolution.validate_capabilities($1, 'database', $1, $2, 'database')`,
         [TENANT_DB, ids.ambiguous]
       )
     ).rejects.toThrow(/CAPABILITY_BUCKET_AMBIGUOUS/);
