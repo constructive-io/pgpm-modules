@@ -75,6 +75,13 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   -- The webhook side of a completed purchase: the system-only seam that moves
   -- an entity onto the plan a verified provider event names.
   activate_plan_subscription_function text NOT NULL DEFAULT '',
+  -- Its read half: the system-only seam that names the active
+  -- plan_subscriptions row a provider's subscription object is recorded
+  -- against, for jobs that hold no entity membership.
+  get_active_plan_subscription_function text NOT NULL DEFAULT '',
+  get_billing_subscription_by_entity_function text NOT NULL DEFAULT '',
+  get_billing_subscription_by_external_id_function text NOT NULL DEFAULT '',
+  get_plan_pricing_by_external_price_function text NOT NULL DEFAULT '',
 
   prefix text NULL,
 

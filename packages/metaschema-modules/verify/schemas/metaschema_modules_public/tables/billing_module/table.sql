@@ -9,6 +9,8 @@ SELECT
   private_schema_id,
   meters_table_id,
   meters_table_name,
+  credit_packs_table_id,
+  credit_packs_table_name,
   plan_subscriptions_table_id,
   plan_subscriptions_table_name,
   ledger_table_id,
@@ -17,8 +19,9 @@ SELECT
   balances_table_name,
   meter_sources_table_id,
   meter_sources_table_name,
-  record_usage_function,
-  sweep_expired_subscriptions_function,
+    record_usage_function,
+    grant_meter_credits_function,
+    sweep_expired_subscriptions_function,
   rollup_usage_summary_function,
   prefix
 FROM metaschema_modules_public.billing_module

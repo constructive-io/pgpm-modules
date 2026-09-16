@@ -26,7 +26,6 @@ CREATE FUNCTION function_resolution.validate_capabilities(
     entity_id uuid,
     function_definition_id uuid,
     definition_scope text,
-    definition_database_id uuid DEFAULT NULL,
     payload jsonb DEFAULT '{}'::jsonb,
     channel text DEFAULT NULL
 ) RETURNS void AS $$
@@ -37,7 +36,6 @@ BEGIN
         validate_capabilities.entity_id,
         validate_capabilities.function_definition_id,
         validate_capabilities.definition_scope,
-        validate_capabilities.definition_database_id,
         validate_capabilities.payload,
         validate_capabilities.channel
     );

@@ -2753,6 +2753,8 @@ CREATE TABLE metaschema_modules_public.billing_module (
   private_schema_name text,
   meters_table_id uuid NOT NULL DEFAULT uuid_nil(),
   meters_table_name text NOT NULL DEFAULT '',
+  credit_packs_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  credit_packs_table_name text NOT NULL DEFAULT '',
   plan_subscriptions_table_id uuid NOT NULL DEFAULT uuid_nil(),
   plan_subscriptions_table_name text NOT NULL DEFAULT '',
   ledger_table_id uuid NOT NULL DEFAULT uuid_nil(),
@@ -2766,6 +2768,7 @@ CREATE TABLE metaschema_modules_public.billing_module (
   meter_defaults_table_id uuid NOT NULL DEFAULT uuid_nil(),
   meter_defaults_table_name text NOT NULL DEFAULT '',
   record_usage_function text NOT NULL DEFAULT '',
+  grant_meter_credits_function text NOT NULL DEFAULT '',
   sweep_expired_subscriptions_function text NOT NULL DEFAULT '',
   rollup_usage_summary_function text NOT NULL DEFAULT '',
   prefix text NULL,
@@ -2787,6 +2790,10 @@ CREATE TABLE metaschema_modules_public.billing_module (
     ON DELETE CASCADE,
   CONSTRAINT meters_table_fkey
     FOREIGN KEY(meters_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT credit_packs_table_fkey
+    FOREIGN KEY(credit_packs_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
   CONSTRAINT plan_subscriptions_table_fkey
@@ -2829,6 +2836,8 @@ CREATE INDEX billing_module_meter_sources_table_id_idx ON metaschema_modules_pub
 
 CREATE INDEX billing_module_meters_table_id_idx ON metaschema_modules_public.billing_module (meters_table_id);
 
+CREATE INDEX billing_module_credit_packs_table_id_idx ON metaschema_modules_public.billing_module (credit_packs_table_id);
+
 CREATE INDEX billing_module_plan_subscriptions_table_id_idx ON metaschema_modules_public.billing_module (plan_subscriptions_table_id);
 
 CREATE INDEX billing_module_private_schema_id_idx ON metaschema_modules_public.billing_module (private_schema_id);
@@ -2846,6 +2855,8 @@ COMMENT ON COLUMN metaschema_modules_public.billing_module.meter_defaults_table_
 COMMENT ON COLUMN metaschema_modules_public.billing_module.meter_sources_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.billing_module.meters_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.billing_module.credit_packs_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.billing_module.plan_subscriptions_table_id IS '@module_table';
 
@@ -2892,6 +2903,10 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   get_fallback_free_plan_function text NOT NULL DEFAULT '',
   record_dispute_function text NOT NULL DEFAULT '',
   activate_plan_subscription_function text NOT NULL DEFAULT '',
+  get_active_plan_subscription_function text NOT NULL DEFAULT '',
+  get_billing_subscription_by_entity_function text NOT NULL DEFAULT '',
+  get_billing_subscription_by_external_id_function text NOT NULL DEFAULT '',
+  get_plan_pricing_by_external_price_function text NOT NULL DEFAULT '',
   prefix text NULL,
   api_name text DEFAULT NULL,
   private_api_name text DEFAULT NULL,

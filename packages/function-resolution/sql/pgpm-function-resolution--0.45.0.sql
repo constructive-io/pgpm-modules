@@ -1354,55 +1354,81 @@ CREATE FUNCTION function_resolution.resolve_capabilities(
   entity_id uuid,
   function_definition_id uuid,
   definition_scope text,
-  definition_database_id uuid DEFAULT NULL,
   payload jsonb DEFAULT '{}'::jsonb,
   channel text DEFAULT NULL
 ) RETURNS jsonb AS $EOFCODE$
 DECLARE
-    v_defn_database_id uuid;
-    v_defs_schema text;
-    v_defs_table text;
-    v_query text;
-    v_definition jsonb;
-    v_access_channels text[];
-    v_key text;
-    v_bound_bucket_id uuid;
+    -- The frame whose function surface holds the definition: where the row
+    -- physically is (lookup database, schema, table) and whose it is (key).
+    frame record;
+    surface_found boolean := false;
+    definition_database_id uuid;
+    definition_query text;
+    definition jsonb;
+    access_channels text[];
+    unreachable_key text;
+    unreachable_bucket_id uuid;
     -- The keys a tenant fulfilled with an explicit binding, paired positionally
     -- with the bucket each binding names: the two resolution routes are disjoint
     -- sets of keys, resolved by one query each rather than key by key.
-    v_bound_keys text[];
-    v_bound_ids uuid[];
-    v_buckets jsonb := '{}'::jsonb;
-    v_apis jsonb := '{}'::jsonb;
+    bound_keys text[];
+    bound_ids uuid[];
+    buckets jsonb := '{}'::jsonb;
+    apis jsonb := '{}'::jsonb;
 BEGIN
-    v_defn_database_id := coalesce(
-        resolve_capabilities.definition_database_id,
-        resolve_capabilities.database_id
-    );
+    FOR frame IN
+        SELECT f.lookup_database_id, f.key_value, l.schema_name, l.table_name, l.entity_field
+        FROM app_scope.frames(
+            resolve_capabilities.database_id,
+            resolve_capabilities.scope,
+            resolve_capabilities.entity_id
+        ) WITH ORDINALITY AS f(scope, lookup_database_id, key_value, ord)
+        CROSS JOIN LATERAL function_resolution.definitions_location(f.lookup_database_id, f.scope) l
+        WHERE f.scope = resolve_capabilities.definition_scope
+        ORDER BY f.ord
+    LOOP
+        surface_found := true;
 
-    SELECT l.schema_name, l.table_name
-    INTO v_defs_schema, v_defs_table
-    FROM function_resolution.definitions_location(v_defn_database_id, resolve_capabilities.definition_scope) l;
+        -- to_jsonb of the row rather than a column list: the declaration set
+        -- grows, and a resolver that names columns fails on a database whose
+        -- function module predates the newest one. The row must carry the
+        -- frame's key in the module's recorded scope-key column; a global frame
+        -- has neither, and its key is asserted NULL.
+        -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the definitions table is located per frame
+        definition_query := format(
+            'SELECT to_jsonb(d) FROM %I.%I d WHERE d.id = $1 AND %s',
+            frame.schema_name,
+            frame.table_name,
+            CASE
+                WHEN frame.entity_field IS NULL THEN '$2::uuid IS NULL'
+                ELSE format('d.%I = $2', frame.entity_field)
+            END
+        );
 
-    IF v_defs_schema IS NULL THEN
-        RAISE EXCEPTION 'CAPABILITY_DEFINITION_SCOPE_UNPROVISIONED: database % has no function module at scope "%"',
-            v_defn_database_id, resolve_capabilities.definition_scope
+        EXECUTE definition_query
+        INTO definition
+        USING resolve_capabilities.function_definition_id, frame.key_value;
+
+        IF definition IS NOT NULL THEN
+            definition_database_id := frame.lookup_database_id;
+            EXIT;
+        END IF;
+    END LOOP;
+
+    IF NOT surface_found THEN
+        RAISE EXCEPTION 'CAPABILITY_DEFINITION_SCOPE_UNPROVISIONED: no frame of database % (scope "%") has a function module at scope "%"',
+            resolve_capabilities.database_id,
+            resolve_capabilities.scope,
+            resolve_capabilities.definition_scope
             USING ERRCODE = 'FR040';
     END IF;
 
-    -- to_jsonb of the row rather than a column list: the declaration set grows,
-    -- and a resolver that names columns fails on a database whose function
-    -- module predates the newest one.
-    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the definitions table is located per scope
-    v_query := format('SELECT to_jsonb(d) FROM %I.%I d WHERE d.id = $1', v_defs_schema, v_defs_table);
-
-    EXECUTE v_query INTO v_definition USING resolve_capabilities.function_definition_id;
-
-    IF v_definition IS NULL THEN
-        RAISE EXCEPTION 'CAPABILITY_DEFINITION_NOT_FOUND: no function definition % at scope "%" in database %',
+    IF definition IS NULL THEN
+        RAISE EXCEPTION 'CAPABILITY_DEFINITION_NOT_FOUND: no function definition % at scope "%" reachable from database % (scope "%")',
             resolve_capabilities.function_definition_id,
             resolve_capabilities.definition_scope,
-            v_defn_database_id
+            resolve_capabilities.database_id,
+            resolve_capabilities.scope
             USING ERRCODE = 'FR040';
     END IF;
 
@@ -1411,14 +1437,14 @@ BEGIN
     -- refused here rather than at the image, which cannot know.
     IF resolve_capabilities.channel IS NOT NULL THEN
         SELECT array_agg(c.channel)
-        INTO v_access_channels
-        FROM jsonb_array_elements_text(coalesce(v_definition->'access_channels', '[]'::jsonb)) AS c(channel);
+        INTO access_channels
+        FROM jsonb_array_elements_text(coalesce(definition->'access_channels', '[]'::jsonb)) AS c(channel);
 
-        IF NOT coalesce(v_access_channels, ARRAY[]::text[]) @> ARRAY[resolve_capabilities.channel] THEN
+        IF NOT coalesce(access_channels, ARRAY[]::text[]) @> ARRAY[resolve_capabilities.channel] THEN
             RAISE EXCEPTION 'CAPABILITY_CHANNEL_REFUSED: function % does not declare the "%" access channel (declares: %)',
                 resolve_capabilities.function_definition_id,
                 resolve_capabilities.channel,
-                coalesce(array_to_string(v_access_channels, ', '), '')
+                coalesce(array_to_string(access_channels, ', '), '')
                 USING ERRCODE = 'FR041';
         END IF;
     END IF;
@@ -1436,7 +1462,7 @@ BEGIN
     -- function is not evaluated.
     -- =========================================================================
     SELECT array_agg(b.key ORDER BY b.ord), array_agg(b.bucket_id ORDER BY b.ord)
-    INTO v_bound_keys, v_bound_ids
+    INTO bound_keys, bound_ids
     FROM (
         SELECT k.key,
                k.ord,
@@ -1448,7 +1474,7 @@ BEGIN
                    k.key
                ) AS bucket_id
         FROM jsonb_array_elements_text(
-            coalesce(v_definition->'required_buckets', '[]'::jsonb)
+            coalesce(definition->'required_buckets', '[]'::jsonb)
         ) WITH ORDINALITY AS k(key, ord)
     ) b
     WHERE b.bucket_id IS NOT NULL;
@@ -1458,10 +1484,10 @@ BEGIN
     -- invocation. The generated binding guard cannot check this — compute's
     -- published modules may not reference storage — so it is checked here, where
     -- a function would otherwise be handed the bucket.
-    IF v_bound_keys IS NOT NULL THEN
+    IF bound_keys IS NOT NULL THEN
         SELECT b.key, b.bucket_id
-        INTO v_key, v_bound_bucket_id
-        FROM unnest(v_bound_keys, v_bound_ids) AS b(key, bucket_id)
+        INTO unreachable_key, unreachable_bucket_id
+        FROM unnest(bound_keys, bound_ids) AS b(key, bucket_id)
         WHERE NOT EXISTS (
             SELECT 1
             FROM function_resolution.bucket_catalog_row(
@@ -1476,9 +1502,9 @@ BEGIN
 
         IF FOUND THEN
             RAISE EXCEPTION 'CAPABILITY_BINDING_UNREACHABLE: capability "%" of function % is bound to bucket %, which database % may not reach',
-                v_key,
+                unreachable_key,
                 resolve_capabilities.function_definition_id,
-                v_bound_bucket_id,
+                unreachable_bucket_id,
                 resolve_capabilities.database_id
                 USING ERRCODE = 'FR013';
         END IF;
@@ -1491,8 +1517,8 @@ BEGIN
             'database_id', c.owner_database_id,
             'source', 'binding'
         ))
-        INTO v_buckets
-        FROM unnest(v_bound_keys, v_bound_ids) AS b(key, bucket_id)
+        INTO buckets
+        FROM unnest(bound_keys, bound_ids) AS b(key, bucket_id)
         CROSS JOIN LATERAL function_resolution.bucket_catalog_row(
             resolve_capabilities.database_id,
             resolve_capabilities.scope,
@@ -1508,11 +1534,11 @@ BEGIN
     WITH unbound AS MATERIALIZED (
         SELECT k.key
         FROM jsonb_array_elements_text(
-            coalesce(v_definition->'required_buckets', '[]'::jsonb)
+            coalesce(definition->'required_buckets', '[]'::jsonb)
         ) AS k(key)
-        WHERE NOT k.key = ANY(coalesce(v_bound_keys, ARRAY[]::text[]))
+        WHERE NOT k.key = ANY(coalesce(bound_keys, ARRAY[]::text[]))
     )
-    SELECT coalesce(v_buckets, '{}'::jsonb) || coalesce(jsonb_object_agg(k.key, jsonb_build_object(
+    SELECT coalesce(buckets, '{}'::jsonb) || coalesce(jsonb_object_agg(k.key, jsonb_build_object(
         'bucket_id', r.bucket_id,
         'key', r.bucket_key,
         'type', r.bucket_type,
@@ -1520,7 +1546,7 @@ BEGIN
         'database_id', r.owner_database_id,
         'source', 'tags'
     )), '{}'::jsonb)
-    INTO v_buckets
+    INTO buckets
     FROM unbound k
     CROSS JOIN LATERAL function_resolution.resolve_bucket(
         resolve_capabilities.database_id,
@@ -1541,9 +1567,9 @@ BEGIN
         'name', a.api_name,
         'database_id', a.owner_database_id
     )), '{}'::jsonb)
-    INTO v_apis
+    INTO apis
     FROM jsonb_array_elements_text(
-        coalesce(v_definition->'required_modules', '[]'::jsonb)
+        coalesce(definition->'required_modules', '[]'::jsonb)
     ) AS s(selector)
     CROSS JOIN LATERAL function_resolution.resolve_api(
         resolve_capabilities.database_id,
@@ -1555,20 +1581,20 @@ BEGIN
     RETURN jsonb_build_object(
         'function_definition_id', resolve_capabilities.function_definition_id,
         'definition_scope', resolve_capabilities.definition_scope,
-        'definition_database_id', v_defn_database_id,
+        'definition_database_id', definition_database_id,
         'database_id', resolve_capabilities.database_id,
         'scope', resolve_capabilities.scope,
         'entity_id', resolve_capabilities.entity_id,
-        'buckets', v_buckets,
-        'apis', v_apis,
-        'models', coalesce(v_definition->'required_models', '[]'::jsonb),
-        'secrets', coalesce(v_definition->'required_secrets', '[]'::jsonb),
-        'configs', coalesce(v_definition->'required_configs', '[]'::jsonb),
-        'integrations', coalesce(v_definition->'integrations', '[]'::jsonb),
-        'access_channels', coalesce(v_definition->'access_channels', '[]'::jsonb),
+        'buckets', buckets,
+        'apis', apis,
+        'models', coalesce(definition->'required_models', '[]'::jsonb),
+        'secrets', coalesce(definition->'required_secrets', '[]'::jsonb),
+        'configs', coalesce(definition->'required_configs', '[]'::jsonb),
+        'integrations', coalesce(definition->'integrations', '[]'::jsonb),
+        'access_channels', coalesce(definition->'access_channels', '[]'::jsonb),
         -- Not coalesced: NULL means the handler declared nothing and gets the
         -- full platform set, an empty array means it declared none.
-        'capabilities', v_definition->'required_capabilities',
+        'capabilities', definition->'required_capabilities',
         'payload', function_resolution.resolve_payload_refs(
             resolve_capabilities.database_id,
             resolve_capabilities.scope,
@@ -1585,7 +1611,6 @@ CREATE FUNCTION function_resolution.validate_capabilities(
   entity_id uuid,
   function_definition_id uuid,
   definition_scope text,
-  definition_database_id uuid DEFAULT NULL,
   payload jsonb DEFAULT '{}'::jsonb,
   channel text DEFAULT NULL
 ) RETURNS void AS $EOFCODE$
@@ -1596,7 +1621,6 @@ BEGIN
         validate_capabilities.entity_id,
         validate_capabilities.function_definition_id,
         validate_capabilities.definition_scope,
-        validate_capabilities.definition_database_id,
         validate_capabilities.payload,
         validate_capabilities.channel
     );
@@ -1685,6 +1709,16 @@ DECLARE
     resources_schema text;
     resources_table text;
     resources_key text;
+    -- The routes plane's own redirects table, from the same route_module
+    -- registration that names the routes table; it shares the plane's
+    -- ownership key. NULL when the plane records none, which makes a redirect
+    -- binding a hard error rather than an unchecked insert.
+    redirects_schema text;
+    redirects_table text;
+    -- The hostname the site is routed on: a redirect binding's default to_host.
+    domains_schema text;
+    domains_table text;
+    domain_hostname text;
     -- The one ownership key value the whole install is keyed by (NULL at the
     -- global tier), and the entity the resolver starts its frame walk at.
     key_value uuid;
@@ -1699,12 +1733,18 @@ DECLARE
     entry_task text;
     entry_service uuid;
     entry_anonymous boolean;
+    entry_to_host text;
+    entry_to_path text;
+    entry_status int;
+    entry_redirect_name text;
     target_column text;
     target_id uuid;
     service_found boolean;
     inserted int;
+    repointed_now int;
     installed jsonb := '[]'::jsonb;
     skipped jsonb := '[]'::jsonb;
+    repointed jsonb := '[]'::jsonb;
     query text;
 BEGIN
     IF install_route_bindings.database_id IS NULL THEN
@@ -1746,9 +1786,9 @@ BEGIN
     IF EXISTS (
         SELECT 1
         FROM jsonb_array_elements(install_route_bindings.bindings) AS b
-        WHERE (b ->> 'target') NOT IN ('function', 'service')
+        WHERE (b ->> 'target') NOT IN ('function', 'service', 'redirect')
     ) THEN
-        RAISE EXCEPTION 'ROUTE_BINDINGS_TARGET_UNKNOWN: target must be "function" or "service"'
+        RAISE EXCEPTION 'ROUTE_BINDINGS_TARGET_UNKNOWN: target must be "function", "service" or "redirect"'
             USING ERRCODE = 'FR060';
     END IF;
 
@@ -1759,8 +1799,9 @@ BEGIN
         SELECT 1
         FROM jsonb_array_elements(install_route_bindings.bindings) AS b
         WHERE (b ? 'task_identifier') AND (b ? 'service_id')
-           OR (b ->> 'target') = 'function' AND (b ? 'service_id')
-           OR (b ->> 'target') = 'service' AND (b ? 'task_identifier')
+           OR (b ->> 'target') = 'function' AND (b ? 'service_id' OR b ? 'to_path')
+           OR (b ->> 'target') = 'service' AND (b ? 'task_identifier' OR b ? 'to_path')
+           OR (b ->> 'target') = 'redirect' AND (b ? 'task_identifier' OR b ? 'service_id')
     ) THEN
         RAISE EXCEPTION 'ROUTE_BINDINGS_TARGET_AMBIGUOUS: a binding must carry only the key of the target kind it declares'
             USING ERRCODE = 'FR060';
@@ -1771,8 +1812,27 @@ BEGIN
         FROM jsonb_array_elements(install_route_bindings.bindings) AS b
         WHERE (b ->> 'target') = 'function' AND coalesce(b ->> 'task_identifier', '') = ''
            OR (b ->> 'target') = 'service' AND coalesce(b ->> 'service_id', '') = ''
+           OR (b ->> 'target') = 'redirect' AND coalesce(b ->> 'to_path', '') = ''
     ) THEN
-        RAISE EXCEPTION 'ROUTE_BINDINGS_INVALID: a function binding needs a task_identifier and a service binding needs a service_id'
+        RAISE EXCEPTION 'ROUTE_BINDINGS_INVALID: a function binding needs a task_identifier, a service binding needs a service_id, and a redirect binding needs a to_path'
+            USING ERRCODE = 'FR060';
+    END IF;
+
+    -- A redirect's destination is a path on a host, so it must read as one, and
+    -- its status must be one the edge can honour (the same set the redirects
+    -- table's own check constraint accepts — rejected here by name rather than
+    -- as a constraint violation naming no binding).
+    IF EXISTS (
+        SELECT 1
+        FROM jsonb_array_elements(install_route_bindings.bindings) AS b
+        WHERE (b ->> 'target') = 'redirect'
+          AND (
+               (b ->> 'to_path') !~ '^/'
+            OR (b ? 'to_host' AND coalesce(b ->> 'to_host', '') = '')
+            OR (b ? 'status_code' AND NOT (b -> 'status_code' <@ '[301, 302, 307, 308]'::jsonb))
+          )
+    ) THEN
+        RAISE EXCEPTION 'ROUTE_BINDINGS_REDIRECT_INVALID: a redirect binding''s to_path must start with "/", its to_host (when given) must be non-empty, and its status_code (when given) must be 301, 302, 307 or 308'
             USING ERRCODE = 'FR060';
     END IF;
 
@@ -1838,8 +1898,8 @@ BEGIN
 
     -- 2. The routes plane serving THAT scope, resolved the one way every
     --    scope-aware consumer resolves it.
-    SELECT r.routes_schema, r.routes_table
-    INTO routes_schema, routes_table
+    SELECT r.routes_schema, r.routes_table, r.domains_schema, r.domains_table
+    INTO routes_schema, routes_table, domains_schema, domains_table
     FROM app_scope.routing_tables(install_route_bindings.database_id, plane_scope) AS r;
 
     IF routes_schema IS NULL OR routes_table IS NULL THEN
@@ -1848,13 +1908,18 @@ BEGIN
             USING ERRCODE = 'FR051';
     END IF;
 
-    -- The routes plane's own registration carries its ownership key and, when
-    -- the plane has one, the column naming the site a route renders as.
-    SELECT rm.entity_field, rm.serving_site_field
-    INTO routes_key, routes_serving_site_key
+    -- The routes plane's own registration carries its ownership key, the
+    -- column naming the site a route renders as (when the plane has one), and
+    -- the redirects table a redirect binding writes (when it records one).
+    SELECT rm.entity_field, rm.serving_site_field, rs.schema_name, rt.name
+    INTO routes_key, routes_serving_site_key, redirects_schema, redirects_table
     FROM metaschema_modules_public.route_module AS rm
     JOIN metaschema_public."table" AS t ON t.id = rm.routes_table_id
     JOIN metaschema_public.schema AS s ON s.id = t.schema_id
+    LEFT JOIN metaschema_public."table" AS rt
+      ON rt.id = rm.redirects_table_id
+     AND rm.redirects_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.schema AS rs ON rs.id = rt.schema_id
     WHERE s.schema_name = routes_schema
       AND t.name = routes_table;
 
@@ -1923,12 +1988,18 @@ BEGIN
     --    guard auto-creates '/' carrying the target of a hostname's FIRST route,
     --    so installing onto a bare hostname would make '/' the first binding's
     --    target. A site that is not routed yet is a hard error, not a silently
-    --    empty install.
+    --    empty install. A route this install stamped as serving the site counts
+    --    too: once a redirect has taken the root over, the pages (serving-site
+    --    stamped, function-targeted) are what still tie the host to the site.
     -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the routes plane is named by app_scope.routing_tables
     query := format(
-        'SELECT r.domain_id FROM %I.%I AS r WHERE r.target_site_id = $1%s ORDER BY r.path LIMIT 1',
+        'SELECT r.domain_id FROM %I.%I AS r WHERE (r.target_site_id = $1%s)%s ORDER BY r.path LIMIT 1',
         routes_schema,
         routes_table,
+        CASE WHEN routes_serving_site_key IS NULL
+             THEN ''
+             ELSE format(' OR r.%I = $1', routes_serving_site_key)
+        END,
         CASE WHEN routes_key IS NULL
              THEN ' AND $2 IS NULL'
              ELSE format(' AND r.%I = $2', routes_key)
@@ -1942,6 +2013,15 @@ BEGIN
             install_route_bindings.site_id, routes_schema, routes_table
             USING ERRCODE = 'FR054';
     END IF;
+
+    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the domains plane is named by app_scope.routing_tables
+    query := format(
+        'SELECT d.hostname FROM %I.%I AS d WHERE d.id = $1',
+        domains_schema,
+        domains_table
+    );
+
+    EXECUTE query INTO domain_hostname USING domain_id;
 
     -- 6. Per binding: resolve the declared target at THIS (scope, entity) and
     --    install the route if it is not already there.
@@ -1967,6 +2047,52 @@ BEGIN
             ) AS fr;
 
             target_column := 'target_function_id';
+        ELSIF entry_target = 'redirect' THEN
+            IF redirects_schema IS NULL THEN
+                RAISE EXCEPTION 'ROUTE_BINDINGS_REDIRECT_PLANE_NOT_FOUND: routes plane %.% records no redirects table, so there is nowhere a redirect target could live',
+                    routes_schema, routes_table
+                    USING ERRCODE = 'FR055';
+            END IF;
+
+            entry_to_host := coalesce(entry ->> 'to_host', domain_hostname);
+            entry_to_path := entry ->> 'to_path';
+            entry_status := coalesce((entry ->> 'status_code')::int, 302);
+            -- Names are owner-local, so the hostname keeps two sites' roots apart.
+            entry_redirect_name := coalesce(entry ->> 'name', format('%s %s', domain_hostname, entry_path));
+
+            -- The redirect row, found by name or created: same insert-if-missing
+            -- contract as the routes, so a re-run never rewrites a redirect a
+            -- tenant has since retuned.
+            -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the redirects plane is named by the routes plane's own route_module registration
+            query := format(
+                'SELECT rd.id FROM %I.%I AS rd WHERE rd.name = $1%s',
+                redirects_schema,
+                redirects_table,
+                CASE WHEN routes_key IS NULL
+                     THEN ' AND $2 IS NULL'
+                     ELSE format(' AND rd.%I = $2', routes_key)
+                END
+            );
+
+            EXECUTE query INTO target_id USING entry_redirect_name, key_value;
+
+            IF target_id IS NULL THEN
+                -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: insert into the redirects plane named by the route_module registration; every value is a bound parameter
+                query := format(
+                    'INSERT INTO %I.%I (%sname, to_host, to_path, status_code, preserve_path, preserve_query)
+                     VALUES (%s$1, $2, $3, $4, false, true)
+                     RETURNING id',
+                    redirects_schema,
+                    redirects_table,
+                    CASE WHEN routes_key IS NULL THEN '' ELSE format('%I, ', routes_key) END,
+                    CASE WHEN routes_key IS NULL THEN '' ELSE '$5, ' END
+                );
+
+                EXECUTE query INTO target_id
+                    USING entry_redirect_name, entry_to_host, entry_to_path, entry_status, key_value;
+            END IF;
+
+            target_column := 'target_redirect_id';
         ELSE
             entry_service := (entry ->> 'service_id')::uuid;
 
@@ -2026,8 +2152,34 @@ BEGIN
             install_route_bindings.site_id, entry_anonymous;
         GET DIAGNOSTICS inserted = ROW_COUNT;
 
+        repointed_now := 0;
+        IF inserted = 0 AND entry_target = 'redirect' THEN
+            -- The root guard's placeholder — the path exists and still targets
+            -- the site this install is for — is the one row a redirect binding
+            -- takes over. Anything a tenant has pointed elsewhere stays.
+            -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: update the routes plane named by app_scope.routing_tables; every value is a bound parameter
+            query := format(
+                'UPDATE %I.%I AS r
+                    SET target_site_id = NULL, target_redirect_id = $3, anonymous = $5
+                  WHERE r.domain_id = $1 AND r.path = $2
+                    AND r.target_site_id = $4%s',
+                routes_schema,
+                routes_table,
+                CASE WHEN routes_key IS NULL
+                     THEN ' AND $6 IS NULL'
+                     ELSE format(' AND r.%I = $6', routes_key)
+                END
+            );
+
+            EXECUTE query USING domain_id, entry_path, target_id,
+                install_route_bindings.site_id, entry_anonymous, key_value;
+            GET DIAGNOSTICS repointed_now = ROW_COUNT;
+        END IF;
+
         IF inserted > 0 THEN
             installed := installed || jsonb_build_array(entry_path);
+        ELSIF repointed_now > 0 THEN
+            repointed := repointed || jsonb_build_array(entry_path);
         ELSE
             skipped := skipped || jsonb_build_array(entry_path);
         END IF;
@@ -2069,6 +2221,7 @@ BEGIN
         'routes_schema', routes_schema,
         'routes_table', routes_table,
         'installed', installed,
+        'repointed', repointed,
         'skipped', skipped,
         'serving_site_field', routes_serving_site_key,
         'serving_site_backfilled', stamped
@@ -2076,7 +2229,7 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-COMMENT ON FUNCTION function_resolution.install_route_bindings(uuid, text, text, uuid, jsonb, uuid) IS 'Install a set of route bindings — a JSON array of {path, target, …} entries, each NAMING its target kind ("function" with a task_identifier, or "service" with a service_id) — onto one site as ordinary route rows, at ONE scope for ONE entity. The scope and ownership key are read from the named sites plane''s own site_surface_module registration, located along the caller''s frames (nearest first) so a shared serving plane hosted by an outer frame''s database resolves for the tenant consuming it — never a caller-supplied or generated literal — and that one (scope, key) then names the routes plane (app_scope.routing_tables), pins the site, route and service reads, starts function_resolution.resolve''s frame walk, and stamps every inserted row; a service target is proved to exist in the same-scope resources plane the routes plane''s registration records, which is the plane target_service_id FKs. Idempotent per (domain_id, path); raises on a malformed document, an unknown or ambiguous target kind, an unregistered plane, a scope with no routes plane, a missing entity key, an unknown site, an unrouted site, a scope with no resources plane, an unresolvable service, or an unpublished task.';
+COMMENT ON FUNCTION function_resolution.install_route_bindings(uuid, text, text, uuid, jsonb, uuid) IS 'Install a set of route bindings — a JSON array of {path, target, …} entries, each NAMING its target kind ("function" with a task_identifier, "service" with a service_id, or "redirect" with a to_path) — onto one site as ordinary route rows, at ONE scope for ONE entity. The scope and ownership key are read from the named sites plane''s own site_surface_module registration, located along the caller''s frames (nearest first) so a shared serving plane hosted by an outer frame''s database resolves for the tenant consuming it — never a caller-supplied or generated literal — and that one (scope, key) then names the routes plane (app_scope.routing_tables), pins the site, route and service reads, starts function_resolution.resolve''s frame walk, and stamps every inserted row; a service target is proved to exist in the same-scope resources plane the routes plane''s registration records, which is the plane target_service_id FKs. A redirect binding writes a row in the routes plane''s own redirects table (same-host unless to_host is given, 302 unless status_code is given) and is the one kind allowed to repoint an existing route: the root guard''s placeholder still targeting the site being installed onto. Idempotent per (domain_id, path); raises on a malformed document, an unknown or ambiguous target kind, an unregistered plane, a scope with no routes plane, a missing entity key, an unknown site, an unrouted site, a scope with no resources plane, an unresolvable service, or an unpublished task.';
 
 CREATE FUNCTION function_resolution.install_mantra(
   database_id uuid,
@@ -2115,19 +2268,29 @@ BEGIN
             USING ERRCODE = 'FR060';
     END IF;
 
+    -- Two shapes only: a page ({path, task_identifier}, no target kind — it is
+    -- always a function), or a redirect ({path, target: 'redirect', to_path}) a
+    -- host given over to the page set uses to send its root at sign-in. A
+    -- service binding, or a page that names a kind, is a broken preset.
     IF EXISTS (
         SELECT 1
         FROM jsonb_array_elements(install_mantra.bindings) AS b
         WHERE jsonb_typeof(b) <> 'object'
            OR coalesce(b ->> 'path', '') = ''
-           OR coalesce(b ->> 'task_identifier', '') = ''
-           OR b ? 'target'
+           OR CASE b ->> 'target'
+                WHEN 'redirect' THEN coalesce(b ->> 'to_path', '') = '' OR b ? 'task_identifier'
+                ELSE coalesce(b ->> 'task_identifier', '') = '' OR b ? 'target'
+              END
     ) THEN
-        RAISE EXCEPTION 'MANTRA_BINDINGS_INVALID: every binding must carry a non-empty path and task_identifier, and no target kind'
+        RAISE EXCEPTION 'MANTRA_BINDINGS_INVALID: every binding must carry a non-empty path and either a task_identifier with no target kind, or target "redirect" with a to_path'
             USING ERRCODE = 'FR060';
     END IF;
 
-    SELECT jsonb_agg(b || jsonb_build_object('target', 'function'))
+    SELECT jsonb_agg(
+        CASE WHEN b ->> 'target' = 'redirect' THEN b
+             ELSE b || jsonb_build_object('target', 'function')
+        END
+    )
     INTO function_bindings
     FROM jsonb_array_elements(install_mantra.bindings) AS b;
 
@@ -2142,4 +2305,4 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
-COMMENT ON FUNCTION function_resolution.install_mantra(uuid, regclass, uuid, jsonb, uuid) IS 'Install the Mantra page set (a JSON array of {path, task_identifier}, which the generated verb reads from the content_presets catalog at kind ''route_bindings'') onto one site as ordinary function-target routes. The sites plane arrives by reference as a regclass, so a generated caller never spells a schema name in a bare string literal the platform export''s AST rename cannot follow. A thin wrapper holding the Mantra document contract — every entry names a task, none names a target kind — over function_resolution.install_route_bindings, which owns the one-scope install: scope and ownership key read from the sites plane''s own registration, the routes plane from app_scope.routing_tables, resolution at that same (scope, entity), idempotent per (domain_id, path).';
+COMMENT ON FUNCTION function_resolution.install_mantra(uuid, regclass, uuid, jsonb, uuid) IS 'Install the Mantra page set (a JSON array of {path, task_identifier}, which the generated verb reads from the content_presets catalog at kind ''route_bindings'') onto one site as ordinary function-target routes. The sites plane arrives by reference as a regclass, so a generated caller never spells a schema name in a bare string literal the platform export''s AST rename cannot follow. A thin wrapper holding the Mantra document contract — every entry names a task and no target kind, or is a {target: "redirect", to_path} entry sending a path (a dedicated host''s root) at one of the pages — over function_resolution.install_route_bindings, which owns the one-scope install: scope and ownership key read from the sites plane''s own registration, the routes plane from app_scope.routing_tables, resolution at that same (scope, entity), idempotent per (domain_id, path).';

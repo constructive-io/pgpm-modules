@@ -24,6 +24,22 @@ BEGIN;
 --
 --   {"path": "/login", "target": "function", "task_identifier": "mantra:signin", "anonymous": true}
 --   {"path": "/app",   "target": "service",  "service_id": "<uuid>"}
+--   {"path": "/",     "target": "redirect", "to_path": "/login", "anonymous": true}
+--
+-- A redirect binding is a row in the scope's redirects table (the routing
+-- plane's own, named by its route_module registration) that the route's
+-- target_redirect_id points at: the edge answers status_code + Location and no
+-- backend is involved. It redirects onto the same hostname unless the entry
+-- names a `to_host`, keeps the query string, and never appends the incoming
+-- path (`preserve_path` false — a path-to-path redirect). status_code defaults
+-- to 302 and must be one of 301/302/307/308.
+--
+-- The one place a redirect binding may REPOINT an existing route: the root
+-- route guard auto-creates '/' targeting the site itself the moment a hostname
+-- is routed, so on a site provisioned only to carry a page set that row serves
+-- nothing. A redirect entry whose path already exists and still targets THE
+-- SITE BEING INSTALLED ONTO takes that placeholder over; a root a tenant has
+-- since pointed anywhere else is left alone like every other existing path.
 --
 -- An entry may declare `anonymous`, which is the route's half of the anonymous
 -- contract: the URL answers callers carrying no identity. It opens nothing on
@@ -116,6 +132,16 @@ DECLARE
     resources_schema text;
     resources_table text;
     resources_key text;
+    -- The routes plane's own redirects table, from the same route_module
+    -- registration that names the routes table; it shares the plane's
+    -- ownership key. NULL when the plane records none, which makes a redirect
+    -- binding a hard error rather than an unchecked insert.
+    redirects_schema text;
+    redirects_table text;
+    -- The hostname the site is routed on: a redirect binding's default to_host.
+    domains_schema text;
+    domains_table text;
+    domain_hostname text;
     -- The one ownership key value the whole install is keyed by (NULL at the
     -- global tier), and the entity the resolver starts its frame walk at.
     key_value uuid;
@@ -130,12 +156,18 @@ DECLARE
     entry_task text;
     entry_service uuid;
     entry_anonymous boolean;
+    entry_to_host text;
+    entry_to_path text;
+    entry_status int;
+    entry_redirect_name text;
     target_column text;
     target_id uuid;
     service_found boolean;
     inserted int;
+    repointed_now int;
     installed jsonb := '[]'::jsonb;
     skipped jsonb := '[]'::jsonb;
+    repointed jsonb := '[]'::jsonb;
     query text;
 BEGIN
     IF install_route_bindings.database_id IS NULL THEN
@@ -177,9 +209,9 @@ BEGIN
     IF EXISTS (
         SELECT 1
         FROM jsonb_array_elements(install_route_bindings.bindings) AS b
-        WHERE (b ->> 'target') NOT IN ('function', 'service')
+        WHERE (b ->> 'target') NOT IN ('function', 'service', 'redirect')
     ) THEN
-        RAISE EXCEPTION 'ROUTE_BINDINGS_TARGET_UNKNOWN: target must be "function" or "service"'
+        RAISE EXCEPTION 'ROUTE_BINDINGS_TARGET_UNKNOWN: target must be "function", "service" or "redirect"'
             USING ERRCODE = 'FR060';
     END IF;
 
@@ -190,8 +222,9 @@ BEGIN
         SELECT 1
         FROM jsonb_array_elements(install_route_bindings.bindings) AS b
         WHERE (b ? 'task_identifier') AND (b ? 'service_id')
-           OR (b ->> 'target') = 'function' AND (b ? 'service_id')
-           OR (b ->> 'target') = 'service' AND (b ? 'task_identifier')
+           OR (b ->> 'target') = 'function' AND (b ? 'service_id' OR b ? 'to_path')
+           OR (b ->> 'target') = 'service' AND (b ? 'task_identifier' OR b ? 'to_path')
+           OR (b ->> 'target') = 'redirect' AND (b ? 'task_identifier' OR b ? 'service_id')
     ) THEN
         RAISE EXCEPTION 'ROUTE_BINDINGS_TARGET_AMBIGUOUS: a binding must carry only the key of the target kind it declares'
             USING ERRCODE = 'FR060';
@@ -202,8 +235,27 @@ BEGIN
         FROM jsonb_array_elements(install_route_bindings.bindings) AS b
         WHERE (b ->> 'target') = 'function' AND coalesce(b ->> 'task_identifier', '') = ''
            OR (b ->> 'target') = 'service' AND coalesce(b ->> 'service_id', '') = ''
+           OR (b ->> 'target') = 'redirect' AND coalesce(b ->> 'to_path', '') = ''
     ) THEN
-        RAISE EXCEPTION 'ROUTE_BINDINGS_INVALID: a function binding needs a task_identifier and a service binding needs a service_id'
+        RAISE EXCEPTION 'ROUTE_BINDINGS_INVALID: a function binding needs a task_identifier, a service binding needs a service_id, and a redirect binding needs a to_path'
+            USING ERRCODE = 'FR060';
+    END IF;
+
+    -- A redirect's destination is a path on a host, so it must read as one, and
+    -- its status must be one the edge can honour (the same set the redirects
+    -- table's own check constraint accepts — rejected here by name rather than
+    -- as a constraint violation naming no binding).
+    IF EXISTS (
+        SELECT 1
+        FROM jsonb_array_elements(install_route_bindings.bindings) AS b
+        WHERE (b ->> 'target') = 'redirect'
+          AND (
+               (b ->> 'to_path') !~ '^/'
+            OR (b ? 'to_host' AND coalesce(b ->> 'to_host', '') = '')
+            OR (b ? 'status_code' AND NOT (b -> 'status_code' <@ '[301, 302, 307, 308]'::jsonb))
+          )
+    ) THEN
+        RAISE EXCEPTION 'ROUTE_BINDINGS_REDIRECT_INVALID: a redirect binding''s to_path must start with "/", its to_host (when given) must be non-empty, and its status_code (when given) must be 301, 302, 307 or 308'
             USING ERRCODE = 'FR060';
     END IF;
 
@@ -269,8 +321,8 @@ BEGIN
 
     -- 2. The routes plane serving THAT scope, resolved the one way every
     --    scope-aware consumer resolves it.
-    SELECT r.routes_schema, r.routes_table
-    INTO routes_schema, routes_table
+    SELECT r.routes_schema, r.routes_table, r.domains_schema, r.domains_table
+    INTO routes_schema, routes_table, domains_schema, domains_table
     FROM app_scope.routing_tables(install_route_bindings.database_id, plane_scope) AS r;
 
     IF routes_schema IS NULL OR routes_table IS NULL THEN
@@ -279,13 +331,18 @@ BEGIN
             USING ERRCODE = 'FR051';
     END IF;
 
-    -- The routes plane's own registration carries its ownership key and, when
-    -- the plane has one, the column naming the site a route renders as.
-    SELECT rm.entity_field, rm.serving_site_field
-    INTO routes_key, routes_serving_site_key
+    -- The routes plane's own registration carries its ownership key, the
+    -- column naming the site a route renders as (when the plane has one), and
+    -- the redirects table a redirect binding writes (when it records one).
+    SELECT rm.entity_field, rm.serving_site_field, rs.schema_name, rt.name
+    INTO routes_key, routes_serving_site_key, redirects_schema, redirects_table
     FROM metaschema_modules_public.route_module AS rm
     JOIN metaschema_public."table" AS t ON t.id = rm.routes_table_id
     JOIN metaschema_public.schema AS s ON s.id = t.schema_id
+    LEFT JOIN metaschema_public."table" AS rt
+      ON rt.id = rm.redirects_table_id
+     AND rm.redirects_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.schema AS rs ON rs.id = rt.schema_id
     WHERE s.schema_name = routes_schema
       AND t.name = routes_table;
 
@@ -354,12 +411,18 @@ BEGIN
     --    guard auto-creates '/' carrying the target of a hostname's FIRST route,
     --    so installing onto a bare hostname would make '/' the first binding's
     --    target. A site that is not routed yet is a hard error, not a silently
-    --    empty install.
+    --    empty install. A route this install stamped as serving the site counts
+    --    too: once a redirect has taken the root over, the pages (serving-site
+    --    stamped, function-targeted) are what still tie the host to the site.
     -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the routes plane is named by app_scope.routing_tables
     query := format(
-        'SELECT r.domain_id FROM %I.%I AS r WHERE r.target_site_id = $1%s ORDER BY r.path LIMIT 1',
+        'SELECT r.domain_id FROM %I.%I AS r WHERE (r.target_site_id = $1%s)%s ORDER BY r.path LIMIT 1',
         routes_schema,
         routes_table,
+        CASE WHEN routes_serving_site_key IS NULL
+             THEN ''
+             ELSE format(' OR r.%I = $1', routes_serving_site_key)
+        END,
         CASE WHEN routes_key IS NULL
              THEN ' AND $2 IS NULL'
              ELSE format(' AND r.%I = $2', routes_key)
@@ -373,6 +436,15 @@ BEGIN
             install_route_bindings.site_id, routes_schema, routes_table
             USING ERRCODE = 'FR054';
     END IF;
+
+    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the domains plane is named by app_scope.routing_tables
+    query := format(
+        'SELECT d.hostname FROM %I.%I AS d WHERE d.id = $1',
+        domains_schema,
+        domains_table
+    );
+
+    EXECUTE query INTO domain_hostname USING domain_id;
 
     -- 6. Per binding: resolve the declared target at THIS (scope, entity) and
     --    install the route if it is not already there.
@@ -398,6 +470,52 @@ BEGIN
             ) AS fr;
 
             target_column := 'target_function_id';
+        ELSIF entry_target = 'redirect' THEN
+            IF redirects_schema IS NULL THEN
+                RAISE EXCEPTION 'ROUTE_BINDINGS_REDIRECT_PLANE_NOT_FOUND: routes plane %.% records no redirects table, so there is nowhere a redirect target could live',
+                    routes_schema, routes_table
+                    USING ERRCODE = 'FR055';
+            END IF;
+
+            entry_to_host := coalesce(entry ->> 'to_host', domain_hostname);
+            entry_to_path := entry ->> 'to_path';
+            entry_status := coalesce((entry ->> 'status_code')::int, 302);
+            -- Names are owner-local, so the hostname keeps two sites' roots apart.
+            entry_redirect_name := coalesce(entry ->> 'name', format('%s %s', domain_hostname, entry_path));
+
+            -- The redirect row, found by name or created: same insert-if-missing
+            -- contract as the routes, so a re-run never rewrites a redirect a
+            -- tenant has since retuned.
+            -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the redirects plane is named by the routes plane's own route_module registration
+            query := format(
+                'SELECT rd.id FROM %I.%I AS rd WHERE rd.name = $1%s',
+                redirects_schema,
+                redirects_table,
+                CASE WHEN routes_key IS NULL
+                     THEN ' AND $2 IS NULL'
+                     ELSE format(' AND rd.%I = $2', routes_key)
+                END
+            );
+
+            EXECUTE query INTO target_id USING entry_redirect_name, key_value;
+
+            IF target_id IS NULL THEN
+                -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: insert into the redirects plane named by the route_module registration; every value is a bound parameter
+                query := format(
+                    'INSERT INTO %I.%I (%sname, to_host, to_path, status_code, preserve_path, preserve_query)
+                     VALUES (%s$1, $2, $3, $4, false, true)
+                     RETURNING id',
+                    redirects_schema,
+                    redirects_table,
+                    CASE WHEN routes_key IS NULL THEN '' ELSE format('%I, ', routes_key) END,
+                    CASE WHEN routes_key IS NULL THEN '' ELSE '$5, ' END
+                );
+
+                EXECUTE query INTO target_id
+                    USING entry_redirect_name, entry_to_host, entry_to_path, entry_status, key_value;
+            END IF;
+
+            target_column := 'target_redirect_id';
         ELSE
             entry_service := (entry ->> 'service_id')::uuid;
 
@@ -457,8 +575,34 @@ BEGIN
             install_route_bindings.site_id, entry_anonymous;
         GET DIAGNOSTICS inserted = ROW_COUNT;
 
+        repointed_now := 0;
+        IF inserted = 0 AND entry_target = 'redirect' THEN
+            -- The root guard's placeholder — the path exists and still targets
+            -- the site this install is for — is the one row a redirect binding
+            -- takes over. Anything a tenant has pointed elsewhere stays.
+            -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: update the routes plane named by app_scope.routing_tables; every value is a bound parameter
+            query := format(
+                'UPDATE %I.%I AS r
+                    SET target_site_id = NULL, target_redirect_id = $3, anonymous = $5
+                  WHERE r.domain_id = $1 AND r.path = $2
+                    AND r.target_site_id = $4%s',
+                routes_schema,
+                routes_table,
+                CASE WHEN routes_key IS NULL
+                     THEN ' AND $6 IS NULL'
+                     ELSE format(' AND r.%I = $6', routes_key)
+                END
+            );
+
+            EXECUTE query USING domain_id, entry_path, target_id,
+                install_route_bindings.site_id, entry_anonymous, key_value;
+            GET DIAGNOSTICS repointed_now = ROW_COUNT;
+        END IF;
+
         IF inserted > 0 THEN
             installed := installed || jsonb_build_array(entry_path);
+        ELSIF repointed_now > 0 THEN
+            repointed := repointed || jsonb_build_array(entry_path);
         ELSE
             skipped := skipped || jsonb_build_array(entry_path);
         END IF;
@@ -500,6 +644,7 @@ BEGIN
         'routes_schema', routes_schema,
         'routes_table', routes_table,
         'installed', installed,
+        'repointed', repointed,
         'skipped', skipped,
         'serving_site_field', routes_serving_site_key,
         'serving_site_backfilled', stamped
@@ -508,6 +653,6 @@ END;
 $$ LANGUAGE plpgsql VOLATILE;
 
 COMMENT ON FUNCTION function_resolution.install_route_bindings(uuid, text, text, uuid, jsonb, uuid) IS
-'Install a set of route bindings — a JSON array of {path, target, …} entries, each NAMING its target kind ("function" with a task_identifier, or "service" with a service_id) — onto one site as ordinary route rows, at ONE scope for ONE entity. The scope and ownership key are read from the named sites plane''s own site_surface_module registration, located along the caller''s frames (nearest first) so a shared serving plane hosted by an outer frame''s database resolves for the tenant consuming it — never a caller-supplied or generated literal — and that one (scope, key) then names the routes plane (app_scope.routing_tables), pins the site, route and service reads, starts function_resolution.resolve''s frame walk, and stamps every inserted row; a service target is proved to exist in the same-scope resources plane the routes plane''s registration records, which is the plane target_service_id FKs. Idempotent per (domain_id, path); raises on a malformed document, an unknown or ambiguous target kind, an unregistered plane, a scope with no routes plane, a missing entity key, an unknown site, an unrouted site, a scope with no resources plane, an unresolvable service, or an unpublished task.';
+'Install a set of route bindings — a JSON array of {path, target, …} entries, each NAMING its target kind ("function" with a task_identifier, "service" with a service_id, or "redirect" with a to_path) — onto one site as ordinary route rows, at ONE scope for ONE entity. The scope and ownership key are read from the named sites plane''s own site_surface_module registration, located along the caller''s frames (nearest first) so a shared serving plane hosted by an outer frame''s database resolves for the tenant consuming it — never a caller-supplied or generated literal — and that one (scope, key) then names the routes plane (app_scope.routing_tables), pins the site, route and service reads, starts function_resolution.resolve''s frame walk, and stamps every inserted row; a service target is proved to exist in the same-scope resources plane the routes plane''s registration records, which is the plane target_service_id FKs. A redirect binding writes a row in the routes plane''s own redirects table (same-host unless to_host is given, 302 unless status_code is given) and is the one kind allowed to repoint an existing route: the root guard''s placeholder still targeting the site being installed onto. Idempotent per (domain_id, path); raises on a malformed document, an unknown or ambiguous target kind, an unregistered plane, a scope with no routes plane, a missing entity key, an unknown site, an unrouted site, a scope with no resources plane, an unresolvable service, or an unpublished task.';
 
 COMMIT;

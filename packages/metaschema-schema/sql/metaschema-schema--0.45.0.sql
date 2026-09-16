@@ -221,6 +221,9 @@ DECLARE
     -- allow_system validation (system-role exemption)
     v_allow_system jsonb;
 
+    -- human_only validation (principal-caller refusal)
+    v_human_only jsonb;
+
     -- conditions validation (declarative WHEN-clause tree)
     v_conditions jsonb;
 
@@ -293,7 +296,7 @@ BEGIN
             END IF;
 
             FOR v_obj_key IN SELECT key FROM jsonb_each(v_value) LOOP
-                IF v_obj_key NOT IN ('type', 'min_age', 'min_age_lookup', 'min_age_anchor', 'min_age_unless', 'allow_system', 'conditions', 'related_conditions') THEN
+                IF v_obj_key NOT IN ('type', 'min_age', 'min_age_lookup', 'min_age_anchor', 'min_age_unless', 'allow_system', 'human_only', 'conditions', 'related_conditions') THEN
                     RETURN false;
                 END IF;
             END LOOP;
@@ -377,14 +380,28 @@ BEGIN
                 END IF;
 
                 FOR v_anchor_key IN SELECT key FROM jsonb_each(v_min_age_anchor) LOOP
-                    IF v_anchor_key NOT IN ('table_id', 'fk_field', 'timestamp_field') THEN
+                    IF v_anchor_key NOT IN ('table_id', 'fk_field', 'conditions', 'timestamp_field') THEN
                         RETURN false;
                     END IF;
                 END LOOP;
 
                 IF jsonb_typeof(v_min_age_anchor -> 'table_id') IS DISTINCT FROM 'string'
-                   OR jsonb_typeof(v_min_age_anchor -> 'fk_field') IS DISTINCT FROM 'string'
                    OR jsonb_typeof(v_min_age_anchor -> 'timestamp_field') IS DISTINCT FROM 'string' THEN
+                    RETURN false;
+                END IF;
+
+                -- the anchor row is found one way: by key or by conditions
+                IF (v_min_age_anchor ? 'fk_field') = (v_min_age_anchor ? 'conditions') THEN
+                    RETURN false;
+                END IF;
+
+                IF v_min_age_anchor ? 'fk_field'
+                   AND jsonb_typeof(v_min_age_anchor -> 'fk_field') IS DISTINCT FROM 'string' THEN
+                    RETURN false;
+                END IF;
+
+                IF v_min_age_anchor ? 'conditions'
+                   AND NOT metaschema_private.is_valid_step_up_conditions(v_min_age_anchor -> 'conditions') THEN
                     RETURN false;
                 END IF;
 
@@ -412,6 +429,13 @@ BEGIN
             v_allow_system := v_value -> 'allow_system';
             IF v_allow_system IS NOT NULL THEN
                 IF jsonb_typeof(v_allow_system) != 'boolean' THEN
+                    RETURN false;
+                END IF;
+            END IF;
+
+            v_human_only := v_value -> 'human_only';
+            IF v_human_only IS NOT NULL THEN
+                IF jsonb_typeof(v_human_only) != 'boolean' THEN
                     RETURN false;
                 END IF;
             END IF;
@@ -1153,6 +1177,7 @@ CREATE TABLE metaschema_public.embedding_chunks (
   chunks_table_id uuid,
   chunks_table_name text,
   content_field_name text NOT NULL DEFAULT 'content',
+  source_fields jsonb,
   dimensions int NOT NULL DEFAULT 768,
   metric text NOT NULL DEFAULT 'cosine',
   chunk_size int NOT NULL DEFAULT 1000,
