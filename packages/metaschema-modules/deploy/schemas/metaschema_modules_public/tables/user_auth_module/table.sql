@@ -48,6 +48,9 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
     revoke_session_tree_function text NOT NULL DEFAULT 'revoke_session_tree',
     sweep_expired_sessions_function text NOT NULL DEFAULT 'sweep_expired_sessions',
 
+    -- identifiers:unverified_sweep maintenance function (TTL for unverified email/phone claims)
+    sweep_unverified_identifiers_function text NOT NULL DEFAULT 'sweep_unverified_identifiers',
+
     -- UNIQUE(api_id),
 
     -- API routing (configurable per-module)
