@@ -2,9 +2,13 @@
 
 -- requires: schemas/inflection/schema
 
--- Normalizes a value into a Kubernetes DNS-1123 label (RFC 1123):
--- lowercase alphanumerics and '-', at most 63 characters, and no leading or
--- trailing '-'. Used to derive Knative/K8s object names from arbitrary slugs.
+-- Kubernetes DNS-1123 label normalizer. Mirrors toK8sName in
+-- compute/lib/module-loader/src/k8s-name.ts and must stay in lockstep with it:
+-- lowercase, ':' -> '--', '_' -> '-', strip invalid chars, trim
+-- leading/trailing hyphens. A result within 63 chars is returned as is; a
+-- longer one is cut to a 50-char head and suffixed with '-' and the first 12
+-- hex digits of sha256(original value), so two values that agree on their
+-- first 63 mapped chars still get distinct labels.
 
 BEGIN;
 
@@ -40,23 +44,21 @@ trimmed AS (
 FROM
   stripped
 ),
-truncated AS (
+digested AS (
   SELECT
-    "left"(value, 63) AS value
+    regexp_replace("left"(value, 50), '-+$', '') || '-' || "left"(encode(sha256(convert_to(dns_1123.value, 'UTF8')), 'hex'), 12) AS value
 FROM
   trimmed
-),
--- truncation can leave a dangling '-'; drop any trailing non-alphanumerics
-final AS (
-  SELECT
-    regexp_replace(value, '[^a-z0-9]+$', '') AS value
-FROM
-  truncated
 )
 SELECT
-  value
+  CASE WHEN length(trimmed.value) <= 63 THEN
+    trimmed.value
+  ELSE
+    digested.value
+  END
 FROM
-  final;
+  trimmed,
+  digested;
 $$
 LANGUAGE SQL
 STRICT IMMUTABLE;

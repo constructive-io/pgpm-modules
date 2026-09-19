@@ -1246,6 +1246,7 @@ CREATE TABLE metaschema_modules_public.user_auth_module (
   extend_token_expires text NOT NULL DEFAULT 'extend_token_expires',
   revoke_session_tree_function text NOT NULL DEFAULT 'revoke_session_tree',
   sweep_expired_sessions_function text NOT NULL DEFAULT 'sweep_expired_sessions',
+  sweep_unverified_identifiers_function text NOT NULL DEFAULT 'sweep_unverified_identifiers',
   api_name text DEFAULT 'auth',
   private_api_name text DEFAULT NULL,
   CONSTRAINT db_fkey
@@ -2885,6 +2886,12 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   billing_invoices_table_name text NOT NULL DEFAULT '',
   billing_disputes_table_id uuid NOT NULL DEFAULT uuid_nil(),
   billing_disputes_table_name text NOT NULL DEFAULT '',
+  billing_operations_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  billing_operations_table_name text NOT NULL DEFAULT '',
+  billing_provider_state_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  billing_provider_state_table_name text NOT NULL DEFAULT '',
+  billing_health_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  billing_health_table_name text NOT NULL DEFAULT '',
   process_billing_event_function text NOT NULL DEFAULT '',
   record_refund_function text NOT NULL DEFAULT '',
   upsert_invoice_function text NOT NULL DEFAULT '',
@@ -2907,6 +2914,14 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   get_billing_subscription_by_entity_function text NOT NULL DEFAULT '',
   get_billing_subscription_by_external_id_function text NOT NULL DEFAULT '',
   get_plan_pricing_by_external_price_function text NOT NULL DEFAULT '',
+  reserve_billing_operation_function text NOT NULL DEFAULT '',
+  finish_billing_operation_function text NOT NULL DEFAULT '',
+  apply_provider_observation_function text NOT NULL DEFAULT '',
+  list_due_reconciliations_function text NOT NULL DEFAULT '',
+  prepare_scheduled_change_function text NOT NULL DEFAULT '',
+  clear_scheduled_change_function text NOT NULL DEFAULT '',
+  get_billing_provider_state_function text NOT NULL DEFAULT '',
+  record_billing_health_function text NOT NULL DEFAULT '',
   prefix text NULL,
   api_name text DEFAULT NULL,
   private_api_name text DEFAULT NULL,
@@ -2954,6 +2969,18 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
     FOREIGN KEY(billing_disputes_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
+  CONSTRAINT billing_operations_table_fkey
+    FOREIGN KEY(billing_operations_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT billing_provider_state_table_fkey
+    FOREIGN KEY(billing_provider_state_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
+  CONSTRAINT billing_health_table_fkey
+    FOREIGN KEY(billing_health_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
   CONSTRAINT products_table_fkey
     FOREIGN KEY(products_table_id)
     REFERENCES metaschema_public.table (id)
@@ -2986,6 +3013,12 @@ CREATE INDEX billing_provider_module_billing_invoices_table_id_idx ON metaschema
 
 CREATE INDEX billing_provider_module_billing_disputes_table_id_idx ON metaschema_modules_public.billing_provider_module (billing_disputes_table_id);
 
+CREATE INDEX billing_provider_module_billing_operations_table_id_idx ON metaschema_modules_public.billing_provider_module (billing_operations_table_id);
+
+CREATE INDEX billing_provider_module_billing_provider_state_table_id_idx ON metaschema_modules_public.billing_provider_module (billing_provider_state_table_id);
+
+CREATE INDEX billing_provider_module_billing_health_table_id_idx ON metaschema_modules_public.billing_provider_module (billing_health_table_id);
+
 CREATE INDEX billing_provider_module_prices_table_id_idx ON metaschema_modules_public.billing_provider_module (prices_table_id);
 
 CREATE INDEX billing_provider_module_products_table_id_idx ON metaschema_modules_public.billing_provider_module (products_table_id);
@@ -3000,11 +3033,17 @@ COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_cust
 
 COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_disputes_table_id IS '@module_table';
 
+COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_health_table_id IS '@module_table';
+
 COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_invoices_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_operations_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_prices_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_products_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_provider_state_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_refunds_table_id IS '@module_table';
 

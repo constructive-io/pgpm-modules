@@ -584,21 +584,19 @@ trimmed AS (
 FROM
   stripped
 ),
-truncated AS (
+digested AS (
   SELECT
-    "left"(value, 63) AS value
+    regexp_replace("left"(value, 50), '-+$', '') || '-' || "left"(encode(sha256(convert_to(dns_1123.value, 'UTF8')), 'hex'), 12) AS value
 FROM
   trimmed
-),
--- truncation can leave a dangling '-'; drop any trailing non-alphanumerics
-final AS (
-  SELECT
-    regexp_replace(value, '[^a-z0-9]+$', '') AS value
-FROM
-  truncated
 )
 SELECT
-  value
+  CASE WHEN length(trimmed.value) <= 63 THEN
+    trimmed.value
+  ELSE
+    digested.value
+  END
 FROM
-  final;
+  trimmed,
+  digested;
 $EOFCODE$ LANGUAGE sql STRICT IMMUTABLE;

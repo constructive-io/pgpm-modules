@@ -288,14 +288,34 @@ describe('inflection', () => {
       { name: '__leading', result: 'leading' },
       { name: 'trailing__', result: 'trailing' },
       { name: '---', result: '' },
+      { name: 'x'.repeat(63), result: 'x'.repeat(63) },
+      // Over 63 chars: a 50-char head plus '-' and 12 hex of sha256(input).
+      // These vectors are pinned against toK8sName in
+      // compute/lib/module-loader/__tests__/k8s-name.test.ts.
       {
         name: 'a'.repeat(80),
-        result: 'a'.repeat(63)
+        result: `${'a'.repeat(50)}-0f45e858fbc4`
       },
       {
-        // truncation lands on a '-'; trailing non-alphanumerics are dropped
         name: `${'a'.repeat(62)}-bcd`,
-        result: 'a'.repeat(62)
+        result: `${'a'.repeat(50)}-a215f248a9da`
+      },
+      {
+        // the head cut lands on a '-'; it is dropped before the digest joins
+        name: `${'a'.repeat(49)}_${'b'.repeat(20)}`,
+        result: `${'a'.repeat(49)}-f0bdb703600e`
+      },
+      {
+        name: 'constructive_database_80a2eaaf-1b6d-4a25-9d6f-2ff1d1a6e001_mail',
+        result: 'constructive-database-80a2eaaf-1b6d-4a25-9d6f-2ff1d1a6e001-mail'
+      },
+      {
+        name: 'constructive_database_80a2eaaf-1b6d-4a25-9d6f-2ff1d1a6e001_mailer',
+        result: 'constructive-database-80a2eaaf-1b6d-4a25-9d6f-2ff1-a6b33285965f'
+      },
+      {
+        name: 'constructive_database_80a2eaaf-1b6d-4a25-9d6f-2ff1d1a6e001_mailbox',
+        result: 'constructive-database-80a2eaaf-1b6d-4a25-9d6f-2ff1-5e6f3baa8a2e'
       }
     ]
   );
