@@ -2,22 +2,17 @@
 -- requires: schemas/function_resolution/schema
 -- requires: metaschema-modules:schemas/metaschema_modules_public/tables/function_module/table
 -- requires: metaschema-modules:schemas/metaschema_modules_public/tables/catalog_module/table
--- requires: pgpm-app-scope:schemas/app_scope/procedures/frames
+-- requires: schemas/function_resolution/procedures/frame_candidates
 
 BEGIN;
 
 -- resolve: deterministic cross-scope function resolver, answered from the
 -- published functions catalog in ONE static indexed read.
 --
--- It expands the ordered frames from app_scope.frames into
--- (owner_scope, owner_key) candidates and probes catalog_private.functions once
--- for all of them. app_scope.frames stays the single source of truth for
--- ordering (and cycle/depth safety).
+-- The ordered (lookup_database_id, owner_scope, owner_key) candidates come from
+-- function_resolution.frame_candidates — the one expansion every typed-catalog
+-- probe shares — and catalog_private.functions is probed once for all of them.
 --
--- Candidate expansion per frame:
---   * global frame (key_value NULL):  (scope, owner_key IS NULL)
---   * keyed frame:                    (scope, owner_key = key)   -- most specific
---                                then (scope, owner_key IS NULL) -- scope default
 -- The query is a LATERAL over the ordered candidate list with one
 -- exact-equality branch per owner_key nullness, so each candidate is a single
 -- probe of the catalog's partial unique indexes
@@ -58,13 +53,13 @@ BEGIN
     -- A frame database that hosts function modules but never deployed a catalog
     -- module has definitions the catalog cannot see. Answering "not found" there
     -- would be a wrong answer, so it is raised before any probe.
-    SELECT f.lookup_database_id
+    SELECT DISTINCT f.lookup_database_id
     INTO v_unanswerable
-    FROM app_scope.frames(
+    FROM function_resolution.frame_candidates(
         resolve.database_id,
         resolve.scope,
         resolve.entity_id
-    ) AS f(scope, lookup_database_id, key_value)
+    ) f
     WHERE EXISTS (
         SELECT 1 FROM metaschema_modules_public.function_module fm
         WHERE fm.database_id = f.lookup_database_id
@@ -91,21 +86,10 @@ BEGIN
     -- exact probe of one partial unique index.
     SELECT hit.id, hit.owner_scope, hit.database_id
     INTO v_hit
-    FROM (
-        SELECT f.lookup_database_id,
-               f.scope AS owner_scope,
-               cand.owner_key,
-               (f.ord * 2) + cand.off AS ord
-        FROM app_scope.frames(
-            resolve.database_id,
-            resolve.scope,
-            resolve.entity_id
-        ) WITH ORDINALITY AS f(scope, lookup_database_id, key_value, ord)
-        CROSS JOIN LATERAL (
-            VALUES (f.key_value, 0::bigint), (NULL::uuid, 1::bigint)
-        ) AS cand(owner_key, off)
-        -- Global frames carry no key: emit the NULL candidate once.
-        WHERE cand.off = 0 OR f.key_value IS NOT NULL
+    FROM function_resolution.frame_candidates(
+        resolve.database_id,
+        resolve.scope,
+        resolve.entity_id
     ) cand
     CROSS JOIN LATERAL (
         SELECT c.id, c.owner_scope, c.database_id

@@ -1,7 +1,7 @@
 packages:
   - packages/*
 
-# Exempt from the wait: 6 scope glob(s), 53 first-party package(s).
+# Exempt from the wait: 6 scope glob(s), 52 first-party package(s).
 # First-party membership comes from what pyramation publishes on npm — waiting on your own release protects nothing.
 minimumReleaseAgeExclude:
   - "@constructive-db/*"
@@ -15,7 +15,6 @@ minimumReleaseAgeExclude:
   - "@agentic-kit/protocol"
   - "@inquirerer/utils"
   - appstash
-  - constructive-test
   - csv-to-pg
   - etag-hash
   - find-and-require-package-json

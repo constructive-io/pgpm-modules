@@ -128,6 +128,20 @@ SELECT jwt_private.current_database_id();
 
 **JWT Claim:** `jwt.claims.database_id`
 
+### jwt_private.require_database_id()
+Extracts the required database ID from JWT claims (private function).
+
+**Returns:** `uuid` - The database ID
+
+Raises `DATABASE_CLAIM_REQUIRED` when the claim is unset, empty, or malformed.
+Use this only at work-creation and attribution boundaries; policy expressions
+must use the non-throwing `current_database_id()` reader.
+
+**Usage:**
+```sql
+SELECT jwt_private.require_database_id();
+```
+
 ## Usage
 
 ### Setting JWT Claims

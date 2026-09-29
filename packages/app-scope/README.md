@@ -16,7 +16,7 @@ Portable scope-chain resolution primitive for PostgreSQL
 
 ## Overview
 
-`@pgpm/app-scope` turns "where should I look this up?" into a single, ordered list of **scope frames**. Given an execution database, an execution scope, and (optionally) an entity, it produces the frames — most-specific first — that a nearest-wins lookup should walk. It is a general primitive: function resolution, limits, permissions, or any other scope-aware lookup can consume the same frames.
+`@pgpm/app-scope` turns "where should I look this up?" into a single, ordered list of **scope frames**. Given an execution database, an execution scope, and (optionally) an entity, it produces the frames — most-specific first — that a nearest-wins lookup should walk. It is a general primitive: function resolution, limits, capabilities, or any other scope-aware lookup can consume the same frames.
 
 Every frame is `(scope, lookup_database_id, key_value)`:
 
@@ -78,6 +78,8 @@ FROM app_scope.frames(:tenant_db, 'team', :team_id);
 |     7 | platform | platform   | NULL                |
 
 A consumer walks the frames top-to-bottom and takes the first hit.
+
+The chain is closed-form over static facts: scope order is the recursive climb of `scope_private.scope_types` (read through `app_scope.projected_parent`), the lookup database is only ever the execution database or the platform database (`{T, P}` — never a chain of databases), and the keys are `T` for `database`, `owner_id` for `org`, `NULL` for `app`/`platform`. The single dynamic fact is a custom entity's ancestor keys, which live on the entity rows' owner FKs (`dyn_lookup_uuid`). constructive-db's `packages/metaschema/__tests__/modules/scope-types.test.ts` asserts `frames()` against that static chain for every execution scope. Never call `frames()` from an RLS policy: cross-database *visibility* is the constant pair `{own, platform}` (see constructive-db's `docs/architecture/scopes.md`).
 
 ### Platform database lookup
 

@@ -22,7 +22,7 @@ The whole closure is portable. Every dynamic lookup is a `SELECT` against a dyna
 
 ## Features
 
-- **Nearest-wins resolution** — walks `app_scope.frames` most-specific first; the first matching definition wins.
+- **Nearest-wins resolution** — walks `app_scope.frames` most-specific first; the first matching definition wins. Every catalog probe (`resolve`, `resolve_bucket`, `resolve_api`, `image_catalog_row`, …) consumes `function_resolution.frame_candidates`, the one expansion of frames into ordered `(lookup_database_id, owner_scope, owner_key)` candidates — no probe walks frames on its own.
 - **Resolution vs. billing separation** — the scope-key that starts the resolution walk is distinct from the billing/metering `entity_id`, end to end.
 - **Resolver-aware enqueue** — `function_resolution.enqueue` resolves (or trusts a supplied) definition, stamps `(function_definition_id, definition_scope)` and the definition's queue routing, then delegates the physical insert to the low-level `app_jobs.add_job` primitive.
 - **Definition-less tasks allowed** — handler/system tasks (`email:*`, `sms:*`, maintenance, …) resolve to nothing and enqueue with a `NULL` pair, routed by `task_identifier` alone.
@@ -73,7 +73,7 @@ FROM function_resolution.enqueue(
 );
 ```
 
-The execution database is read from `jwt_private.current_database_id()`, exactly like `app_jobs.add_job`, so the enqueued row's `database_id` and the resolution database are always the same value.
+The execution database is read from `jwt_private.require_database_id()`, exactly like `app_jobs.add_job`, so the enqueued row's `database_id` and the resolution database are always the same value.
 
 ## API
 

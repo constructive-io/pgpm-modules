@@ -24,6 +24,7 @@
     "pgpm": "^5"
   },
   "dependencies": {
+    "@pgpm/errors": "workspace:*",
     "@pgpm/jwt-claims": "workspace:*",
     "@pgpm/verify": "workspace:*"
   },

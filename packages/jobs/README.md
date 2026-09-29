@@ -18,6 +18,15 @@ Core job system for background task processing in PostgreSQL.
 
 `@pgpm/jobs` provides the core abstractions and interfaces for a PostgreSQL-based background job processing system. This package defines the schema, tables, and procedures for job queue management, scheduled jobs, and worker coordination. It serves as the foundation for building reliable background task processing systems entirely within PostgreSQL.
 
+> **Not identity-attributed — use `@pgpm/database-jobs` on the platform.**
+> This base module's `jobs`/`scheduled_jobs` tables carry no identity columns
+> (`database_id`, `actor_id`, `principal_id`, `entity_id`, `entity_type`,
+> `organization_id`) and its procedures copy no attribution between a schedule
+> and the jobs it spawns. Nothing in the constructive platform deploys it —
+> every platform surface deploys `@pgpm/database-jobs`, the attributed
+> implementation. Use this module only for standalone installations where
+> tenant/billing attribution is explicitly not required.
+
 ## Features
 
 - **Job Queue Schema**: Core `app_jobs` schema with jobs, scheduled_jobs, and job_queues tables

@@ -16,13 +16,13 @@ Module metadata handling and dependency tracking.
 
 ## Overview
 
-`@pgpm/db-meta-modules` extends the `@pgpm/db-meta-schema` package with module-specific metadata tables. This package provides tables for tracking various pgpm modules including authentication, permissions, memberships, encrypted secrets, and more. It enables configuration and metadata storage for modular application features.
+`@pgpm/db-meta-modules` extends the `@pgpm/db-meta-schema` package with module-specific metadata tables. This package provides tables for tracking various pgpm modules including authentication, capabilities, memberships, encrypted secrets, and more. It enables configuration and metadata storage for modular application features.
 
 ## Features
 
 - **Module Metadata Tables**: Store configuration for various application modules
 - **Authentication Modules**: Track user authentication, connected accounts, and crypto auth
-- **Permission System**: Store permissions and membership configurations
+- **Capability System**: Store capabilities and membership configurations
 - **Security Modules**: Track encrypted secrets and tokens
 - **User Management**: Store user and membership module configurations
 - **Field Modules**: Track custom field configurations
@@ -91,8 +91,8 @@ The package provides metadata tables for the following modules:
 - **crypto_auth_module**: Cryptocurrency authentication settings
 - **crypto_addresses_module**: Crypto address management
 
-### Permissions & Memberships
-- **permissions_module**: Permission system configuration
+### Capabilities & Memberships
+- **capabilities_module**: Capability system configuration
 - **memberships_module**: Membership management settings
 - **membership_types_module**: Membership type definitions
 - **events_module**: User level configurations
@@ -135,8 +135,8 @@ INSERT INTO metaschema_modules_public.users_module (
   '{"require_email_verification": true}'::jsonb
 );
 
--- Configure permissions module
-INSERT INTO metaschema_modules_public.permissions_module (
+-- Configure capabilities module
+INSERT INTO metaschema_modules_public.capabilities_module (
   database_id,
   api_id,
   enabled,
@@ -172,8 +172,8 @@ FROM metaschema_modules_public.users_module
 WHERE database_id = 'database-uuid'
 UNION ALL
 SELECT 
-  'permissions' as module_name, enabled 
-FROM metaschema_modules_public.permissions_module 
+  'capabilities' as module_name, enabled
+FROM metaschema_modules_public.capabilities_module
 WHERE database_id = 'database-uuid'
 UNION ALL
 SELECT 
