@@ -38,6 +38,8 @@ jobs:
           - object-store
           - object-tree
           - partman
+          - db-utils
+          - infra-utils
 
     env:
       PGHOST: localhost

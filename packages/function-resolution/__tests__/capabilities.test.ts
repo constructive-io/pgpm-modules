@@ -8,6 +8,9 @@ const PLATFORM_DB = '11111111-1111-1111-1111-111111111111';
 const TENANT_DB = '22222222-2222-2222-2222-222222222222';
 const OTHER_DB = '33333333-3333-3333-3333-333333333333';
 const ORG_ID = '44444444-4444-4444-4444-444444444444';
+// A hosted tenant: no function module of its own, served by the platform
+// database's shared `database`-scope surface (rows keyed by the tenant).
+const HOSTED_DB = '55555555-5555-5555-5555-555555555555';
 
 const ids: Record<string, string> = {};
 
@@ -20,8 +23,9 @@ describe('function-resolution capability resolution', () => {
 
     await pg.query(
       `INSERT INTO metaschema_public.database (id, name, platform)
-       VALUES ($1, 'platform_db', true), ($2, 'tenant_db', false), ($3, 'other_db', false)`,
-      [PLATFORM_DB, TENANT_DB, OTHER_DB]
+       VALUES ($1, 'platform_db', true), ($2, 'tenant_db', false), ($3, 'other_db', false),
+              ($4, 'hosted_db', false)`,
+      [PLATFORM_DB, TENANT_DB, OTHER_DB, HOSTED_DB]
     );
     await pg.query(
       `UPDATE metaschema_public.database SET owner_id = $2 WHERE id = $1`,
@@ -124,6 +128,32 @@ describe('function-resolution capability resolution', () => {
        )`
     );
 
+    // --- Shared surface: the platform database's `database`-scope function
+    // module, hosting definitions rows owned by tenants (database_id = tenant).
+    await pg.query(`CREATE SCHEMA shared_defs`);
+    await pg.query(
+      `CREATE TABLE shared_defs.function_definitions (
+         id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+         database_id uuid NOT NULL,
+         task_identifier text NOT NULL,
+         access_channels text[] NOT NULL DEFAULT '{}',
+         required_buckets text[] NOT NULL DEFAULT '{}',
+         required_modules text[] NOT NULL DEFAULT '{}',
+         required_secrets jsonb
+       )`
+    );
+    await pg.query(
+      `CREATE TABLE shared_defs.function_capability_bindings (
+         id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+         database_id uuid NOT NULL,
+         function_id uuid,
+         graph_id uuid,
+         bucket_id uuid,
+         key text NOT NULL,
+         lifecycle text NOT NULL DEFAULT 'execution'
+       )`
+    );
+
     // A payload table reference target.
     await pg.query(`CREATE SCHEMA docs`);
     await pg.query(`CREATE TABLE docs.documents (id uuid PRIMARY KEY)`);
@@ -157,6 +187,8 @@ describe('function-resolution capability resolution', () => {
     const srcApis = await reg('api_src', 'apis');
     const srcApiSchemas = await reg('api_src', 'api_schemas');
     const docs = await reg('docs', 'documents');
+    const sharedDefs = await reg('shared_defs', 'function_definitions', PLATFORM_DB);
+    const sharedBindings = await reg('shared_defs', 'function_capability_bindings', PLATFORM_DB);
 
     ids.docsTable = docs.tableId;
     ids.notifSchema = docs.schemaId;
@@ -167,6 +199,13 @@ describe('function-resolution capability resolution', () => {
           definitions_table_id, bindings_table_id, capability_bindings_table_id)
        VALUES ($1, 'database', 'database_id', $2, $2, $3, $3, $4)`,
       [TENANT_DB, defs.schemaId, defs.tableId, bindings.tableId]
+    );
+    await pg.query(
+      `INSERT INTO metaschema_modules_public.function_module
+         (database_id, scope, entity_field, schema_id, private_schema_id,
+          definitions_table_id, bindings_table_id, capability_bindings_table_id)
+       VALUES ($1, 'database', 'database_id', $2, $2, $3, $3, $4)`,
+      [PLATFORM_DB, sharedDefs.schemaId, sharedDefs.tableId, sharedBindings.tableId]
     );
     await pg.query(
       `INSERT INTO metaschema_modules_public.catalog_module
@@ -283,6 +322,23 @@ describe('function-resolution capability resolution', () => {
       [TENANT_DB]
     );
     ids.declaring = declaring.id;
+
+    // Definitions on the shared surface: one per tenant it serves. They declare
+    // only secrets (returned as names, resolved in the runtime), so the bundle
+    // depends on nothing but locating the row.
+    const sharedDefinition = async (database: string, taskIdentifier: string) => {
+      const row = await pg.one(
+        `INSERT INTO shared_defs.function_definitions
+           (database_id, task_identifier, access_channels, required_secrets)
+         VALUES ($1, $2, ARRAY['api'], '[{"name":"STRIPE_SECRET_KEY","required":true}]'::jsonb)
+         RETURNING id`,
+        [database, taskIdentifier]
+      );
+      return row.id;
+    };
+    ids.hostedShared = await sharedDefinition(HOSTED_DB, 'billing:checkout_completed');
+    ids.otherShared = await sharedDefinition(OTHER_DB, 'billing:checkout_completed');
+    ids.tenantShared = await sharedDefinition(TENANT_DB, 'billing:checkout_completed');
 
     for (const id of [ids.exporter, ids.ambiguous, ids.declaring]) {
       await pg.query(
@@ -589,6 +645,53 @@ describe('function-resolution capability resolution', () => {
         [TENANT_DB]
       )
     ).rejects.toThrow(/CAPABILITY_DEFINITION_NOT_FOUND/);
+  });
+
+  it('resolve_capabilities(): a hosted tenant reads its row on the platform-hosted shared surface', async () => {
+    const [{ bundle }] = await pg.any(
+      `SELECT function_resolution.resolve_capabilities($1, 'database', $1, $2, 'database', '{}'::jsonb, 'api') AS bundle`,
+      [HOSTED_DB, ids.hostedShared]
+    );
+
+    // The table is the platform's; the execution stays the tenant's.
+    expect(bundle.definition_database_id).toBe(PLATFORM_DB);
+    expect(bundle.database_id).toBe(HOSTED_DB);
+    expect(bundle.scope).toBe('database');
+    expect(bundle.secrets).toEqual([{ name: 'STRIPE_SECRET_KEY', required: true }]);
+  });
+
+  it('resolve_capabilities(): a shared surface never serves another tenant\'s row', async () => {
+    await expect(
+      pg.any(
+        `SELECT function_resolution.resolve_capabilities($1, 'database', $1, $2, 'database')`,
+        [HOSTED_DB, ids.otherShared]
+      )
+    ).rejects.toThrow(/CAPABILITY_DEFINITION_NOT_FOUND/);
+  });
+
+  it('resolve_capabilities(): a tenant with its own surface still reaches its row on the shared one', async () => {
+    const [{ bundle }] = await pg.any(
+      `SELECT function_resolution.resolve_capabilities($1, 'database', $1, $2, 'database') AS bundle`,
+      [TENANT_DB, ids.tenantShared]
+    );
+    expect(bundle.definition_database_id).toBe(PLATFORM_DB);
+    expect(bundle.database_id).toBe(TENANT_DB);
+
+    // ... and its own surface answers for its own rows.
+    const [{ bundle: own }] = await pg.any(
+      `SELECT function_resolution.resolve_capabilities($1, 'database', $1, $2, 'database', '{}'::jsonb, 'api') AS bundle`,
+      [TENANT_DB, ids.exporter]
+    );
+    expect(own.definition_database_id).toBe(TENANT_DB);
+  });
+
+  it('resolve_capabilities(): no frame with a function module at the definition scope raises', async () => {
+    await expect(
+      pg.any(
+        `SELECT function_resolution.resolve_capabilities($1, 'database', $1, $2, 'org')`,
+        [HOSTED_DB, ids.hostedShared]
+      )
+    ).rejects.toThrow(/CAPABILITY_DEFINITION_SCOPE_UNPROVISIONED/);
   });
 
   it('validate_capabilities(): passes when resolvable, raises when not', async () => {

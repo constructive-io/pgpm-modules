@@ -63,6 +63,8 @@
 - [ ] `packages/utils/inflection` - String inflection utilities
 - [ ] `packages/utils/base32` - Base32 encoding/decoding
 - [ ] `packages/utils/faker` - Fake data generation
+- [ ] `packages/db-utils` - General database utilities (deep jsonb merge/set, timestamps, column smart comments)
+- [ ] `packages/infra-utils` - Typed parameter interface for infrastructure resource bundles (declared params, bindings, k8s quantities, admission)
 
 ## Metrics & Analytics
 

@@ -78,6 +78,36 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
+CREATE FUNCTION function_resolution.frame_candidates(
+  database_id uuid,
+  scope text,
+  entity_id uuid DEFAULT NULL
+) RETURNS TABLE (
+  lookup_database_id uuid,
+  owner_scope text,
+  owner_key uuid,
+  ord bigint
+) AS $EOFCODE$
+BEGIN
+    RETURN QUERY
+    SELECT f.lookup_database_id,
+           f.scope,
+           cand.owner_key,
+           (f.ord * 2) + cand.off
+    FROM app_scope.frames(
+        frame_candidates.database_id,
+        frame_candidates.scope,
+        frame_candidates.entity_id
+    ) WITH ORDINALITY AS f(scope, lookup_database_id, key_value, ord)
+    CROSS JOIN LATERAL (
+        VALUES (f.key_value, 0::bigint), (NULL::uuid, 1::bigint)
+    ) AS cand(owner_key, off)
+    -- Global frames carry no key: emit the NULL candidate once.
+    WHERE cand.off = 0 OR f.key_value IS NOT NULL
+    ORDER BY (f.ord * 2) + cand.off;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
 CREATE FUNCTION function_resolution.resolve(
   database_id uuid,
   scope text,
@@ -96,13 +126,13 @@ BEGIN
     -- A frame database that hosts function modules but never deployed a catalog
     -- module has definitions the catalog cannot see. Answering "not found" there
     -- would be a wrong answer, so it is raised before any probe.
-    SELECT f.lookup_database_id
+    SELECT DISTINCT f.lookup_database_id
     INTO v_unanswerable
-    FROM app_scope.frames(
+    FROM function_resolution.frame_candidates(
         resolve.database_id,
         resolve.scope,
         resolve.entity_id
-    ) AS f(scope, lookup_database_id, key_value)
+    ) f
     WHERE EXISTS (
         SELECT 1 FROM metaschema_modules_public.function_module fm
         WHERE fm.database_id = f.lookup_database_id
@@ -129,21 +159,10 @@ BEGIN
     -- exact probe of one partial unique index.
     SELECT hit.id, hit.owner_scope, hit.database_id
     INTO v_hit
-    FROM (
-        SELECT f.lookup_database_id,
-               f.scope AS owner_scope,
-               cand.owner_key,
-               (f.ord * 2) + cand.off AS ord
-        FROM app_scope.frames(
-            resolve.database_id,
-            resolve.scope,
-            resolve.entity_id
-        ) WITH ORDINALITY AS f(scope, lookup_database_id, key_value, ord)
-        CROSS JOIN LATERAL (
-            VALUES (f.key_value, 0::bigint), (NULL::uuid, 1::bigint)
-        ) AS cand(owner_key, off)
-        -- Global frames carry no key: emit the NULL candidate once.
-        WHERE cand.off = 0 OR f.key_value IS NOT NULL
+    FROM function_resolution.frame_candidates(
+        resolve.database_id,
+        resolve.scope,
+        resolve.entity_id
     ) cand
     CROSS JOIN LATERAL (
         SELECT c.id, c.owner_scope, c.database_id
@@ -400,36 +419,6 @@ END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 
 COMMENT ON FUNCTION function_resolution.enqueue(text, pg_catalog.json, text, uuid, uuid, text, text, text, timestamptz, int, int, uuid, text, boolean, text, uuid, uuid, uuid, uuid) IS 'Resolver-aware job enqueue: resolves (or trusts a supplied) function definition for the execution (database, scope, entity, task_identifier), stamps the (function_definition_id, definition_scope) pair and the definition''s queue routing, then delegates the insert to app_jobs.add_job. The single enqueue path for function jobs; definition-less tasks enqueue with a NULL pair. Portable: built only on app_scope + the metaschema catalog + app_jobs, no AST/deparser runtime.';
-
-CREATE FUNCTION function_resolution.frame_candidates(
-  database_id uuid,
-  scope text,
-  entity_id uuid DEFAULT NULL
-) RETURNS TABLE (
-  lookup_database_id uuid,
-  owner_scope text,
-  owner_key uuid,
-  ord bigint
-) AS $EOFCODE$
-BEGIN
-    RETURN QUERY
-    SELECT f.lookup_database_id,
-           f.scope,
-           cand.owner_key,
-           (f.ord * 2) + cand.off
-    FROM app_scope.frames(
-        frame_candidates.database_id,
-        frame_candidates.scope,
-        frame_candidates.entity_id
-    ) WITH ORDINALITY AS f(scope, lookup_database_id, key_value, ord)
-    CROSS JOIN LATERAL (
-        VALUES (f.key_value, 0::bigint), (NULL::uuid, 1::bigint)
-    ) AS cand(owner_key, off)
-    -- Global frames carry no key: emit the NULL candidate once.
-    WHERE cand.off = 0 OR f.key_value IS NOT NULL
-    ORDER BY (f.ord * 2) + cand.off;
-END;
-$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
 CREATE FUNCTION function_resolution.bucket_matches(
   database_id uuid,

@@ -350,6 +350,7 @@ CREATE FUNCTION app_jobs.run_scheduled_job(
 DECLARE
   sched app_jobs.scheduled_jobs;
   j app_jobs.jobs;
+  prev_scheduled_id bigint;
   lkd_by text;
 BEGIN
   -- lock the schedule row so concurrent runners serialize here
@@ -364,6 +365,7 @@ BEGIN
   IF NOT FOUND THEN
     RETURN j;
   END IF;
+  prev_scheduled_id := sched.last_scheduled_id;
   -- if it's been scheduled check if it's been run
   IF (sched.last_scheduled_id IS NOT NULL) THEN
     SELECT
@@ -417,7 +419,32 @@ BEGIN
     last_scheduled = NOW(),
     last_scheduled_id = COALESCE(j.id, s.last_scheduled_id)
   WHERE
-    s.id = run_scheduled_job.id;
+    s.id = run_scheduled_job.id
+  RETURNING s.* INTO sched;
+  -- the fire trigger may also have removed the schedule (circuit breaker):
+  -- a null record is the caller's signal to unschedule
+  IF NOT FOUND THEN
+    RETURN j;
+  END IF;
+  -- a suppressed transport row is not a deleted schedule. A fire trigger that
+  -- enqueued through its own ledger recorded the job on the schedule: hand that
+  -- job to the caller. One that suppressed the row and recorded nothing declined
+  -- this tick (e.g. it suspended the schedule): a null record, as for a deleted
+  -- schedule, so the caller unschedules rather than being handed a stale job.
+  IF j.id IS NULL THEN
+    IF sched.last_scheduled_id IS NOT DISTINCT FROM prev_scheduled_id THEN
+      RETURN j;
+    END IF;
+    SELECT
+      *
+    FROM
+      app_jobs.jobs js
+    WHERE
+      js.id = sched.last_scheduled_id INTO j;
+    IF NOT FOUND THEN
+      PERFORM errors.raise_error('SCHEDULED_JOB_NOT_ENQUEUED', jsonb_build_object('scheduled_job_id', run_scheduled_job.id, 'key', sched.key, 'last_scheduled_id', sched.last_scheduled_id), 'internal');
+    END IF;
+  END IF;
   RETURN j;
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
