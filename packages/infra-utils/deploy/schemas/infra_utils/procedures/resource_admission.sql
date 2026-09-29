@@ -284,10 +284,12 @@ BEGIN
       END IF;
 
     ELSIF rule_type = 'allowed_annotation_prefix' THEN
-      IF rule_match->>'prefix' IS NULL THEN
+      -- An empty prefix would match every annotation key and turn the
+      -- allow-list into a no-op.
+      IF COALESCE(rule_match->>'prefix', '') = '' THEN
         PERFORM errors.raise_error(
           'RESOURCE_ADMISSION_RULE_INVALID',
-          jsonb_build_object('rule', rule->>'slug', 'rule_type', rule_type, 'reason', 'match.prefix is required'),
+          jsonb_build_object('rule', rule->>'slug', 'rule_type', rule_type, 'reason', 'match.prefix must be a non-empty string'),
           'internal'
         );
       END IF;

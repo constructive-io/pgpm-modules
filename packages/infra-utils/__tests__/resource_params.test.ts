@@ -326,6 +326,10 @@ describe('infra_utils.validate_params_schema', () => {
       [{ key: 'x', type: 'quantity', bindings: [{ path: 'a', scale: 2 }] }], // scale on quantity
       [{ key: 'x', type: 'int', bindings: [{ path: 'a', scale: 2, round: 'up' }] }],
       [{ key: 'x', type: 'int', default: 'big', bindings: [{ path: 'a' }] }], // default type
+      [{ key: 'x', type: 'int', min: '1', bindings: [{ path: 'a' }] }], // string bound on int
+      [{ key: 'x', type: 'int', max: null, bindings: [{ path: 'a' }] }], // null bound
+      [{ key: 'mem', type: 'quantity', min: 'lots', bindings: [{ path: 'a' }] }], // unparseable quantity bound
+      [{ key: 'x', type: 'int', min: 8, max: 2, bindings: [{ path: 'a' }] }], // min above max
       [
         { key: 'x', type: 'int', bindings: [{ path: 'a' }] },
         { key: 'x', type: 'text', bindings: [{ path: 'b' }] },
@@ -422,6 +426,49 @@ describe('infra_utils.bundle_param_interface', () => {
       expect.arrayContaining(['graphql-public', 'graphql-private'])
     );
     expect(iface[1].members).toEqual(['graphql-private']);
+  });
+
+  it('rejects members that share a key but disagree on its contract', async () => {
+    const member = (slug: string, declaration: Record<string, unknown>) => ({
+      slug,
+      params_schema: [{ key: 'size', type: 'int', bindings: [{ path: 'x' }], ...declaration }],
+    });
+    const cases: Array<[string, Record<string, unknown>, Record<string, unknown>]> = [
+      ['default', { default: 1 }, { default: 2 }],
+      ['min', { min: 1 }, { min: 2 }],
+      ['max', { max: 8 }, { max: 16 }],
+      ['options', { type: 'enum', options: ['a'] }, { type: 'enum', options: ['b'] }],
+    ];
+    for (const [attribute, a, b] of cases) {
+      let detail: string | undefined;
+      try {
+        await db.any('SELECT infra_utils.bundle_param_interface($1::jsonb)', [
+          JSON.stringify([member('a', a), member('b', b)]),
+        ]);
+      } catch (error) {
+        expect((error as Error).message).toMatch('RESOURCE_PARAM_CONFLICT');
+        detail = (error as { detail?: string }).detail;
+      }
+      await db.afterEach();
+      await db.beforeEach();
+      if (detail === undefined) {
+        throw new Error(`expected conflicting ${attribute} to fail with RESOURCE_PARAM_CONFLICT`);
+      }
+      expect(JSON.parse(detail).context).toMatchObject({ key: 'size', attribute });
+    }
+  });
+
+  it('accepts members that agree on, or leave unstated, a shared attribute', async () => {
+    const [{ iface }] = await db.any<{ iface: Array<Record<string, unknown>> }>(
+      'SELECT infra_utils.bundle_param_interface($1::jsonb) AS iface',
+      [
+        JSON.stringify([
+          { slug: 'a', params_schema: [{ key: 'size', type: 'int', min: 1, max: 8, bindings: [{ path: 'x' }] }] },
+          { slug: 'b', params_schema: [{ key: 'size', type: 'int', min: 1, bindings: [{ path: 'y' }] }] },
+        ]),
+      ]
+    );
+    expect(iface).toEqual([expect.objectContaining({ key: 'size', min: 1, max: 8 })]);
   });
 
   it('rejects members that declare the same key with different types', async () => {

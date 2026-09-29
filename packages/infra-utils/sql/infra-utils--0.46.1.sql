@@ -146,6 +146,43 @@ BEGIN
       );
     END IF;
 
+    -- A bound the comparison cannot read would evaluate to NULL and enforce
+    -- nothing, so it is rejected here rather than ignored at coercion time.
+    IF declaration ? 'min' AND infra_utils.param_bound_magnitude(param_type, declaration -> 'min') IS NULL THEN
+      PERFORM errors.raise_error(
+        'RESOURCE_PARAM_SCHEMA_INVALID',
+        jsonb_build_object(
+          'reason', 'min must be written in the parameter''s own notation',
+          'key', param_key, 'type', param_type, 'min', declaration -> 'min'
+        ),
+        'internal'
+      );
+    END IF;
+
+    IF declaration ? 'max' AND infra_utils.param_bound_magnitude(param_type, declaration -> 'max') IS NULL THEN
+      PERFORM errors.raise_error(
+        'RESOURCE_PARAM_SCHEMA_INVALID',
+        jsonb_build_object(
+          'reason', 'max must be written in the parameter''s own notation',
+          'key', param_key, 'type', param_type, 'max', declaration -> 'max'
+        ),
+        'internal'
+      );
+    END IF;
+
+    IF declaration ? 'min' AND declaration ? 'max'
+       AND infra_utils.param_bound_magnitude(param_type, declaration -> 'min')
+         > infra_utils.param_bound_magnitude(param_type, declaration -> 'max') THEN
+      PERFORM errors.raise_error(
+        'RESOURCE_PARAM_SCHEMA_INVALID',
+        jsonb_build_object(
+          'reason', 'min must not exceed max',
+          'key', param_key, 'min', declaration -> 'min', 'max', declaration -> 'max'
+        ),
+        'internal'
+      );
+    END IF;
+
     -- A required parameter must be supplied by the caller, so a default would
     -- make "required" unobservable.
     IF COALESCE((declaration -> 'required')::boolean, false) AND declaration ? 'default' THEN
@@ -351,7 +388,7 @@ BEGIN
   END IF;
 
   IF magnitude IS NOT NULL AND declaration ? 'min' THEN
-    IF magnitude < infra_utils.param_bound_magnitude(param_type, declaration -> 'min') THEN
+    IF (magnitude < infra_utils.param_bound_magnitude(param_type, declaration -> 'min')) IS NOT FALSE THEN
       PERFORM errors.raise_error(
         'RESOURCE_PARAM_INVALID',
         jsonb_build_object(
@@ -364,7 +401,7 @@ BEGIN
   END IF;
 
   IF magnitude IS NOT NULL AND declaration ? 'max' THEN
-    IF magnitude > infra_utils.param_bound_magnitude(param_type, declaration -> 'max') THEN
+    IF (magnitude > infra_utils.param_bound_magnitude(param_type, declaration -> 'max')) IS NOT FALSE THEN
       PERFORM errors.raise_error(
         'RESOURCE_PARAM_INVALID',
         jsonb_build_object(
@@ -618,24 +655,46 @@ BEGIN
     RETURN '[]'::jsonb;
   END IF;
 
-  SELECT d ->> 'key' AS param_key,
-         count(DISTINCT d ->> 'type') AS type_count
+  -- A shared key is one parameter with one contract. Members may leave an
+  -- attribute unstated, but two members that both state it must agree;
+  -- otherwise the aggregate below would pick one arbitrarily and a member
+  -- could run outside the bounds it declared.
+  SELECT param_key, attribute
     INTO conflict
-    FROM jsonb_array_elements(schemas) m
-    CROSS JOIN LATERAL jsonb_array_elements(
-      CASE WHEN jsonb_typeof(m -> 'params_schema') = 'array'
-           THEN m -> 'params_schema' ELSE '[]'::jsonb END
-    ) d
-   GROUP BY d ->> 'key'
-  HAVING count(DISTINCT d ->> 'type') > 1
+    FROM (
+      SELECT d ->> 'key' AS param_key,
+             count(DISTINCT d ->> 'type')                                  AS types,
+             count(DISTINCT d -> 'default') FILTER (WHERE d ? 'default')   AS defaults,
+             count(DISTINCT d -> 'min')     FILTER (WHERE d ? 'min')       AS mins,
+             count(DISTINCT d -> 'max')     FILTER (WHERE d ? 'max')       AS maxes,
+             count(DISTINCT d -> 'options') FILTER (WHERE d ? 'options')   AS option_sets
+        FROM jsonb_array_elements(schemas) m
+        CROSS JOIN LATERAL jsonb_array_elements(
+          CASE WHEN jsonb_typeof(m -> 'params_schema') = 'array'
+               THEN m -> 'params_schema' ELSE '[]'::jsonb END
+        ) d
+       GROUP BY d ->> 'key'
+    ) k
+    CROSS JOIN LATERAL (
+      SELECT CASE
+        WHEN k.types > 1       THEN 'type'
+        WHEN k.defaults > 1    THEN 'default'
+        WHEN k.mins > 1        THEN 'min'
+        WHEN k.maxes > 1       THEN 'max'
+        WHEN k.option_sets > 1 THEN 'options'
+      END AS attribute
+    ) a
+   WHERE a.attribute IS NOT NULL
+   ORDER BY param_key
    LIMIT 1;
 
   IF conflict.param_key IS NOT NULL THEN
     PERFORM errors.raise_error(
       'RESOURCE_PARAM_CONFLICT',
       jsonb_build_object(
-        'reason', 'members declare the same parameter key with different types',
-        'key', conflict.param_key
+        'reason', format('members declare the same parameter key with different %s', conflict.attribute),
+        'key', conflict.param_key,
+        'attribute', conflict.attribute
       ),
       'internal'
     );
@@ -948,10 +1007,12 @@ BEGIN
       END IF;
 
     ELSIF rule_type = 'allowed_annotation_prefix' THEN
-      IF rule_match->>'prefix' IS NULL THEN
+      -- An empty prefix would match every annotation key and turn the
+      -- allow-list into a no-op.
+      IF COALESCE(rule_match->>'prefix', '') = '' THEN
         PERFORM errors.raise_error(
           'RESOURCE_ADMISSION_RULE_INVALID',
-          jsonb_build_object('rule', rule->>'slug', 'rule_type', rule_type, 'reason', 'match.prefix is required'),
+          jsonb_build_object('rule', rule->>'slug', 'rule_type', rule_type, 'reason', 'match.prefix must be a non-empty string'),
           'internal'
         );
       END IF;

@@ -1,6 +1,7 @@
 -- Deploy schemas/db_utils/procedures/timestamps to pg
 
 -- requires: schemas/db_utils/schema
+-- requires: pgpm-stamps:schemas/stamps/procedures/utils
 
 BEGIN;
 

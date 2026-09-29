@@ -23,6 +23,7 @@
   "dependencies": {
     "@pgpm/inflection": "workspace:*",
     "@pgpm/inflection-db": "workspace:*",
+    "@pgpm/stamps": "workspace:*",
     "@pgpm/verify": "workspace:*"
   },
   "devDependencies": {

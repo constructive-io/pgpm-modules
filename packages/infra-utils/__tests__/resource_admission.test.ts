@@ -238,6 +238,18 @@ describe('allowed_annotation_prefix', () => {
     ).resolves.toBeDefined();
   });
 
+  it('rejects a rule with an empty prefix rather than allowing every key', async () => {
+    await expect(
+      check({ annotations: { 'evil.io/inject': 'x' } }, ALLOWED, [{ ...rule, match: { prefix: '' } }])
+    ).rejects.toThrow(/RESOURCE_ADMISSION_RULE_INVALID/);
+  });
+
+  it('rejects a rule with no prefix', async () => {
+    await expect(
+      check({ annotations: { 'evil.io/inject': 'x' } }, ALLOWED, [{ ...rule, match: {} }])
+    ).rejects.toThrow(/RESOURCE_ADMISSION_RULE_INVALID/);
+  });
+
   it('leaves annotations unrestricted when no prefix rule matches the kind', async () => {
     await expect(
       check({ annotations: { 'anything.io/x': 'y' } }, ALLOWED, [])
