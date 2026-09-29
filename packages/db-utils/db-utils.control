@@ -1,6 +1,6 @@
 # db-utils extension
 comment = 'db-utils extension'
-default_version = '0.46.1'
+default_version = '0.47.0'
 module_pathname = '$libdir/db-utils'
 requires = 'inflection-db,pgpm-inflection,pgpm-stamps,pgpm-verify,plpgsql'
 relocatable = false

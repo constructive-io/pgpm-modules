@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/db-utils",
-  "version": "0.46.1",
+  "version": "0.47.0",
   "description": "General database utility functions (deep jsonb merge/set, timestamps, column comments)",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [

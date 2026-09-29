@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/infra-utils",
-  "version": "0.46.1",
+  "version": "0.47.0",
   "description": "Typed parameter interface for infrastructure resource bundles (declared params, bindings, k8s quantities)",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
