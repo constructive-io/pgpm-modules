@@ -1867,6 +1867,7 @@ CREATE TABLE metaschema_modules_public.storage_module (
   endpoint text NULL,
   public_url_prefix text NULL,
   provider text NULL,
+  region text NULL,
   allowed_origins text[] NULL,
   restrict_reads boolean NOT NULL DEFAULT false,
   has_path_shares boolean NOT NULL DEFAULT false,
