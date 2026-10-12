@@ -102,19 +102,23 @@ BEGIN
     RETURN value;
   END IF;
 
+  head := path[1];
+  rest := path[2:array_length(path, 1)];
+
   base := CASE
+    WHEN jsonb_typeof(target) = 'array' AND head ~ '^[0-9]+$' THEN target
     WHEN target IS NULL OR jsonb_typeof(target) <> 'object' THEN '{}'::jsonb
     ELSE target
   END;
-
-  head := path[1];
-  rest := path[2:array_length(path, 1)];
 
   IF array_length(rest, 1) IS NULL THEN
     RETURN jsonb_set(base, ARRAY[head], value, true);
   END IF;
 
-  child := base -> head;
+  child := CASE
+    WHEN jsonb_typeof(base) = 'array' THEN base -> head::int
+    ELSE base -> head
+  END;
   RETURN jsonb_set(
     base,
     ARRAY[head],

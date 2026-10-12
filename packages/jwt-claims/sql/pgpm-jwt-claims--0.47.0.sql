@@ -44,15 +44,14 @@ CREATE SCHEMA jwt_public;
 
 GRANT USAGE ON SCHEMA jwt_public TO authenticated, anonymous;
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA jwt_public
-  GRANT EXECUTE ON FUNCTIONS TO authenticated;
-
 CREATE FUNCTION jwt_public.current_user_id() RETURNS uuid AS $EOFCODE$
   SELECT CASE
     WHEN pg_input_is_valid(current_setting('jwt.claims.user_id', TRUE), 'uuid')
       THEN current_setting('jwt.claims.user_id', TRUE)::uuid
   END;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
+
+GRANT EXECUTE ON FUNCTION jwt_public.current_user_id() TO authenticated;
 
 CREATE FUNCTION jwt_public.current_ip_address() RETURNS inet AS $EOFCODE$
   SELECT CASE
@@ -61,13 +60,19 @@ CREATE FUNCTION jwt_public.current_ip_address() RETURNS inet AS $EOFCODE$
   END;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
+GRANT EXECUTE ON FUNCTION jwt_public.current_ip_address() TO authenticated;
+
 CREATE FUNCTION jwt_public.current_user_agent() RETURNS text AS $EOFCODE$
   SELECT current_setting('jwt.claims.user_agent', TRUE);
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
+GRANT EXECUTE ON FUNCTION jwt_public.current_user_agent() TO authenticated;
+
 CREATE FUNCTION jwt_public.current_origin() RETURNS origin AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.origin', true), '')::origin;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
+
+GRANT EXECUTE ON FUNCTION jwt_public.current_origin() TO authenticated;
 
 CREATE FUNCTION jwt_public.current_principal_id() RETURNS uuid AS $EOFCODE$
   SELECT CASE
@@ -76,9 +81,13 @@ CREATE FUNCTION jwt_public.current_principal_id() RETURNS uuid AS $EOFCODE$
   END;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
+GRANT EXECUTE ON FUNCTION jwt_public.current_principal_id() TO authenticated;
+
 CREATE FUNCTION jwt_public.current_role_type() RETURNS text AS $EOFCODE$
   SELECT coalesce(nullif(current_setting('jwt.claims.role_type', TRUE), ''), 'user');
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
+
+GRANT EXECUTE ON FUNCTION jwt_public.current_role_type() TO authenticated;
 
 CREATE SCHEMA jwt_private;
 
@@ -162,6 +171,8 @@ BEGIN
   RETURN user_id;
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE PARALLEL safe;
+
+GRANT EXECUTE ON FUNCTION jwt_public.require_user_id() TO authenticated;
 
 CREATE FUNCTION jwt_private.require_entity_id() RETURNS uuid AS $EOFCODE$
 DECLARE

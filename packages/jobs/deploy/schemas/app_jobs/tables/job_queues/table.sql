@@ -9,6 +9,14 @@ CREATE TABLE app_jobs.job_queues (
   locked_by text
 );
 
+-- Every claim and completion rewrites a queue row: leave room on the page so
+-- the dead versions are pruned in place, and vacuum the small table eagerly.
+ALTER TABLE app_jobs.job_queues SET (
+  fillfactor = 50,
+  autovacuum_vacuum_scale_factor = 0.01,
+  autovacuum_vacuum_cost_delay = 0
+);
+
 COMMENT ON TABLE app_jobs.job_queues IS 'Queue metadata: tracks job counts and locking state for each named queue';
 COMMENT ON COLUMN app_jobs.job_queues.queue_name IS 'Unique name identifying this queue';
 COMMENT ON COLUMN app_jobs.job_queues.job_count IS 'Number of pending jobs in this queue';

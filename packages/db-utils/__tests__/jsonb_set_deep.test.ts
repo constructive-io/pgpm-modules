@@ -41,4 +41,22 @@ describe('db_utils.jsonb_set_deep', () => {
     );
     expect(out).toEqual({ settings: { NODE_ENV: 'production' } });
   });
+
+  it('indexes into an array by a numeric segment and keeps the other entries', async () => {
+    const [{ out }] = await db.any<{ out: unknown }>(
+      `SELECT db_utils.jsonb_set_deep('{"storage":[{"name":"data","size":"1Gi"},{"name":"b"}]}'::jsonb,
+                                      ARRAY['storage','0','size'],
+                                      '"20Gi"'::jsonb) AS out`
+    );
+    expect(out).toEqual({ storage: [{ name: 'data', size: '20Gi' }, { name: 'b' }] });
+  });
+
+  it('replaces an array addressed by a non-numeric segment', async () => {
+    const [{ out }] = await db.any<{ out: unknown }>(
+      `SELECT db_utils.jsonb_set_deep('{"storage":[{"name":"data"}]}'::jsonb,
+                                      ARRAY['storage','size'],
+                                      '"20Gi"'::jsonb) AS out`
+    );
+    expect(out).toEqual({ storage: { size: '20Gi' } });
+  });
 });

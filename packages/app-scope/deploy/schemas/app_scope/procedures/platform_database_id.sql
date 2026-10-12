@@ -25,6 +25,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
+-- Read-only resolver that INVOKER planes (routing_tables, the settings/site
+-- readers, generated triggers) call as the authenticated caller; it reads no
+-- caller-chosen column, so it is granted to authenticated rather than PUBLIC.
+REVOKE EXECUTE ON FUNCTION app_scope.platform_database_id FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app_scope.platform_database_id TO authenticated;
+
 COMMENT ON FUNCTION app_scope.platform_database_id() IS
 'Id of the platform (constructive) database: the singleton metaschema_public.database row with platform = true. Raises PLATFORM_DATABASE_NOT_REGISTERED if none is flagged.';
 

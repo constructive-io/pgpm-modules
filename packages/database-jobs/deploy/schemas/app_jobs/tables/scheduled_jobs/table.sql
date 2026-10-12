@@ -16,16 +16,16 @@ CREATE TABLE app_jobs.scheduled_jobs (
   priority integer DEFAULT 0 NOT NULL,
   max_attempts integer DEFAULT 25 NOT NULL,
   key text,
-  locked_at timestamptz,
-  locked_by text,
   schedule_info json NOT NULL,
   last_scheduled timestamptz,
   last_scheduled_id bigint,
+  next_run_at timestamptz,
+  last_error text,
+  last_error_at timestamptz,
   CHECK (length(key) < 513),
   CHECK (length(task_identifier) < 127),
   CHECK (max_attempts >= 1),
   CHECK (length(queue_name) < 127),
-  CHECK (length(locked_by) > 3),
   UNIQUE (key)
 );
 
@@ -43,10 +43,11 @@ COMMENT ON COLUMN app_jobs.scheduled_jobs.payload IS 'JSON payload passed to eac
 COMMENT ON COLUMN app_jobs.scheduled_jobs.priority IS 'Priority assigned to spawned jobs (lower = higher priority)';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.max_attempts IS 'Max retry attempts for spawned jobs';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.key IS 'Optional unique deduplication key';
-COMMENT ON COLUMN app_jobs.scheduled_jobs.locked_at IS 'Timestamp when the scheduler locked this record for processing';
-COMMENT ON COLUMN app_jobs.scheduled_jobs.locked_by IS 'Identifier of the scheduler worker holding the lock';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.schedule_info IS 'JSON schedule configuration (e.g. cron expression, interval)';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.last_scheduled IS 'Timestamp when a job was last spawned from this schedule';
 COMMENT ON COLUMN app_jobs.scheduled_jobs.last_scheduled_id IS 'ID of the last job spawned from this schedule';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.next_run_at IS 'Next instant this schedule fires, computed from schedule_info by app_jobs.schedule_next_run; app_jobs.fire_due_scheduled_jobs, called on a fixed interval by the schedule clock, fires every row whose next_run_at has passed';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.last_error IS 'Error raised the last time fire_due_scheduled_jobs tried to spawn this schedule; cleared when a spawn succeeds';
+COMMENT ON COLUMN app_jobs.scheduled_jobs.last_error_at IS 'When last_error was recorded';
 
 COMMIT;

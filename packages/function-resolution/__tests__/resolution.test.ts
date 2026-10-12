@@ -325,6 +325,133 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
     ).rejects.toThrow(/FUNCTION_DEFINITION_INVALID_PAIR/);
   });
 
+  describe('schedule_defer_reason() and fire_due_scheduled_jobs(): the schedule clock registration check', () => {
+    const schedule = async (key: string, task: string, payload: unknown = {}) => {
+      await pg.query(`SELECT set_config('jwt.strict_attribution', 'false', false)`);
+      await pg.query(
+        `INSERT INTO app_jobs.scheduled_jobs (database_id, task_identifier, payload, schedule_info, key)
+         VALUES ($1, $2, $3::json, '{"rule": "0 0 4 * * *"}'::json, $4)`,
+        [TENANT_DB, task, JSON.stringify(payload), key]
+      );
+    };
+    const deferReason = async (key: string): Promise<string | null> =>
+      (
+        await pg.one(
+          `SELECT function_resolution.schedule_defer_reason(s) AS reason
+           FROM app_jobs.scheduled_jobs s WHERE s.key = $1`,
+          [key]
+        )
+      ).reason;
+
+    it('is NULL when the task resolves from the database frame', async () => {
+      await schedule('defer:registered', 'report:run');
+      expect(await deferReason('defer:registered')).toBeNull();
+    });
+
+    it('names the missing definition when the task resolves nowhere', async () => {
+      await schedule('defer:missing', 'does:not-exist');
+      expect(await deferReason('defer:missing')).toBe(
+        `FUNCTION_NOT_REGISTERED: no function definition for task_identifier "does:not-exist" in the scope chain starting at scope "database" (database_id=${TENANT_DB})`
+      );
+    });
+
+    it('starts the walk at the payload scope, as the worker does', async () => {
+      await schedule('defer:app-scope', 'does:not-exist', { scope: 'app' });
+      expect(await deferReason('defer:app-scope')).toContain('starting at scope "app"');
+    });
+
+    it('resolves a graph-node payload by its node_type', async () => {
+      await schedule('defer:graph-ok', 'graph:node', {
+        execution_id: 'e', node_name: 'n', node_type: 'report:run', inputs: {},
+      });
+      await schedule('defer:graph-missing', 'report:run', {
+        execution_id: 'e', node_name: 'n', node_type: 'does:not-exist', inputs: {},
+      });
+      expect(await deferReason('defer:graph-ok')).toBeNull();
+      expect(await deferReason('defer:graph-missing')).toContain('"does:not-exist"');
+    });
+
+    it('never defers a function schedule', async () => {
+      await schedule('function_schedule:00000000-0000-0000-0000-000000000001', 'does:not-exist');
+      expect(await deferReason('function_schedule:00000000-0000-0000-0000-000000000001')).toBeNull();
+    });
+
+    const fire = async (defer_for = '1 minute') =>
+      (
+        await pg.one(`SELECT function_resolution.fire_due_scheduled_jobs(10, $1::interval) AS result`, [defer_for])
+      ).result;
+
+    it('fire_due_scheduled_jobs defers the schedule until its definition is registered, then fires it', async () => {
+      await pg.query(`DELETE FROM app_jobs.scheduled_jobs`);
+      await schedule('defer:late', 'late:register');
+      await pg.query(`UPDATE app_jobs.scheduled_jobs SET next_run_at = now() - interval '1 second'`);
+
+      expect(await fire()).toEqual({ fired: 0, skipped: 0, failed: 0, deferred: 1, processed: 1 });
+      expect(await pg.any(`SELECT id FROM app_jobs.jobs WHERE task_identifier = 'late:register'`)).toEqual([]);
+      const deferred = await pg.one(`SELECT last_error FROM app_jobs.scheduled_jobs WHERE key = 'defer:late'`);
+      expect(deferred.last_error).toContain('DEFERRED: FUNCTION_NOT_REGISTERED');
+
+      await pg.query(
+        `INSERT INTO catalog_private.functions
+           (id, owner_scope, owner_key, is_visible, database_id, task_identifier)
+         VALUES (gen_random_uuid(), 'database', $1, false, $1, 'late:register')`,
+        [TENANT_DB]
+      );
+      await pg.query(`UPDATE app_jobs.scheduled_jobs SET next_run_at = now() - interval '1 second'`);
+
+      const second = await fire();
+      const fired = await pg.one(`SELECT last_error FROM app_jobs.scheduled_jobs WHERE key = 'defer:late'`);
+      expect(fired.last_error).toBeNull();
+      expect(second).toEqual({ fired: 1, skipped: 0, failed: 0, deferred: 0, processed: 1 });
+      const jobs = await pg.any(`SELECT attempts FROM app_jobs.jobs WHERE task_identifier = 'late:register'`);
+      expect(jobs).toEqual([{ attempts: 0 }]);
+    });
+
+    it('fire_due_scheduled_jobs fires registered schedules beside a deferred one and pushes the deferred one out by defer_for', async () => {
+      await pg.query(`DELETE FROM app_jobs.scheduled_jobs`);
+      await pg.query(`DELETE FROM app_jobs.jobs WHERE key LIKE 'defer:%'`);
+      await schedule('defer:ok', 'report:run');
+      await schedule('defer:gated', 'does:not-exist');
+      await pg.query(`UPDATE app_jobs.scheduled_jobs SET next_run_at = now() - interval '1 second'`);
+
+      expect(await fire('5 minutes')).toEqual({ fired: 1, skipped: 0, failed: 0, deferred: 1, processed: 2 });
+      expect((await pg.any(`SELECT key FROM app_jobs.jobs WHERE key LIKE 'defer:%'`)).map((j) => j.key)).toEqual([
+        'defer:ok',
+      ]);
+      const gated = await pg.one(
+        `SELECT next_run_at, last_error_at, last_scheduled_id FROM app_jobs.scheduled_jobs WHERE key = 'defer:gated'`
+      );
+      expect(gated.last_scheduled_id).toBeNull();
+      expect(new Date(gated.next_run_at).getTime()).toBe(new Date(gated.last_error_at).getTime() + 300_000);
+      expect(await fire()).toEqual({ fired: 0, skipped: 0, failed: 0, deferred: 0, processed: 0 });
+    });
+
+    it('fire_due_scheduled_jobs fails, records and advances a schedule whose registration check raises', async () => {
+      await pg.query(`DELETE FROM app_jobs.scheduled_jobs`);
+      await schedule('defer:broken', 'report:run');
+      await pg.query(`UPDATE app_jobs.scheduled_jobs SET next_run_at = now() - interval '1 second'`);
+
+      // a frame database with function modules but no functions catalog makes
+      // resolve() raise FUNCTION_RESOLUTION_CATALOG_UNAVAILABLE
+      await pg.query('BEGIN');
+      try {
+        await pg.query(`DELETE FROM metaschema_modules_public.catalog_module WHERE database_id = $1`, [TENANT_DB]);
+        expect(await fire()).toEqual({ fired: 0, skipped: 0, failed: 1, deferred: 0, processed: 1 });
+        const row = await pg.one(`SELECT last_error, next_run_at FROM app_jobs.scheduled_jobs WHERE key = 'defer:broken'`);
+        expect(row.last_error).toContain('FUNCTION_RESOLUTION_CATALOG_UNAVAILABLE');
+        expect(new Date(row.next_run_at).getUTCHours()).toBe(4);
+        expect(await pg.any(`SELECT id FROM app_jobs.jobs WHERE key = 'defer:broken'`)).toEqual([]);
+      } finally {
+        await pg.query('ROLLBACK');
+      }
+    });
+
+    it('fire_due_scheduled_jobs rejects a defer_for that is not positive', async () => {
+      await expect(fire('0 seconds')).rejects.toThrow('SCHEDULE_DEFER_INTERVAL_INVALID');
+      await expect(fire('-1 minute')).rejects.toThrow('SCHEDULE_DEFER_INTERVAL_INVALID');
+    });
+  });
+
   it('enqueue(): full portable path resolves, routes, and inserts a job', async () => {
     // enqueue reads the execution database from jwt_private.require_database_id()
     // (the jwt.claims.database_id GUC), set transaction-locally around the call.

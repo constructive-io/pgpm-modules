@@ -3,6 +3,7 @@
 exports[`scheduled jobs schedule jobs 1`] = `
 {
   "attempts": null,
+  "deferred_at": null,
   "id": null,
   "key": null,
   "last_error": null,

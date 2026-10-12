@@ -39,6 +39,7 @@ SELECT
   clear_scheduled_change_function,
   get_billing_provider_state_function,
   record_billing_health_function,
+  bind_checkout_session_function,
   prefix
 FROM metaschema_modules_public.billing_provider_module
 WHERE FALSE;

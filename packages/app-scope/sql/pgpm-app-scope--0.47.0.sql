@@ -24,6 +24,10 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
+REVOKE EXECUTE ON FUNCTION app_scope.platform_database_id FROM PUBLIC RESTRICT;
+
+GRANT EXECUTE ON FUNCTION app_scope.platform_database_id TO authenticated;
+
 COMMENT ON FUNCTION app_scope.platform_database_id() IS 'Id of the platform (constructive) database: the singleton metaschema_public.database row with platform = true. Raises PLATFORM_DATABASE_NOT_REGISTERED if none is flagged.';
 
 CREATE FUNCTION app_scope.dyn_lookup_uuid(
@@ -44,6 +48,8 @@ BEGIN
     RETURN v_result;
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE EXECUTE ON FUNCTION app_scope.dyn_lookup_uuid FROM PUBLIC RESTRICT;
 
 CREATE FUNCTION app_scope.projected_parent(
   database_id uuid,
@@ -68,6 +74,8 @@ BEGIN
       AND st.scope = projected_parent.scope;
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE EXECUTE ON FUNCTION app_scope.projected_parent FROM PUBLIC RESTRICT;
 
 COMMENT ON FUNCTION app_scope.projected_parent(uuid, text) IS 'One scope''s membership type and parent scope, read from scope_private.scope_types with static SQL. Returns no row when the projection is absent or does not cover the scope, so callers fall back to the dynamic probe.';
 
@@ -175,6 +183,8 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
+REVOKE EXECUTE ON FUNCTION app_scope.membership_parent FROM PUBLIC RESTRICT;
+
 CREATE FUNCTION app_scope.actor_entity(
   database_id uuid,
   actor_id uuid
@@ -276,6 +286,8 @@ BEGIN
     RETURN QUERY SELECT resolved_id, resolved_scope;
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE EXECUTE ON FUNCTION app_scope.actor_entity FROM PUBLIC RESTRICT;
 
 COMMENT ON FUNCTION app_scope.actor_entity(uuid, uuid) IS 'Resolves an actor to a complete entity pair from its users.type, or to the owner pair for a principal. Raises ACTOR_ENTITY_UNRESOLVED rather than returning a partial pair.';
 
@@ -407,6 +419,8 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
+REVOKE EXECUTE ON FUNCTION app_scope.local_frames FROM PUBLIC RESTRICT;
+
 COMMENT ON FUNCTION app_scope.local_frames(uuid, text, uuid) IS 'Ordered scope-lookup frames WITHIN one database (most specific first) from the given execution scope up through that database''s global `app` scope: entity -> (membership climb) -> org -> app, or database -> org -> app, or org -> app, or app. Never emits the cross-database `platform` terminal — app_scope.frames appends that. `database` is the synthetic per-database root (keyed by the database, owned by database.owner_id); entity scopes climb their membership tree straight to the owning org.';
 
 CREATE FUNCTION app_scope.frames(
@@ -503,6 +517,10 @@ BEGIN
     RETURN NEXT;
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE EXECUTE ON FUNCTION app_scope.frames FROM PUBLIC RESTRICT;
+
+GRANT EXECUTE ON FUNCTION app_scope.frames TO authenticated;
 
 COMMENT ON FUNCTION app_scope.frames(uuid, text, uuid) IS 'Ordered scope-lookup frames for an execution, most-specific first. A database is the unit of resolution: each database climbs its own local chain (entity -> ... -> org -> app, or database -> org -> app) via app_scope.local_frames; a tenant execution then falls through to the platform database''s own full chain (database -> org -> app) and finally the single global `platform` terminal. The platform database is the root database, not a special case. Each frame carries the scope-key VALUE to match against a consuming module''s entity_field (global app/platform frames carry NULL) and the lookup_database_id whose module instance the frame is probed in. Single source of truth for scope resolution; never hand-order scopes or re-derive keys elsewhere. The platform database is resolved lazily: before one is registered (generation bootstrap, isolated metaschemas) the chain ends after the local frames, and only the `platform` execution scope raises PLATFORM_DATABASE_NOT_REGISTERED.';
 
@@ -705,6 +723,8 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
+GRANT EXECUTE ON FUNCTION app_scope.routing_tables TO authenticated;
+
 COMMENT ON FUNCTION app_scope.routing_tables(uuid, text) IS 'Physical (schema, table) names of the scoped routing source/settings tables serving an execution at the given scope, resolved from the api_surface_module, site_surface_module, domain_module, route_module and app_module registrations. Scope resolution one layer above app_scope.frames: each surface is located independently by walking frames (exact-scope frames first, then most-specific first), so an inner frame''s apis surface never hijacks the domain/site/route planes served by an outer frame. No platform special-casing. Surfaces not provisioned on any frame come back NULL; a registration pointing at a missing table raises ROUTING_TABLES_NOT_FOUND.';
 
 CREATE FUNCTION app_scope.frame_owns(
@@ -758,5 +778,9 @@ BEGIN
     RETURN v_owns;
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE EXECUTE ON FUNCTION app_scope.frame_owns FROM PUBLIC RESTRICT;
+
+GRANT EXECUTE ON FUNCTION app_scope.frame_owns TO authenticated;
 
 COMMENT ON FUNCTION app_scope.frame_owns(uuid, text, uuid, text, uuid, uuid) IS 'True when the frame that owns a catalog row — its (owner_scope, owner_key, owner_database_id) triple — is one of the frames app_scope.frames returns for the given execution. The identity test is the one function_resolution.resolve probes the catalog with, so a write-path ownership guard admits exactly what the read path would resolve. The chain is ancestry, not visibility: the execution''s own scopes, its database, then the platform database''s chain — never a peer or another keyed owner. Returns false rather than raising when the row''s owning frame is not fully identified.';

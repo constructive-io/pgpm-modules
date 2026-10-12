@@ -20,9 +20,6 @@
     "test": "jest",
     "test:watch": "jest --watch"
   },
-  "dependencies": {
-    "@pgpm/verify": "workspace:*"
-  },
   "devDependencies": {
     "pgpm": "^5"
   },

@@ -251,16 +251,26 @@ describe('defaults security configurations', () => {
     // loses PUBLIC's EXECUTE and its functions become uncallable: pgpm-defaults
     // must be the last requirement of any deployment that installs extensions.
     it('leaves an extension created after it without PUBLIC execution', async () => {
-      await pg.any(`CREATE EXTENSION IF NOT EXISTS citext`);
+      await pg.any(`CREATE EXTENSION IF NOT EXISTS fuzzystrmatch`);
 
       const [privileges] = await pg.any(`
         SELECT
-          has_function_privilege('public', 'citext_eq(citext,citext)', 'execute') as public_can_execute,
-          has_function_privilege('anonymous', 'citext_eq(citext,citext)', 'execute') as anonymous_can_execute
+          has_function_privilege('public', 'soundex(text)', 'execute') as public_can_execute,
+          has_function_privilege('anonymous', 'soundex(text)', 'execute') as anonymous_can_execute
       `);
 
       expect(privileges.public_can_execute).toBe(false);
       expect(privileges.anonymous_can_execute).toBe(false);
+    });
+
+    // Extensions in the control file's requires are created before the revoke,
+    // so their functions stay callable.
+    it('keeps a required extension callable by PUBLIC', async () => {
+      const [privileges] = await pg.any(`
+        SELECT has_function_privilege('public', 'citext_eq(citext,citext)', 'execute') as public_can_execute
+      `);
+
+      expect(privileges.public_can_execute).toBe(true);
     });
   });
 

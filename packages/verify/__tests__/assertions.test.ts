@@ -62,6 +62,7 @@ describe('catalog assertions', () => {
     await pg.any(`CREATE ROLE grantee_demo`);
     await pg.any(`GRANT SELECT ON assert_demo.users TO grantee_demo`);
     await pg.any(`GRANT INSERT (email) ON assert_demo.users TO grantee_demo`);
+    await pg.any(`GRANT EXECUTE ON FUNCTION assert_demo.greet(text) TO grantee_demo`);
 
     await pg.any(`CREATE DOMAIN assert_demo.email AS text CHECK (value ~ '@')`);
     await pg.any(`CREATE DOMAIN assert_demo.loose AS text`);

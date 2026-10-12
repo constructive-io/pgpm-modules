@@ -231,6 +231,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE;
 
+GRANT EXECUTE ON FUNCTION app_scope.routing_tables TO authenticated;
+
 COMMENT ON FUNCTION app_scope.routing_tables(uuid, text) IS
 'Physical (schema, table) names of the scoped routing source/settings tables serving an execution at the given scope, resolved from the api_surface_module, site_surface_module, domain_module, route_module and app_module registrations. Scope resolution one layer above app_scope.frames: each surface is located independently by walking frames (exact-scope frames first, then most-specific first), so an inner frame''s apis surface never hijacks the domain/site/route planes served by an outer frame. No platform special-casing. Surfaces not provisioned on any frame come back NULL; a registration pointing at a missing table raises ROUTING_TABLES_NOT_FOUND.';
 

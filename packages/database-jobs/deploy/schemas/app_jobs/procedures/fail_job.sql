@@ -16,6 +16,7 @@ BEGIN
     app_jobs.jobs
   SET
     last_error = error_message,
+    deferred_at = NULL,
     run_at = greatest (now(), run_at) + (exp(least (attempts, 10))::text || ' seconds')::interval,
     locked_by = NULL,
     locked_at = NULL

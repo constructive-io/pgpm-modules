@@ -296,7 +296,7 @@ BEGIN
             END IF;
 
             FOR v_obj_key IN SELECT key FROM jsonb_each(v_value) LOOP
-                IF v_obj_key NOT IN ('type', 'min_age', 'min_age_lookup', 'min_age_anchor', 'min_age_unless', 'allow_system', 'human_only', 'conditions', 'related_conditions') THEN
+                IF v_obj_key NOT IN ('type', 'min_age', 'min_age_lookup', 'min_age_anchor', 'min_age_unless', 'allow_system', 'human_only', 'owner_field', 'conditions', 'related_conditions') THEN
                     RETURN false;
                 END IF;
             END LOOP;
@@ -436,6 +436,12 @@ BEGIN
             v_human_only := v_value -> 'human_only';
             IF v_human_only IS NOT NULL THEN
                 IF jsonb_typeof(v_human_only) != 'boolean' THEN
+                    RETURN false;
+                END IF;
+            END IF;
+
+            IF v_value ? 'owner_field' THEN
+                IF jsonb_typeof(v_value -> 'owner_field') != 'string' THEN
                     RETURN false;
                 END IF;
             END IF;
@@ -597,7 +603,7 @@ CREATE TABLE metaschema_public.table (
   )
 );
 
-COMMENT ON COLUMN metaschema_public."table".step_up IS 'Declarative step-up auth guard: jsonb object mapping DML verbs (INSERT, UPDATE, DELETE) to a step-up spec. Values: true (default fresh_auth), a type string (password / mfa / fresh_auth; password_or_mfa is the legacy spelling), or an object {type, min_age, min_age_lookup, conditions} where min_age is an interval string (e.g. 6 hours) gating the guard to rows older than that age (UPDATE/DELETE only), min_age_lookup resolves per-row windows from a lookup table, and conditions is a declarative WHEN-clause tree compiled by build_condition_expr.';
+COMMENT ON COLUMN metaschema_public."table".step_up IS 'Declarative step-up auth guard: jsonb object mapping DML verbs (INSERT, UPDATE, DELETE) to a step-up spec. Values: true (default fresh_auth), a type string (password / mfa / password_or_mfa / fresh_auth), or an object {type, min_age, min_age_lookup, conditions} where min_age is an interval string (e.g. 6 hours) gating the guard to rows older than that age (UPDATE/DELETE only), min_age_lookup resolves per-row windows from a lookup table, and conditions is a declarative WHEN-clause tree compiled by build_condition_expr.';
 
 ALTER TABLE metaschema_public.table 
   ADD COLUMN inherits_id uuid

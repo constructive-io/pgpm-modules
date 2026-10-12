@@ -134,6 +134,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
+-- Read-only resolver that INVOKER planes (routing_tables, the settings/site
+-- readers, generated triggers) call as the authenticated caller; it reads no
+-- caller-chosen column, so it is granted to authenticated rather than PUBLIC.
+REVOKE EXECUTE ON FUNCTION app_scope.frames FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app_scope.frames TO authenticated;
+
 COMMENT ON FUNCTION app_scope.frames(uuid, text, uuid) IS
 'Ordered scope-lookup frames for an execution, most-specific first. A database is the unit of resolution: each database climbs its own local chain (entity -> ... -> org -> app, or database -> org -> app) via app_scope.local_frames; a tenant execution then falls through to the platform database''s own full chain (database -> org -> app) and finally the single global `platform` terminal. The platform database is the root database, not a special case. Each frame carries the scope-key VALUE to match against a consuming module''s entity_field (global app/platform frames carry NULL) and the lookup_database_id whose module instance the frame is probed in. Single source of truth for scope resolution; never hand-order scopes or re-derive keys elsewhere. The platform database is resolved lazily: before one is registered (generation bootstrap, isolated metaschemas) the chain ends after the local frames, and only the `platform` execution scope raises PLATFORM_DATABASE_NOT_REGISTERED.';
 

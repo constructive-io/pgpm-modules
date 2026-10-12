@@ -32,24 +32,10 @@ BEGIN
         max_attempts = excluded.max_attempts,
         schedule_info = excluded.schedule_info,
         priority = excluded.priority
-      WHERE	
-        scheduled_jobs.locked_at IS NULL	
       RETURNING	
         * INTO v_job;	
 
-    -- If upsert succeeded (insert or update), return early	
-    
-    IF NOT (v_job IS NULL) THEN	
-      RETURN v_job;	
-    END IF;	
-
-    -- Upsert failed -> there must be an existing scheduled job that is locked. Remove	
-    -- and allow a new one to be inserted
-
-    DELETE FROM	
-      app_jobs.scheduled_jobs	
-    WHERE	
-      KEY = job_key;	
+    RETURN v_job;
   END IF;
 
   INSERT INTO app_jobs.scheduled_jobs (task_identifier, payload, queue_name, schedule_info, max_attempts, priority)
