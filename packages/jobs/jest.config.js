@@ -1,6 +1,10 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
   forceExit: true,
+  // queue-claim-order and queue-batch each open 64 concurrent claimers; run
+  // files serially so two of them never exceed Postgres' default
+  // max_connections (100).
+  maxWorkers: 1,
   preset: 'ts-jest',
   testEnvironment: 'node',
 
