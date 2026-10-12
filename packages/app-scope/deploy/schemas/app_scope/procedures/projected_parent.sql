@@ -50,6 +50,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
+-- Internal: only SECURITY DEFINER callers (owner) reach this; PUBLIC's default
+-- EXECUTE would make it callable by authenticated over the pg-wire proxy.
+REVOKE EXECUTE ON FUNCTION app_scope.projected_parent FROM PUBLIC;
+
 COMMENT ON FUNCTION app_scope.projected_parent(uuid, text) IS
 'One scope''s membership type and parent scope, read from scope_private.scope_types with static SQL. Returns no row when the projection is absent or does not cover the scope, so callers fall back to the dynamic probe.';
 

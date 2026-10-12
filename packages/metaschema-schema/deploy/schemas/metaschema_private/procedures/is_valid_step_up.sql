@@ -10,10 +10,9 @@ BEGIN;
 -- Keys must be INSERT, UPDATE, or DELETE.
 -- Values must be one of:
 --   - true (default step-up type)
---   - a type string: 'password', 'mfa', 'fresh_auth'
---     ('password_or_mfa' is the legacy spelling of 'fresh_auth')
+--   - a type string: 'password', 'mfa', 'password_or_mfa', 'fresh_auth'
 --   - an object with keys from {type, min_age, min_age_lookup, conditions}:
---       type    (optional): 'password', 'mfa', 'fresh_auth'
+--       type    (optional): 'password', 'mfa', 'password_or_mfa', 'fresh_auth'
 --       min_age (optional): a positive interval string (e.g. '6 hours');
 --                           the guard only fires for rows older than this.
 --                           Not allowed for INSERT (new rows have no age).
@@ -40,6 +39,8 @@ BEGIN;
 --       allow_system (optional): boolean; when true the system role
 --                           (jwt.claims.role_type = 'system') skips the guard so
 --                           provisioning paths without a session can write.
+--       owner_field (optional): column name; the guard fires only when that
+--                           column of the row is jwt_public.current_user_id().
 --       human_only (optional): boolean; when true the trigger body refuses a
 --                           principal caller (jwt.claims.principal_id set and
 --                           distinct from the human's user_id) before it calls
@@ -353,7 +354,7 @@ BEGIN
             END IF;
 
             FOR v_obj_key IN SELECT key FROM jsonb_each(v_value) LOOP
-                IF v_obj_key NOT IN ('type', 'min_age', 'min_age_lookup', 'min_age_anchor', 'min_age_unless', 'allow_system', 'human_only', 'conditions', 'related_conditions') THEN
+                IF v_obj_key NOT IN ('type', 'min_age', 'min_age_lookup', 'min_age_anchor', 'min_age_unless', 'allow_system', 'human_only', 'owner_field', 'conditions', 'related_conditions') THEN
                     RETURN false;
                 END IF;
             END LOOP;
@@ -493,6 +494,12 @@ BEGIN
             v_human_only := v_value -> 'human_only';
             IF v_human_only IS NOT NULL THEN
                 IF jsonb_typeof(v_human_only) != 'boolean' THEN
+                    RETURN false;
+                END IF;
+            END IF;
+
+            IF v_value ? 'owner_field' THEN
+                IF jsonb_typeof(v_value -> 'owner_field') != 'string' THEN
                     RETURN false;
                 END IF;
             END IF;

@@ -133,6 +133,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
+-- Internal: only SECURITY DEFINER callers (owner) reach this; PUBLIC's default
+-- EXECUTE would make it callable by authenticated over the pg-wire proxy.
+REVOKE EXECUTE ON FUNCTION app_scope.actor_entity FROM PUBLIC;
+
 COMMENT ON FUNCTION app_scope.actor_entity(uuid, uuid) IS
 'Resolves an actor to a complete entity pair from its users.type, or to the owner pair for a principal. Raises ACTOR_ENTITY_UNRESOLVED rather than returning a partial pair.';
 

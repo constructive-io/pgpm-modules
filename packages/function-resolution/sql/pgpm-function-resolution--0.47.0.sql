@@ -2295,3 +2295,106 @@ END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
 COMMENT ON FUNCTION function_resolution.install_mantra(uuid, regclass, uuid, jsonb, uuid) IS 'Install the Mantra page set (a JSON array of {path, task_identifier}, which the generated verb reads from the content_presets catalog at kind ''route_bindings'') onto one site as ordinary function-target routes. The sites plane arrives by reference as a regclass, so a generated caller never spells a schema name in a bare string literal the platform export''s AST rename cannot follow. A thin wrapper holding the Mantra document contract — every entry names a task and no target kind, or is a {target: "redirect", to_path} entry sending a path (a dedicated host''s root) at one of the pages — over function_resolution.install_route_bindings, which owns the one-scope install: scope and ownership key read from the sites plane''s own registration, the routes plane from app_scope.routing_tables, resolution at that same (scope, entity), idempotent per (domain_id, path).';
+
+CREATE FUNCTION function_resolution.schedule_defer_reason(
+  sched app_jobs.scheduled_jobs
+) RETURNS text AS $EOFCODE$
+DECLARE
+    scope text := 'database';
+    task_identifier text := sched.task_identifier;
+BEGIN
+    IF sched.key LIKE 'function_schedule:%' THEN
+        RETURN NULL;
+    END IF;
+
+    IF json_typeof(sched.payload -> 'scope') = 'string' THEN
+        scope := sched.payload ->> 'scope';
+    END IF;
+
+    IF json_typeof(sched.payload -> 'execution_id') = 'string'
+       AND json_typeof(sched.payload -> 'node_name') = 'string'
+       AND json_typeof(sched.payload -> 'node_type') = 'string'
+       AND sched.payload -> 'inputs' IS NOT NULL THEN
+        task_identifier := sched.payload ->> 'node_type';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM function_resolution.resolve(
+            sched.database_id,
+            scope,
+            sched.entity_id,
+            task_identifier,
+            false
+        )
+    ) THEN
+        RETURN NULL;
+    END IF;
+
+    RETURN format(
+        'FUNCTION_NOT_REGISTERED: no function definition for task_identifier "%s" in the scope chain starting at scope "%s" (database_id=%s)',
+        task_identifier, scope, sched.database_id
+    );
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+COMMENT ON FUNCTION function_resolution.schedule_defer_reason(app_jobs.scheduled_jobs) IS 'Registration check for function_resolution.fire_due_scheduled_jobs: NULL when the job a schedule spawns resolves to a function definition, else the reason it does not yet.';
+
+CREATE FUNCTION function_resolution.fire_due_scheduled_jobs(
+  batch_size int DEFAULT 200,
+  defer_for interval DEFAULT '1 minute'
+) RETURNS jsonb AS $EOFCODE$
+DECLARE
+  sched app_jobs.scheduled_jobs;
+  outcome text;
+  defer_reason text;
+  check_failed boolean;
+  fired int := 0;
+  skipped int := 0;
+  failed int := 0;
+  deferred int := 0;
+  error_message text;
+  error_detail text;
+BEGIN
+  IF defer_for IS NULL OR defer_for <= interval '0' THEN
+    PERFORM errors.raise_error('SCHEDULE_DEFER_INTERVAL_INVALID', jsonb_build_object('defer_for', defer_for), 'public');
+  END IF;
+
+  FOR sched IN
+  SELECT
+    *
+  FROM
+    app_jobs.claim_due_scheduled_jobs(batch_size)
+    LOOP
+      defer_reason := NULL;
+      check_failed := false;
+      BEGIN
+        defer_reason := function_resolution.schedule_defer_reason(sched);
+      EXCEPTION
+        WHEN OTHERS THEN
+          GET STACKED DIAGNOSTICS error_message = MESSAGE_TEXT,
+          error_detail = PG_EXCEPTION_DETAIL;
+          check_failed := true;
+      END;
+
+      IF check_failed THEN
+        PERFORM app_jobs.record_scheduled_job_failure(sched, error_message, error_detail);
+        failed := failed + 1;
+      ELSIF defer_reason IS NOT NULL THEN
+        PERFORM app_jobs.defer_scheduled_job(sched, defer_reason, defer_for);
+        deferred := deferred + 1;
+      ELSE
+        outcome := app_jobs.fire_scheduled_job(sched);
+        IF outcome = 'fired' THEN
+          fired := fired + 1;
+        ELSIF outcome = 'skipped' THEN
+          skipped := skipped + 1;
+        ELSE
+          failed := failed + 1;
+        END IF;
+      END IF;
+    END LOOP;
+
+  RETURN jsonb_build_object('fired', fired, 'skipped', skipped, 'failed', failed, 'deferred', deferred, 'processed', fired + skipped + failed + deferred);
+END;
+$EOFCODE$ LANGUAGE plpgsql VOLATILE;

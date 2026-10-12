@@ -101,7 +101,8 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   get_plan_pricing_by_external_price_function text NOT NULL DEFAULT '',
   -- Operation ledger + provider state seams: the system-only path the billing
   -- functions use to reserve/settle mutations, apply provider observations,
-  -- claim bounded reconciliation batches and own scheduled plan changes.
+  -- claim bounded reconciliation batches, own scheduled plan changes and
+  -- bind a checkout session to the operation that opened it.
   reserve_billing_operation_function text NOT NULL DEFAULT '',
   finish_billing_operation_function text NOT NULL DEFAULT '',
   apply_provider_observation_function text NOT NULL DEFAULT '',
@@ -110,6 +111,7 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   clear_scheduled_change_function text NOT NULL DEFAULT '',
   get_billing_provider_state_function text NOT NULL DEFAULT '',
   record_billing_health_function text NOT NULL DEFAULT '',
+  bind_checkout_session_function text NOT NULL DEFAULT '',
 
   prefix text NULL,
 

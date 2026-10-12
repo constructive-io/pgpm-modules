@@ -85,6 +85,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
+-- Read-only resolver that INVOKER planes (routing_tables, the settings/site
+-- readers, generated triggers) call as the authenticated caller; it reads no
+-- caller-chosen column, so it is granted to authenticated rather than PUBLIC.
+REVOKE EXECUTE ON FUNCTION app_scope.frame_owns FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app_scope.frame_owns TO authenticated;
+
 COMMENT ON FUNCTION app_scope.frame_owns(uuid, text, uuid, text, uuid, uuid) IS
 'True when the frame that owns a catalog row — its (owner_scope, owner_key, owner_database_id) triple — is one of the frames app_scope.frames returns for the given execution. The identity test is the one function_resolution.resolve probes the catalog with, so a write-path ownership guard admits exactly what the read path would resolve. The chain is ancestry, not visibility: the execution''s own scopes, its database, then the platform database''s chain — never a peer or another keyed owner. Returns false rather than raising when the row''s owning frame is not fully identified.';
 

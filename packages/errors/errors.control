@@ -2,6 +2,6 @@
 comment = 'Canonical structured error raising for constructive-db'
 default_version = '0.47.0'
 module_pathname = '$libdir/errors'
-requires = 'plpgsql'
+requires = 'plpgsql,pgpm-defaults'
 relocatable = false
 superuser = false

@@ -26,9 +26,6 @@ CREATE TABLE metaschema_modules_public.plans_module (
   -- Plan pricing table: billing cycles, prices, discounts per plan
   plan_pricing_table_id uuid NULL,
 
-  -- Plan overrides table: per-entity custom limit overrides
-  plan_overrides_table_id uuid NULL,
-
   -- Plan meter limits table: maps plan → meter slug → billing quota
   plan_meter_limits_table_id uuid NULL,
 
@@ -55,7 +52,6 @@ CREATE TABLE metaschema_modules_public.plans_module (
   CONSTRAINT plans_table_fkey FOREIGN KEY (plans_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT plan_limits_table_fkey FOREIGN KEY (plan_limits_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT plan_pricing_table_fkey FOREIGN KEY (plan_pricing_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
-  CONSTRAINT plan_overrides_table_fkey FOREIGN KEY (plan_overrides_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT plan_meter_limits_table_fkey FOREIGN KEY (plan_meter_limits_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT plan_caps_table_fkey FOREIGN KEY (plan_caps_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT plans_module_database_id_unique UNIQUE (database_id)
@@ -64,7 +60,6 @@ CREATE TABLE metaschema_modules_public.plans_module (
 CREATE INDEX plans_module_plan_caps_table_id_idx ON metaschema_modules_public.plans_module ( plan_caps_table_id );
 CREATE INDEX plans_module_plan_limits_table_id_idx ON metaschema_modules_public.plans_module ( plan_limits_table_id );
 CREATE INDEX plans_module_plan_meter_limits_table_id_idx ON metaschema_modules_public.plans_module ( plan_meter_limits_table_id );
-CREATE INDEX plans_module_plan_overrides_table_id_idx ON metaschema_modules_public.plans_module ( plan_overrides_table_id );
 CREATE INDEX plans_module_plan_pricing_table_id_idx ON metaschema_modules_public.plans_module ( plan_pricing_table_id );
 CREATE INDEX plans_module_plans_table_id_idx ON metaschema_modules_public.plans_module ( plans_table_id );
 CREATE INDEX plans_module_private_schema_id_idx ON metaschema_modules_public.plans_module ( private_schema_id );
@@ -77,7 +72,6 @@ CREATE INDEX plans_module_schema_id_idx ON metaschema_modules_public.plans_modul
 COMMENT ON COLUMN metaschema_modules_public.plans_module.plan_caps_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.plans_module.plan_limits_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.plans_module.plan_meter_limits_table_id IS '@module_table';
-COMMENT ON COLUMN metaschema_modules_public.plans_module.plan_overrides_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.plans_module.plan_pricing_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.plans_module.plans_table_id IS '@module_table';
 

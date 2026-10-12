@@ -111,14 +111,6 @@ CREATE TABLE metaschema_modules_public.entity_type_provision (
 
     out_installed_modules text[] DEFAULT NULL,
 
-    out_storage_module_id uuid DEFAULT NULL,
-
-    out_buckets_table_id uuid DEFAULT NULL,
-
-    out_files_table_id uuid DEFAULT NULL,
-
-    out_path_shares_table_id uuid DEFAULT NULL,
-
     out_invites_module_id uuid DEFAULT NULL,
 
     out_namespace_module_id uuid DEFAULT NULL,
@@ -337,7 +329,6 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage IS
        - key                           (text) module discriminator, max 16 chars, lowercase snake_case.
                                               Defaults to ''default'' (omitted from table names).
                                               Non-default keys become infixes: {prefix}_{key}_buckets.
-                                              (storage_key accepted for backward compat)
        - upload_url_expiry_seconds     (integer) presigned PUT URL expiry override
        - download_url_expiry_seconds   (integer) presigned GET URL expiry override
        - default_max_file_size         (bigint)  global max file size in bytes for this module
@@ -354,19 +345,10 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage IS
          Each bucket: { name (required), description, is_public, allowed_mime_types, max_file_size, allowed_origins }
        - provisions                    (jsonb object) per-table customization keyed by "files" or "buckets".
                                               Each value: { nodes, fields, grants, use_rls, policies }.
-     Example (single module, backward compat):
+     Example (single module):
        storage := ''[{"buckets": [{"name": "documents"}]}]''::jsonb
      Example (multi-module):
        storage := ''[{"has_path_shares": true, "buckets": [{"name": "documents"}]}, {"key": "fn", "has_custom_keys": true, "buckets": [{"name": "functions"}]}]''::jsonb';
-
-COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_storage_module_id IS
-    'Output: the UUID of the storage_module row created for this entity type. Populated by the trigger when storage is non-NULL and non-empty.';
-
-COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_buckets_table_id IS
-    'Output: the UUID of the generated buckets table (e.g. data_room_buckets). Populated by the trigger when storage is non-NULL and non-empty.';
-
-COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_files_table_id IS
-    'Output: the UUID of the generated files table (e.g. data_room_files). Populated by the trigger when storage is non-NULL and non-empty.';
 
 COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.out_invites_module_id IS
     'Output: the UUID of the invites_module row created for this entity type. Populated by the trigger when has_invites=true.

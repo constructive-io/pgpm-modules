@@ -157,6 +157,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
+-- Internal: only SECURITY DEFINER callers (owner) reach this; PUBLIC's default
+-- EXECUTE would make it callable by authenticated over the pg-wire proxy.
+REVOKE EXECUTE ON FUNCTION app_scope.local_frames FROM PUBLIC;
+
 COMMENT ON FUNCTION app_scope.local_frames(uuid, text, uuid) IS
 'Ordered scope-lookup frames WITHIN one database (most specific first) from the given execution scope up through that database''s global `app` scope: entity -> (membership climb) -> org -> app, or database -> org -> app, or org -> app, or app. Never emits the cross-database `platform` terminal — app_scope.frames appends that. `database` is the synthetic per-database root (keyed by the database, owned by database.owner_id); entity scopes climb their membership tree straight to the owning org.';
 

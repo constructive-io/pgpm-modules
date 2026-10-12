@@ -136,4 +136,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
+-- Internal: only SECURITY DEFINER callers (owner) reach this; PUBLIC's default
+-- EXECUTE would make it callable by authenticated over the pg-wire proxy.
+REVOKE EXECUTE ON FUNCTION app_scope.membership_parent FROM PUBLIC;
+
 COMMIT;

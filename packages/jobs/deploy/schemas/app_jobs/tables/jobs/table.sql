@@ -15,6 +15,7 @@ CREATE TABLE app_jobs.jobs (
   last_error text,
   locked_at timestamptz,
   locked_by text,
+  deferred_at timestamptz,
   CHECK (length(key) < 513),
   CHECK (length(task_identifier) < 127),
   CHECK (max_attempts > 0),
@@ -36,6 +37,7 @@ COMMENT ON COLUMN app_jobs.jobs.key IS 'Optional unique deduplication key; preve
 COMMENT ON COLUMN app_jobs.jobs.last_error IS 'Error message from the most recent failed attempt';
 COMMENT ON COLUMN app_jobs.jobs.locked_at IS 'Timestamp when a worker locked this job for processing';
 COMMENT ON COLUMN app_jobs.jobs.locked_by IS 'Identifier of the worker that currently holds the lock';
+COMMENT ON COLUMN app_jobs.jobs.deferred_at IS 'When a worker first handed this job back unstarted because its function had no active deployment (defer_jobs_for_worker); bounds how long the job may keep waiting. NULL when never deferred';
 
 COMMIT;
 

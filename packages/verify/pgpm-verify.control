@@ -2,7 +2,7 @@
 comment = 'pgpm-verify extension'
 default_version = '0.47.0'
 module_pathname = '$libdir/pgpm-verify'
-requires = 'plpgsql'
+requires = 'plpgsql,pgpm-defaults'
 relocatable = false
 superuser = false
   

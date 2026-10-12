@@ -18,4 +18,6 @@ AS $$
 $$
 LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 
+GRANT EXECUTE ON FUNCTION jwt_public.current_user_id() TO authenticated;
+
 COMMIT;

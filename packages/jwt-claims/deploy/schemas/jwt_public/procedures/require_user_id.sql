@@ -28,4 +28,6 @@ END;
 $$
 LANGUAGE 'plpgsql' STABLE PARALLEL SAFE;
 
+GRANT EXECUTE ON FUNCTION jwt_public.require_user_id() TO authenticated;
+
 COMMIT;
