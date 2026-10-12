@@ -1,6 +1,6 @@
 # pgpm-defaults extension
 comment = 'pgpm-defaults extension'
-default_version = '0.47.0'
+default_version = '0.47.1'
 module_pathname = '$libdir/pgpm-defaults'
 requires = 'plpgsql,uuid-ossp,pgcrypto,citext,hstore,ltree,pg_trgm,btree_gin,btree_gist,unaccent,vector,postgis,pg_textsearch'
 relocatable = false

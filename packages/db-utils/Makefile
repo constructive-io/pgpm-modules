@@ -1,5 +1,5 @@
 EXTENSION = db-utils
-DATA = sql/db-utils--0.47.0.sql
+DATA = sql/db-utils--0.47.1.sql
 
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
