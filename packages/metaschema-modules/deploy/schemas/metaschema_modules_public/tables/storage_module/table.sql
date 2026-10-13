@@ -68,10 +68,14 @@ CREATE TABLE metaschema_modules_public.storage_module (
     -- global (platform/app) → NULL. Consumers read this instead of hardcoding.
     entity_field text,
 
-    -- S3 connection config (NULL = use global env/plugin defaults)
-    endpoint text NULL,                          -- S3-compatible API endpoint URL (MinIO, R2, DO Spaces, GCS, etc.)
+    -- Object-store connection: the only source of storage coordinates (no env).
+    -- The platform database's `platform`/`default` plane is the deployment's
+    -- object store; on every other plane NULL inherits that row's value.
+    -- Credentials are never stored here (STORAGE_ACCESS_KEY_ID/_SECRET_ACCESS_KEY).
+    endpoint text NULL,                          -- S3 API endpoint URL, client-reachable: presigned URLs are signed for it (NULL = AWS S3 regional endpoint)
     public_url_prefix text NULL,                 -- Public URL prefix for generating download URLs (e.g., CDN domain)
-    provider text NULL,                          -- Storage provider type: 'minio', 's3', 'gcs', etc.
+    provider text NULL,                          -- Storage provider type: 'minio', 'rustfs', 's3', 'gcs', etc.
+    region text NULL,                            -- S3 region (e.g., 'us-east-1')
 
     -- CORS configuration (NULL = use plugin defaults)
     allowed_origins text[] NULL,                 -- Default CORS origins for all buckets in this database (e.g., ARRAY['https://app.example.com']). ['*'] = open/CDN mode.
