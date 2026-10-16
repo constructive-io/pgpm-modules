@@ -119,7 +119,7 @@ jobs:
 
       - name: Seed pg and app_user
         run: |
-          pgpm admin-users bootstrap --yes
+          pgpm admin-users bootstrap --client --yes
           # optional, but added to avoid concurrent attempts to add user
           pgpm admin-users add --test --yes
 

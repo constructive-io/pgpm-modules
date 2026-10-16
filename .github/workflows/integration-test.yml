@@ -85,7 +85,7 @@ jobs:
 
       - name: Seed pg users
         run: |
-          pgpm admin-users bootstrap --yes
+          pgpm admin-users bootstrap --client --yes
 
       - name: Run Integration Tests
         run: pgpm test-packages --full-cycle
