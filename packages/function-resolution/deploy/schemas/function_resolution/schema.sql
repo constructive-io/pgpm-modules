@@ -5,6 +5,7 @@ BEGIN;
 CREATE SCHEMA IF NOT EXISTS function_resolution;
 GRANT USAGE ON SCHEMA function_resolution TO administrator;
 GRANT USAGE ON SCHEMA function_resolution TO authenticated;
+GRANT USAGE ON SCHEMA function_resolution TO anonymous;
 ALTER DEFAULT PRIVILEGES IN SCHEMA function_resolution GRANT EXECUTE ON FUNCTIONS TO administrator;
 
 COMMIT;

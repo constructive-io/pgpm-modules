@@ -63,6 +63,13 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   billing_health_table_id uuid NOT NULL DEFAULT uuid_nil(),
   billing_health_table_name text NOT NULL DEFAULT '',
 
+  -- Billing connection: one row per database_id holding the provider account
+  -- a successful connect attached. Written only by the system-only
+  -- record_billing_connection seam; its existence gates the catalog sync
+  -- job triggers (billing_provider_connected).
+  billing_connection_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  billing_connection_table_name text NOT NULL DEFAULT '',
+
   -- Generated functions
   process_billing_event_function text NOT NULL DEFAULT '',
   record_refund_function text NOT NULL DEFAULT '',
@@ -111,6 +118,8 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   clear_scheduled_change_function text NOT NULL DEFAULT '',
   get_billing_provider_state_function text NOT NULL DEFAULT '',
   record_billing_health_function text NOT NULL DEFAULT '',
+  record_billing_connection_function text NOT NULL DEFAULT '',
+  billing_provider_connected_function text NOT NULL DEFAULT '',
   bind_checkout_session_function text NOT NULL DEFAULT '',
 
   prefix text NULL,
@@ -133,6 +142,7 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   CONSTRAINT billing_operations_table_fkey FOREIGN KEY (billing_operations_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT billing_provider_state_table_fkey FOREIGN KEY (billing_provider_state_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT billing_health_table_fkey FOREIGN KEY (billing_health_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
+  CONSTRAINT billing_connection_table_fkey FOREIGN KEY (billing_connection_table_id) REFERENCES metaschema_public.table (id) ON DELETE CASCADE,
   CONSTRAINT products_table_fkey FOREIGN KEY (products_table_id) REFERENCES metaschema_public.table (id) ON DELETE SET NULL,
   CONSTRAINT prices_table_fkey FOREIGN KEY (prices_table_id) REFERENCES metaschema_public.table (id) ON DELETE SET NULL,
   CONSTRAINT subscriptions_table_fkey FOREIGN KEY (subscriptions_table_id) REFERENCES metaschema_public.table (id) ON DELETE SET NULL,
@@ -150,6 +160,7 @@ CREATE INDEX billing_provider_module_billing_disputes_table_id_idx ON metaschema
 CREATE INDEX billing_provider_module_billing_operations_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_operations_table_id );
 CREATE INDEX billing_provider_module_billing_provider_state_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_provider_state_table_id );
 CREATE INDEX billing_provider_module_billing_health_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_health_table_id );
+CREATE INDEX billing_provider_module_billing_connection_table_id_idx ON metaschema_modules_public.billing_provider_module ( billing_connection_table_id );
 CREATE INDEX billing_provider_module_prices_table_id_idx ON metaschema_modules_public.billing_provider_module ( prices_table_id );
 CREATE INDEX billing_provider_module_products_table_id_idx ON metaschema_modules_public.billing_provider_module ( products_table_id );
 CREATE INDEX billing_provider_module_subscriptions_table_id_idx ON metaschema_modules_public.billing_provider_module ( subscriptions_table_id );
@@ -160,6 +171,7 @@ CREATE INDEX billing_provider_module_schema_id_idx ON metaschema_modules_public.
 -- entity or users table it points at): the @module_table marker is what
 -- metaschema_modules_private.tg_module_install_provenance attributes to this
 -- install, keyed by the role name in the column.
+COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_connection_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_customers_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_disputes_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_health_table_id IS '@module_table';

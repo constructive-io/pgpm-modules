@@ -5,6 +5,8 @@ GRANT USAGE ON SCHEMA function_resolution TO administrator;
 
 GRANT USAGE ON SCHEMA function_resolution TO authenticated;
 
+GRANT USAGE ON SCHEMA function_resolution TO anonymous;
+
 ALTER DEFAULT PRIVILEGES IN SCHEMA function_resolution
   GRANT EXECUTE ON FUNCTIONS TO administrator;
 
@@ -2398,3 +2400,2190 @@ BEGIN
   RETURN jsonb_build_object('fired', fired, 'skipped', skipped, 'failed', failed, 'deferred', deferred, 'processed', fired + skipped + failed + deferred);
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
+
+CREATE FUNCTION function_resolution.routing_planes() RETURNS TABLE (
+  database_id uuid,
+  schema_name text,
+  resolver_function_name text
+) AS $EOFCODE$
+    SELECT
+        rm.database_id,
+        s.schema_name::text,
+        rm.resolver_function_name
+    FROM metaschema_modules_public.route_module AS rm
+    LEFT JOIN metaschema_public.schema AS s ON s.id = rm.schema_id
+    WHERE rm.scope = 'database'
+    ORDER BY rm.database_id
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.routing_planes() FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.database_standing(
+  database_id uuid
+) RETURNS TABLE (
+  suspended_at timestamptz,
+  suspended_reason text
+) AS $EOFCODE$
+    SELECT d.suspended_at, d.suspended_reason
+    FROM metaschema_public.database AS d
+    WHERE d.id = database_standing.database_id
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.database_standing(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.agent_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  entity_field text,
+  has_plans boolean,
+  has_agents boolean,
+  has_runs boolean,
+  public_schema text,
+  private_schema text,
+  thread_table_name text,
+  message_table_name text,
+  task_table_name text,
+  plan_table_name text,
+  agent_table_name text,
+  persona_table_name text,
+  resource_table_name text,
+  run_table_name text,
+  event_table_name text,
+  workspace_table_name text,
+  settle_run_cost_function_name text
+) AS $EOFCODE$
+SELECT
+    am.database_id,
+    (am.database_id = app_scope.platform_database_id()) AS platform_owned,
+    am.scope,
+    am.entity_field,
+    am.has_plans,
+    am.has_agents,
+    am.has_runs,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema,
+    thread_t.name AS thread_table_name,
+    message_t.name AS message_table_name,
+    task_t.name AS task_table_name,
+    plan_t.name AS plan_table_name,
+    agent_t.name AS agent_table_name,
+    persona_t.name AS persona_table_name,
+    resource_t.name AS resource_table_name,
+    run_t.name AS run_table_name,
+    event_t.name AS event_table_name,
+    workspace_t.name AS workspace_table_name,
+    am.settle_run_cost_function_name
+FROM metaschema_modules_public.agent_module AS am
+    LEFT JOIN metaschema_public.schema ps ON ps.id = am.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = am.private_schema_id
+    LEFT JOIN metaschema_public.table thread_t
+    ON thread_t.id = am.thread_table_id AND am.thread_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.table message_t
+    ON message_t.id = am.message_table_id AND am.message_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.table task_t
+    ON task_t.id = am.task_table_id AND am.task_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.table plan_t
+    ON plan_t.id = am.plan_table_id
+    LEFT JOIN metaschema_public.table agent_t
+    ON agent_t.id = am.agent_table_id
+    LEFT JOIN metaschema_public.table persona_t
+    ON persona_t.id = am.persona_table_id
+    LEFT JOIN metaschema_public.table resource_t
+    ON resource_t.id = am.resource_table_id
+    LEFT JOIN metaschema_public.table run_t
+    ON run_t.id = am.run_table_id
+    LEFT JOIN metaschema_public.table event_t
+    ON event_t.id = am.event_table_id
+    LEFT JOIN metaschema_public.table workspace_t
+    ON workspace_t.id = am.workspace_table_id
+WHERE am.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.agent_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.billing_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  public_schema text,
+  private_schema text,
+  record_usage_function text,
+  meters_table_name text,
+  grant_meter_credits_function text,
+  credit_packs_table_name text,
+  sweep_expired_subscriptions_function text,
+  rollup_usage_summary_function text
+) AS $EOFCODE$
+SELECT
+    bm.database_id,
+    (bm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    'app'::text AS scope,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema,
+    bm.record_usage_function,
+    bm.meters_table_name,
+    bm.grant_meter_credits_function,
+    bm.credit_packs_table_name,
+    bm.sweep_expired_subscriptions_function,
+    bm.rollup_usage_summary_function
+FROM metaschema_modules_public.billing_module AS bm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = bm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = bm.private_schema_id
+WHERE bm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.billing_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.billing_provider_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  provider text,
+  private_schema text,
+  list_pending_usage_sync_function text,
+  mark_usage_synced_function text,
+  get_billing_customer_function text,
+  upsert_billing_customer_function text,
+  get_billing_product_function text,
+  upsert_billing_product_function text,
+  get_billing_price_function text,
+  upsert_billing_price_function text,
+  get_billing_subscription_function text,
+  upsert_billing_subscription_function text,
+  sweep_overdue_subscriptions_function text,
+  get_active_plan_pricing_function text,
+  get_fallback_free_plan_function text,
+  activate_plan_subscription_function text,
+  get_active_plan_subscription_function text,
+  get_billing_subscription_by_entity_function text,
+  get_billing_subscription_by_external_id_function text,
+  get_plan_pricing_by_external_price_function text,
+  reserve_billing_operation_function text,
+  finish_billing_operation_function text,
+  apply_provider_observation_function text,
+  list_due_reconciliations_function text,
+  prepare_scheduled_change_function text,
+  clear_scheduled_change_function text,
+  get_billing_provider_state_function text,
+  record_billing_health_function text,
+  record_billing_connection_function text,
+  bind_checkout_session_function text,
+  upsert_invoice_function text,
+  record_refund_function text,
+  record_dispute_function text,
+  billing_customers_table_name text,
+  billing_prices_table_name text,
+  billing_subscriptions_table_name text,
+  customers_schema text,
+  customers_table text,
+  subscriptions_schema text,
+  subscriptions_table text,
+  products_schema text,
+  products_table text,
+  prices_schema text,
+  prices_table text,
+  invoices_schema text,
+  invoices_table text,
+  operations_schema text,
+  operations_table text,
+  provider_state_schema text,
+  provider_state_table text,
+  health_schema text,
+  health_table text,
+  meters_schema text,
+  meters_table text,
+  credit_packs_schema text,
+  credit_packs_table text,
+  plan_subscriptions_schema text,
+  plan_subscriptions_table text,
+  ledger_schema text,
+  ledger_table text,
+  balances_schema text,
+  balances_table text,
+  meter_credits_schema text,
+  meter_credits_table text,
+  plans_schema text,
+  plans_table text,
+  plan_pricing_schema text,
+  plan_pricing_table text,
+  plan_limits_schema text,
+  plan_limits_table text,
+  plan_meter_limits_schema text,
+  plan_meter_limits_table text,
+  plan_caps_schema text,
+  plan_caps_table text,
+  limits_schema text,
+  limits_table text,
+  limit_defaults_schema text,
+  limit_defaults_table text,
+  users_schema text,
+  users_table text
+) AS $EOFCODE$
+SELECT
+    bpm.database_id,
+    (bpm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    'app'::text AS scope,
+    bpm.provider,
+    pvs.schema_name AS private_schema,
+    bpm.list_pending_usage_sync_function,
+    bpm.mark_usage_synced_function,
+    bpm.get_billing_customer_function,
+    bpm.upsert_billing_customer_function,
+    bpm.get_billing_product_function,
+    bpm.upsert_billing_product_function,
+    bpm.get_billing_price_function,
+    bpm.upsert_billing_price_function,
+    bpm.get_billing_subscription_function,
+    bpm.upsert_billing_subscription_function,
+    bpm.sweep_overdue_subscriptions_function,
+    bpm.get_active_plan_pricing_function,
+    bpm.get_fallback_free_plan_function,
+    bpm.activate_plan_subscription_function,
+    bpm.get_active_plan_subscription_function,
+    bpm.get_billing_subscription_by_entity_function,
+    bpm.get_billing_subscription_by_external_id_function,
+    bpm.get_plan_pricing_by_external_price_function,
+    bpm.reserve_billing_operation_function,
+    bpm.finish_billing_operation_function,
+    bpm.apply_provider_observation_function,
+    bpm.list_due_reconciliations_function,
+    bpm.prepare_scheduled_change_function,
+    bpm.clear_scheduled_change_function,
+    bpm.get_billing_provider_state_function,
+    bpm.record_billing_health_function,
+    bpm.record_billing_connection_function,
+    bpm.bind_checkout_session_function,
+    bpm.upsert_invoice_function,
+    bpm.record_refund_function,
+    bpm.record_dispute_function,
+    bpm.billing_customers_table_name,
+    bpm.billing_prices_table_name,
+    bpm.billing_subscriptions_table_name,
+    s_customers.schema_name AS customers_schema,
+    t_customers.name AS customers_table,
+    s_subscriptions.schema_name AS subscriptions_schema,
+    t_subscriptions.name AS subscriptions_table,
+    s_products.schema_name AS products_schema,
+    t_products.name AS products_table,
+    s_prices.schema_name AS prices_schema,
+    t_prices.name AS prices_table,
+    s_invoices.schema_name AS invoices_schema,
+    t_invoices.name AS invoices_table,
+    s_operations.schema_name AS operations_schema,
+    t_operations.name AS operations_table,
+    s_providerState.schema_name AS provider_state_schema,
+    t_providerState.name AS provider_state_table,
+    s_health.schema_name AS health_schema,
+    t_health.name AS health_table,
+    s_meters.schema_name AS meters_schema,
+    t_meters.name AS meters_table,
+    s_creditPacks.schema_name AS credit_packs_schema,
+    t_creditPacks.name AS credit_packs_table,
+    s_planSubscriptions.schema_name AS plan_subscriptions_schema,
+    t_planSubscriptions.name AS plan_subscriptions_table,
+    s_ledger.schema_name AS ledger_schema,
+    t_ledger.name AS ledger_table,
+    s_balances.schema_name AS balances_schema,
+    t_balances.name AS balances_table,
+    s_meterCredits.schema_name AS meter_credits_schema,
+    t_meterCredits.name AS meter_credits_table,
+    s_plans.schema_name AS plans_schema,
+    t_plans.name AS plans_table,
+    s_planPricing.schema_name AS plan_pricing_schema,
+    t_planPricing.name AS plan_pricing_table,
+    s_planLimits.schema_name AS plan_limits_schema,
+    t_planLimits.name AS plan_limits_table,
+    s_planMeterLimits.schema_name AS plan_meter_limits_schema,
+    t_planMeterLimits.name AS plan_meter_limits_table,
+    s_planCaps.schema_name AS plan_caps_schema,
+    t_planCaps.name AS plan_caps_table,
+    s_limits.schema_name AS limits_schema,
+    t_limits.name AS limits_table,
+    s_limitDefaults.schema_name AS limit_defaults_schema,
+    t_limitDefaults.name AS limit_defaults_table,
+    s_users.schema_name AS users_schema,
+    t_users.name AS users_table
+FROM metaschema_modules_public.billing_provider_module AS bpm
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = bpm.private_schema_id
+    LEFT JOIN metaschema_modules_public.billing_module bm ON bm.database_id = bpm.database_id
+    LEFT JOIN metaschema_modules_public.plans_module pm ON pm.database_id = bpm.database_id
+    LEFT JOIN metaschema_modules_public.limits_module lm
+    ON lm.database_id = bpm.database_id AND lm.scope = 'app'
+    LEFT JOIN metaschema_modules_public.user_auth_module uam ON uam.database_id = bpm.database_id
+    LEFT JOIN metaschema_public."table" t_customers ON t_customers.id = bpm.billing_customers_table_id
+    LEFT JOIN metaschema_public.schema s_customers ON s_customers.id = t_customers.schema_id
+    LEFT JOIN metaschema_public."table" t_subscriptions ON t_subscriptions.id = bpm.billing_subscriptions_table_id
+    LEFT JOIN metaschema_public.schema s_subscriptions ON s_subscriptions.id = t_subscriptions.schema_id
+    LEFT JOIN metaschema_public."table" t_products ON t_products.id = bpm.billing_products_table_id
+    LEFT JOIN metaschema_public.schema s_products ON s_products.id = t_products.schema_id
+    LEFT JOIN metaschema_public."table" t_prices ON t_prices.id = bpm.billing_prices_table_id
+    LEFT JOIN metaschema_public.schema s_prices ON s_prices.id = t_prices.schema_id
+    LEFT JOIN metaschema_public."table" t_invoices ON t_invoices.id = bpm.billing_invoices_table_id
+    LEFT JOIN metaschema_public.schema s_invoices ON s_invoices.id = t_invoices.schema_id
+    LEFT JOIN metaschema_public."table" t_operations ON t_operations.id = bpm.billing_operations_table_id
+    LEFT JOIN metaschema_public.schema s_operations ON s_operations.id = t_operations.schema_id
+    LEFT JOIN metaschema_public."table" t_providerState ON t_providerState.id = bpm.billing_provider_state_table_id
+    LEFT JOIN metaschema_public.schema s_providerState ON s_providerState.id = t_providerState.schema_id
+    LEFT JOIN metaschema_public."table" t_health ON t_health.id = bpm.billing_health_table_id
+    LEFT JOIN metaschema_public.schema s_health ON s_health.id = t_health.schema_id
+    LEFT JOIN metaschema_public."table" t_meters ON t_meters.id = bm.meters_table_id
+    LEFT JOIN metaschema_public.schema s_meters ON s_meters.id = t_meters.schema_id
+    LEFT JOIN metaschema_public."table" t_creditPacks ON t_creditPacks.id = bm.credit_packs_table_id
+    LEFT JOIN metaschema_public.schema s_creditPacks ON s_creditPacks.id = t_creditPacks.schema_id
+    LEFT JOIN metaschema_public."table" t_planSubscriptions ON t_planSubscriptions.id = bm.plan_subscriptions_table_id
+    LEFT JOIN metaschema_public.schema s_planSubscriptions ON s_planSubscriptions.id = t_planSubscriptions.schema_id
+    LEFT JOIN metaschema_public."table" t_ledger ON t_ledger.id = bm.ledger_table_id
+    LEFT JOIN metaschema_public.schema s_ledger ON s_ledger.id = t_ledger.schema_id
+    LEFT JOIN metaschema_public."table" t_balances ON t_balances.id = bm.balances_table_id
+    LEFT JOIN metaschema_public.schema s_balances ON s_balances.id = t_balances.schema_id
+    LEFT JOIN metaschema_public."table" t_meterCredits ON t_meterCredits.id = bm.meter_credits_table_id
+    LEFT JOIN metaschema_public.schema s_meterCredits ON s_meterCredits.id = t_meterCredits.schema_id
+    LEFT JOIN metaschema_public."table" t_plans ON t_plans.id = pm.plans_table_id
+    LEFT JOIN metaschema_public.schema s_plans ON s_plans.id = t_plans.schema_id
+    LEFT JOIN metaschema_public."table" t_planPricing ON t_planPricing.id = pm.plan_pricing_table_id
+    LEFT JOIN metaschema_public.schema s_planPricing ON s_planPricing.id = t_planPricing.schema_id
+    LEFT JOIN metaschema_public."table" t_planLimits ON t_planLimits.id = pm.plan_limits_table_id
+    LEFT JOIN metaschema_public.schema s_planLimits ON s_planLimits.id = t_planLimits.schema_id
+    LEFT JOIN metaschema_public."table" t_planMeterLimits ON t_planMeterLimits.id = pm.plan_meter_limits_table_id
+    LEFT JOIN metaschema_public.schema s_planMeterLimits ON s_planMeterLimits.id = t_planMeterLimits.schema_id
+    LEFT JOIN metaschema_public."table" t_planCaps ON t_planCaps.id = pm.plan_caps_table_id
+    LEFT JOIN metaschema_public.schema s_planCaps ON s_planCaps.id = t_planCaps.schema_id
+    LEFT JOIN metaschema_public."table" t_limits ON t_limits.id = lm.table_id
+    LEFT JOIN metaschema_public.schema s_limits ON s_limits.id = t_limits.schema_id
+    LEFT JOIN metaschema_public."table" t_limitDefaults ON t_limitDefaults.id = lm.default_table_id
+    LEFT JOIN metaschema_public.schema s_limitDefaults ON s_limitDefaults.id = t_limitDefaults.schema_id
+    LEFT JOIN metaschema_public."table" t_users ON t_users.id = uam.users_table_id
+    LEFT JOIN metaschema_public.schema s_users ON s_users.id = t_users.schema_id
+WHERE bpm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.billing_provider_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.cluster_module_registrations(
+  owner_database_id uuid,
+  surface_scope text DEFAULT NULL
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  entity_field text,
+  prefix text,
+  host_database_id uuid,
+  public_schema text,
+  private_schema text,
+  clusters_table_name text,
+  cluster_events_table_name text,
+  database_servers_table_name text,
+  physical_databases_table_name text,
+  database_placements_table_name text
+) AS $EOFCODE$
+SELECT
+    cm.database_id,
+    (cm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    cm.scope,
+    cm.entity_field,
+    cm.prefix,
+    cm.database_id AS host_database_id,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema,
+    clusters_t.name AS clusters_table_name,
+    events_t.name AS cluster_events_table_name,
+    servers_t.name AS database_servers_table_name,
+    pdbs_t.name AS physical_databases_table_name,
+    placements_t.name AS database_placements_table_name
+FROM metaschema_modules_public.cluster_module AS cm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = cm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = cm.private_schema_id
+    LEFT JOIN metaschema_public.table clusters_t
+    ON clusters_t.id = cm.clusters_table_id AND cm.clusters_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.table events_t
+    ON events_t.id = cm.cluster_events_table_id AND cm.cluster_events_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.table servers_t
+    ON servers_t.id = cm.database_servers_table_id AND cm.database_servers_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.table pdbs_t
+    ON pdbs_t.id = cm.physical_databases_table_id AND cm.physical_databases_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.table placements_t
+    ON placements_t.id = cm.database_placements_table_id AND cm.database_placements_table_id <> uuid_nil()
+WHERE ($1 IS NULL OR cm.database_id = $1)
+  AND ($2 IS NULL OR cm.scope = $2)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.cluster_module_registrations(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.compute_log_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  compute_log_table_name text,
+  usage_summary_table_name text,
+  rollup_function_name text,
+  logs_per_database boolean,
+  entity_field text,
+  public_schema text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    clm.database_id,
+    (clm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    clm.scope,
+    clm.compute_log_table_name,
+    clm.usage_summary_table_name,
+    clm.rollup_function_name,
+    EXISTS (SELECT 1 FROM metaschema_public.field AS f WHERE f.table_id = clm.compute_log_table_id AND f.name = 'database_id') AS logs_per_database,
+    clm.entity_field,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.compute_log_module AS clm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = clm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = clm.private_schema_id
+WHERE clm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.compute_log_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.database_settings_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  entity_field text,
+  public_schema text,
+  database_settings_table_name text,
+  rls_settings_table_name text
+) AS $EOFCODE$
+SELECT
+    dsm.database_id,
+    (dsm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    dsm.scope,
+    dsm.entity_field,
+    ps.schema_name AS public_schema,
+    settings_t.name AS database_settings_table_name,
+    rls_t.name AS rls_settings_table_name
+FROM metaschema_modules_public.database_settings_module AS dsm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = dsm.schema_id
+    LEFT JOIN metaschema_public.table settings_t
+    ON settings_t.id = dsm.database_settings_table_id
+    AND dsm.database_settings_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.table rls_t
+    ON rls_t.id = dsm.rls_settings_table_id AND dsm.rls_settings_table_id <> uuid_nil()
+WHERE dsm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.database_settings_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.db_usage_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  collect_db_table_stats_function text,
+  collect_db_query_stats_function text,
+  rollup_db_table_stats_usage_summary_function text,
+  rollup_db_query_stats_usage_summary_function text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    dum.database_id,
+    (dum.database_id = app_scope.platform_database_id()) AS platform_owned,
+    dum.collect_db_table_stats_function,
+    dum.collect_db_query_stats_function,
+    dum.rollup_db_table_stats_usage_summary_function,
+    dum.rollup_db_query_stats_usage_summary_function,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.db_usage_module AS dum
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = dum.private_schema_id
+WHERE dum.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.db_usage_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.domain_module_registrations(
+  owner_database_id uuid,
+  surface_scope text DEFAULT NULL
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  domains_table_name text,
+  domain_verifications_table_name text,
+  domain_events_table_name text,
+  managed_domains_table_name text,
+  entity_field text,
+  public_schema text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    dm.database_id,
+    (dm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    dm.scope,
+    dm.domains_table_name,
+    dm.domain_verifications_table_name,
+    dm.domain_events_table_name,
+    dm.managed_domains_table_name,
+    dm.entity_field,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.domain_module AS dm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = dm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = dm.private_schema_id
+WHERE ($1 IS NULL OR dm.database_id = $1)
+  AND ($2 IS NULL OR dm.scope = $2)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.domain_module_registrations(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.email_sender_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  entity_field text,
+  public_schema text,
+  provider_accounts_table_name text,
+  identities_table_name text,
+  site_identities_table_name text
+) AS $EOFCODE$
+SELECT
+    esm.database_id,
+    (esm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    esm.scope,
+    esm.entity_field,
+    ps.schema_name AS public_schema,
+    accounts_t.name AS provider_accounts_table_name,
+    identities_t.name AS identities_table_name,
+    site_identities_t.name AS site_identities_table_name
+FROM metaschema_modules_public.email_sender_module AS esm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = esm.schema_id
+    LEFT JOIN metaschema_public.table accounts_t
+    ON accounts_t.id = esm.email_provider_accounts_table_id
+   AND esm.email_provider_accounts_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.table identities_t
+    ON identities_t.id = esm.email_identities_table_id
+   AND esm.email_identities_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.table site_identities_t
+    ON site_identities_t.id = esm.email_site_identities_table_id
+WHERE esm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.email_sender_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.emails_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  public_schema text,
+  emails_table_name text
+) AS $EOFCODE$
+SELECT
+    em.database_id,
+    (em.database_id = app_scope.platform_database_id()) AS platform_owned,
+    ps.schema_name AS public_schema,
+    emails_t.name AS emails_table_name
+FROM metaschema_modules_public.emails_module AS em
+    LEFT JOIN metaschema_public.schema ps ON ps.id = em.schema_id
+    LEFT JOIN metaschema_public.table emails_t
+    ON emails_t.id = em.table_id AND em.table_id <> uuid_nil()
+WHERE em.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.emails_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.events_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  private_schema text,
+  record_event text,
+  expire_grants text
+) AS $EOFCODE$
+SELECT
+    em.database_id,
+    (em.database_id = app_scope.platform_database_id()) AS platform_owned,
+    em.scope,
+    pvs.schema_name AS private_schema,
+    em.record_event,
+    em.expire_grants
+FROM metaschema_modules_public.events_module AS em
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = em.private_schema_id
+WHERE em.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.events_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.file_ref_field_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  id uuid,
+  storage_module_id uuid,
+  schema_name text,
+  table_name text,
+  field_name text,
+  bucket_key text,
+  bucket_tags text[],
+  is_public boolean,
+  enforce_fk boolean
+) AS $EOFCODE$
+SELECT
+    frf.database_id,
+    (frf.database_id = app_scope.platform_database_id()) AS platform_owned,
+    frf.id,
+    frf.storage_module_id,
+    s.schema_name,
+    t.name AS table_name,
+    f.name AS field_name,
+    frf.bucket_key,
+    frf.bucket_tags::text[] AS bucket_tags,
+    frf.is_public,
+    frf.enforce_fk
+FROM metaschema_modules_public.file_ref_field AS frf
+    JOIN metaschema_public.field f ON f.id = frf.field_id
+    JOIN metaschema_public.table t ON t.id = frf.table_id
+    JOIN metaschema_public.schema s ON s.id = t.schema_id
+WHERE frf.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.file_ref_field_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.function_deployment_module_registrations(
+  owner_database_id uuid,
+  surface_scope text DEFAULT NULL
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  entity_field text,
+  deployments_table_name text,
+  deployment_events_table_name text,
+  public_schema text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    fdm.database_id,
+    (fdm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    fdm.scope,
+    fdm.entity_field,
+    fdm.deployments_table_name,
+    fdm.deployment_events_table_name,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.function_deployment_module AS fdm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = fdm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = fdm.private_schema_id
+WHERE ($1 IS NULL OR fdm.database_id = $1)
+  AND ($2 IS NULL OR fdm.scope = $2)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.function_deployment_module_registrations(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.function_invocation_module_registrations(
+  owner_database_id uuid,
+  surface_scope text DEFAULT NULL
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  invocations_table_name text,
+  execution_logs_table_name text,
+  attempts_table_name text,
+  entity_field text,
+  public_schema text,
+  private_schema text,
+  id uuid
+) AS $EOFCODE$
+SELECT
+    im.database_id,
+    (im.database_id = app_scope.platform_database_id()) AS platform_owned,
+    im.scope,
+    im.invocations_table_name,
+    im.execution_logs_table_name,
+    im.attempts_table_name,
+    im.entity_field,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema,
+    im.id
+FROM metaschema_modules_public.function_invocation_module AS im
+    LEFT JOIN metaschema_public.schema ps ON ps.id = im.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = im.private_schema_id
+WHERE ($1 IS NULL OR im.database_id = $1)
+  AND ($2 IS NULL OR im.scope = $2)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.function_invocation_module_registrations(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.function_module_registrations(
+  owner_database_id uuid,
+  surface_scope text DEFAULT NULL
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  definitions_table_name text,
+  entity_field text,
+  public_schema text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    fm.database_id,
+    (fm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    fm.scope,
+    fm.definitions_table_name,
+    fm.entity_field,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.function_module AS fm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = fm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = fm.private_schema_id
+WHERE ($1 IS NULL OR fm.database_id = $1)
+  AND ($2 IS NULL OR fm.scope = $2)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.function_module_registrations(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.graph_execution_module_registrations(
+  owner_database_id uuid,
+  surface_scope text DEFAULT NULL
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  prefix text,
+  node_states_table_name text,
+  executions_table_name text,
+  outputs_table_name text,
+  public_schema text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    gem.database_id,
+    (gem.database_id = app_scope.platform_database_id()) AS platform_owned,
+    gem.scope,
+    gem.prefix,
+    node_states_t.name AS node_states_table_name,
+    executions_t.name AS executions_table_name,
+    outputs_t.name AS outputs_table_name,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.graph_execution_module AS gem
+    LEFT JOIN metaschema_public.schema ps ON ps.id = gem.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = gem.private_schema_id
+    LEFT JOIN metaschema_public.table node_states_t ON node_states_t.id = gem.node_states_table_id
+    LEFT JOIN metaschema_public.table executions_t ON executions_t.id = gem.executions_table_id
+    LEFT JOIN metaschema_public.table outputs_t ON outputs_t.id = gem.outputs_table_id
+WHERE ($1 IS NULL OR gem.database_id = $1)
+  AND ($2 IS NULL OR gem.scope = $2)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.graph_execution_module_registrations(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.graph_module_registrations(
+  owner_database_id uuid,
+  surface_scope text DEFAULT NULL
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  prefix text,
+  entity_field text,
+  graphs_table_name text,
+  public_schema text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    gm.database_id,
+    (gm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    gm.scope,
+    gm.prefix,
+    gm.entity_field,
+    graphs_t.name AS graphs_table_name,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.graph_module AS gm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = gm.public_schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = gm.private_schema_id
+    LEFT JOIN metaschema_public.table graphs_t ON graphs_t.id = gm.graphs_table_id
+WHERE ($1 IS NULL OR gm.database_id = $1)
+  AND ($2 IS NULL OR gm.scope = $2)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.graph_module_registrations(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.identity_providers_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  entity_field text,
+  public_schema text,
+  private_schema text,
+  providers_table_name text
+) AS $EOFCODE$
+SELECT
+    ipm.database_id,
+    (ipm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    ipm.scope,
+    ipm.entity_field,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema,
+    providers_t.name AS providers_table_name
+FROM metaschema_modules_public.identity_providers_module AS ipm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = ipm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = ipm.private_schema_id
+    LEFT JOIN metaschema_public.table providers_t
+    ON providers_t.id = ipm.table_id AND ipm.table_id <> uuid_nil()
+WHERE ipm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.identity_providers_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.image_module_registrations(
+  owner_database_id uuid,
+  surface_scope text DEFAULT NULL
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  prefix text,
+  entity_field text,
+  images_table_name text,
+  image_grants_table_name text,
+  registries_table_name text,
+  registry_grants_table_name text,
+  public_schema text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    imgm.database_id,
+    (imgm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    imgm.scope,
+    imgm.prefix,
+    imgm.entity_field,
+    imgm.images_table_name,
+    imgm.image_grants_table_name,
+    imgm.registries_table_name,
+    imgm.registry_grants_table_name,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.image_module AS imgm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = imgm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = imgm.private_schema_id
+WHERE ($1 IS NULL OR imgm.database_id = $1)
+  AND ($2 IS NULL OR imgm.scope = $2)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.image_module_registrations(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.inference_log_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  inference_log_table_name text,
+  usage_summary_table_name text,
+  rollup_function_name text,
+  logs_per_database boolean,
+  entity_field text,
+  public_schema text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    ilm.database_id,
+    (ilm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    ilm.scope,
+    ilm.inference_log_table_name,
+    ilm.usage_summary_table_name,
+    ilm.rollup_function_name,
+    EXISTS (SELECT 1 FROM metaschema_public.field AS f WHERE f.table_id = ilm.inference_log_table_id AND f.name = 'database_id') AS logs_per_database,
+    ilm.entity_field,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.inference_log_module AS ilm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = ilm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = ilm.private_schema_id
+WHERE ilm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.inference_log_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.infra_secrets_module_registrations(
+  owner_database_id uuid,
+  surface_scope text DEFAULT NULL
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  secrets_table_name text,
+  prefix text,
+  entity_field text,
+  config_entity_field text,
+  has_config boolean,
+  config_table_name text,
+  public_schema text,
+  private_schema text,
+  config_schema text
+) AS $EOFCODE$
+SELECT
+    ism.database_id,
+    (ism.database_id = app_scope.platform_database_id()) AS platform_owned,
+    ism.scope,
+    ism.secrets_table_name,
+    ism.prefix,
+    ism.entity_field,
+    icm.entity_field AS config_entity_field,
+    (icm.id IS NOT NULL) AS has_config,
+    cfg_t.name AS config_table_name,
+    pub_s.schema_name AS public_schema,
+    pvs.schema_name AS private_schema,
+    cfg_s.schema_name AS config_schema
+FROM metaschema_modules_public.infra_secrets_module AS ism
+    LEFT JOIN metaschema_modules_public.infra_config_module icm
+    ON icm.database_id = ism.database_id
+   AND icm.scope = ism.scope
+   AND icm.prefix = ism.prefix
+    LEFT JOIN metaschema_public.table cfg_t ON cfg_t.id = icm.config_table_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = ism.private_schema_id
+    LEFT JOIN metaschema_public.schema pub_s ON pub_s.id = ism.schema_id
+    LEFT JOIN metaschema_public.schema cfg_s ON cfg_s.id = icm.schema_id
+WHERE ($1 IS NULL OR ism.database_id = $1)
+  AND ($2 IS NULL OR ism.scope = $2)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.infra_secrets_module_registrations(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.internal_config_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  entity_field text,
+  prefix text,
+  config_table_name text,
+  public_schema text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    icm.database_id,
+    (icm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    icm.scope,
+    icm.entity_field,
+    icm.prefix,
+    cfg_t.name AS config_table_name,
+    pub_s.schema_name AS public_schema,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.internal_config_module AS icm
+    LEFT JOIN metaschema_public.table cfg_t ON cfg_t.id = icm.internal_config_table_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = icm.private_schema_id
+    LEFT JOIN metaschema_public.schema pub_s ON pub_s.id = icm.schema_id
+WHERE icm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.internal_config_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.internal_secrets_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  entity_field text,
+  prefix text,
+  secrets_table_name text,
+  public_schema text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    ism.database_id,
+    (ism.database_id = app_scope.platform_database_id()) AS platform_owned,
+    ism.scope,
+    ism.entity_field,
+    ism.prefix,
+    sec_t.name AS secrets_table_name,
+    pub_s.schema_name AS public_schema,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.internal_secrets_module AS ism
+    LEFT JOIN metaschema_public.table sec_t ON sec_t.id = ism.internal_secrets_table_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = ism.private_schema_id
+    LEFT JOIN metaschema_public.schema pub_s ON pub_s.id = ism.schema_id
+WHERE ism.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.internal_secrets_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.machine_module_registrations(
+  owner_database_id uuid,
+  surface_scope text DEFAULT NULL
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  prefix text,
+  entity_field text,
+  machines_table_name text,
+  machine_sessions_table_name text,
+  machine_messages_table_name text,
+  partition_interval text,
+  retention text,
+  premake int,
+  public_schema text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    mm.database_id,
+    (mm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    mm.scope,
+    mm.prefix,
+    mm.entity_field,
+    mm.machines_table_name,
+    mm.machine_sessions_table_name,
+    mm.machine_messages_table_name,
+    mm.partition_interval,
+    mm.retention,
+    mm.premake,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.machine_module AS mm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = mm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = mm.private_schema_id
+WHERE ($1 IS NULL OR mm.database_id = $1)
+  AND ($2 IS NULL OR mm.scope = $2)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.machine_module_registrations(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.memberships_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  prefix text,
+  entity_field text,
+  memberships_table_name text,
+  members_table_name text,
+  grants_table_name text,
+  actor_perm_check text,
+  public_schema text,
+  private_schema text,
+  sprt_table_name text
+) AS $EOFCODE$
+SELECT
+    mm.database_id,
+    (mm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    mm.scope,
+    mm.prefix,
+    mm.entity_field,
+    mm.memberships_table_name,
+    mm.members_table_name,
+    mm.grants_table_name,
+    mm.actor_perm_check,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema,
+    sprt_t.name AS sprt_table_name
+FROM metaschema_modules_public.memberships_module AS mm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = mm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = mm.private_schema_id
+    LEFT JOIN metaschema_public.table sprt_t ON sprt_t.id = mm.sprt_table_id
+WHERE mm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.memberships_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.namespace_module_registrations(
+  owner_database_id uuid,
+  surface_scope text DEFAULT NULL
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  namespaces_table_name text,
+  namespace_events_table_name text,
+  entity_field text,
+  public_schema text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    nm.database_id,
+    (nm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    nm.scope,
+    nm.namespaces_table_name,
+    nm.namespace_events_table_name,
+    nm.entity_field,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.namespace_module AS nm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = nm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = nm.private_schema_id
+WHERE ($1 IS NULL OR nm.database_id = $1)
+  AND ($2 IS NULL OR nm.scope = $2)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.namespace_module_registrations(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.notifications_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  has_preferences boolean,
+  has_digest_metadata boolean,
+  public_schema text,
+  private_schema text,
+  notifications_table_name text,
+  preferences_table_name text,
+  suppressions_table_name text
+) AS $EOFCODE$
+SELECT
+    nm.database_id,
+    (nm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    nm.has_preferences,
+    nm.has_digest_metadata,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema,
+    notifications_t.name AS notifications_table_name,
+    preferences_t.name AS preferences_table_name,
+    suppressions_t.name AS suppressions_table_name
+FROM metaschema_modules_public.notifications_module AS nm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = nm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = nm.private_schema_id
+    LEFT JOIN metaschema_public.table notifications_t
+    ON notifications_t.id = nm.notifications_table_id
+    LEFT JOIN metaschema_public.table preferences_t
+    ON preferences_t.id = nm.preferences_table_id
+    LEFT JOIN metaschema_public.table suppressions_t
+    ON suppressions_t.id = nm.suppressions_table_id
+WHERE nm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.notifications_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.oauth_requests_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  entity_field text,
+  prefix text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    orm.database_id,
+    (orm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    orm.scope,
+    orm.entity_field,
+    orm.prefix,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.oauth_requests_module AS orm
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = orm.private_schema_id
+WHERE orm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.oauth_requests_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.pages_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  public_schema text,
+  page_published_function text
+) AS $EOFCODE$
+SELECT
+    pm.database_id,
+    (pm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    pm.scope,
+    ps.schema_name AS public_schema,
+    inflection_db.get_field_name(ARRAY[pm.prefix, 'page', 'published']) AS page_published_function
+FROM metaschema_modules_public.pages_module AS pm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = pm.public_schema_id
+WHERE pm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.pages_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.phone_numbers_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  public_schema text,
+  phone_numbers_table_name text
+) AS $EOFCODE$
+SELECT
+    pm.database_id,
+    (pm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    ps.schema_name AS public_schema,
+    phone_t.name AS phone_numbers_table_name
+FROM metaschema_modules_public.phone_numbers_module AS pm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = pm.schema_id
+    LEFT JOIN metaschema_public.table phone_t
+    ON phone_t.id = pm.table_id AND pm.table_id <> uuid_nil()
+WHERE pm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.phone_numbers_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.plans_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  public_schema text,
+  plans_table_name text,
+  plan_limits_table_name text,
+  plan_pricing_table_name text
+) AS $EOFCODE$
+SELECT
+    pm.database_id,
+    (pm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    'app'::text AS scope,
+    ps.schema_name AS public_schema,
+    pm.plans_table_name,
+    pm.plan_limits_table_name,
+    pricing_t.name AS plan_pricing_table_name
+FROM metaschema_modules_public.plans_module AS pm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = pm.schema_id
+    LEFT JOIN metaschema_public.table pricing_t
+    ON pricing_t.id = pm.plan_pricing_table_id
+WHERE pm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.plans_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.principal_auth_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  sweep_expired_principals_function text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    pam.database_id,
+    (pam.database_id = app_scope.platform_database_id()) AS platform_owned,
+    pam.sweep_expired_principals_function,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.principal_auth_module AS pam
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = pam.private_schema_id
+WHERE pam.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.principal_auth_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.repository_module_registrations(
+  owner_database_id uuid,
+  surface_scope text DEFAULT NULL
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  prefix text,
+  entity_field text,
+  host_database_id uuid,
+  repositories_table_name text,
+  repository_events_table_name text,
+  workflows_table_name text,
+  builds_table_name text,
+  build_steps_table_name text,
+  proposals_table_name text,
+  proposal_comments_table_name text,
+  proposal_reactions_table_name text,
+  proposal_reviews_table_name text,
+  proposal_file_views_table_name text,
+  repository_required_checks_table_name text,
+  has_builds boolean,
+  has_attachments boolean,
+  public_schema text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    rpm.database_id,
+    (rpm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    rpm.scope,
+    rpm.prefix,
+    rpm.entity_field,
+    rpm.database_id AS host_database_id,
+    rpm.repositories_table_name,
+    rpm.repository_events_table_name,
+    rpm.workflows_table_name,
+    rpm.builds_table_name,
+    rpm.build_steps_table_name,
+    rpm.proposals_table_name,
+    rpm.proposal_comments_table_name,
+    rpm.proposal_reactions_table_name,
+    rpm.proposal_reviews_table_name,
+    rpm.proposal_file_views_table_name,
+    rpm.repository_required_checks_table_name,
+    rpm.has_builds,
+    rpm.has_attachments,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.repository_module AS rpm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = rpm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = rpm.private_schema_id
+WHERE ($1 IS NULL OR rpm.database_id = $1)
+  AND ($2 IS NULL OR rpm.scope = $2)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.repository_module_registrations(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.resource_module_registrations(
+  owner_database_id uuid,
+  surface_scope text DEFAULT NULL
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  resources_table_name text,
+  resource_definitions_table_name text,
+  resource_installations_table_name text,
+  prefix text,
+  resource_events_table_name text,
+  resource_status_checks_table_name text,
+  resource_usage_log_table_name text,
+  resource_usage_summary_table_name text,
+  resolved_requirements_view_name text,
+  requirements_state_view_name text,
+  entity_field text,
+  public_schema text,
+  private_schema text,
+  registry_bindings_table_name text,
+  builder_bindings_table_name text,
+  rollup_resource_usage_summary_function text,
+  resource_billing_rollup_function text
+) AS $EOFCODE$
+SELECT
+    rm.database_id,
+    (rm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    rm.scope,
+    rm.resources_table_name,
+    rm.resource_definitions_table_name,
+    rm.resource_installations_table_name,
+    rm.prefix,
+    rm.resource_events_table_name,
+    rm.resource_status_checks_table_name,
+    rm.resource_usage_log_table_name,
+    rm.resource_usage_summary_table_name,
+    rm.resolved_requirements_view_name,
+    rm.requirements_state_view_name,
+    rm.entity_field,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema,
+    rm.registry_bindings_table_name,
+    rm.builder_bindings_table_name,
+    rm.rollup_resource_usage_summary_function,
+    rm.resource_billing_rollup_function
+FROM metaschema_modules_public.resource_module AS rm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = rm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = rm.private_schema_id
+WHERE ($1 IS NULL OR rm.database_id = $1)
+  AND ($2 IS NULL OR rm.scope = $2)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.resource_module_registrations(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.route_module_registrations(
+  owner_database_id uuid,
+  surface_scope text DEFAULT NULL
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  routes_table_name text,
+  redirects_table_name text,
+  hostname_bindings_table_name text,
+  route_bindings_table_name text,
+  resolver_function_name text,
+  app_links_function_name text,
+  deep_link_function_name text,
+  entity_field text,
+  public_schema text,
+  private_schema text,
+  sites_catalog_table_name text,
+  sites_catalog_schema text
+) AS $EOFCODE$
+SELECT
+    rm.database_id,
+    (rm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    rm.scope,
+    rm.routes_table_name,
+    rm.redirects_table_name,
+    rm.hostname_bindings_table_name,
+    rm.route_bindings_table_name,
+    rm.resolver_function_name,
+    rm.app_links_function_name,
+    rm.deep_link_function_name,
+    rm.entity_field,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema,
+    sites_t.name AS sites_catalog_table_name,
+    sites_s.schema_name AS sites_catalog_schema
+FROM metaschema_modules_public.route_module AS rm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = rm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = rm.private_schema_id
+    LEFT JOIN metaschema_modules_public.catalog_module cm ON cm.id = rm.catalog_module_id
+    LEFT JOIN metaschema_public.table sites_t
+    ON sites_t.id = cm.sites_table_id
+   AND cm.sites_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.schema sites_s ON sites_s.id = sites_t.schema_id
+WHERE ($1 IS NULL OR rm.database_id = $1)
+  AND ($2 IS NULL OR rm.scope = $2)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.route_module_registrations(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.sessions_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  private_schema text,
+  auth_settings_table_name text,
+  sessions_table_name text,
+  session_credentials_table_name text
+) AS $EOFCODE$
+SELECT
+    sm.database_id,
+    (sm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    pvs.schema_name AS private_schema,
+    settings_t.name AS auth_settings_table_name,
+    sessions_t.name AS sessions_table_name,
+    credentials_t.name AS session_credentials_table_name
+FROM metaschema_modules_public.sessions_module AS sm
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = sm.schema_id
+    LEFT JOIN metaschema_public.table settings_t
+    ON settings_t.id = sm.auth_settings_table_id AND sm.auth_settings_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.table sessions_t ON sessions_t.id = sm.sessions_table_id
+    LEFT JOIN metaschema_public.table credentials_t
+    ON credentials_t.id = sm.session_credentials_table_id
+WHERE sm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.sessions_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.site_surface_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  entity_field text,
+  public_schema text,
+  private_schema text,
+  sites_table_name text,
+  site_metadata_table_name text,
+  site_themes_table_name text,
+  site_modules_table_name text
+) AS $EOFCODE$
+SELECT
+    ssm.database_id,
+    (ssm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    ssm.scope,
+    ssm.entity_field,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema,
+    sites_t.name AS sites_table_name,
+    meta_t.name AS site_metadata_table_name,
+    themes_t.name AS site_themes_table_name,
+    mods_t.name AS site_modules_table_name
+FROM metaschema_modules_public.site_surface_module AS ssm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = ssm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = ssm.private_schema_id
+    LEFT JOIN metaschema_public.table sites_t
+    ON sites_t.id = ssm.sites_table_id AND ssm.sites_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.table meta_t
+    ON meta_t.id = ssm.site_metadata_table_id AND ssm.site_metadata_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.table themes_t
+    ON themes_t.id = ssm.site_themes_table_id AND ssm.site_themes_table_id <> uuid_nil()
+    LEFT JOIN metaschema_public.table mods_t
+    ON mods_t.id = ssm.site_modules_table_id AND ssm.site_modules_table_id <> uuid_nil()
+WHERE ssm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.site_surface_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.storage_log_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  storage_log_table_name text,
+  usage_summary_table_name text,
+  rollup_function_name text,
+  logs_per_database boolean,
+  entity_field text,
+  public_schema text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    slm.database_id,
+    (slm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    slm.scope,
+    slm.storage_log_table_name,
+    slm.usage_summary_table_name,
+    slm.rollup_function_name,
+    EXISTS (SELECT 1 FROM metaschema_public.field AS f WHERE f.table_id = slm.storage_log_table_id AND f.name = 'database_id') AS logs_per_database,
+    slm.entity_field,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.storage_log_module AS slm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = slm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = slm.private_schema_id
+WHERE slm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.storage_log_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.storage_module_registrations(
+  owner_database_id uuid,
+  surface_scope text DEFAULT NULL
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  buckets_table_name text,
+  files_table_name text,
+  allowed_origins text[],
+  public_schema text,
+  private_schema text,
+  endpoint text,
+  provider text,
+  region text,
+  public_url_prefix text,
+  connection_overrides text[],
+  id uuid,
+  entity_field text,
+  buckets_table_id uuid,
+  entity_table_id uuid,
+  buckets_schema text,
+  buckets_table text,
+  files_schema text,
+  files_table text,
+  upload_url_expiry_seconds int,
+  download_url_expiry_seconds int,
+  default_max_file_size bigint,
+  max_filename_length int,
+  cache_ttl_seconds int,
+  max_bulk_files int,
+  max_bulk_total_size bigint,
+  has_path_shares boolean,
+  has_versioning boolean,
+  has_content_hash boolean,
+  has_confirm_upload boolean,
+  entity_schema text,
+  entity_table text
+) AS $EOFCODE$
+SELECT
+    sm.database_id,
+    (sm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    sm.scope,
+    sm.buckets_table_name,
+    sm.files_table_name,
+    sm.allowed_origins,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema,
+    psm.endpoint AS endpoint,
+    psm.provider AS provider,
+    psm.region AS region,
+    coalesce(sm.public_url_prefix, psm.public_url_prefix) AS public_url_prefix,
+    array_remove(ARRAY[
+      CASE WHEN sm.endpoint IS DISTINCT FROM psm.endpoint AND sm.endpoint IS NOT NULL THEN 'endpoint' END,
+    CASE WHEN sm.provider IS DISTINCT FROM psm.provider AND sm.provider IS NOT NULL THEN 'provider' END,
+    CASE WHEN sm.region IS DISTINCT FROM psm.region AND sm.region IS NOT NULL THEN 'region' END
+    ], NULL) AS connection_overrides,
+    sm.id,
+    sm.entity_field,
+    sm.buckets_table_id,
+    sm.entity_table_id,
+    bs.schema_name AS buckets_schema,
+    bt.name AS buckets_table,
+    fs.schema_name AS files_schema,
+    ft.name AS files_table,
+    sm.upload_url_expiry_seconds,
+    sm.download_url_expiry_seconds,
+    sm.default_max_file_size,
+    sm.max_filename_length,
+    sm.cache_ttl_seconds,
+    sm.max_bulk_files,
+    sm.max_bulk_total_size,
+    sm.has_path_shares,
+    sm.has_versioning,
+    sm.has_content_hash,
+    sm.has_confirm_upload,
+    es.schema_name AS entity_schema,
+    et.name AS entity_table
+FROM metaschema_modules_public.storage_module AS sm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = sm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = sm.private_schema_id
+    LEFT JOIN metaschema_modules_public.storage_module psm
+    ON psm.scope = 'platform'
+   AND psm.key = 'default'
+   AND psm.database_id = (SELECT d.id FROM metaschema_public.database d WHERE d.platform)
+    LEFT JOIN metaschema_public.table bt ON bt.id = sm.buckets_table_id
+    LEFT JOIN metaschema_public.schema bs ON bs.id = bt.schema_id
+    LEFT JOIN metaschema_public.table ft ON ft.id = sm.files_table_id
+    LEFT JOIN metaschema_public.schema fs ON fs.id = ft.schema_id
+    LEFT JOIN metaschema_public.table et ON et.id = sm.entity_table_id
+    LEFT JOIN metaschema_public.schema es ON es.id = et.schema_id
+WHERE ($1 IS NULL OR sm.database_id = $1)
+  AND ($2 IS NULL OR sm.scope = $2)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.storage_module_registrations(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.transfer_log_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  transfer_log_table_name text,
+  usage_summary_table_name text,
+  rollup_function_name text,
+  logs_per_database boolean,
+  entity_field text,
+  public_schema text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    tlm.database_id,
+    (tlm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    tlm.scope,
+    tlm.transfer_log_table_name,
+    tlm.usage_summary_table_name,
+    tlm.rollup_function_name,
+    EXISTS (SELECT 1 FROM metaschema_public.field AS f WHERE f.table_id = tlm.transfer_log_table_id AND f.name = 'database_id') AS logs_per_database,
+    tlm.entity_field,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.transfer_log_module AS tlm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = tlm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = tlm.private_schema_id
+WHERE tlm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.transfer_log_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.user_auth_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  sweep_expired_sessions_function text,
+  sweep_unverified_identifiers_function text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    uam.database_id,
+    (uam.database_id = app_scope.platform_database_id()) AS platform_owned,
+    uam.sweep_expired_sessions_function,
+    uam.sweep_unverified_identifiers_function,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.user_auth_module AS uam
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = uam.private_schema_id
+WHERE uam.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.user_auth_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.webhook_module_registrations(
+  owner_database_id uuid,
+  surface_scope text DEFAULT NULL
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  webhook_endpoints_table_name text,
+  webhook_events_table_name text,
+  entity_field text,
+  public_schema text,
+  private_schema text,
+  signing_secrets_prefix text,
+  signing_secrets_entity_field text,
+  signing_secrets_schema text,
+  namespaces_table_name text,
+  namespaces_entity_field text,
+  namespaces_schema text,
+  function_invocation_module_id uuid
+) AS $EOFCODE$
+SELECT
+    wm.database_id,
+    (wm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    wm.scope,
+    wm.webhook_endpoints_table_name,
+    wm.webhook_events_table_name,
+    wm.entity_field,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema,
+    ism.prefix AS signing_secrets_prefix,
+    ism.entity_field AS signing_secrets_entity_field,
+    iss.schema_name AS signing_secrets_schema,
+    nsm.namespaces_table_name,
+    nsm.entity_field AS namespaces_entity_field,
+    nss.schema_name AS namespaces_schema,
+    wm.function_invocation_module_id
+FROM metaschema_modules_public.webhook_module AS wm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = wm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = wm.private_schema_id
+    LEFT JOIN metaschema_modules_public.infra_secrets_module ism ON ism.id = wm.infra_secrets_module_id
+    LEFT JOIN metaschema_public.schema iss ON iss.id = ism.schema_id
+    LEFT JOIN metaschema_modules_public.namespace_module nsm ON nsm.id = wm.namespace_module_id
+    LEFT JOIN metaschema_public.schema nss ON nss.id = nsm.schema_id
+WHERE ($1 IS NULL OR wm.database_id = $1)
+  AND ($2 IS NULL OR wm.scope = $2)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.webhook_module_registrations(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.api_by_name(
+  database_id uuid,
+  api_name text
+) RETURNS TABLE (
+  api_id uuid,
+  api_database_id uuid,
+  dbname text,
+  role_name text,
+  anon_role text,
+  is_public boolean,
+  schemas text[]
+) AS $EOFCODE$
+BEGIN
+    RETURN QUERY
+    SELECT a.id, a.database_id, a.dbname::text, a.role_name::text, a.anon_role::text, a.is_published,
+           COALESCE(array_agg(s.schema_name::text ORDER BY s.schema_name) FILTER (WHERE s.schema_name IS NOT NULL), '{}')
+    FROM routing_public.apis AS a
+    LEFT JOIN routing_public.api_schemas AS aps ON aps.api_id = a.id
+    LEFT JOIN metaschema_public.schema AS s ON s.id = aps.schema_id
+    WHERE a.database_id = api_by_name.database_id
+      AND a.name = api_by_name.api_name
+    GROUP BY a.id, a.database_id, a.dbname, a.role_name, a.anon_role, a.is_published;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.api_by_name(uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.api_hostnames(
+  database_id uuid
+) RETURNS SETOF text AS $EOFCODE$
+BEGIN
+    RETURN QUERY
+    SELECT d.hostname::text
+    FROM routing_public.domains AS d
+    WHERE d.database_id = api_hostnames.database_id
+      AND d.hostname IS NOT NULL
+    ORDER BY 1;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.api_hostnames(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.service_principal(
+  principal_name text
+) RETURNS TABLE (
+  user_id uuid,
+  bypass_step_up boolean,
+  owner_id uuid,
+  owner_type int
+) AS $EOFCODE$
+DECLARE
+    principals_schema text;
+    principals_table text;
+    users_schema text;
+    users_table text;
+BEGIN
+    SELECT s.schema_name, pam.principals_table_name, us.schema_name, ut.name
+    INTO principals_schema, principals_table, users_schema, users_table
+    FROM metaschema_modules_public.principal_auth_module AS pam
+    JOIN metaschema_public.schema AS s ON s.id = pam.schema_id
+    LEFT JOIN metaschema_public.table AS ut ON ut.id = pam.users_table_id
+    LEFT JOIN metaschema_public.schema AS us ON us.id = ut.schema_id
+    WHERE pam.database_id = app_scope.platform_database_id();
+
+    IF principals_schema IS NULL OR users_table IS NULL THEN
+        RAISE EXCEPTION 'SERVICE_PRINCIPAL_MODULE_MISSING: the platform database has no principal_auth_module';
+    END IF;
+
+    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: relation names come from the catalog registration, values are bound
+    RETURN QUERY EXECUTE format(
+        'SELECT p.user_id, p.bypass_step_up, owner.id, owner.type FROM %I.%I AS p '
+        'LEFT JOIN %I.%I AS owner ON owner.id = p.owner_id WHERE p.name = $1',
+        principals_schema, principals_table, users_schema, users_table
+    ) USING service_principal.principal_name;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.service_principal(text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.tenant_auth_entry(
+  database_id uuid
+) RETURNS TABLE (
+  authenticate_schema text,
+  authenticate_function text,
+  authenticate_strict_function text,
+  role_schema text,
+  current_role_function text,
+  current_role_id_function text,
+  current_ip_address_function text,
+  current_user_agent_function text
+) AS $EOFCODE$
+BEGIN
+    RETURN QUERY
+    SELECT auth_schema.schema_name::text, auth_fn.name::text, auth_strict_fn.name::text,
+           role_schema.schema_name::text, role_fn.name::text, role_id_fn.name::text,
+           ip_fn.name::text, ua_fn.name::text
+    FROM routing_public.rls_settings AS rs
+    JOIN metaschema_public.schema AS auth_schema ON auth_schema.id = rs.authenticate_schema_id
+    JOIN metaschema_public.function AS auth_fn ON auth_fn.id = rs.authenticate_function_id
+    LEFT JOIN metaschema_public.function AS auth_strict_fn ON auth_strict_fn.id = rs.authenticate_strict_function_id
+    LEFT JOIN metaschema_public.schema AS role_schema ON role_schema.id = rs.role_schema_id
+    LEFT JOIN metaschema_public.function AS role_fn ON role_fn.id = rs.current_role_function_id
+    LEFT JOIN metaschema_public.function AS role_id_fn ON role_id_fn.id = rs.current_role_id_function_id
+    LEFT JOIN metaschema_public.function AS ip_fn ON ip_fn.id = rs.current_ip_address_function_id
+    LEFT JOIN metaschema_public.function AS ua_fn ON ua_fn.id = rs.current_user_agent_function_id
+    WHERE rs.database_id = tenant_auth_entry.database_id
+    LIMIT 1;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.tenant_auth_entry(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.database_export_catalog(
+  database_id uuid
+) RETURNS TABLE (
+  database_name text,
+  schema_id uuid,
+  schema_label text,
+  schema_name text
+) AS $EOFCODE$
+SELECT d.name::text, s.id, s.name::text, s.schema_name::text
+FROM metaschema_public.database AS d
+    LEFT JOIN metaschema_public.schema AS s ON s.database_id = d.id
+WHERE d.id = $1
+ORDER BY s.schema_name
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.database_export_catalog(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.storage_modules() RETURNS TABLE (
+  id uuid,
+  database_id uuid,
+  scope text,
+  buckets_table_id uuid,
+  entity_field text,
+  entity_table_id uuid,
+  buckets_schema text,
+  buckets_table text,
+  files_schema text,
+  files_table text,
+  private_schema text,
+  endpoint text,
+  public_url_prefix text,
+  provider text,
+  region text,
+  connection_overrides text[],
+  allowed_origins text[],
+  upload_url_expiry_seconds int,
+  download_url_expiry_seconds int,
+  default_max_file_size bigint,
+  max_filename_length int,
+  cache_ttl_seconds int,
+  max_bulk_files int,
+  max_bulk_total_size bigint,
+  has_path_shares boolean,
+  has_versioning boolean,
+  has_content_hash boolean,
+  has_confirm_upload boolean,
+  entity_schema text,
+  entity_table text
+) AS $EOFCODE$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM metaschema_modules_public.storage_module AS psm
+        JOIN metaschema_public.database AS d ON d.id = psm.database_id AND d.platform
+        WHERE psm.scope = 'platform'
+          AND psm.key = 'default'
+          AND psm.endpoint IS NOT NULL
+    ) THEN
+        PERFORM errors.raise_error('STORAGE_PLATFORM_ENDPOINT_MISSING', '{}'::jsonb, 'internal');
+    END IF;
+
+    -- One projection of the storage configuration: the platform login's
+    -- registrations reader, narrowed to the request's own database.
+    RETURN QUERY
+    SELECT
+        r.id,
+        r.database_id,
+        r.scope,
+        r.buckets_table_id,
+        r.entity_field,
+        r.entity_table_id,
+        r.buckets_schema,
+        r.buckets_table,
+        r.files_schema,
+        r.files_table,
+        r.private_schema,
+        r.endpoint,
+        r.public_url_prefix,
+        r.provider,
+        r.region,
+        r.connection_overrides,
+        r.allowed_origins,
+        r.upload_url_expiry_seconds,
+        r.download_url_expiry_seconds,
+        r.default_max_file_size,
+        r.max_filename_length,
+        r.cache_ttl_seconds,
+        r.max_bulk_files,
+        r.max_bulk_total_size,
+        r.has_path_shares,
+        r.has_versioning,
+        r.has_content_hash,
+        r.has_confirm_upload,
+        r.entity_schema,
+        r.entity_table
+    FROM function_resolution.storage_module_registrations(jwt_private.require_database_id()) AS r
+    WHERE r.buckets_table IS NOT NULL
+      AND r.files_table IS NOT NULL;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.storage_modules() FROM PUBLIC RESTRICT;
+
+GRANT EXECUTE ON FUNCTION function_resolution.storage_modules() TO authenticated, anonymous;
+
+CREATE FUNCTION function_resolution.storage_file_ref_field(
+  schema_name text,
+  table_name text,
+  field_name text
+) RETURNS TABLE (
+  id uuid,
+  storage_module_id uuid,
+  bucket_key text,
+  bucket_tags text[],
+  is_public boolean,
+  enforce_fk boolean
+) AS $EOFCODE$
+    SELECT
+        r.id,
+        r.storage_module_id,
+        r.bucket_key,
+        r.bucket_tags,
+        r.is_public,
+        r.enforce_fk
+    FROM function_resolution.file_ref_field_registrations(jwt_private.require_database_id()) AS r
+    WHERE r.schema_name = storage_file_ref_field.schema_name
+      AND r.table_name = storage_file_ref_field.table_name
+      AND r.field_name = storage_file_ref_field.field_name
+    LIMIT 1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.storage_file_ref_field(text, text, text) FROM PUBLIC RESTRICT;
+
+GRANT EXECUTE ON FUNCTION function_resolution.storage_file_ref_field(text, text, text) TO authenticated, anonymous;
+
+CREATE FUNCTION function_resolution.cors_origins(
+  database_id uuid,
+  api_id uuid
+) RETURNS TABLE (
+  allowed_origins text[]
+) AS $EOFCODE$
+BEGIN
+    RETURN QUERY
+    SELECT cs.allowed_origins
+    FROM routing_public.cors_settings AS cs
+    WHERE cs.database_id = cors_origins.database_id
+      AND (cs.api_id = cors_origins.api_id OR cs.api_id IS NULL)
+    ORDER BY cs.api_id IS NULL
+    LIMIT 1;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.cors_origins(uuid, uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.pubkey_entry(
+  database_id uuid
+) RETURNS TABLE (
+  schema_name text,
+  crypto_network text,
+  sign_up_with_key text,
+  sign_in_request_challenge text,
+  sign_in_record_failure text,
+  sign_in_with_challenge text
+) AS $EOFCODE$
+BEGIN
+    RETURN QUERY
+    SELECT s.schema_name::text, ps.crypto_network, sign_up_fn.name::text,
+           sign_in_req_fn.name::text, sign_in_fail_fn.name::text, sign_in_fn.name::text
+    FROM routing_public.pubkey_settings AS ps
+    LEFT JOIN metaschema_public.schema AS s ON s.id = ps.schema_id
+    LEFT JOIN metaschema_public.function AS sign_up_fn ON sign_up_fn.id = ps.sign_up_with_key_function_id
+    LEFT JOIN metaschema_public.function AS sign_in_req_fn ON sign_in_req_fn.id = ps.sign_in_request_challenge_function_id
+    LEFT JOIN metaschema_public.function AS sign_in_fail_fn ON sign_in_fail_fn.id = ps.sign_in_record_failure_function_id
+    LEFT JOIN metaschema_public.function AS sign_in_fn ON sign_in_fn.id = ps.sign_in_with_challenge_function_id
+    WHERE ps.database_id = pubkey_entry.database_id
+    LIMIT 1;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.pubkey_entry(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.webauthn_entry(
+  database_id uuid
+) RETURNS TABLE (
+  schema_name text,
+  credentials_schema text,
+  sessions_schema text,
+  session_secrets_schema text,
+  rp_id text,
+  rp_name text,
+  origin_allowlist text[],
+  attestation_type text,
+  require_user_verification boolean,
+  resident_key text,
+  challenge_expiry_seconds bigint
+) AS $EOFCODE$
+BEGIN
+    RETURN QUERY
+    SELECT s.schema_name::text, cred_s.schema_name::text, sess_s.schema_name::text,
+           sec_s.schema_name::text, ws.rp_id, ws.rp_name, ws.origin_allowlist,
+           ws.attestation_type, ws.require_user_verification, ws.resident_key,
+           ws.challenge_expiry_seconds
+    FROM routing_public.webauthn_settings AS ws
+    LEFT JOIN metaschema_public.schema AS s ON s.id = ws.schema_id
+    LEFT JOIN metaschema_public.schema AS cred_s ON cred_s.id = ws.credentials_schema_id
+    LEFT JOIN metaschema_public.schema AS sess_s ON sess_s.id = ws.sessions_schema_id
+    LEFT JOIN metaschema_public.schema AS sec_s ON sec_s.id = ws.session_secrets_schema_id
+    WHERE ws.database_id = webauthn_entry.database_id
+    LIMIT 1;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.webauthn_entry(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.database_features(
+  database_id uuid,
+  api_id uuid
+) RETURNS TABLE (
+  enable_aggregates boolean,
+  enable_postgis boolean,
+  enable_search boolean,
+  enable_direct_uploads boolean,
+  enable_presigned_uploads boolean,
+  enable_many_to_many boolean,
+  enable_connection_filter boolean,
+  enable_ltree boolean,
+  enable_llm boolean,
+  enable_realtime boolean,
+  enable_bulk boolean,
+  enable_i18n boolean
+) AS $EOFCODE$
+BEGIN
+    RETURN QUERY
+    SELECT COALESCE(aps.enable_aggregates, ds.enable_aggregates),
+           COALESCE(aps.enable_postgis, ds.enable_postgis),
+           COALESCE(aps.enable_search, ds.enable_search),
+           COALESCE(aps.enable_direct_uploads, ds.enable_direct_uploads),
+           COALESCE(aps.enable_presigned_uploads, ds.enable_presigned_uploads),
+           COALESCE(aps.enable_many_to_many, ds.enable_many_to_many),
+           COALESCE(aps.enable_connection_filter, ds.enable_connection_filter),
+           COALESCE(aps.enable_ltree, ds.enable_ltree),
+           COALESCE(aps.enable_llm, ds.enable_llm),
+           COALESCE(aps.enable_realtime, ds.enable_realtime),
+           COALESCE(aps.enable_bulk, ds.enable_bulk),
+           COALESCE(aps.enable_i18n, ds.enable_i18n)
+    FROM routing_public.database_settings AS ds
+    LEFT JOIN routing_public.api_settings AS aps
+      ON aps.database_id = ds.database_id AND aps.api_id = database_features.api_id
+    WHERE ds.database_id = database_features.database_id
+    LIMIT 1;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.database_features(uuid, uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.request_protection(
+  database_id uuid,
+  api_id uuid
+) RETURNS TABLE (
+  db_statement_timeout_ms bigint,
+  db_idle_in_transaction_timeout_ms bigint,
+  db_lock_timeout_ms bigint,
+  db_max_concurrent_requests int,
+  db_max_queue_wait_ms int,
+  db_rate_limit_rpm int,
+  db_rate_limit_burst int,
+  db_max_query_depth int,
+  db_max_query_cost int,
+  db_max_page_size int,
+  db_max_request_bytes int,
+  db_enable_introspection boolean,
+  api_statement_timeout_ms bigint,
+  api_idle_in_transaction_timeout_ms bigint,
+  api_lock_timeout_ms bigint,
+  api_max_concurrent_requests int,
+  api_max_queue_wait_ms int,
+  api_rate_limit_rpm int,
+  api_rate_limit_burst int,
+  api_max_query_depth int,
+  api_max_query_cost int,
+  api_max_page_size int,
+  api_max_request_bytes int,
+  api_enable_introspection boolean
+) AS $EOFCODE$
+BEGIN
+    RETURN QUERY
+    SELECT ds.statement_timeout_ms,
+           ds.idle_in_transaction_timeout_ms,
+           ds.lock_timeout_ms,
+           ds.max_concurrent_requests,
+           ds.max_queue_wait_ms,
+           ds.rate_limit_rpm,
+           ds.rate_limit_burst,
+           ds.max_query_depth,
+           ds.max_query_cost,
+           ds.max_page_size,
+           ds.max_request_bytes,
+           ds.enable_introspection,
+           aps.statement_timeout_ms,
+           aps.idle_in_transaction_timeout_ms,
+           aps.lock_timeout_ms,
+           aps.max_concurrent_requests,
+           aps.max_queue_wait_ms,
+           aps.rate_limit_rpm,
+           aps.rate_limit_burst,
+           aps.max_query_depth,
+           aps.max_query_cost,
+           aps.max_page_size,
+           aps.max_request_bytes,
+           aps.enable_introspection
+    FROM routing_public.database_settings AS ds
+    LEFT JOIN routing_public.api_settings AS aps
+      ON aps.database_id = ds.database_id AND aps.api_id = request_protection.api_id
+    WHERE ds.database_id = request_protection.database_id
+    LIMIT 1;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.request_protection(uuid, uuid) FROM PUBLIC RESTRICT;

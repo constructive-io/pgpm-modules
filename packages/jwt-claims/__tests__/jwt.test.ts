@@ -331,3 +331,17 @@ describe('attribution assertion', () => {
     ).resolves.toBeDefined();
   });
 });
+
+describe('anonymous database claim reader', () => {
+  it('anonymous reads its own database_id claim', async () => {
+    await pg.any(`BEGIN`);
+    try {
+      await pg.any(`SELECT set_config('jwt.claims.database_id', $1, true)`, [jwt.database_id]);
+      await pg.any(`SET LOCAL ROLE anonymous`);
+      const { id } = await pg.one(`SELECT jwt_private.current_database_id() AS id`);
+      expect(id).toBe(jwt.database_id);
+    } finally {
+      await pg.any(`ROLLBACK`);
+    }
+  });
+});

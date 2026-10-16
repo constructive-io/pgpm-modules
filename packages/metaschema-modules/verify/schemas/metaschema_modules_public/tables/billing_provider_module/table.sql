@@ -31,6 +31,8 @@ SELECT
   billing_provider_state_table_name,
   billing_health_table_id,
   billing_health_table_name,
+  billing_connection_table_id,
+  billing_connection_table_name,
   reserve_billing_operation_function,
   finish_billing_operation_function,
   apply_provider_observation_function,
@@ -39,6 +41,8 @@ SELECT
   clear_scheduled_change_function,
   get_billing_provider_state_function,
   record_billing_health_function,
+  record_billing_connection_function,
+  billing_provider_connected_function,
   bind_checkout_session_function,
   prefix
 FROM metaschema_modules_public.billing_provider_module

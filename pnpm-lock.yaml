@@ -205,6 +205,9 @@ importers:
       "@pgpm/errors":
         specifier: workspace:*
         version: link:../errors
+      "@pgpm/inflection-db":
+        specifier: workspace:*
+        version: link:../inflection-db
       "@pgpm/jwt-claims":
         specifier: workspace:*
         version: link:../jwt-claims
