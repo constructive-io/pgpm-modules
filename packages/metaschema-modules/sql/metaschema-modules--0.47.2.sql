@@ -2873,6 +2873,8 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   billing_provider_state_table_name text NOT NULL DEFAULT '',
   billing_health_table_id uuid NOT NULL DEFAULT uuid_nil(),
   billing_health_table_name text NOT NULL DEFAULT '',
+  billing_connection_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  billing_connection_table_name text NOT NULL DEFAULT '',
   process_billing_event_function text NOT NULL DEFAULT '',
   record_refund_function text NOT NULL DEFAULT '',
   upsert_invoice_function text NOT NULL DEFAULT '',
@@ -2903,6 +2905,8 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   clear_scheduled_change_function text NOT NULL DEFAULT '',
   get_billing_provider_state_function text NOT NULL DEFAULT '',
   record_billing_health_function text NOT NULL DEFAULT '',
+  record_billing_connection_function text NOT NULL DEFAULT '',
+  billing_provider_connected_function text NOT NULL DEFAULT '',
   bind_checkout_session_function text NOT NULL DEFAULT '',
   prefix text NULL,
   api_name text DEFAULT NULL,
@@ -2963,6 +2967,10 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
     FOREIGN KEY(billing_health_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
+  CONSTRAINT billing_connection_table_fkey
+    FOREIGN KEY(billing_connection_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
   CONSTRAINT products_table_fkey
     FOREIGN KEY(products_table_id)
     REFERENCES metaschema_public.table (id)
@@ -3001,6 +3009,8 @@ CREATE INDEX billing_provider_module_billing_provider_state_table_id_idx ON meta
 
 CREATE INDEX billing_provider_module_billing_health_table_id_idx ON metaschema_modules_public.billing_provider_module (billing_health_table_id);
 
+CREATE INDEX billing_provider_module_billing_connection_table_id_idx ON metaschema_modules_public.billing_provider_module (billing_connection_table_id);
+
 CREATE INDEX billing_provider_module_prices_table_id_idx ON metaschema_modules_public.billing_provider_module (prices_table_id);
 
 CREATE INDEX billing_provider_module_products_table_id_idx ON metaschema_modules_public.billing_provider_module (products_table_id);
@@ -3010,6 +3020,8 @@ CREATE INDEX billing_provider_module_subscriptions_table_id_idx ON metaschema_mo
 CREATE INDEX billing_provider_module_private_schema_id_idx ON metaschema_modules_public.billing_provider_module (private_schema_id);
 
 CREATE INDEX billing_provider_module_schema_id_idx ON metaschema_modules_public.billing_provider_module (schema_id);
+
+COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_connection_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.billing_provider_module.billing_customers_table_id IS '@module_table';
 
@@ -5858,8 +5870,6 @@ CREATE TABLE metaschema_modules_public.scope_types_module (
   CONSTRAINT scope_types_module_unique 
     UNIQUE (database_id)
 );
-
-CREATE INDEX scope_types_module_database_id_idx ON metaschema_modules_public.scope_types_module (database_id);
 
 CREATE INDEX scope_types_module_schema_id_idx ON metaschema_modules_public.scope_types_module (schema_id);
 

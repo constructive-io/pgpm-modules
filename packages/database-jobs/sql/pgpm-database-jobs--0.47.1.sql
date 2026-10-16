@@ -1951,3 +1951,38 @@ BEGIN
     RETURNING j.*;
 END;
 $EOFCODE$;
+
+CREATE FUNCTION app_jobs.scheduled_task_identifiers(
+  database_id uuid
+) RETURNS SETOF text AS $EOFCODE$
+BEGIN
+  IF jwt_public.current_role_type() IS DISTINCT FROM 'system' THEN
+    PERFORM errors.raise_error('FORBIDDEN', '{}'::jsonb, 'internal');
+  END IF;
+
+  RETURN QUERY
+  SELECT DISTINCT scheduled_jobs.task_identifier
+    FROM app_jobs.scheduled_jobs
+   WHERE scheduled_jobs.database_id = scheduled_task_identifiers.database_id
+  UNION
+  SELECT DISTINCT scheduled_jobs.payload ->> 'task'
+    FROM app_jobs.scheduled_jobs
+   WHERE scheduled_jobs.task_identifier = 'schedules:fanout'
+     AND CASE
+           WHEN json_typeof(scheduled_jobs.payload -> 'shard_count') IS DISTINCT FROM 'number'
+             OR json_typeof(scheduled_jobs.payload -> 'shard') IS DISTINCT FROM 'number' THEN false
+           WHEN (scheduled_jobs.payload ->> 'shard_count')::numeric < 1
+             OR (scheduled_jobs.payload ->> 'shard_count')::numeric <> trunc((scheduled_jobs.payload ->> 'shard_count')::numeric)
+             OR (scheduled_jobs.payload ->> 'shard')::numeric < 0
+             OR (scheduled_jobs.payload ->> 'shard')::numeric >= (scheduled_jobs.payload ->> 'shard_count')::numeric
+             OR (scheduled_jobs.payload ->> 'shard')::numeric <> trunc((scheduled_jobs.payload ->> 'shard')::numeric) THEN false
+           ELSE mod(abs(hashtext(scheduled_task_identifiers.database_id::text)::bigint),
+                    (scheduled_jobs.payload ->> 'shard_count')::numeric)
+                = (scheduled_jobs.payload ->> 'shard')::numeric
+         END;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE EXECUTE ON FUNCTION app_jobs.scheduled_task_identifiers(uuid) FROM PUBLIC RESTRICT;
+
+GRANT EXECUTE ON FUNCTION app_jobs.scheduled_task_identifiers(uuid) TO authenticated;

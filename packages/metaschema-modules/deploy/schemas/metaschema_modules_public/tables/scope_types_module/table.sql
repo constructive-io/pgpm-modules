@@ -31,7 +31,6 @@ CREATE TABLE metaschema_modules_public.scope_types_module (
     CONSTRAINT scope_types_module_unique UNIQUE (database_id)
 );
 
-CREATE INDEX scope_types_module_database_id_idx ON metaschema_modules_public.scope_types_module ( database_id );
 CREATE INDEX scope_types_module_schema_id_idx ON metaschema_modules_public.scope_types_module ( schema_id );
 CREATE INDEX scope_types_module_scope_types_table_id_idx ON metaschema_modules_public.scope_types_module ( scope_types_table_id );
 

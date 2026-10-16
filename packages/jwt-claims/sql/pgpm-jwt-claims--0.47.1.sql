@@ -103,6 +103,8 @@ CREATE FUNCTION jwt_private.current_database_id() RETURNS uuid AS $EOFCODE$
   END;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
+GRANT EXECUTE ON FUNCTION jwt_private.current_database_id() TO anonymous;
+
 CREATE FUNCTION jwt_private.require_database_id() RETURNS uuid AS $EOFCODE$
 DECLARE
   database_id uuid;
