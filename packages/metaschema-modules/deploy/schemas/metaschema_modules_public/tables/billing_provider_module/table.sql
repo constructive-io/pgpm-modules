@@ -120,6 +120,10 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   record_billing_health_function text NOT NULL DEFAULT '',
   record_billing_connection_function text NOT NULL DEFAULT '',
   billing_provider_connected_function text NOT NULL DEFAULT '',
+  -- The SECURITY DEFINER reader of STRIPE_SECRET_KEY for a worker-dispatched
+  -- (system) billing operator: an operator action's job runs under the
+  -- operator's claims, which the internal secrets store does not admit.
+  billing_provider_key_function text NOT NULL DEFAULT '',
   bind_checkout_session_function text NOT NULL DEFAULT '',
 
   prefix text NULL,

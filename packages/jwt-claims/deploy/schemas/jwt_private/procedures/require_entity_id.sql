@@ -13,9 +13,9 @@ AS $$
 DECLARE
   entity_id uuid;
 BEGIN
-  IF pg_input_is_valid(current_setting('jwt.claims.entity_id', TRUE), 'uuid') THEN
-    entity_id = current_setting('jwt.claims.entity_id', TRUE)::uuid;
-  END IF;
+  -- Absent or empty raises the claim-required error below; a malformed claim
+  -- raises invalid_text_representation here.
+  entity_id = nullif(current_setting('jwt.claims.entity_id', TRUE), '')::uuid;
   IF entity_id IS NULL THEN
     PERFORM errors.raise_error(
       'ENTITY_CLAIM_REQUIRED',

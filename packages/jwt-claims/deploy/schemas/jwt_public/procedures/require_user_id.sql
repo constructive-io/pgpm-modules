@@ -13,9 +13,9 @@ AS $$
 DECLARE
   user_id uuid;
 BEGIN
-  IF pg_input_is_valid(current_setting('jwt.claims.user_id', TRUE), 'uuid') THEN
-    user_id = current_setting('jwt.claims.user_id', TRUE)::uuid;
-  END IF;
+  -- Absent or empty raises the claim-required error below; a malformed claim
+  -- raises invalid_text_representation here.
+  user_id = nullif(current_setting('jwt.claims.user_id', TRUE), '')::uuid;
   IF user_id IS NULL THEN
     PERFORM errors.raise_error(
       'ACTOR_CLAIM_REQUIRED',

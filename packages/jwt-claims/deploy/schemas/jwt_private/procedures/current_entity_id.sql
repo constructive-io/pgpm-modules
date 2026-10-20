@@ -5,14 +5,13 @@
 
 BEGIN;
 
--- Returns NULL if the claim is not set, empty, or not a valid UUID
+-- Returns NULL if the claim is not set or empty; a malformed claim raises
+-- (invalid_text_representation) rather than reading as absent.
+-- LEAKPROOF: no arguments, so an error can only echo the caller's own claim.
 CREATE FUNCTION jwt_private.current_entity_id()
   RETURNS uuid
 AS $$
-  SELECT CASE
-    WHEN pg_input_is_valid(current_setting('jwt.claims.entity_id', TRUE), 'uuid')
-      THEN current_setting('jwt.claims.entity_id', TRUE)::uuid
-  END;
+  SELECT nullif(current_setting('jwt.claims.entity_id', TRUE), '')::uuid;
 $$
 LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 

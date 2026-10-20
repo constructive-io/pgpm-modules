@@ -2574,6 +2574,7 @@ CREATE FUNCTION function_resolution.billing_provider_module_registrations(
   get_billing_provider_state_function text,
   record_billing_health_function text,
   record_billing_connection_function text,
+  billing_provider_key_function text,
   bind_checkout_session_function text,
   upsert_invoice_function text,
   record_refund_function text,
@@ -2659,6 +2660,7 @@ SELECT
     bpm.get_billing_provider_state_function,
     bpm.record_billing_health_function,
     bpm.record_billing_connection_function,
+    bpm.billing_provider_key_function,
     bpm.bind_checkout_session_function,
     bpm.upsert_invoice_function,
     bpm.record_refund_function,
@@ -3230,6 +3232,7 @@ CREATE FUNCTION function_resolution.identity_providers_module_registrations(
   platform_owned boolean,
   scope text,
   entity_field text,
+  prefix text,
   public_schema text,
   private_schema text,
   providers_table_name text
@@ -3239,6 +3242,7 @@ SELECT
     (ipm.database_id = app_scope.platform_database_id()) AS platform_owned,
     ipm.scope,
     ipm.entity_field,
+    ipm.prefix,
     ps.schema_name AS public_schema,
     pvs.schema_name AS private_schema,
     providers_t.name AS providers_table_name
@@ -4587,3 +4591,71 @@ END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
 REVOKE ALL ON FUNCTION function_resolution.request_protection(uuid, uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.refusal_log_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  platform_owned boolean,
+  scope text,
+  log_table_name text,
+  summary_table_name text,
+  record_refusals_function text,
+  rollup_refusal_usage_summary_function text,
+  entity_field text,
+  public_schema text,
+  private_schema text
+) AS $EOFCODE$
+SELECT
+    rlm.database_id,
+    (rlm.database_id = app_scope.platform_database_id()) AS platform_owned,
+    rlm.scope,
+    rlm.log_table_name,
+    rlm.summary_table_name,
+    rlm.record_refusals_function,
+    rlm.rollup_refusal_usage_summary_function,
+    rlm.entity_field,
+    ps.schema_name AS public_schema,
+    pvs.schema_name AS private_schema
+FROM metaschema_modules_public.refusal_log_module AS rlm
+    LEFT JOIN metaschema_public.schema ps ON ps.id = rlm.schema_id
+    LEFT JOIN metaschema_public.schema pvs ON pvs.id = rlm.private_schema_id
+WHERE rlm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.refusal_log_module_registrations(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.owned_databases(
+  owner_ids uuid[]
+) RETURNS TABLE (
+  database_id uuid,
+  owner_id uuid
+) AS $EOFCODE$
+    SELECT d.id, d.owner_id
+    FROM metaschema_public.database AS d
+    WHERE d.owner_id = ANY (owner_ids)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.owned_databases(uuid[]) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.ownership_challenge(
+  host text,
+  token text
+) RETURNS text AS $EOFCODE$
+DECLARE
+    found text;
+BEGIN
+    SELECT v.record_value
+    INTO found
+    FROM catalog_private.domain_verifications AS v
+    JOIN catalog_private.managed_domains AS m ON m.id = v.managed_domain_id
+    WHERE m.domain = ownership_challenge.host
+      AND v.method = 'http_01'
+      AND v.status IN ('pending', 'checking')
+      AND v.record_value = ownership_challenge.token
+    LIMIT 1;
+    RETURN found;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.ownership_challenge(text, text) FROM PUBLIC RESTRICT;

@@ -9,7 +9,7 @@ const TENANT_DB = '22222222-2222-2222-2222-222222222222';
 // One reader per module table the platform login reads (module loader, worker,
 // reconciler). The login is NOBYPASSRLS, so these SECURITY DEFINER readers are
 // its only way to the rows; no request or lane role may call them.
-const READER_COUNT = 42;
+const READER_COUNT = 43;
 const REQUEST_ROLES = ['anonymous', 'authenticated', 'authenticated_client'];
 
 interface Reader {

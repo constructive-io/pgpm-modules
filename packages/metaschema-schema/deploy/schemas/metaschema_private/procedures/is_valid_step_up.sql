@@ -39,6 +39,9 @@ BEGIN;
 --       allow_system (optional): boolean; when true the system role
 --                           (jwt.claims.role_type = 'system') skips the guard so
 --                           provisioning paths without a session can write.
+--       only_authenticated (optional): boolean; when true the guard fires only
+--                           when jwt_public.current_user_id() IS NOT NULL, so
+--                           sessionless writes skip it.
 --       owner_field (optional): column name; the guard fires only when that
 --                           column of the row is jwt_public.current_user_id().
 --       human_only (optional): boolean; when true the trigger body refuses a
@@ -282,6 +285,9 @@ DECLARE
     -- human_only validation (principal-caller refusal)
     v_human_only jsonb;
 
+    -- only_authenticated validation (user-claim requirement)
+    v_only_authenticated jsonb;
+
     -- conditions validation (declarative WHEN-clause tree)
     v_conditions jsonb;
 
@@ -354,7 +360,7 @@ BEGIN
             END IF;
 
             FOR v_obj_key IN SELECT key FROM jsonb_each(v_value) LOOP
-                IF v_obj_key NOT IN ('type', 'min_age', 'min_age_lookup', 'min_age_anchor', 'min_age_unless', 'allow_system', 'human_only', 'owner_field', 'conditions', 'related_conditions') THEN
+                IF v_obj_key NOT IN ('type', 'min_age', 'min_age_lookup', 'min_age_anchor', 'min_age_unless', 'allow_system', 'human_only', 'only_authenticated', 'owner_field', 'conditions', 'related_conditions') THEN
                     RETURN false;
                 END IF;
             END LOOP;
@@ -494,6 +500,13 @@ BEGIN
             v_human_only := v_value -> 'human_only';
             IF v_human_only IS NOT NULL THEN
                 IF jsonb_typeof(v_human_only) != 'boolean' THEN
+                    RETURN false;
+                END IF;
+            END IF;
+
+            v_only_authenticated := v_value -> 'only_authenticated';
+            IF v_only_authenticated IS NOT NULL THEN
+                IF jsonb_typeof(v_only_authenticated) != 'boolean' THEN
                     RETURN false;
                 END IF;
             END IF;

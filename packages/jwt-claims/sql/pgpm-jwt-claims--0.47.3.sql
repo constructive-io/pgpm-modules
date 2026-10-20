@@ -45,28 +45,28 @@ CREATE SCHEMA jwt_public;
 GRANT USAGE ON SCHEMA jwt_public TO authenticated, anonymous;
 
 CREATE FUNCTION jwt_public.current_user_id() RETURNS uuid AS $EOFCODE$
-  SELECT CASE
-    WHEN pg_input_is_valid(current_setting('jwt.claims.user_id', TRUE), 'uuid')
-      THEN current_setting('jwt.claims.user_id', TRUE)::uuid
-  END;
+  SELECT nullif(current_setting('jwt.claims.user_id', TRUE), '')::uuid;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
 GRANT EXECUTE ON FUNCTION jwt_public.current_user_id() TO authenticated;
 
+GRANT EXECUTE ON FUNCTION jwt_public.current_user_id() TO anonymous;
+
 CREATE FUNCTION jwt_public.current_ip_address() RETURNS inet AS $EOFCODE$
-  SELECT CASE
-    WHEN pg_input_is_valid(trim(current_setting('jwt.claims.ip_address', TRUE)), 'inet')
-      THEN trim(current_setting('jwt.claims.ip_address', TRUE))::inet
-  END;
+  SELECT nullif(trim(current_setting('jwt.claims.ip_address', TRUE)), '')::inet;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
 GRANT EXECUTE ON FUNCTION jwt_public.current_ip_address() TO authenticated;
+
+GRANT EXECUTE ON FUNCTION jwt_public.current_ip_address() TO anonymous;
 
 CREATE FUNCTION jwt_public.current_user_agent() RETURNS text AS $EOFCODE$
   SELECT current_setting('jwt.claims.user_agent', TRUE);
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
 GRANT EXECUTE ON FUNCTION jwt_public.current_user_agent() TO authenticated;
+
+GRANT EXECUTE ON FUNCTION jwt_public.current_user_agent() TO anonymous;
 
 CREATE FUNCTION jwt_public.current_origin() RETURNS origin AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.origin', true), '')::origin;
@@ -75,10 +75,7 @@ $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 GRANT EXECUTE ON FUNCTION jwt_public.current_origin() TO authenticated;
 
 CREATE FUNCTION jwt_public.current_principal_id() RETURNS uuid AS $EOFCODE$
-  SELECT CASE
-    WHEN pg_input_is_valid(current_setting('jwt.claims.principal_id', TRUE), 'uuid')
-      THEN current_setting('jwt.claims.principal_id', TRUE)::uuid
-  END;
+  SELECT nullif(current_setting('jwt.claims.principal_id', TRUE), '')::uuid;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
 GRANT EXECUTE ON FUNCTION jwt_public.current_principal_id() TO authenticated;
@@ -97,10 +94,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA jwt_private
   GRANT EXECUTE ON FUNCTIONS TO authenticated;
 
 CREATE FUNCTION jwt_private.current_database_id() RETURNS uuid AS $EOFCODE$
-  SELECT CASE
-    WHEN pg_input_is_valid(current_setting('jwt.claims.database_id', TRUE), 'uuid')
-      THEN current_setting('jwt.claims.database_id', TRUE)::uuid
-  END;
+  SELECT nullif(current_setting('jwt.claims.database_id', TRUE), '')::uuid;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
 GRANT EXECUTE ON FUNCTION jwt_private.current_database_id() TO anonymous;
@@ -109,9 +103,9 @@ CREATE FUNCTION jwt_private.require_database_id() RETURNS uuid AS $EOFCODE$
 DECLARE
   database_id uuid;
 BEGIN
-  IF pg_input_is_valid(current_setting('jwt.claims.database_id', TRUE), 'uuid') THEN
-    database_id = current_setting('jwt.claims.database_id', TRUE)::uuid;
-  END IF;
+  -- Absent or empty raises the claim-required error below; a malformed claim
+  -- raises invalid_text_representation here.
+  database_id = nullif(current_setting('jwt.claims.database_id', TRUE), '')::uuid;
   IF database_id IS NULL THEN
     PERFORM errors.raise_error(
       'DATABASE_CLAIM_REQUIRED',
@@ -132,24 +126,15 @@ CREATE FUNCTION jwt_private.current_session_id() RETURNS uuid AS $EOFCODE$
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
 CREATE FUNCTION jwt_private.current_api_id() RETURNS uuid AS $EOFCODE$
-  SELECT CASE
-    WHEN pg_input_is_valid(current_setting('jwt.claims.api_id', TRUE), 'uuid')
-      THEN current_setting('jwt.claims.api_id', TRUE)::uuid
-  END;
+  SELECT nullif(current_setting('jwt.claims.api_id', TRUE), '')::uuid;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
 CREATE FUNCTION jwt_private.current_graph_execution_id() RETURNS uuid AS $EOFCODE$
-  SELECT CASE
-    WHEN pg_input_is_valid(current_setting('jwt.claims.graph_execution_id', TRUE), 'uuid')
-      THEN current_setting('jwt.claims.graph_execution_id', TRUE)::uuid
-  END;
+  SELECT nullif(current_setting('jwt.claims.graph_execution_id', TRUE), '')::uuid;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
 CREATE FUNCTION jwt_private.current_entity_id() RETURNS uuid AS $EOFCODE$
-  SELECT CASE
-    WHEN pg_input_is_valid(current_setting('jwt.claims.entity_id', TRUE), 'uuid')
-      THEN current_setting('jwt.claims.entity_id', TRUE)::uuid
-  END;
+  SELECT nullif(current_setting('jwt.claims.entity_id', TRUE), '')::uuid;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
 CREATE FUNCTION jwt_private.current_entity_type() RETURNS text AS $EOFCODE$
@@ -160,9 +145,9 @@ CREATE FUNCTION jwt_public.require_user_id() RETURNS uuid AS $EOFCODE$
 DECLARE
   user_id uuid;
 BEGIN
-  IF pg_input_is_valid(current_setting('jwt.claims.user_id', TRUE), 'uuid') THEN
-    user_id = current_setting('jwt.claims.user_id', TRUE)::uuid;
-  END IF;
+  -- Absent or empty raises the claim-required error below; a malformed claim
+  -- raises invalid_text_representation here.
+  user_id = nullif(current_setting('jwt.claims.user_id', TRUE), '')::uuid;
   IF user_id IS NULL THEN
     PERFORM errors.raise_error(
       'ACTOR_CLAIM_REQUIRED',
@@ -180,9 +165,9 @@ CREATE FUNCTION jwt_private.require_entity_id() RETURNS uuid AS $EOFCODE$
 DECLARE
   entity_id uuid;
 BEGIN
-  IF pg_input_is_valid(current_setting('jwt.claims.entity_id', TRUE), 'uuid') THEN
-    entity_id = current_setting('jwt.claims.entity_id', TRUE)::uuid;
-  END IF;
+  -- Absent or empty raises the claim-required error below; a malformed claim
+  -- raises invalid_text_representation here.
+  entity_id = nullif(current_setting('jwt.claims.entity_id', TRUE), '')::uuid;
   IF entity_id IS NULL THEN
     PERFORM errors.raise_error(
       'ENTITY_CLAIM_REQUIRED',

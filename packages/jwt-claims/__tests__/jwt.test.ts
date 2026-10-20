@@ -86,8 +86,7 @@ it('require_user_id raises ACTOR_CLAIM_REQUIRED when the claim is absent', async
 
 it.each([
   ['unset', null],
-  ['empty', ''],
-  ['malformed', 'not-a-uuid']
+  ['empty', '']
 ])('current_database_id returns NULL for a %s claim', async (_label, value) => {
   await pg.any(`BEGIN`);
   if (value === null) {
@@ -109,7 +108,6 @@ it.each([
 describe('entity claim readers', () => {
   it.each([
     ['unset', null, null],
-    ['malformed', 'not-a-uuid', null],
     ['valid', jwt.entity_id, jwt.entity_id]
   ])('current_entity_id returns %s', async (_label, value, expected) => {
     await pg.any(`BEGIN`);
@@ -184,18 +182,6 @@ describe('entity claim readers', () => {
     } finally {
       await pg.any(`SELECT set_config('jwt.claims.entity_type', NULL, false)`);
     }
-  });
-
-  it('require_database_id raises for a malformed claim', async () => {
-    await pg.any(`BEGIN`);
-    await pg.any(
-      `SELECT set_config('jwt.claims.database_id', $1, true)`,
-      ['not-a-uuid']
-    );
-    await expect(
-      pg.one(`select jwt_private.require_database_id()`)
-    ).rejects.toThrow('DATABASE_CLAIM_REQUIRED');
-    await pg.any(`ROLLBACK`);
   });
 
   it('require_entity_id raises for an absent claim', async () => {
@@ -343,5 +329,69 @@ describe('anonymous database claim reader', () => {
     } finally {
       await pg.any(`ROLLBACK`);
     }
+  });
+});
+
+describe('identity claim readers', () => {
+  const uuid = '7f1d3c2a-8a4e-4c1b-9d0f-2b6e5a4c3d21';
+  const readers = [
+    ['jwt_public.current_user_id', 'jwt.claims.user_id', uuid, 'not-a-uuid'],
+    ['jwt_public.current_principal_id', 'jwt.claims.principal_id', uuid, 'not-a-uuid'],
+    ['jwt_public.current_ip_address', 'jwt.claims.ip_address', '10.1.2.3', 'not-an-ip'],
+    ['jwt_private.current_database_id', 'jwt.claims.database_id', uuid, 'not-a-uuid'],
+    ['jwt_private.current_entity_id', 'jwt.claims.entity_id', uuid, 'not-a-uuid'],
+    ['jwt_private.current_api_id', 'jwt.claims.api_id', uuid, 'not-a-uuid'],
+    ['jwt_private.current_graph_execution_id', 'jwt.claims.graph_execution_id', uuid, 'not-a-uuid']
+  ] as const;
+
+  const requireReaders = [
+    ['jwt_public.require_user_id', 'jwt.claims.user_id', 'ACTOR_CLAIM_REQUIRED'],
+    ['jwt_private.require_database_id', 'jwt.claims.database_id', 'DATABASE_CLAIM_REQUIRED'],
+    ['jwt_private.require_entity_id', 'jwt.claims.entity_id', 'ENTITY_CLAIM_REQUIRED']
+  ] as const;
+
+  async function read(fn: string, claim: string, value: string | null) {
+    await pg.any(`BEGIN`);
+    try {
+      if (value !== null) {
+        await pg.any(`SELECT set_config($1, $2, true)`, [claim, value]);
+      }
+      const { result } = await pg.one(`select ${fn}() as result`);
+      return result;
+    } finally {
+      await pg.any(`ROLLBACK`);
+    }
+  }
+
+  it.each(readers)('%s returns NULL for an unset claim', async (fn, claim) => {
+    expect(await read(fn, claim, null)).toBeNull();
+  });
+
+  it.each(readers)('%s returns NULL for an empty claim', async (fn, claim) => {
+    expect(await read(fn, claim, '')).toBeNull();
+  });
+
+  it.each(readers)('%s returns a well-formed claim', async (fn, claim, valid) => {
+    expect(await read(fn, claim, valid)).toBe(valid);
+  });
+
+  it.each(readers)('%s raises for a malformed claim', async (fn, claim, _valid, malformed) => {
+    await expect(read(fn, claim, malformed)).rejects.toMatchObject({ code: '22P02' });
+  });
+
+  it.each(requireReaders)('%s raises its claim-required error for an unset claim', async (fn, claim, code) => {
+    await expect(read(fn, claim, null)).rejects.toThrow(code);
+  });
+
+  it.each(requireReaders)('%s raises its claim-required error for an empty claim', async (fn, claim, code) => {
+    await expect(read(fn, claim, '')).rejects.toThrow(code);
+  });
+
+  it.each(requireReaders)('%s returns a well-formed claim', async (fn, claim) => {
+    expect(await read(fn, claim, uuid)).toBe(uuid);
+  });
+
+  it.each(requireReaders)('%s raises invalid_text_representation for a malformed claim', async (fn, claim) => {
+    await expect(read(fn, claim, 'not-a-uuid')).rejects.toMatchObject({ code: '22P02' });
   });
 });

@@ -244,8 +244,8 @@ describe('capability resolution against the published catalog planes', () => {
             app_store_identities_table_id, bindings_table_id, sites_web_config_table_id,
             sites_error_pages_table_id,
             sites_app_links_table_id, sites_deep_links_table_id,
-            images_table_id, redirects_table_id, scope)
-         VALUES ($1, $2, $3, $3, $3, $4, $3, $3, $3, $3, $3, $3, $5, $3, $6, $3, $3, $3, $3, $3, $3, 'database')`,
+            images_table_id, redirects_table_id, domain_verifications_table_id, scope)
+         VALUES ($1, $2, $3, $3, $3, $4, $3, $3, $3, $3, $3, $3, $5, $3, $6, $3, $3, $3, $3, $3, $3, $3, 'database')`,
         [dbId, schemaId, bucketsTableId, apisTableId, bucketsTableId, bindingsTableId]
       );
       // Label kept for readability of the fixture rows above.
