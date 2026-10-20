@@ -177,6 +177,7 @@ describe('request-lane resolution reads', () => {
         db.any(`SELECT * FROM function_resolution.routing_planes()`)
       ).rejects.toThrow(/permission denied for function routing_planes/);
     });
+
   });
 
   it('refuses the routing-plane list to the pg-wire lane floor role', async () => {
