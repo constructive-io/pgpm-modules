@@ -4625,19 +4625,6 @@ $EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 REVOKE ALL ON FUNCTION function_resolution.refusal_log_module_registrations(uuid) FROM PUBLIC RESTRICT;
 
-CREATE FUNCTION function_resolution.owned_databases(
-  owner_ids uuid[]
-) RETURNS TABLE (
-  database_id uuid,
-  owner_id uuid
-) AS $EOFCODE$
-    SELECT d.id, d.owner_id
-    FROM metaschema_public.database AS d
-    WHERE d.owner_id = ANY (owner_ids)
-$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
-
-REVOKE ALL ON FUNCTION function_resolution.owned_databases(uuid[]) FROM PUBLIC RESTRICT;
-
 CREATE FUNCTION function_resolution.ownership_challenge(
   host text,
   token text

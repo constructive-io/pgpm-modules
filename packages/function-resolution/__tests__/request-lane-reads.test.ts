@@ -177,13 +177,6 @@ describe('request-lane resolution reads', () => {
         db.any(`SELECT * FROM function_resolution.routing_planes()`)
       ).rejects.toThrow(/permission denied for function routing_planes/);
     });
-
-    it('cannot list which databases an owner holds', async () => {
-      db.setContext({ role, 'jwt.claims.database_id': TENANT_DB });
-      await expect(
-        db.any(`SELECT * FROM function_resolution.owned_databases(ARRAY[$1]::uuid[])`, [TENANT_DB])
-      ).rejects.toThrow(/permission denied for function owned_databases/);
-    });
   });
 
   it('refuses the routing-plane list to the pg-wire lane floor role', async () => {
