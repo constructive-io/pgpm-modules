@@ -5,19 +5,21 @@
 
 BEGIN;
 
--- Returns NULL if the claim is not set, empty, or not a valid UUID
--- pg_input_is_valid() validates without raising, so no EXCEPTION block is
--- needed: an exception handler would open a subtransaction on every call
+-- Returns NULL if the claim is not set or empty; a malformed claim raises
+-- (invalid_text_representation) rather than reading as "no user". Still
+-- LEAKPROOF: it takes no arguments, so the error can only echo the caller's
+-- own claim, never a row value an RLS qual is filtering.
 CREATE FUNCTION jwt_public.current_user_id()
   RETURNS uuid
 AS $$
-  SELECT CASE
-    WHEN pg_input_is_valid(current_setting('jwt.claims.user_id', TRUE), 'uuid')
-      THEN current_setting('jwt.claims.user_id', TRUE)::uuid
-  END;
+  SELECT nullif(current_setting('jwt.claims.user_id', TRUE), '')::uuid;
 $$
 LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 
 GRANT EXECUTE ON FUNCTION jwt_public.current_user_id() TO authenticated;
+
+-- Anonymous requests call the generated auth-schema reader, which is
+-- SECURITY INVOKER and reaches this function as anonymous.
+GRANT EXECUTE ON FUNCTION jwt_public.current_user_id() TO anonymous;
 
 COMMIT;

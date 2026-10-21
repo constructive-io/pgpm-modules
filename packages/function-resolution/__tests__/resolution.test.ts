@@ -163,8 +163,8 @@ describe('function-resolution end-to-end (format-based, no AST)', () => {
           sites_web_config_table_id, sites_error_pages_table_id,
           sites_app_links_table_id, sites_deep_links_table_id,
           images_table_id, redirects_table_id,
-          app_store_identities_table_id, bindings_table_id, scope)
-       VALUES ($1, $2, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, 'app')`,
+          app_store_identities_table_id, bindings_table_id, domain_verifications_table_id, scope)
+       VALUES ($1, $2, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, $3, 'app')`,
       [TENANT_DB, catSchema.id, catTable.id]
     );
   });

@@ -224,6 +224,9 @@ DECLARE
     -- human_only validation (principal-caller refusal)
     v_human_only jsonb;
 
+    -- only_authenticated validation (user-claim requirement)
+    v_only_authenticated jsonb;
+
     -- conditions validation (declarative WHEN-clause tree)
     v_conditions jsonb;
 
@@ -296,7 +299,7 @@ BEGIN
             END IF;
 
             FOR v_obj_key IN SELECT key FROM jsonb_each(v_value) LOOP
-                IF v_obj_key NOT IN ('type', 'min_age', 'min_age_lookup', 'min_age_anchor', 'min_age_unless', 'allow_system', 'human_only', 'owner_field', 'conditions', 'related_conditions') THEN
+                IF v_obj_key NOT IN ('type', 'min_age', 'min_age_lookup', 'min_age_anchor', 'min_age_unless', 'allow_system', 'human_only', 'only_authenticated', 'owner_field', 'conditions', 'related_conditions') THEN
                     RETURN false;
                 END IF;
             END LOOP;
@@ -436,6 +439,13 @@ BEGIN
             v_human_only := v_value -> 'human_only';
             IF v_human_only IS NOT NULL THEN
                 IF jsonb_typeof(v_human_only) != 'boolean' THEN
+                    RETURN false;
+                END IF;
+            END IF;
+
+            v_only_authenticated := v_value -> 'only_authenticated';
+            IF v_only_authenticated IS NOT NULL THEN
+                IF jsonb_typeof(v_only_authenticated) != 'boolean' THEN
                     RETURN false;
                 END IF;
             END IF;
@@ -995,6 +1005,7 @@ CREATE TABLE metaschema_public.unique_constraint (
   type text,
   field_ids uuid[] NOT NULL,
   without_overlaps boolean NOT NULL DEFAULT false,
+  nulls_not_distinct boolean NOT NULL DEFAULT false,
   is_deferrable boolean NOT NULL DEFAULT false,
   initially_deferred boolean NOT NULL DEFAULT false,
   category metaschema_public.object_category NOT NULL DEFAULT 'app',

@@ -1798,8 +1798,7 @@ CREATE TABLE metaschema_modules_public.blueprint_construction (
   blueprint_id uuid NOT NULL,
   database_id uuid NOT NULL,
   schema_id uuid,
-  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'constructing', 'constructed', 'failed')),
-  error_details text,
+  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'constructing', 'constructed')),
   table_map jsonb NOT NULL DEFAULT '{}',
   constructed_definition jsonb,
   constructed_at timestamptz,
@@ -1825,9 +1824,7 @@ COMMENT ON COLUMN metaschema_modules_public.blueprint_construction.database_id I
 
 COMMENT ON COLUMN metaschema_modules_public.blueprint_construction.schema_id IS 'The default schema used for tables that did not specify an explicit schema_name. NULL if not yet resolved.';
 
-COMMENT ON COLUMN metaschema_modules_public.blueprint_construction.status IS 'Execution state of this construction attempt. pending: created but not yet started. constructing: currently executing. constructed: successfully completed. failed: execution failed (see error_details).';
-
-COMMENT ON COLUMN metaschema_modules_public.blueprint_construction.error_details IS 'Error message from a failed construction attempt. NULL unless status is failed.';
+COMMENT ON COLUMN metaschema_modules_public.blueprint_construction.status IS 'Execution state of this construction attempt. pending: created but not yet started. constructing: currently executing. constructed: successfully completed. A failed construction raises and rolls back, so it leaves no row.';
 
 COMMENT ON COLUMN metaschema_modules_public.blueprint_construction.table_map IS 'Mapping of table names to created table UUIDs, populated after successful construction. Format: {"products": "uuid", "categories": "uuid", ...}. Defaults to empty object.';
 
@@ -2907,6 +2904,7 @@ CREATE TABLE metaschema_modules_public.billing_provider_module (
   record_billing_health_function text NOT NULL DEFAULT '',
   record_billing_connection_function text NOT NULL DEFAULT '',
   billing_provider_connected_function text NOT NULL DEFAULT '',
+  billing_provider_key_function text NOT NULL DEFAULT '',
   bind_checkout_session_function text NOT NULL DEFAULT '',
   prefix text NULL,
   api_name text DEFAULT NULL,
@@ -4987,6 +4985,7 @@ CREATE TABLE metaschema_modules_public.catalog_module (
   sites_deep_links_table_id uuid NOT NULL DEFAULT uuid_nil(),
   app_store_identities_table_id uuid NOT NULL DEFAULT uuid_nil(),
   redirects_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  domain_verifications_table_id uuid NOT NULL DEFAULT uuid_nil(),
   domains_table_name text NOT NULL DEFAULT 'domains',
   managed_domains_table_name text NOT NULL DEFAULT 'managed_domains',
   apis_table_name text NOT NULL DEFAULT 'apis',
@@ -5006,6 +5005,7 @@ CREATE TABLE metaschema_modules_public.catalog_module (
   sites_deep_links_table_name text NOT NULL DEFAULT 'sites_deep_links',
   app_store_identities_table_name text NOT NULL DEFAULT 'app_store_identities',
   redirects_table_name text NOT NULL DEFAULT 'redirects',
+  domain_verifications_table_name text NOT NULL DEFAULT 'domain_verifications',
   api_name text,
   private_api_name text,
   scope text NOT NULL,
@@ -5097,6 +5097,10 @@ CREATE TABLE metaschema_modules_public.catalog_module (
     FOREIGN KEY(redirects_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
+  CONSTRAINT catalog_module_domain_verifications_table_fkey
+    FOREIGN KEY(domain_verifications_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
   CONSTRAINT catalog_module_entity_table_fkey
     FOREIGN KEY(entity_table_id)
     REFERENCES metaschema_public.table (id)
@@ -5126,6 +5130,8 @@ CREATE INDEX catalog_module_sites_deep_links_table_id_idx ON metaschema_modules_
 CREATE INDEX catalog_module_app_store_identities_table_id_idx ON metaschema_modules_public.catalog_module (app_store_identities_table_id);
 
 CREATE INDEX catalog_module_redirects_table_id_idx ON metaschema_modules_public.catalog_module (redirects_table_id);
+
+CREATE INDEX catalog_module_domain_verifications_table_id_idx ON metaschema_modules_public.catalog_module (domain_verifications_table_id);
 
 CREATE INDEX catalog_module_domains_table_id_idx ON metaschema_modules_public.catalog_module (domains_table_id);
 
@@ -5170,6 +5176,8 @@ COMMENT ON COLUMN metaschema_modules_public.catalog_module.resource_definitions_
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.resource_installations_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.redirects_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.domain_verifications_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.resources_table_id IS '@module_table';
 

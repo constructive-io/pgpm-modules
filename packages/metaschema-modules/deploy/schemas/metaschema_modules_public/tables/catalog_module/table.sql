@@ -7,7 +7,7 @@ BEGIN;
 -- Typed catalog module configuration: one row per database installs the typed
 -- catalog tables (catalog_private.domains / managed_domains / apis / sites / namespaces /
 -- functions / resources / resource_definitions / resource_installations /
--- apps / buckets / images / redirects / bindings). The catalog is
+-- apps / buckets / images / redirects / bindings / domain_verifications). The catalog is
 -- a system projection surface holding ALL scopes of each type; scoped source
 -- tables register into it via catalog_register. The stable schema-qualified
 -- table names are load-bearing deployment contracts.
@@ -41,6 +41,7 @@ CREATE TABLE metaschema_modules_public.catalog_module (
     sites_deep_links_table_id uuid NOT NULL DEFAULT uuid_nil(),
     app_store_identities_table_id uuid NOT NULL DEFAULT uuid_nil(),
     redirects_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    domain_verifications_table_id uuid NOT NULL DEFAULT uuid_nil(),
 
     -- Table names (inputs to the generator; stable load-bearing contracts)
     domains_table_name text NOT NULL DEFAULT 'domains',
@@ -62,6 +63,7 @@ CREATE TABLE metaschema_modules_public.catalog_module (
     sites_deep_links_table_name text NOT NULL DEFAULT 'sites_deep_links',
     app_store_identities_table_name text NOT NULL DEFAULT 'app_store_identities',
     redirects_table_name text NOT NULL DEFAULT 'redirects',
+    domain_verifications_table_name text NOT NULL DEFAULT 'domain_verifications',
 
     -- API routing (get-or-create: if set, schema is added to this API)
     api_name text,
@@ -167,6 +169,10 @@ CREATE TABLE metaschema_modules_public.catalog_module (
         FOREIGN KEY (redirects_table_id)
         REFERENCES metaschema_public.table (id)
         ON DELETE CASCADE,
+    CONSTRAINT catalog_module_domain_verifications_table_fkey
+        FOREIGN KEY (domain_verifications_table_id)
+        REFERENCES metaschema_public.table (id)
+        ON DELETE CASCADE,
     CONSTRAINT catalog_module_entity_table_fkey
         FOREIGN KEY (entity_table_id)
         REFERENCES metaschema_public.table (id)
@@ -188,6 +194,7 @@ CREATE INDEX catalog_module_sites_app_links_table_id_idx ON metaschema_modules_p
 CREATE INDEX catalog_module_sites_deep_links_table_id_idx ON metaschema_modules_public.catalog_module ( sites_deep_links_table_id );
 CREATE INDEX catalog_module_app_store_identities_table_id_idx ON metaschema_modules_public.catalog_module ( app_store_identities_table_id );
 CREATE INDEX catalog_module_redirects_table_id_idx ON metaschema_modules_public.catalog_module ( redirects_table_id );
+CREATE INDEX catalog_module_domain_verifications_table_id_idx ON metaschema_modules_public.catalog_module ( domain_verifications_table_id );
 CREATE INDEX catalog_module_domains_table_id_idx ON metaschema_modules_public.catalog_module ( domains_table_id );
 CREATE INDEX catalog_module_managed_domains_table_id_idx ON metaschema_modules_public.catalog_module ( managed_domains_table_id );
 CREATE INDEX catalog_module_entity_table_id_idx ON metaschema_modules_public.catalog_module ( entity_table_id );
@@ -215,6 +222,7 @@ COMMENT ON COLUMN metaschema_modules_public.catalog_module.namespaces_table_id I
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.resource_definitions_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.resource_installations_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.redirects_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.catalog_module.domain_verifications_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.resources_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.sites_app_links_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.catalog_module.sites_deep_links_table_id IS '@module_table';

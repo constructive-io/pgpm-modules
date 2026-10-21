@@ -17,4 +17,8 @@ LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 
 GRANT EXECUTE ON FUNCTION jwt_public.current_user_agent() TO authenticated;
 
+-- Anonymous requests call the generated auth-schema reader, which is
+-- SECURITY INVOKER and reaches this function as anonymous.
+GRANT EXECUTE ON FUNCTION jwt_public.current_user_agent() TO anonymous;
+
 COMMIT;

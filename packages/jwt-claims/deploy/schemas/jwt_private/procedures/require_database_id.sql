@@ -13,9 +13,9 @@ AS $$
 DECLARE
   database_id uuid;
 BEGIN
-  IF pg_input_is_valid(current_setting('jwt.claims.database_id', TRUE), 'uuid') THEN
-    database_id = current_setting('jwt.claims.database_id', TRUE)::uuid;
-  END IF;
+  -- Absent or empty raises the claim-required error below; a malformed claim
+  -- raises invalid_text_representation here.
+  database_id = nullif(current_setting('jwt.claims.database_id', TRUE), '')::uuid;
   IF database_id IS NULL THEN
     PERFORM errors.raise_error(
       'DATABASE_CLAIM_REQUIRED',

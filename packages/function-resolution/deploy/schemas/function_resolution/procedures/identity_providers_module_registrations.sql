@@ -20,6 +20,7 @@ RETURNS TABLE (
     platform_owned boolean,
     scope text,
     entity_field text,
+    prefix text,
     public_schema text,
     private_schema text,
     providers_table_name text
@@ -29,6 +30,7 @@ SELECT
     (ipm.database_id = app_scope.platform_database_id()) AS platform_owned,
     ipm.scope,
     ipm.entity_field,
+    ipm.prefix,
     ps.schema_name AS public_schema,
     pvs.schema_name AS private_schema,
     providers_t.name AS providers_table_name

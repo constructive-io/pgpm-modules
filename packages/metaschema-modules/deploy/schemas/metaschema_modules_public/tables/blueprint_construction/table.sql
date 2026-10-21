@@ -18,9 +18,7 @@ CREATE TABLE metaschema_modules_public.blueprint_construction (
 
     -- Execution state
     status text NOT NULL DEFAULT 'pending'
-        CHECK (status IN ('pending', 'constructing', 'constructed', 'failed')),
-
-    error_details text,
+        CHECK (status IN ('pending', 'constructing', 'constructed')),
 
     -- Output: mapping of table names to created table IDs (populated after construct)
     table_map jsonb NOT NULL DEFAULT '{}',
@@ -56,10 +54,7 @@ COMMENT ON COLUMN metaschema_modules_public.blueprint_construction.schema_id IS
     'The default schema used for tables that did not specify an explicit schema_name. NULL if not yet resolved.';
 
 COMMENT ON COLUMN metaschema_modules_public.blueprint_construction.status IS
-    'Execution state of this construction attempt. pending: created but not yet started. constructing: currently executing. constructed: successfully completed. failed: execution failed (see error_details).';
-
-COMMENT ON COLUMN metaschema_modules_public.blueprint_construction.error_details IS
-    'Error message from a failed construction attempt. NULL unless status is failed.';
+    'Execution state of this construction attempt. pending: created but not yet started. constructing: currently executing. constructed: successfully completed. A failed construction raises and rolls back, so it leaves no row.';
 
 COMMENT ON COLUMN metaschema_modules_public.blueprint_construction.table_map IS
     'Mapping of table names to created table UUIDs, populated after successful construction. Format: {"products": "uuid", "categories": "uuid", ...}. Defaults to empty object.';

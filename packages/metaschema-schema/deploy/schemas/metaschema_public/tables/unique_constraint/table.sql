@@ -22,6 +22,9 @@ CREATE TABLE metaschema_public.unique_constraint (
   -- column in field_ids as WITHOUT OVERLAPS.
   without_overlaps boolean NOT NULL DEFAULT false,
 
+  -- UNIQUE NULLS NOT DISTINCT: NULL keys collide instead of all coexisting.
+  nulls_not_distinct boolean NOT NULL DEFAULT false,
+
   -- Constraint timing: emit DEFERRABLE / INITIALLY DEFERRED.
   is_deferrable boolean NOT NULL DEFAULT false,
   initially_deferred boolean NOT NULL DEFAULT false,

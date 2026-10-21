@@ -218,8 +218,8 @@ describe('function-resolution capability resolution', () => {
           sites_app_links_table_id, sites_deep_links_table_id,
           app_store_identities_table_id,
           images_table_id, redirects_table_id,
-          bindings_table_id, scope)
-       VALUES ($1, $2, $3, $3, $3, $4, $3, $3, $3, $3, $3, $3, $5, $3, $3, $3, $3, $3, $3, $3, $6, 'database')`,
+          bindings_table_id, domain_verifications_table_id, scope)
+       VALUES ($1, $2, $3, $3, $3, $4, $3, $3, $3, $3, $3, $3, $5, $3, $3, $3, $3, $3, $3, $3, $6, $3, 'database')`,
       [
         TENANT_DB,
         catFunctions.schemaId,

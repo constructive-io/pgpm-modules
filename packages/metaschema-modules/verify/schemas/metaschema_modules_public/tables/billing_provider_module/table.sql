@@ -42,6 +42,7 @@ SELECT
   get_billing_provider_state_function,
   record_billing_health_function,
   record_billing_connection_function,
+  billing_provider_key_function,
   billing_provider_connected_function,
   bind_checkout_session_function,
   prefix

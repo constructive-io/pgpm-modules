@@ -6,16 +6,13 @@
 BEGIN;
 
 -- Returns the current principal's UUID from the JWT claims
--- Returns NULL if the claim is not set, empty, or not a valid UUID
--- pg_input_is_valid() validates without raising, so no EXCEPTION block is
--- needed: an exception handler would open a subtransaction on every call
+-- Returns NULL if the claim is not set or empty; a malformed claim raises
+-- (invalid_text_representation) rather than reading as absent.
+-- LEAKPROOF: no arguments, so an error can only echo the caller's own claim.
 CREATE FUNCTION jwt_public.current_principal_id()
   RETURNS uuid
 AS $$
-  SELECT CASE
-    WHEN pg_input_is_valid(current_setting('jwt.claims.principal_id', TRUE), 'uuid')
-      THEN current_setting('jwt.claims.principal_id', TRUE)::uuid
-  END;
+  SELECT nullif(current_setting('jwt.claims.principal_id', TRUE), '')::uuid;
 $$
 LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 
