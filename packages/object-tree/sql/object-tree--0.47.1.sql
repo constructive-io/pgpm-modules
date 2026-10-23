@@ -4,9 +4,6 @@ CREATE SCHEMA object_tree_private;
 GRANT USAGE ON SCHEMA object_tree_private TO authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA object_tree_private
-  GRANT EXECUTE ON FUNCTIONS TO authenticated;
-
-ALTER DEFAULT PRIVILEGES IN SCHEMA object_tree_private
   GRANT ALL ON SEQUENCES TO authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA object_tree_private
@@ -15,9 +12,6 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA object_tree_private
 CREATE SCHEMA object_tree_public;
 
 GRANT USAGE ON SCHEMA object_tree_public TO authenticated;
-
-ALTER DEFAULT PRIVILEGES IN SCHEMA object_tree_public
-  GRANT EXECUTE ON FUNCTIONS TO authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA object_tree_public
   GRANT ALL ON SEQUENCES TO authenticated;
@@ -106,6 +100,8 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
+GRANT EXECUTE ON FUNCTION object_tree_public.rev_parse(s_id uuid, store_id uuid, refname text) TO authenticated;
+
 CREATE FUNCTION object_tree_public.get_object_at_path(
   s_id uuid,
   store_id uuid,
@@ -122,6 +118,8 @@ BEGIN
   RETURN obj;
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
+
+GRANT EXECUTE ON FUNCTION object_tree_public.get_object_at_path(s_id uuid, store_id uuid, path text[], refname text) TO authenticated;
 
 CREATE FUNCTION object_tree_public.init_empty_repo(
   s_id uuid,
@@ -160,6 +158,8 @@ BEGIN
 
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
+
+GRANT EXECUTE ON FUNCTION object_tree_public.init_empty_repo(s_id uuid, store_id uuid) TO authenticated;
 
 CREATE FUNCTION object_tree_public.set_and_commit(
   s_id uuid,
@@ -261,6 +261,10 @@ RETURN com;
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
+GRANT EXECUTE ON FUNCTION object_tree_public.set_and_commit(s_id uuid, store_id uuid, refname text, path text[], data jsonb, kids uuid[], ktree text[], message text) TO authenticated;
+
+GRANT EXECUTE ON FUNCTION object_tree_public.set_props_and_commit(s_id uuid, store_id uuid, refname text, path text[], data jsonb, message text) TO authenticated;
+
 CREATE UNIQUE INDEX idx_unique_object_ref_name ON object_tree_public.ref (store_id, (decode(md5(lower(name)), 'hex')));
 
 CREATE TABLE object_tree_public.store (
@@ -361,3 +365,5 @@ BEGIN
   RETURN com;
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
+
+GRANT EXECUTE ON FUNCTION object_tree_public.set_many_and_commit(s_id uuid, store_id uuid, refname text, entries jsonb, message text) TO authenticated;

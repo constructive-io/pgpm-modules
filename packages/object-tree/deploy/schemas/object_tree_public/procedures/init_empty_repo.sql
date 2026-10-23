@@ -46,4 +46,6 @@ END;
 $$
 LANGUAGE 'plpgsql' VOLATILE;
 
+GRANT EXECUTE ON FUNCTION object_tree_public.init_empty_repo(s_id uuid, store_id uuid) TO authenticated;
+
 COMMIT;

@@ -395,3 +395,53 @@ describe('identity claim readers', () => {
     await expect(read(fn, claim, 'not-a-uuid')).rejects.toMatchObject({ code: '22P02' });
   });
 });
+
+// The whole jwt_public.current_* family reads an unset claim and an empty
+// claim the same way: NULL. A pooled connection that once stamped a claim
+// keeps the GUC defined, so a later transaction that leaves it unset reads ''
+// rather than NULL; a getter that passed '' through would make the same
+// request read differently depending on which connection served it.
+describe('request fingerprint claim readers', () => {
+  const readers = [
+    ['jwt_public.current_user_agent', 'jwt.claims.user_agent', 'curl/8.5.0'],
+    ['jwt_public.current_origin', 'jwt.claims.origin', 'https://app.example.com'],
+    ['jwt_public.current_ip_address', 'jwt.claims.ip_address', '10.1.2.3'],
+    ['jwt_public.current_user_id', 'jwt.claims.user_id', '7f1d3c2a-8a4e-4c1b-9d0f-2b6e5a4c3d21']
+  ] as const;
+
+  async function read(fn: string, claim: string, value: string | null) {
+    await pg.any(`BEGIN`);
+    try {
+      if (value !== null) {
+        await pg.any(`SELECT set_config($1, $2, true)`, [claim, value]);
+      }
+      const { result } = await pg.one(`select ${fn}() as result`);
+      return result;
+    } finally {
+      await pg.any(`ROLLBACK`);
+    }
+  }
+
+  it.each(readers)('%s returns NULL for an unset claim', async (fn, claim) => {
+    expect(await read(fn, claim, null)).toBeNull();
+  });
+
+  it.each(readers)('%s returns NULL for an empty claim', async (fn, claim) => {
+    expect(await read(fn, claim, '')).toBeNull();
+  });
+
+  it.each(readers)('%s returns the claim as set', async (fn, claim, valid) => {
+    expect(await read(fn, claim, valid)).toBe(valid);
+  });
+
+  it.each(readers)('%s reads NULL after another transaction on the connection set the claim', async (fn, claim, valid) => {
+    try {
+      await pg.any(`BEGIN`);
+      await pg.any(`SELECT set_config($1, $2, true)`, [claim, valid]);
+      await pg.any(`COMMIT`);
+      expect(await read(fn, claim, null)).toBeNull();
+    } finally {
+      await pg.any(`SELECT set_config($1, NULL, false)`, [claim]);
+    }
+  });
+});

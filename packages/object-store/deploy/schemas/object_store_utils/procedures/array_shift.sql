@@ -11,4 +11,6 @@ SELECT srcarr[2:array_length(srcarr, 1)]
 $$
 LANGUAGE sql IMMUTABLE;
 
+GRANT EXECUTE ON FUNCTION object_store_utils.array_shift(srcarr anyarray) TO authenticated;
+
 COMMIT;

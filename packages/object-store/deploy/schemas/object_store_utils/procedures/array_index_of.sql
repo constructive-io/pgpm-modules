@@ -23,4 +23,6 @@ END
 $$
 LANGUAGE plpgsql IMMUTABLE;
 
+GRANT EXECUTE ON FUNCTION object_store_utils.array_index_of(arr anyarray, el anyelement) TO authenticated;
+
 COMMIT;

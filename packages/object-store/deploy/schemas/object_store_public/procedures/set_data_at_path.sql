@@ -33,4 +33,6 @@ $$
 LANGUAGE plpgsql
 VOLATILE;
 
+GRANT EXECUTE ON FUNCTION object_store_public.set_data_at_path(s_id uuid, root uuid, path text[], data jsonb) TO authenticated;
+
 COMMIT;

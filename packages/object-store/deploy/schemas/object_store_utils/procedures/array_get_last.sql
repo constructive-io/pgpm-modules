@@ -11,4 +11,6 @@ CREATE FUNCTION object_store_utils.array_get_last(
 $$
 LANGUAGE 'sql' IMMUTABLE;
 
+GRANT EXECUTE ON FUNCTION object_store_utils.array_get_last(arr anyarray) TO authenticated;
+
 COMMIT;

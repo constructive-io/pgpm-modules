@@ -53,6 +53,11 @@ CREATE TABLE metaschema_modules_public.domain_module (
     -- Table name prefix. Auto-derived from scope by the trigger when empty.
     prefix text NOT NULL DEFAULT '',
 
+    -- domains:unverified_sweep maintenance function (TTL for pending hostname
+    -- claims). Derived by the insert trigger from the domains table name
+    -- (sweep_unverified_<domains_table>) so both planes can share a schema.
+    sweep_unverified_domains_function text,
+
     -- Entity table for RLS (NULL for non-entity scopes)
     entity_table_id uuid NULL,
 

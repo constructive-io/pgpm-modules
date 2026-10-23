@@ -24,4 +24,6 @@ CREATE FUNCTION ltree_helpers.to_query(
   )::lquery;
 $$ LANGUAGE sql IMMUTABLE STRICT;
 
+GRANT EXECUTE ON FUNCTION ltree_helpers.to_query(glob text) TO authenticated;
+
 COMMIT;

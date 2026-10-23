@@ -497,4 +497,6 @@ SET work_mem = '64MB'
 -- costs ~30% on the batches that were already fast and removes the 12x cliff.
 SET plan_cache_mode = 'force_custom_plan';
 
+GRANT EXECUTE ON FUNCTION object_store_public.insert_nodes_at_paths(s_id uuid, root uuid, paths jsonb, datas jsonb[], kids_list jsonb, ktree_list jsonb) TO authenticated;
+
 COMMIT;

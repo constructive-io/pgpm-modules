@@ -74,4 +74,6 @@ END;
 $$
 LANGUAGE 'plpgsql' STABLE PARALLEL SAFE;
 
+GRANT EXECUTE ON FUNCTION jwt_private.assert_attribution(actor_id uuid, entity_id uuid, entity_type text) TO authenticated;
+
 COMMIT;

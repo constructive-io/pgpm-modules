@@ -567,4 +567,7 @@ END;
 $$
 LANGUAGE 'plpgsql' IMMUTABLE;
 
+GRANT EXECUTE ON FUNCTION metaschema_private.is_valid_step_up(step_up jsonb) TO authenticated;
+GRANT EXECUTE ON FUNCTION metaschema_private.is_valid_step_up_conditions(cond jsonb) TO authenticated;
+
 COMMIT;

@@ -14,4 +14,6 @@ AS $$
 $$
 LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 
+GRANT EXECUTE ON FUNCTION ctx.ip_address() TO authenticated;
+
 COMMIT;

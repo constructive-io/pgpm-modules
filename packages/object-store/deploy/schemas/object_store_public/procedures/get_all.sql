@@ -51,4 +51,6 @@ END;
 $$
 LANGUAGE plpgsql STABLE;
 
+GRANT EXECUTE ON FUNCTION object_store_public.get_all(s_id uuid, id uuid) TO authenticated;
+
 COMMIT;

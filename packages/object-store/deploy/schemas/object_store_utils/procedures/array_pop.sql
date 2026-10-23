@@ -15,4 +15,6 @@ SELECT ARRAY (
 $$
 LANGUAGE sql IMMUTABLE;
 
+GRANT EXECUTE ON FUNCTION object_store_utils.array_pop(srcarr anyarray) TO authenticated;
+
 COMMIT;

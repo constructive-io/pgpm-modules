@@ -3,20 +3,21 @@ CREATE SCHEMA ltree_helpers;
 
 GRANT USAGE ON SCHEMA ltree_helpers TO authenticated, anonymous;
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA ltree_helpers
-  GRANT EXECUTE ON FUNCTIONS TO authenticated;
-
 CREATE FUNCTION ltree_helpers.to_path(
   slash_path text
 ) RETURNS ltree AS $EOFCODE$
   SELECT replace(ltrim(slash_path, '/'), '/', '.')::ltree;
 $EOFCODE$ LANGUAGE sql IMMUTABLE STRICT;
 
+GRANT EXECUTE ON FUNCTION ltree_helpers.to_path(slash_path text) TO authenticated;
+
 CREATE FUNCTION ltree_helpers.to_slash(
   lpath ltree
 ) RETURNS text AS $EOFCODE$
   SELECT '/' || replace(lpath::text, '.', '/');
 $EOFCODE$ LANGUAGE sql IMMUTABLE STRICT;
+
+GRANT EXECUTE ON FUNCTION ltree_helpers.to_slash(lpath ltree) TO authenticated;
 
 CREATE FUNCTION ltree_helpers.to_query(
   glob text
@@ -32,3 +33,5 @@ CREATE FUNCTION ltree_helpers.to_query(
     '/', '.'
   )::lquery;
 $EOFCODE$ LANGUAGE sql IMMUTABLE STRICT;
+
+GRANT EXECUTE ON FUNCTION ltree_helpers.to_query(glob text) TO authenticated;

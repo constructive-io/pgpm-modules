@@ -37,4 +37,6 @@ END;
 $$
 LANGUAGE 'plpgsql' VOLATILE;
 
+GRANT EXECUTE ON FUNCTION object_store_public.freeze_objects(s_id uuid, id uuid) TO authenticated;
+
 COMMIT;

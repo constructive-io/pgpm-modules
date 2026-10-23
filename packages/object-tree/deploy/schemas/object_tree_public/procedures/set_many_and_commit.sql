@@ -103,4 +103,6 @@ $$
 LANGUAGE plpgsql
 VOLATILE;
 
+GRANT EXECUTE ON FUNCTION object_tree_public.set_many_and_commit(s_id uuid, store_id uuid, refname text, entries jsonb, message text) TO authenticated;
+
 COMMIT;

@@ -3,24 +3,29 @@ CREATE SCHEMA ctx;
 
 GRANT USAGE ON SCHEMA ctx TO authenticated, anonymous;
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA ctx
-  GRANT EXECUTE ON FUNCTIONS TO authenticated;
-
 CREATE FUNCTION ctx.ip_address() RETURNS inet AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.ip_address', true), '')::inet;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
+
+GRANT EXECUTE ON FUNCTION ctx.ip_address() TO authenticated;
 
 CREATE FUNCTION ctx.origin() RETURNS origin AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.origin', true), '')::origin;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
+GRANT EXECUTE ON FUNCTION ctx.origin() TO authenticated;
+
 CREATE FUNCTION ctx.uagent() RETURNS text AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.user_agent', true), '');
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
+GRANT EXECUTE ON FUNCTION ctx.uagent() TO authenticated;
+
 CREATE FUNCTION ctx.uid() RETURNS uuid AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.user_id', true), '')::uuid;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
+
+GRANT EXECUTE ON FUNCTION ctx.uid() TO authenticated;
 
 DO $EOFCODE$
   DECLARE
@@ -39,6 +44,10 @@ $EOFCODE$;
 GRANT EXECUTE ON FUNCTION ctx.security_definer() TO PUBLIC;
 
 GRANT EXECUTE ON FUNCTION ctx.is_security_definer() TO PUBLIC;
+
+GRANT EXECUTE ON FUNCTION ctx.is_security_definer() TO authenticated;
+
+GRANT EXECUTE ON FUNCTION ctx.security_definer() TO authenticated;
 
 CREATE SCHEMA jwt_public;
 
@@ -61,7 +70,7 @@ GRANT EXECUTE ON FUNCTION jwt_public.current_ip_address() TO authenticated;
 GRANT EXECUTE ON FUNCTION jwt_public.current_ip_address() TO anonymous;
 
 CREATE FUNCTION jwt_public.current_user_agent() RETURNS text AS $EOFCODE$
-  SELECT current_setting('jwt.claims.user_agent', TRUE);
+  SELECT nullif(current_setting('jwt.claims.user_agent', TRUE), '');
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
 GRANT EXECUTE ON FUNCTION jwt_public.current_user_agent() TO authenticated;
@@ -90,14 +99,13 @@ CREATE SCHEMA jwt_private;
 
 GRANT USAGE ON SCHEMA jwt_private TO authenticated, anonymous;
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA jwt_private
-  GRANT EXECUTE ON FUNCTIONS TO authenticated;
-
 CREATE FUNCTION jwt_private.current_database_id() RETURNS uuid AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.database_id', TRUE), '')::uuid;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
 GRANT EXECUTE ON FUNCTION jwt_private.current_database_id() TO anonymous;
+
+GRANT EXECUTE ON FUNCTION jwt_private.current_database_id() TO authenticated;
 
 CREATE FUNCTION jwt_private.require_database_id() RETURNS uuid AS $EOFCODE$
 DECLARE
@@ -117,29 +125,43 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE PARALLEL safe;
 
+GRANT EXECUTE ON FUNCTION jwt_private.require_database_id() TO authenticated;
+
 CREATE FUNCTION jwt_private.current_token_id() RETURNS uuid AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.token_id', true), '')::uuid;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
+
+GRANT EXECUTE ON FUNCTION jwt_private.current_token_id() TO authenticated;
 
 CREATE FUNCTION jwt_private.current_session_id() RETURNS uuid AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.session_id', true), '')::uuid;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
+GRANT EXECUTE ON FUNCTION jwt_private.current_session_id() TO authenticated;
+
 CREATE FUNCTION jwt_private.current_api_id() RETURNS uuid AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.api_id', TRUE), '')::uuid;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
+
+GRANT EXECUTE ON FUNCTION jwt_private.current_api_id() TO authenticated;
 
 CREATE FUNCTION jwt_private.current_graph_execution_id() RETURNS uuid AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.graph_execution_id', TRUE), '')::uuid;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
+GRANT EXECUTE ON FUNCTION jwt_private.current_graph_execution_id() TO authenticated;
+
 CREATE FUNCTION jwt_private.current_entity_id() RETURNS uuid AS $EOFCODE$
   SELECT nullif(current_setting('jwt.claims.entity_id', TRUE), '')::uuid;
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
 
+GRANT EXECUTE ON FUNCTION jwt_private.current_entity_id() TO authenticated;
+
 CREATE FUNCTION jwt_private.current_entity_type() RETURNS text AS $EOFCODE$
   SELECT NULLIF(current_setting('jwt.claims.entity_type', TRUE), '');
 $EOFCODE$ LANGUAGE sql STABLE LEAKPROOF PARALLEL safe;
+
+GRANT EXECUTE ON FUNCTION jwt_private.current_entity_type() TO authenticated;
 
 CREATE FUNCTION jwt_public.require_user_id() RETURNS uuid AS $EOFCODE$
 DECLARE
@@ -179,6 +201,8 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE PARALLEL safe;
 
+GRANT EXECUTE ON FUNCTION jwt_private.require_entity_id() TO authenticated;
+
 CREATE FUNCTION jwt_private.require_entity_type() RETURNS text AS $EOFCODE$
 DECLARE
   entity_type text;
@@ -194,6 +218,8 @@ BEGIN
   RETURN entity_type;
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE PARALLEL safe;
+
+GRANT EXECUTE ON FUNCTION jwt_private.require_entity_type() TO authenticated;
 
 CREATE FUNCTION jwt_private.assert_attribution(
   actor_id uuid,
@@ -258,3 +284,5 @@ BEGIN
   END IF;
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE PARALLEL safe;
+
+GRANT EXECUTE ON FUNCTION jwt_private.assert_attribution(actor_id uuid, entity_id uuid, entity_type text) TO authenticated;

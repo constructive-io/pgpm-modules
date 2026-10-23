@@ -19,4 +19,6 @@ LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 -- here; the function only reads the caller's own GUC.
 GRANT EXECUTE ON FUNCTION jwt_private.current_database_id() TO anonymous;
 
+GRANT EXECUTE ON FUNCTION jwt_private.current_database_id() TO authenticated;
+
 COMMIT;

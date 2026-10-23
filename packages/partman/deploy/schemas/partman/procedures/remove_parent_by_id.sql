@@ -24,4 +24,6 @@ END;
 $$
 LANGUAGE 'plpgsql' VOLATILE;
 
+GRANT EXECUTE ON FUNCTION partman.remove_parent_by_id(uuid) TO authenticated;
+
 COMMIT;

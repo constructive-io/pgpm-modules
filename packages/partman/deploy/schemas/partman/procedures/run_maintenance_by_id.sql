@@ -33,4 +33,6 @@ LANGUAGE 'plpgsql' VOLATILE SECURITY DEFINER;
 -- partman.run_maintenance internally creates new partition tables and
 -- sets their owner to postgres, requiring SET ROLE. No user-data access.
 
+GRANT EXECUTE ON FUNCTION partman.run_maintenance_by_id(uuid,boolean) TO authenticated;
+
 COMMIT;

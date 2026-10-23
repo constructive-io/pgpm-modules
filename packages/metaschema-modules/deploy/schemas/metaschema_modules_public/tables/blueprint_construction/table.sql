@@ -18,7 +18,10 @@ CREATE TABLE metaschema_modules_public.blueprint_construction (
 
     -- Execution state
     status text NOT NULL DEFAULT 'pending'
-        CHECK (status IN ('pending', 'constructing', 'constructed')),
+        CHECK (status IN ('pending', 'constructing', 'constructed', 'failed')),
+
+    -- The coded error a failed construction ended with; NULL otherwise
+    error jsonb,
 
     -- Output: mapping of table names to created table IDs (populated after construct)
     table_map jsonb NOT NULL DEFAULT '{}',
@@ -39,7 +42,7 @@ CREATE TABLE metaschema_modules_public.blueprint_construction (
 );
 
 COMMENT ON TABLE metaschema_modules_public.blueprint_construction IS
-    'Tracks individual construction attempts of a blueprint. Each time construct_blueprint() is called, a new record is created here. This separates the editable blueprint definition from its build history, allowing blueprints to be re-executed, constructed into multiple databases, and maintain an audit trail of all construction attempts.';
+    'Tracks individual construction attempts of a blueprint. Each time construct_blueprint() is called, a new record is created here as pending and a blueprint:construct job builds it in the background. This separates the editable blueprint definition from its build history, allowing blueprints to be re-executed, constructed into multiple databases, and maintain an audit trail of all construction attempts, including failed ones.';
 
 COMMENT ON COLUMN metaschema_modules_public.blueprint_construction.id IS
     'Unique identifier for this construction attempt.';
@@ -54,7 +57,10 @@ COMMENT ON COLUMN metaschema_modules_public.blueprint_construction.schema_id IS
     'The default schema used for tables that did not specify an explicit schema_name. NULL if not yet resolved.';
 
 COMMENT ON COLUMN metaschema_modules_public.blueprint_construction.status IS
-    'Execution state of this construction attempt. pending: created but not yet started. constructing: currently executing. constructed: successfully completed. A failed construction raises and rolls back, so it leaves no row.';
+    'Execution state of this construction attempt. pending: enqueued, the blueprint:construct job has not started. constructing: the job is executing. constructed: successfully completed. failed: the job raised; the build rolled back and error carries its coded error.';
+
+COMMENT ON COLUMN metaschema_modules_public.blueprint_construction.error IS
+    'The coded error ({"code", "context", "class"} as raised through errors.raise_error, or {"code": <SQLSTATE>, "message"} for a database error) a failed construction ended with. NULL unless status is failed.';
 
 COMMENT ON COLUMN metaschema_modules_public.blueprint_construction.table_map IS
     'Mapping of table names to created table UUIDs, populated after successful construction. Format: {"products": "uuid", "categories": "uuid", ...}. Defaults to empty object.';
