@@ -255,16 +255,6 @@ The stamps package uses JWT claims for automatic user tracking:
 -- for created_by and updated_by columns
 ```
 
-### With @pgpm/achievements
-
-The achievements package uses JWT claims for user context:
-
-```sql
--- Check current user's achievements
-SELECT * FROM status_public.steps_required('newbie');
--- Uses jwt_public.current_user_id() internally
-```
-
 ### With PGPM roles
 
 Ensure the standard roles exist (pgpm admin-users bootstrap), then combine JWT claims with role-based access:

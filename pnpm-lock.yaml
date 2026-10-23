@@ -68,19 +68,6 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/achievements:
-    dependencies:
-      "@pgpm/jwt-claims":
-        specifier: workspace:*
-        version: link:../jwt-claims
-      "@pgpm/verify":
-        specifier: workspace:*
-        version: link:../verify
-    devDependencies:
-      pgpm:
-        specifier: ^5
-        version: 5.8.0(@dataplan/json@1.0.0(grafast@1.0.2(graphql@16.13.0)))(@dataplan/pg@1.0.3(@dataplan/json@1.0.0(grafast@1.0.2(graphql@16.13.0)))(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0)(pg-sql2@5.0.1)(pg@8.22.0))(@types/node@22.19.17)(grafserv@1.0.0(@types/node@22.19.17)(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(use-sync-external-store@1.6.0(react@19.2.5))(ws@8.20.0))(graphile-build@5.0.2(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0))(pg-sql2@5.0.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(tamedevil@0.1.1)(use-sync-external-store@1.6.0(react@19.2.5))(ws@8.20.0)
-
   packages/app-scope:
     dependencies:
       "@pgpm/metaschema-modules":
@@ -143,29 +130,6 @@ importers:
         version: 5.8.0(@dataplan/json@1.0.0(grafast@1.0.2(graphql@16.13.0)))(@dataplan/pg@1.0.3(@dataplan/json@1.0.0(grafast@1.0.2(graphql@16.13.0)))(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0)(pg-sql2@5.0.1)(pg@8.22.0))(@types/node@22.19.17)(grafserv@1.0.0(@types/node@22.19.17)(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(use-sync-external-store@1.6.0(react@19.2.5))(ws@8.20.0))(graphile-build@5.0.2(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0))(pg-sql2@5.0.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(tamedevil@0.1.1)(use-sync-external-store@1.6.0(react@19.2.5))(ws@8.20.0)
 
   packages/defaults:
-    devDependencies:
-      pgpm:
-        specifier: ^5
-        version: 5.8.0(@dataplan/json@1.0.0(grafast@1.0.2(graphql@16.13.0)))(@dataplan/pg@1.0.3(@dataplan/json@1.0.0(grafast@1.0.2(graphql@16.13.0)))(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0)(pg-sql2@5.0.1)(pg@8.22.0))(@types/node@22.19.17)(grafserv@1.0.0(@types/node@22.19.17)(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(use-sync-external-store@1.6.0(react@19.2.5))(ws@8.20.0))(graphile-build@5.0.2(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0))(pg-sql2@5.0.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(tamedevil@0.1.1)(use-sync-external-store@1.6.0(react@19.2.5))(ws@8.20.0)
-
-  packages/encrypted-secrets:
-    dependencies:
-      "@pgpm/encrypted-secrets-table":
-        specifier: workspace:*
-        version: link:../encrypted-secrets-table
-      "@pgpm/verify":
-        specifier: workspace:*
-        version: link:../verify
-    devDependencies:
-      pgpm:
-        specifier: ^5
-        version: 5.8.0(@dataplan/json@1.0.0(grafast@1.0.2(graphql@16.13.0)))(@dataplan/pg@1.0.3(@dataplan/json@1.0.0(grafast@1.0.2(graphql@16.13.0)))(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0)(pg-sql2@5.0.1)(pg@8.22.0))(@types/node@22.19.17)(grafserv@1.0.0(@types/node@22.19.17)(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(use-sync-external-store@1.6.0(react@19.2.5))(ws@8.20.0))(graphile-build@5.0.2(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0))(pg-sql2@5.0.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(tamedevil@0.1.1)(use-sync-external-store@1.6.0(react@19.2.5))(ws@8.20.0)
-
-  packages/encrypted-secrets-table:
-    dependencies:
-      "@pgpm/verify":
-        specifier: workspace:*
-        version: link:../verify
     devDependencies:
       pgpm:
         specifier: ^5
@@ -266,19 +230,6 @@ importers:
       "@pgpm/db-utils":
         specifier: workspace:*
         version: link:../db-utils
-      "@pgpm/errors":
-        specifier: workspace:*
-        version: link:../errors
-      "@pgpm/verify":
-        specifier: workspace:*
-        version: link:../verify
-    devDependencies:
-      pgpm:
-        specifier: ^5
-        version: 5.8.0(@dataplan/json@1.0.0(grafast@1.0.2(graphql@16.13.0)))(@dataplan/pg@1.0.3(@dataplan/json@1.0.0(grafast@1.0.2(graphql@16.13.0)))(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0)(pg-sql2@5.0.1)(pg@8.22.0))(@types/node@22.19.17)(grafserv@1.0.0(@types/node@22.19.17)(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(use-sync-external-store@1.6.0(react@19.2.5))(ws@8.20.0))(graphile-build@5.0.2(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0))(pg-sql2@5.0.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(tamedevil@0.1.1)(use-sync-external-store@1.6.0(react@19.2.5))(ws@8.20.0)
-
-  packages/jobs:
-    dependencies:
       "@pgpm/errors":
         specifier: workspace:*
         version: link:../errors

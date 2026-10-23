@@ -355,14 +355,6 @@ Every pgpm module depends on `@pgpm/verify`:
 -- @pgpm/types verifies domains
 SELECT verify.verify_domain('public', 'email');
 SELECT verify.verify_domain('public', 'hostname');
-
--- @pgpm/jobs verifies tables and functions
-SELECT verify.verify_table('app_jobs', 'jobs');
-SELECT verify.verify_function('app_jobs.add_job');
-
--- @pgpm/achievements verifies schemas and triggers
-SELECT verify.verify_schema('status_public');
-SELECT verify.verify_trigger('achievement_trigger');
 ```
 
 ### With CI/CD Pipeline

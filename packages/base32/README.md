@@ -182,27 +182,6 @@ SELECT totp.generate(
 ) FROM user_2fa WHERE user_id = 'user-uuid';
 ```
 
-### With @pgpm/encrypted-secrets
-
-Combine with encrypted secrets for secure storage:
-
-```sql
--- Store Base32-encoded secret encrypted
-SELECT encrypted_secrets.secrets_upsert(
-  'user-uuid',
-  'totp_secret',
-  base32.encode('mysecret'),
-  'pgp'
-);
-
--- Retrieve and use
-SELECT totp.generate(
-  base32.decode(
-    encrypted_secrets.secrets_getter('user-uuid', 'totp_secret')
-  )
-);
-```
-
 ## Character Set
 
 Base32 uses the following character set (RFC 4648):
