@@ -118,7 +118,6 @@ Each module includes its own README with detailed documentation. See individual 
 - [`@pgpm/geotypes`](https://www.npmjs.com/package/@pgpm/geotypes) - Geographic data types and spatial functions
 
 ### Jobs & Background Processing
-- [`@pgpm/jobs`](https://www.npmjs.com/package/@pgpm/jobs) - Core job system for background tasks
 - [`@pgpm/database-jobs`](https://www.npmjs.com/package/@pgpm/database-jobs) - Database-specific job handling
 
 ### Meta & Database Introspection
@@ -133,8 +132,6 @@ Each module includes its own README with detailed documentation. See individual 
 - [`@pgpm/defaults`](https://www.npmjs.com/package/@pgpm/defaults) - Security defaults and configurations
 - [`@pgpm/jwt-claims`](https://www.npmjs.com/package/@pgpm/jwt-claims) - JWT claim handling and validation
 - [`@pgpm/totp`](https://www.npmjs.com/package/@pgpm/totp) - Time-based One-Time Password authentication
-- [`@pgpm/encrypted-secrets`](https://www.npmjs.com/package/@pgpm/encrypted-secrets) - Encrypted secrets management
-- [`@pgpm/encrypted-secrets-table`](https://www.npmjs.com/package/@pgpm/encrypted-secrets-table) - Table-based encrypted secrets
 
 ### Utilities
 - [`@pgpm/errors`](https://www.npmjs.com/package/@pgpm/errors) - Canonical structured error raising (`errors.raise_error`)
@@ -147,7 +144,6 @@ Each module includes its own README with detailed documentation. See individual 
 
 ### Metrics & Analytics
 - [`@pgpm/measurements`](https://www.npmjs.com/package/@pgpm/measurements) - Performance tracking and analytics
-- [`@pgpm/achievements`](https://www.npmjs.com/package/@pgpm/achievements) - Achievement system for user progress
 
 ## pgpm Workflow
 

@@ -29,7 +29,6 @@
 ## Jobs & Background Processing
 
 ### Job Management
-- [ ] `packages/jobs/jobs` - Core job system
 - [ ] `packages/jobs/database-jobs` - Database-specific job handling
 
 ## Meta & Database Introspection
@@ -52,8 +51,6 @@
 - [ ] `packages/security/totp` - Time-based One-Time Password (TOTP)
 
 ### Encryption & Secrets
-- [ ] `packages/security/encrypted-secrets` - Encrypted secrets management
-- [ ] `packages/security/encrypted-secrets-table` - Table-based encrypted secrets
 
 ## Utilities
 
@@ -71,5 +68,4 @@
 
 ### Performance & Tracking
 - [ ] `packages/metrics/measurements` - Measurement utilities
-- [ ] `packages/metrics/achievements` - Achievement system
 

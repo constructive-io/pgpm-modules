@@ -1,8 +1,0 @@
-# pgpm-achievements extension
-comment = 'pgpm-achievements extension'
-default_version = '0.47.6'
-module_pathname = '$libdir/pgpm-achievements'
-requires = 'plpgsql,pgpm-jwt-claims,pgpm-verify'
-relocatable = false
-superuser = false
-  
