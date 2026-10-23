@@ -40,6 +40,7 @@ jobs:
           - partman
           - db-utils
           - infra-utils
+          - reserved-names
 
     env:
       PGHOST: localhost

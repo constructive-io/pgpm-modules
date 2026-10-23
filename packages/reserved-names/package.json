@@ -1,0 +1,38 @@
+{
+  "name": "@pgpm/reserved-names",
+  "version": "0.47.4",
+  "description": "Reserved names (subdomains, usernames, slugs, ...) that people may not claim, checked live by one function",
+  "author": "Dan Lynch <pyramation@gmail.com>",
+  "contributors": [
+    "Constructive <developers@constructive.io>"
+  ],
+  "keywords": [
+    "postgresql",
+    "pgpm",
+    "reserved",
+    "names",
+    "subdomains"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "bundle": "pgpm package",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "@pgpm/verify": "workspace:*"
+  },
+  "devDependencies": {
+    "pgpm": "^5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/constructive-io/pgpm-modules"
+  },
+  "homepage": "https://github.com/constructive-io/pgpm-modules",
+  "bugs": {
+    "url": "https://github.com/constructive-io/pgpm-modules/issues"
+  }
+}

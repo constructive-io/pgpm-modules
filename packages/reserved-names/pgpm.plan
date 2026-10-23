@@ -1,0 +1,8 @@
+%syntax-version=1.0.0
+%project=pgpm-reserved-names
+%uri=pgpm-reserved-names
+
+schemas/reserved_names/schema 2026-10-22T19:40:00Z devin <devin@cognition.ai> # add schemas/reserved_names/schema
+schemas/reserved_names/tables/names/table [schemas/reserved_names/schema] 2026-10-22T19:40:00Z devin <devin@cognition.ai> # add schemas/reserved_names/tables/names/table
+schemas/reserved_names/procedures/is_reserved [schemas/reserved_names/schema schemas/reserved_names/tables/names/table] 2026-10-22T19:40:00Z devin <devin@cognition.ai> # add schemas/reserved_names/procedures/is_reserved
+schemas/reserved_names/tables/names/fixtures/subdomain [schemas/reserved_names/schema schemas/reserved_names/tables/names/table] 2026-10-22T19:40:00Z devin <devin@cognition.ai> # add schemas/reserved_names/tables/names/fixtures/subdomain
