@@ -1,6 +1,6 @@
 # pgpm-reserved-names extension
 comment = 'pgpm-reserved-names extension'
-default_version = '0.47.4'
+default_version = '0.47.5'
 module_pathname = '$libdir/pgpm-reserved-names'
 requires = 'plpgsql,pgpm-verify'
 relocatable = false

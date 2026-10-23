@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/reserved-names",
-  "version": "0.47.4",
+  "version": "0.47.5",
   "description": "Reserved names (subdomains, usernames, domains, slugs, ...) that nobody may claim, as tables checked live by reserved_names.is_reserved(kind, name)",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [
