@@ -1,0 +1,72 @@
+-- Deploy schemas/reserved_names/tables/names/fixtures/1792800000002_fixture to pg
+
+-- requires: schemas/reserved_names/schema
+-- requires: schemas/reserved_names/tables/names/table
+-- requires: schemas/reserved_names/tables/kinds/fixtures/1792800000000_fixture
+-- requires: schemas/reserved_names/tables/reasons/fixtures/1792800000001_fixture
+
+BEGIN;
+
+INSERT INTO reserved_names.names (kind, name, match, reason) VALUES
+  ('subdomain', 'www', 'exact', 'platform'),
+  ('subdomain', 'api', 'exact', 'platform'),
+  ('subdomain', 'auth', 'exact', 'platform'),
+  ('subdomain', 'login', 'exact', 'platform'),
+  ('subdomain', 'logout', 'exact', 'platform'),
+  ('subdomain', 'signin', 'exact', 'platform'),
+  ('subdomain', 'signup', 'exact', 'platform'),
+  ('subdomain', 'register', 'exact', 'platform'),
+  ('subdomain', 'admin', 'exact', 'platform'),
+  ('subdomain', 'administrator', 'exact', 'platform'),
+  ('subdomain', 'root', 'exact', 'platform'),
+  ('subdomain', 'app', 'exact', 'platform'),
+  ('subdomain', 'apps', 'exact', 'platform'),
+  ('subdomain', 'dashboard', 'exact', 'platform'),
+  ('subdomain', 'console', 'exact', 'platform'),
+  ('subdomain', 'account', 'exact', 'platform'),
+  ('subdomain', 'accounts', 'exact', 'platform'),
+  ('subdomain', 'billing', 'exact', 'platform'),
+  ('subdomain', 'pay', 'exact', 'platform'),
+  ('subdomain', 'payments', 'exact', 'platform'),
+  ('subdomain', 'checkout', 'exact', 'platform'),
+  ('subdomain', 'support', 'exact', 'platform'),
+  ('subdomain', 'help', 'exact', 'platform'),
+  ('subdomain', 'status', 'exact', 'platform'),
+  ('subdomain', 'docs', 'exact', 'platform'),
+  ('subdomain', 'mail', 'exact', 'platform'),
+  ('subdomain', 'email', 'exact', 'platform'),
+  ('subdomain', 'smtp', 'exact', 'platform'),
+  ('subdomain', 'imap', 'exact', 'platform'),
+  ('subdomain', 'ftp', 'exact', 'platform'),
+  ('subdomain', 'ns', 'exact', 'platform'),
+  ('subdomain', 'ns1', 'exact', 'platform'),
+  ('subdomain', 'ns2', 'exact', 'platform'),
+  ('subdomain', 'mx', 'exact', 'platform'),
+  ('subdomain', 'cdn', 'exact', 'platform'),
+  ('subdomain', 'static', 'exact', 'platform'),
+  ('subdomain', 'assets', 'exact', 'platform'),
+  ('subdomain', 'files', 'exact', 'platform'),
+  ('subdomain', 'storage', 'exact', 'platform'),
+  ('subdomain', 'media', 'exact', 'platform'),
+  ('subdomain', 'ws', 'exact', 'platform'),
+  ('subdomain', 'wss', 'exact', 'platform'),
+  ('subdomain', 'graphql', 'exact', 'platform'),
+  ('subdomain', 'modules', 'exact', 'platform'),
+  ('subdomain', 'agent', 'exact', 'platform'),
+  ('subdomain', 'compute', 'exact', 'platform'),
+  ('subdomain', 'machines', 'exact', 'platform'),
+  ('subdomain', 'cluster', 'exact', 'platform'),
+  ('subdomain', 'migrate', 'exact', 'platform'),
+  ('subdomain', 'internal', 'exact', 'platform'),
+  ('subdomain', 'system', 'exact', 'platform'),
+  ('subdomain', 'platform', 'exact', 'platform'),
+  ('subdomain', 'security', 'exact', 'platform'),
+  ('subdomain', 'sso', 'exact', 'platform'),
+  ('subdomain', 'oauth', 'exact', 'platform'),
+  ('subdomain', 'id', 'exact', 'platform'),
+  ('subdomain', 'identity', 'exact', 'platform'),
+  ('subdomain', 'verify', 'exact', 'platform'),
+  ('subdomain', 'secure', 'exact', 'platform'),
+  ('subdomain', 'xn--', 'prefix', 'lookalike');
+
+COMMIT;

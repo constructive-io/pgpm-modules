@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP SCHEMA reserved_names CASCADE;
+DROP SCHEMA reserved_names;
 
 COMMIT;

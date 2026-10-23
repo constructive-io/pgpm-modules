@@ -1,22 +1,22 @@
 -- Deploy schemas/reserved_names/tables/names/table to pg
 
 -- requires: schemas/reserved_names/schema
+-- requires: schemas/reserved_names/tables/kinds/table
+-- requires: schemas/reserved_names/tables/reasons/table
 
 BEGIN;
 
 CREATE TABLE reserved_names.names (
-  kind text NOT NULL CHECK (kind ~ '^[a-z][a-z0-9_]*$'),
+  kind text NOT NULL REFERENCES reserved_names.kinds (kind),
   name text NOT NULL CHECK (name <> '' AND name = lower(name)),
-  is_prefix boolean NOT NULL DEFAULT false,
-  reason text,
-  PRIMARY KEY (kind, name)
+  match text NOT NULL DEFAULT 'exact' CHECK (match IN ('exact', 'prefix', 'suffix')),
+  reason text NOT NULL REFERENCES reserved_names.reasons (reason),
+  PRIMARY KEY (kind, name, match)
 );
 
-COMMENT ON TABLE reserved_names.names IS 'Names nobody may claim, grouped by kind (subdomain, username, slug, ...). Changed only by migrations.';
-COMMENT ON COLUMN reserved_names.names.kind IS 'What kind of name this reserves, e.g. subdomain or username';
+COMMENT ON TABLE reserved_names.names IS 'Names nobody may claim, by kind. Changed only by migrations.';
 COMMENT ON COLUMN reserved_names.names.name IS 'The reserved name, lowercase';
-COMMENT ON COLUMN reserved_names.names.is_prefix IS 'When true, every name starting with this one is reserved too';
-COMMENT ON COLUMN reserved_names.names.reason IS 'Why the name is reserved';
+COMMENT ON COLUMN reserved_names.names.match IS 'exact: the name itself; prefix: every name starting with it; suffix: every name ending with it';
 
 GRANT SELECT ON TABLE reserved_names.names TO public;
 

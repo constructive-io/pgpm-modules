@@ -1,4 +1,4 @@
--- Verify schemas/reserved_names/tables/names/fixtures/subdomain on pg
+-- Verify schemas/reserved_names/tables/names/fixtures/1792800000002_fixture on pg
 
 BEGIN;
 

@@ -16,9 +16,17 @@ Reserved names that nobody may claim — subdomains, usernames, slugs, or any ot
 
 ## Overview
 
-`@pgpm/reserved-names` keeps one shared list in `reserved_names.names`. Callers ask `reserved_names.is_reserved(kind, name)` at the moment someone claims a name, so a new entry takes effect at once for every caller, with no regeneration or redeploy of the callers.
+`@pgpm/reserved-names` keeps one shared list, as tables, and callers check it live at the moment someone claims a name. A new entry takes effect at once for every caller, with no regeneration or redeploy of the callers.
 
-It ships a starter `subdomain` list: hostnames a visitor would read as the platform's own under a shared domain (`login`, `admin`, `www`, `mail`, `ns1`, …), plus a `xn--` prefix entry that blocks punycode lookalikes (`аpple` with a Cyrillic `а`).
+| table | what it holds |
+| --- | --- |
+| `reserved_names.kinds` | categories of name: `subdomain`, `username`, `domain`, `slug` (add more with a migration) |
+| `reserved_names.reasons` | why a name is reserved: `platform`, `brand`, `lookalike`, `abuse` |
+| `reserved_names.names` | the entries: `kind`, `name` (lowercase), `match` (`exact` / `prefix` / `suffix`), `reason` |
+
+Every entry must point at a real kind and reason (foreign keys), so a typo cannot quietly create an empty category. The primary key is `(kind, name, match)`.
+
+The starter data, in fixtures, is the four kinds and four reasons plus a `subdomain` list: hostnames a visitor would read as the platform's own under a shared domain (`login`, `admin`, `www`, `mail`, `ns1`, …), and a `xn--` prefix entry that blocks punycode lookalikes (`аpple` with a Cyrillic `а`). The other kinds start empty.
 
 ## Installation
 
@@ -35,45 +43,37 @@ SELECT reserved_names.is_reserved('subdomain', 'LOGIN');        -- true (case-in
 SELECT reserved_names.is_reserved('subdomain', 'xn--pple-43d'); -- true (prefix entry)
 SELECT reserved_names.is_reserved('subdomain', 'mystore');      -- false
 SELECT reserved_names.is_reserved('username', 'login');         -- false (kinds are separate)
+
+SELECT name, match, reason FROM reserved_names.reserved_by('subdomain', 'xn--pple-43d');
+--  xn-- | prefix | lookalike
 ```
 
-In a claim function:
+- `is_reserved(kind, name) RETURNS boolean`: true when any entry matches.
+- `reserved_by(kind, name) RETURNS SETOF reserved_names.names`: the matching entries, so an error can say why.
 
-```sql
-IF reserved_names.is_reserved('subdomain', v_label) THEN
-  RAISE EXCEPTION 'SUBDOMAIN_LABEL_RESERVED';
-END IF;
-```
+Both are `STABLE` SQL, lowercase `kind` and `name` before comparing, and treat `NULL` as not reserved. Matching:
+
+- `exact`: the name itself.
+- `prefix`: every name starting with it (`xn--`, `staff-`).
+- `suffix`: every name ending with it. `.example.com` blocks `shop.example.com`, but not `example.com` itself (add an `exact` entry for that) and not `notexample.com`.
 
 ### Adding names
 
-The list changes only through migrations. Add a pgpm change that inserts rows:
+The list changes only through migrations. Add a pgpm fixture change that inserts rows:
 
 ```sql
-INSERT INTO reserved_names.names (kind, name, is_prefix, reason) VALUES
-  ('subdomain', 'www2', false, 'platform'),
-  ('subdomain', 'staff-', true, 'platform'),  -- every name starting with staff-
-  ('username', 'support', false, 'staff');
+INSERT INTO reserved_names.names (kind, name, match, reason) VALUES
+  ('subdomain', 'www2', 'exact', 'platform'),
+  ('subdomain', 'staff-', 'prefix', 'platform'),
+  ('domain', '.example.com', 'suffix', 'brand'),
+  ('username', 'support', 'exact', 'platform');
 ```
 
-## Schema
-
-`reserved_names.names`
-
-| column | type | notes |
-| --- | --- | --- |
-| `kind` | `text` | what the name is, e.g. `subdomain`, `username`; `^[a-z][a-z0-9_]*$` |
-| `name` | `text` | lowercase, non-empty |
-| `is_prefix` | `boolean` | when true, every name starting with `name` is reserved |
-| `reason` | `text` | why it is reserved |
-
-Primary key `(kind, name)`.
-
-`reserved_names.is_reserved(kind text, name text) RETURNS boolean` — `STABLE`, compares `lower(name)`; a `NULL` name is not reserved.
+A new category or reason is a row in `kinds` or `reasons` first.
 
 ## Access
 
-Everyone can read the list and call `is_reserved`, so a UI can say "that name is reserved" before submitting. No role is granted `INSERT`, `UPDATE` or `DELETE`: only the module owner (migrations) can change it.
+Everyone can read the three tables and call both functions, so a UI can say "that name is reserved" before submitting. The list is public, so there is no row-level security. No role is granted `INSERT`, `UPDATE` or `DELETE`: only the owner (migrations, or a `SECURITY DEFINER` function it owns) can change it.
 
 ## Testing
 
