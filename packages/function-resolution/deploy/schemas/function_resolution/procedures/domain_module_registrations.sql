@@ -24,6 +24,7 @@ RETURNS TABLE (
     domain_events_table_name text,
     managed_domains_table_name text,
     entity_field text,
+    sweep_unverified_domains_function text,
     public_schema text,
     private_schema text
 ) AS $$
@@ -36,6 +37,7 @@ SELECT
     dm.domain_events_table_name,
     dm.managed_domains_table_name,
     dm.entity_field,
+    dm.sweep_unverified_domains_function,
     ps.schema_name AS public_schema,
     pvs.schema_name AS private_schema
 FROM metaschema_modules_public.domain_module AS dm

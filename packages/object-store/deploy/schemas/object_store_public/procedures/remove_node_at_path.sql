@@ -88,4 +88,6 @@ END;
 $$
 LANGUAGE 'plpgsql' VOLATILE;
 
+GRANT EXECUTE ON FUNCTION object_store_public.remove_node_at_path(s_id uuid, root uuid, path text[]) TO authenticated;
+
 COMMIT;

@@ -1,6 +1,9 @@
 \echo Use "CREATE EXTENSION pgpm-partman" to load this file. \quit
-ALTER DEFAULT PRIVILEGES IN SCHEMA partman
-  GRANT EXECUTE ON FUNCTIONS TO authenticated;
+GRANT EXECUTE ON FUNCTION partman.check_automatic_maintenance_value(text) TO authenticated;
+
+GRANT EXECUTE ON FUNCTION partman.check_epoch_type(text) TO authenticated;
+
+GRANT EXECUTE ON FUNCTION partman.check_partition_type(text) TO authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA partman
   GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO authenticated;
@@ -87,6 +90,8 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
+GRANT EXECUTE ON FUNCTION partman.remove_parent_by_id(uuid) TO authenticated;
+
 CREATE FUNCTION partman.verify_parent_by_id(
   v_table_id uuid
 ) RETURNS boolean AS $EOFCODE$
@@ -112,6 +117,8 @@ BEGIN
   RETURN v_found;
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
+
+GRANT EXECUTE ON FUNCTION partman.verify_parent_by_id(uuid) TO authenticated;
 
 CREATE FUNCTION partman.run_maintenance_by_id(
   v_table_id uuid DEFAULT NULL,
@@ -139,6 +146,8 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 
+GRANT EXECUTE ON FUNCTION partman.run_maintenance_by_id(uuid, boolean) TO authenticated;
+
 CREATE FUNCTION partman.tg_after_insert_partition() RETURNS trigger AS $EOFCODE$
 DECLARE
   v_schema_name text;
@@ -151,7 +160,8 @@ BEGIN
     FROM metaschema_public.table t
     JOIN metaschema_public.schema s
       ON (s.id = t.schema_id AND s.database_id = t.database_id)
-    WHERE t.id = NEW.table_id;
+    WHERE t.id = NEW.table_id
+      AND t.database_id = NEW.database_id;
 
   IF NOT FOUND THEN
     RETURN NEW;
@@ -160,7 +170,8 @@ BEGIN
   -- Resolve the partition key column name for pg_partman control
   SELECT f.name INTO v_control_column
     FROM metaschema_public.field f
-    WHERE f.id = NEW.partition_key_id;
+    WHERE f.id = NEW.partition_key_id
+      AND f.table_id = NEW.table_id;
 
   IF NEW."interval" IS NULL OR v_control_column IS NULL OR NEW.is_parented THEN
     RETURN NEW;
@@ -191,7 +202,9 @@ BEGIN
 
   RETURN NEW;
 END;
-$EOFCODE$ LANGUAGE plpgsql VOLATILE;
+$EOFCODE$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
+
+REVOKE EXECUTE ON FUNCTION partman.tg_after_insert_partition() FROM PUBLIC RESTRICT;
 
 CREATE TRIGGER partman_after_insert_partition
   AFTER INSERT

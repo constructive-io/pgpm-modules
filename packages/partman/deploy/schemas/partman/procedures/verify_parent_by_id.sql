@@ -29,4 +29,6 @@ END;
 $$
 LANGUAGE 'plpgsql' STABLE;
 
+GRANT EXECUTE ON FUNCTION partman.verify_parent_by_id(uuid) TO authenticated;
+
 COMMIT;

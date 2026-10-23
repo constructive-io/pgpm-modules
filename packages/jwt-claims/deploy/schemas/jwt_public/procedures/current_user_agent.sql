@@ -6,12 +6,15 @@
 BEGIN;
 
 -- Returns the client's user agent string from the JWT claims
--- Returns NULL if the claim is not set; the value needs no cast, so it can
--- never raise and needs no EXCEPTION block (which would open a subtransaction)
+-- Returns NULL if the claim is not set or empty: a pooled connection that once
+-- stamped the claim keeps the GUC defined, so an unset claim reads '' there and
+-- NULL on a fresh connection; nullif makes both read as "no user agent". The
+-- value needs no cast, so it can never raise and needs no EXCEPTION block
+-- (which would open a subtransaction)
 CREATE FUNCTION jwt_public.current_user_agent()
   RETURNS text
 AS $$
-  SELECT current_setting('jwt.claims.user_agent', TRUE);
+  SELECT nullif(current_setting('jwt.claims.user_agent', TRUE), '');
 $$
 LANGUAGE 'sql' STABLE LEAKPROOF PARALLEL SAFE;
 

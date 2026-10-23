@@ -120,4 +120,7 @@ $$
 LANGUAGE 'plpgsql' VOLATILE;
 
 
+GRANT EXECUTE ON FUNCTION object_tree_public.set_and_commit(s_id uuid, store_id uuid, refname text, path text[], data jsonb, kids uuid[], ktree text[], message text) TO authenticated;
+GRANT EXECUTE ON FUNCTION object_tree_public.set_props_and_commit(s_id uuid, store_id uuid, refname text, path text[], data jsonb, message text) TO authenticated;
+
 COMMIT;

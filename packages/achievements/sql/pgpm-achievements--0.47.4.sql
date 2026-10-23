@@ -3,15 +3,9 @@ CREATE SCHEMA IF NOT EXISTS status_private;
 
 GRANT USAGE ON SCHEMA status_private TO authenticated, anonymous;
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA status_private
-  GRANT EXECUTE ON FUNCTIONS TO authenticated;
-
 CREATE SCHEMA IF NOT EXISTS status_public;
 
 GRANT USAGE ON SCHEMA status_public TO authenticated, anonymous;
-
-ALTER DEFAULT PRIVILEGES IN SCHEMA status_public
-  GRANT EXECUTE ON FUNCTIONS TO authenticated;
 
 CREATE TABLE status_public.user_steps (
   id uuid PRIMARY KEY DEFAULT uuidv7(),

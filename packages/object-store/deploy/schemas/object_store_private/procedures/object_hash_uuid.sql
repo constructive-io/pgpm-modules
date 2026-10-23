@@ -29,4 +29,6 @@ END;
 $$
 LANGUAGE 'plpgsql' STABLE;
 
+GRANT EXECUTE ON FUNCTION object_store_public.object_hash_uuid(obj object_store_public.object) TO authenticated;
+
 COMMIT;

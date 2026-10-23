@@ -554,6 +554,8 @@ CREATE FUNCTION function_resolution.default_bucket_tag(
     SELECT CASE WHEN default_bucket_tag.public_access THEN 'default-public' ELSE 'default' END;
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
 
+GRANT EXECUTE ON FUNCTION function_resolution.default_bucket_tag(boolean) TO authenticated;
+
 CREATE FUNCTION function_resolution.resolve_default_bucket(
   database_id uuid,
   scope text,
@@ -656,6 +658,8 @@ $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 CREATE FUNCTION function_resolution.staging_bucket_tag() RETURNS text AS $EOFCODE$
     SELECT 'default-temp';
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
+
+GRANT EXECUTE ON FUNCTION function_resolution.staging_bucket_tag() TO authenticated;
 
 CREATE FUNCTION function_resolution.resolve_staging_bucket(
   database_id uuid,
@@ -2921,6 +2925,7 @@ CREATE FUNCTION function_resolution.domain_module_registrations(
   domain_events_table_name text,
   managed_domains_table_name text,
   entity_field text,
+  sweep_unverified_domains_function text,
   public_schema text,
   private_schema text
 ) AS $EOFCODE$
@@ -2933,6 +2938,7 @@ SELECT
     dm.domain_events_table_name,
     dm.managed_domains_table_name,
     dm.entity_field,
+    dm.sweep_unverified_domains_function,
     ps.schema_name AS public_schema,
     pvs.schema_name AS private_schema
 FROM metaschema_modules_public.domain_module AS dm

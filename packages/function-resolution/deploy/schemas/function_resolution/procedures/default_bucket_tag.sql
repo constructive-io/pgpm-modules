@@ -23,4 +23,8 @@ CREATE FUNCTION function_resolution.default_bucket_tag(
     SELECT CASE WHEN default_bucket_tag.public_access THEN 'default-public' ELSE 'default' END;
 $$ LANGUAGE sql IMMUTABLE;
 
+-- A label, not a privilege: construct_blueprint runs as the owner (SECURITY
+-- INVOKER) and labels the buckets it seeds with this.
+GRANT EXECUTE ON FUNCTION function_resolution.default_bucket_tag(boolean) TO authenticated;
+
 COMMIT;

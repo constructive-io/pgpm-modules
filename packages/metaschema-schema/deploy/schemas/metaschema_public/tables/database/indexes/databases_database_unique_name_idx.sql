@@ -14,6 +14,8 @@ $BODY$
 LANGUAGE sql
 IMMUTABLE;
 
+GRANT EXECUTE ON FUNCTION metaschema_private.database_name_hash(text) TO authenticated;
+
 CREATE UNIQUE INDEX databases_database_unique_name_idx ON metaschema_public.database (owner_id, metaschema_private.database_name_hash (name));
 
 COMMIT;

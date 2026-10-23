@@ -28,4 +28,6 @@ FROM
 $$
 LANGUAGE sql STABLE;
 
+GRANT EXECUTE ON FUNCTION object_store_public.get_all_objects_from_root(s_id uuid, id uuid) TO authenticated;
+
 COMMIT;

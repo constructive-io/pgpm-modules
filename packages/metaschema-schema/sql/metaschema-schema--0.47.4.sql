@@ -9,9 +9,6 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA metaschema_private
 ALTER DEFAULT PRIVILEGES IN SCHEMA metaschema_private
   GRANT ALL ON SEQUENCES TO authenticated;
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA metaschema_private
-  GRANT ALL ON FUNCTIONS TO authenticated;
-
 CREATE SCHEMA metaschema_public;
 
 GRANT USAGE ON SCHEMA metaschema_public TO authenticated;
@@ -21,9 +18,6 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA metaschema_public
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA metaschema_public
   GRANT ALL ON SEQUENCES TO authenticated;
-
-ALTER DEFAULT PRIVILEGES IN SCHEMA metaschema_public
-  GRANT ALL ON FUNCTIONS TO authenticated;
 
 CREATE FUNCTION metaschema_private.is_valid_step_up_conditions(
   cond jsonb
@@ -505,6 +499,10 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
+GRANT EXECUTE ON FUNCTION metaschema_private.is_valid_step_up(step_up jsonb) TO authenticated;
+
+GRANT EXECUTE ON FUNCTION metaschema_private.is_valid_step_up_conditions(cond jsonb) TO authenticated;
+
 CREATE TYPE metaschema_public.object_category AS ENUM ('core', 'module', 'capabilities', 'auth', 'memberships', 'app');
 
 CREATE TYPE metaschema_public.api_exposure_level AS ENUM ('exposable', 'internal_only', 'never_expose');
@@ -684,6 +682,8 @@ CREATE FUNCTION metaschema_private.database_name_hash(
   SELECT
     DECODE(MD5(LOWER(inflection.plural (name))), 'hex');
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
+
+GRANT EXECUTE ON FUNCTION metaschema_private.database_name_hash(text) TO authenticated;
 
 CREATE UNIQUE INDEX databases_database_unique_name_idx ON metaschema_public.database (owner_id, (metaschema_private.database_name_hash(name)));
 
@@ -978,6 +978,8 @@ CREATE FUNCTION metaschema_private.table_name_hash(
   SELECT
     DECODE(MD5(LOWER(inflection.plural (name))), 'hex');
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
+
+GRANT EXECUTE ON FUNCTION metaschema_private.table_name_hash(text) TO authenticated;
 
 CREATE UNIQUE INDEX databases_table_unique_name_idx ON metaschema_public.table (database_id, schema_id, (metaschema_private.table_name_hash(name)));
 

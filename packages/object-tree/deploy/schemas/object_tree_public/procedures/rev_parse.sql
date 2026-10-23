@@ -44,4 +44,6 @@ END;
 $$
 LANGUAGE 'plpgsql' STABLE;
 
+GRANT EXECUTE ON FUNCTION object_tree_public.rev_parse(s_id uuid, store_id uuid, refname text) TO authenticated;
+
 COMMIT;

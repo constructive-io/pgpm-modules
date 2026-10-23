@@ -17,4 +17,8 @@ CREATE FUNCTION function_resolution.staging_bucket_tag() RETURNS text AS $$
     SELECT 'default-temp';
 $$ LANGUAGE sql IMMUTABLE;
 
+-- A label, not a privilege: construct_blueprint runs as the owner (SECURITY
+-- INVOKER) and labels the staging bucket it seeds with this.
+GRANT EXECUTE ON FUNCTION function_resolution.staging_bucket_tag() TO authenticated;
+
 COMMIT;

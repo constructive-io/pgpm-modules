@@ -12,6 +12,12 @@ BEGIN;
 -- pg_partman. Runs on both platform databases and consumer databases
 -- deployed from exported packages; guarded by is_parented and
 -- partman.part_config so re-inserts of existing configs are no-ops.
+--
+-- SECURITY DEFINER so partman.create_parent_with_retention needs no
+-- request-role grant. The NEW row already passed the caller's INSERT policy
+-- on metaschema_public.partition (keyed on database_id), and every lookup
+-- here is pinned to that row: the table must belong to NEW.database_id and
+-- the key field to NEW.table_id.
 CREATE FUNCTION partman.tg_after_insert_partition()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -25,7 +31,8 @@ BEGIN
     FROM metaschema_public.table t
     JOIN metaschema_public.schema s
       ON (s.id = t.schema_id AND s.database_id = t.database_id)
-    WHERE t.id = NEW.table_id;
+    WHERE t.id = NEW.table_id
+      AND t.database_id = NEW.database_id;
 
   IF NOT FOUND THEN
     RETURN NEW;
@@ -34,7 +41,8 @@ BEGIN
   -- Resolve the partition key column name for pg_partman control
   SELECT f.name INTO v_control_column
     FROM metaschema_public.field f
-    WHERE f.id = NEW.partition_key_id;
+    WHERE f.id = NEW.partition_key_id
+      AND f.table_id = NEW.table_id;
 
   IF NEW."interval" IS NULL OR v_control_column IS NULL OR NEW.is_parented THEN
     RETURN NEW;
@@ -66,7 +74,9 @@ BEGIN
   RETURN NEW;
 END;
 $$
-LANGUAGE 'plpgsql' VOLATILE;
+LANGUAGE 'plpgsql' VOLATILE SECURITY DEFINER;
+
+REVOKE EXECUTE ON FUNCTION partman.tg_after_insert_partition() FROM PUBLIC;
 
 CREATE TRIGGER partman_after_insert_partition
   AFTER INSERT ON metaschema_public.partition

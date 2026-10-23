@@ -26,4 +26,6 @@ END;
 $$
 LANGUAGE 'plpgsql' STABLE PARALLEL SAFE;
 
+GRANT EXECUTE ON FUNCTION jwt_private.require_entity_type() TO authenticated;
+
 COMMIT;

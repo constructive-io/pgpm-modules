@@ -21,4 +21,6 @@ $$
 LANGUAGE plpgsql
 VOLATILE;
 
+GRANT EXECUTE ON FUNCTION object_store_public.insert_node_at_path(s_id uuid, root uuid, path text[], data jsonb, kids uuid[], ktree text[]) TO authenticated;
+
 COMMIT;

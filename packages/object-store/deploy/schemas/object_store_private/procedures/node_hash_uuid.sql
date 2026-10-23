@@ -20,4 +20,6 @@ $$
 LANGUAGE sql
 IMMUTABLE;
 
+GRANT EXECUTE ON FUNCTION object_store_private.node_hash_uuid(data jsonb, kids uuid[], ktree text[]) TO authenticated;
+
 COMMIT;

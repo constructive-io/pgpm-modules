@@ -4,9 +4,6 @@ CREATE SCHEMA object_store_private;
 GRANT USAGE ON SCHEMA object_store_private TO authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA object_store_private
-  GRANT EXECUTE ON FUNCTIONS TO authenticated;
-
-ALTER DEFAULT PRIVILEGES IN SCHEMA object_store_private
   GRANT ALL ON SEQUENCES TO authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA object_store_private
@@ -15,9 +12,6 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA object_store_private
 CREATE SCHEMA object_store_public;
 
 GRANT USAGE ON SCHEMA object_store_public TO authenticated;
-
-ALTER DEFAULT PRIVILEGES IN SCHEMA object_store_public
-  GRANT EXECUTE ON FUNCTIONS TO authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA object_store_public
   GRANT ALL ON SEQUENCES TO authenticated;
@@ -30,9 +24,6 @@ CREATE SCHEMA object_store_utils;
 GRANT USAGE ON SCHEMA object_store_utils TO authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA object_store_utils
-  GRANT EXECUTE ON FUNCTIONS TO authenticated;
-
-ALTER DEFAULT PRIVILEGES IN SCHEMA object_store_utils
   GRANT ALL ON SEQUENCES TO authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA object_store_utils
@@ -43,6 +34,8 @@ CREATE FUNCTION object_store_utils.array_get_last(
 ) RETURNS anyelement AS $EOFCODE$
   SELECT arr[array_length(arr, 1)];
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
+
+GRANT EXECUTE ON FUNCTION object_store_utils.array_get_last(arr anyarray) TO authenticated;
 
 CREATE FUNCTION object_store_utils.array_index_of(
   arr anyarray,
@@ -63,6 +56,8 @@ BEGIN
 END
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
+GRANT EXECUTE ON FUNCTION object_store_utils.array_index_of(arr anyarray, el anyelement) TO authenticated;
+
 CREATE FUNCTION object_store_utils.array_pop(
   srcarr anyarray
 ) RETURNS SETOF anyarray AS $EOFCODE$ 
@@ -73,11 +68,15 @@ SELECT ARRAY (
 )
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
 
+GRANT EXECUTE ON FUNCTION object_store_utils.array_pop(srcarr anyarray) TO authenticated;
+
 CREATE FUNCTION object_store_utils.array_shift(
   srcarr anyarray
 ) RETURNS SETOF anyarray AS $EOFCODE$ 
 SELECT srcarr[2:array_length(srcarr, 1)]
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
+
+GRANT EXECUTE ON FUNCTION object_store_utils.array_shift(srcarr anyarray) TO authenticated;
 
 CREATE FUNCTION object_store_utils.zip_arrays(
   a text[],
@@ -131,6 +130,10 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql IMMUTABLE;
 
+GRANT EXECUTE ON FUNCTION object_store_utils.unzip_obj_to_ktree_and_kids(obj jsonb) TO authenticated;
+
+GRANT EXECUTE ON FUNCTION object_store_utils.zip_arrays(a text[], b anyarray) TO authenticated;
+
 CREATE TABLE object_store_public.object (
   id uuid NOT NULL,
   scope_id uuid NOT NULL,
@@ -169,6 +172,8 @@ SELECT
 FROM
     hierarchy;
 $EOFCODE$ LANGUAGE sql STABLE;
+
+GRANT EXECUTE ON FUNCTION object_store_public.get_all_objects_from_root(s_id uuid, id uuid) TO authenticated;
 
 CREATE FUNCTION object_store_public.get_all(
   s_id uuid,
@@ -218,6 +223,8 @@ BEGIN
 
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
+
+GRANT EXECUTE ON FUNCTION object_store_public.get_all(s_id uuid, id uuid) TO authenticated;
 
 CREATE FUNCTION object_store_public.get_node_at_path(
   s_id uuid,
@@ -273,6 +280,8 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
+GRANT EXECUTE ON FUNCTION object_store_public.get_node_at_path(s_id uuid, id uuid, path text[]) TO authenticated;
+
 CREATE FUNCTION object_store_public.get_path_objects_from_root(
   s_id uuid,
   id uuid,
@@ -318,6 +327,8 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
 
+GRANT EXECUTE ON FUNCTION object_store_public.get_path_objects_from_root(s_id uuid, id uuid, path text[]) TO authenticated;
+
 CREATE FUNCTION object_store_public.insert_node_at_path(
   s_id uuid,
   root uuid,
@@ -330,6 +341,8 @@ BEGIN
   RETURN object_store_public.insert_nodes_at_paths (s_id := insert_node_at_path.s_id, root := insert_node_at_path.root, paths := jsonb_build_array(coalesce(to_jsonb(insert_node_at_path.path), '[]'::jsonb)), datas := ARRAY[insert_node_at_path.data]::jsonb[], kids_list := jsonb_build_array(to_jsonb(insert_node_at_path.kids)), ktree_list := jsonb_build_array(to_jsonb(insert_node_at_path.ktree)));
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
+
+GRANT EXECUTE ON FUNCTION object_store_public.insert_node_at_path(s_id uuid, root uuid, path text[], data jsonb, kids uuid[], ktree text[]) TO authenticated;
 
 CREATE FUNCTION object_store_public.object_hash_uuid(
   obj object_store_public.object
@@ -353,6 +366,8 @@ BEGIN
   RETURN uuid_generate_v5 (uuid_ns_url (), concat(hash1, hash2)::text);
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE;
+
+GRANT EXECUTE ON FUNCTION object_store_public.object_hash_uuid(obj object_store_public.object) TO authenticated;
 
 CREATE FUNCTION object_store_public.remove_node_at_path(
   s_id uuid,
@@ -430,6 +445,8 @@ BEGIN
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 
+GRANT EXECUTE ON FUNCTION object_store_public.remove_node_at_path(s_id uuid, root uuid, path text[]) TO authenticated;
+
 CREATE FUNCTION object_store_public.update_node_at_path(
   s_id uuid,
   root uuid,
@@ -442,6 +459,8 @@ BEGIN
   RETURN object_store_public.insert_node_at_path(s_id, root, path, data, kids, ktree);
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
+
+GRANT EXECUTE ON FUNCTION object_store_public.update_node_at_path(s_id uuid, root uuid, path text[], data jsonb, kids uuid[], ktree text[]) TO authenticated;
 
 CREATE FUNCTION object_store_public.set_data_at_path(
   s_id uuid,
@@ -469,6 +488,8 @@ BEGIN
   );
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
+
+GRANT EXECUTE ON FUNCTION object_store_public.set_data_at_path(s_id uuid, root uuid, path text[], data jsonb) TO authenticated;
 
 CREATE FUNCTION object_store_public.freeze_objects(
   s_id uuid,
@@ -501,6 +522,8 @@ FROM hierarchy
 
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE;
+
+GRANT EXECUTE ON FUNCTION object_store_public.freeze_objects(s_id uuid, id uuid) TO authenticated;
 
 CREATE INDEX scope_id_idx ON object_store_public.object (scope_id);
 
@@ -567,6 +590,8 @@ CREATE FUNCTION object_store_private.node_hash_uuid(
   SELECT
     object_store_public.object_hash_uuid (jsonb_populate_record(NULL::object_store_public.object, jsonb_build_object('data', node_hash_uuid.data, 'kids', to_jsonb(node_hash_uuid.kids), 'ktree', to_jsonb(node_hash_uuid.ktree))));
 $EOFCODE$ LANGUAGE sql IMMUTABLE;
+
+GRANT EXECUTE ON FUNCTION object_store_private.node_hash_uuid(data jsonb, kids uuid[], ktree text[]) TO authenticated;
 
 CREATE FUNCTION object_store_public.insert_nodes_at_paths(
   s_id uuid,
@@ -996,3 +1021,5 @@ BEGIN
   RETURN root_id;
 END;
 $EOFCODE$ LANGUAGE plpgsql VOLATILE SET jit TO off SET work_mem TO '64MB' SET plan_cache_mode TO force_custom_plan;
+
+GRANT EXECUTE ON FUNCTION object_store_public.insert_nodes_at_paths(s_id uuid, root uuid, paths jsonb, datas jsonb[], kids_list jsonb, ktree_list jsonb) TO authenticated;

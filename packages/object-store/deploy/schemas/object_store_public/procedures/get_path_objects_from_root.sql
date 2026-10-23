@@ -51,4 +51,6 @@ END;
 $$
 LANGUAGE plpgsql STABLE;
 
+GRANT EXECUTE ON FUNCTION object_store_public.get_path_objects_from_root(s_id uuid, id uuid, path text[]) TO authenticated;
+
 COMMIT;

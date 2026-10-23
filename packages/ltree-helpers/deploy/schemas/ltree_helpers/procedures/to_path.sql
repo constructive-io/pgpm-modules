@@ -13,4 +13,6 @@ CREATE FUNCTION ltree_helpers.to_path(
   SELECT replace(ltrim(slash_path, '/'), '/', '.')::ltree;
 $$ LANGUAGE sql IMMUTABLE STRICT;
 
+GRANT EXECUTE ON FUNCTION ltree_helpers.to_path(slash_path text) TO authenticated;
+
 COMMIT;

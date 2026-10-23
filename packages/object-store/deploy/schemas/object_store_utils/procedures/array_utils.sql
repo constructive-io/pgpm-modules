@@ -55,4 +55,7 @@ END;
 $$
 LANGUAGE 'plpgsql' IMMUTABLE;
 
+GRANT EXECUTE ON FUNCTION object_store_utils.unzip_obj_to_ktree_and_kids(obj jsonb) TO authenticated;
+GRANT EXECUTE ON FUNCTION object_store_utils.zip_arrays(a text[], b anyarray) TO authenticated;
+
 COMMIT;
