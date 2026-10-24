@@ -2408,10 +2408,12 @@ $EOFCODE$ LANGUAGE plpgsql VOLATILE;
 CREATE FUNCTION function_resolution.routing_planes() RETURNS TABLE (
   database_id uuid,
   schema_name text,
+  resolver_schema_name text,
   resolver_function_name text
 ) AS $EOFCODE$
     SELECT
         rm.database_id,
+        s.schema_name::text,
         s.schema_name::text,
         rm.resolver_function_name
     FROM metaschema_modules_public.route_module AS rm

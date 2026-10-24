@@ -218,9 +218,9 @@ describe('request-lane resolution reads', () => {
   it('lists every database-scope plane in resolution order for its grantee', async () => {
     const planes = await pg.any(`SELECT * FROM function_resolution.routing_planes()`);
     expect(planes).toEqual([
-      { database_id: PLATFORM_DB, schema_name: 'platform_storage_public', resolver_function_name: 'resolve_route' },
-      { database_id: TENANT_DB, schema_name: 'tenant_storage_public', resolver_function_name: 'resolve_route' },
-      { database_id: OTHER_DB, schema_name: 'other_storage_public', resolver_function_name: 'resolve_route' }
+      { database_id: PLATFORM_DB, schema_name: 'platform_storage_public', resolver_schema_name: 'platform_storage_public', resolver_function_name: 'resolve_route' },
+      { database_id: TENANT_DB, schema_name: 'tenant_storage_public', resolver_schema_name: 'tenant_storage_public', resolver_function_name: 'resolve_route' },
+      { database_id: OTHER_DB, schema_name: 'other_storage_public', resolver_schema_name: 'other_storage_public', resolver_function_name: 'resolve_route' }
     ]);
   });
 });
