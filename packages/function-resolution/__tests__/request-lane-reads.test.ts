@@ -100,14 +100,20 @@ describe('request-lane resolution reads', () => {
            VALUES ($1, $2, $3) RETURNING id`,
           [database, schema.id, table]
         )).id;
+      const routingPrivate = await pg.one(
+        `INSERT INTO metaschema_public.schema (database_id, name, schema_name)
+         VALUES ($1, $2, $3) RETURNING id`,
+        [database, `${name}_routing_private`, `${name}_routing_private`]
+      );
       await pg.query(
         `INSERT INTO metaschema_modules_public.route_module
            (database_id, scope, schema_id, private_schema_id, resolver_function_name,
             routes_table_id, hostname_bindings_table_id, route_bindings_table_id, redirects_table_id)
-         VALUES ($1, 'database', $2, $2, 'resolve_route', $3, $4, $5, $6)`,
+         VALUES ($1, 'database', $2, $3, 'resolve_route', $4, $5, $6, $7)`,
         [
           database,
           schema.id,
+          routingPrivate.id,
           await routingTable('routes'),
           await routingTable('hostname_bindings'),
           await routingTable('route_bindings'),
@@ -218,9 +224,9 @@ describe('request-lane resolution reads', () => {
   it('lists every database-scope plane in resolution order for its grantee', async () => {
     const planes = await pg.any(`SELECT * FROM function_resolution.routing_planes()`);
     expect(planes).toEqual([
-      { database_id: PLATFORM_DB, schema_name: 'platform_storage_public', resolver_schema_name: 'platform_storage_public', resolver_function_name: 'resolve_route' },
-      { database_id: TENANT_DB, schema_name: 'tenant_storage_public', resolver_schema_name: 'tenant_storage_public', resolver_function_name: 'resolve_route' },
-      { database_id: OTHER_DB, schema_name: 'other_storage_public', resolver_schema_name: 'other_storage_public', resolver_function_name: 'resolve_route' }
+      { database_id: PLATFORM_DB, schema_name: 'platform_storage_public', resolver_schema_name: 'platform_routing_private', resolver_function_name: 'resolve_route' },
+      { database_id: TENANT_DB, schema_name: 'tenant_storage_public', resolver_schema_name: 'tenant_routing_private', resolver_function_name: 'resolve_route' },
+      { database_id: OTHER_DB, schema_name: 'other_storage_public', resolver_schema_name: 'other_routing_private', resolver_function_name: 'resolve_route' }
     ]);
   });
 });
