@@ -140,7 +140,6 @@ Each module includes its own README with detailed documentation. See individual 
 - [`@pgpm/inflection`](https://www.npmjs.com/package/@pgpm/inflection) - String inflection utilities
 - [`@pgpm/base32`](https://www.npmjs.com/package/@pgpm/base32) - Base32 encoding/decoding
 - [`@pgpm/faker`](https://www.npmjs.com/package/@pgpm/faker) - Fake data generation for testing
-- [`@pgpm/reserved-names`](https://www.npmjs.com/package/@pgpm/reserved-names) - Reserved names (subdomains, usernames, slugs) nobody may claim
 
 ### Metrics & Analytics
 - [`@pgpm/measurements`](https://www.npmjs.com/package/@pgpm/measurements) - Performance tracking and analytics
