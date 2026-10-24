@@ -1,6 +1,6 @@
 # pgpm-geo-types extension
 comment = 'pgpm-geo-types extension'
-default_version = '0.47.1'
+default_version = '0.47.7'
 module_pathname = '$libdir/pgpm-geo-types'
 requires = 'plpgsql,citext,postgis,pgpm-types,pgpm-verify'
 relocatable = false
