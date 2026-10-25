@@ -13,11 +13,8 @@ BEGIN;
 -- It enumerates every tenant database, so it is granted to no request role:
 -- only the platform login (granted at provision) calls it, on its own
 -- connection with no role switch. schema_name is the plane's public schema
--- (its tables); resolver_schema_name is the schema its resolver is generated
--- into, so callers qualify the resolver from it rather than assuming. The
--- readers are still generated into the public schema, so for now both columns
--- carry the same value; resolver_schema_name changes to the plane's private
--- schema when the readers move there. A plane whose route_module names no
+-- (its tables); resolver_schema_name is the private schema its resolver is
+-- generated into, which is on no API. A plane whose route_module names no
 -- schema or no resolver is returned as-is so the caller fails loudly on it.
 CREATE FUNCTION function_resolution.routing_planes()
 RETURNS TABLE (
@@ -29,10 +26,11 @@ RETURNS TABLE (
     SELECT
         rm.database_id,
         s.schema_name::text,
-        s.schema_name::text,
+        ps.schema_name::text,
         rm.resolver_function_name
     FROM metaschema_modules_public.route_module AS rm
     LEFT JOIN metaschema_public.schema AS s ON s.id = rm.schema_id
+    LEFT JOIN metaschema_public.schema AS ps ON ps.id = rm.private_schema_id
     WHERE rm.scope = 'database'
     ORDER BY rm.database_id
 $$ LANGUAGE sql STABLE SECURITY DEFINER;

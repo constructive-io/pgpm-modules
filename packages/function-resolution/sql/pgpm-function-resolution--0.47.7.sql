@@ -2414,10 +2414,11 @@ CREATE FUNCTION function_resolution.routing_planes() RETURNS TABLE (
     SELECT
         rm.database_id,
         s.schema_name::text,
-        s.schema_name::text,
+        ps.schema_name::text,
         rm.resolver_function_name
     FROM metaschema_modules_public.route_module AS rm
     LEFT JOIN metaschema_public.schema AS s ON s.id = rm.schema_id
+    LEFT JOIN metaschema_public.schema AS ps ON ps.id = rm.private_schema_id
     WHERE rm.scope = 'database'
     ORDER BY rm.database_id
 $EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
