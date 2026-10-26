@@ -7,7 +7,7 @@
 BEGIN;
 
 -- resolve_staging_bucket: answer "which bucket does this database stage an
--- upload through", server-side, by the same rule resolve_default_bucket uses
+-- upload through", server-side, by the same rule frame_default_bucket uses
 -- for the destination.
 --
 -- Staging is not a second mechanism: the reserved staging tag is matched in the

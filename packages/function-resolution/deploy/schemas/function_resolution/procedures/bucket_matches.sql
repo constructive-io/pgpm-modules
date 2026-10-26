@@ -11,7 +11,7 @@ BEGIN;
 --
 -- Split out so that "which buckets match" has exactly one implementation while
 -- each caller states its own arity rule: resolve_bucket demands one for a
--- capability declaration, resolve_default_bucket demands one for a database's
+-- capability declaration, frame_default_bucket demands one for a database's
 -- default, and both raise on zero or several. A second copy of this query would
 -- be a second answer to "which bucket is this".
 --
