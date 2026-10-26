@@ -2,6 +2,6 @@
 
 BEGIN;
 
-SELECT assert_function('function_resolution.resolve_default_bucket(uuid, text, uuid, boolean, text)'::regprocedure);
+SELECT assert_function('function_resolution.resolve_default_bucket(text, uuid, boolean, text)'::regprocedure);
 
 ROLLBACK;

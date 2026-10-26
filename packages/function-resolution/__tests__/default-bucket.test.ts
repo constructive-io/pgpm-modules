@@ -93,7 +93,7 @@ describe('default bucket resolution', () => {
   it('resolves the database default without anyone naming a bucket', async () => {
     const [row] = await pg.any(
       `SELECT bucket_id, resolved_key, bucket_type, physical_name, owner_database_id
-       FROM function_resolution.resolve_default_bucket($1, 'database', $1, false)`,
+       FROM function_resolution.frame_default_bucket($1, 'database', $1, false)`,
       [TENANT_DB]
     );
     expect(row).toEqual({
@@ -108,7 +108,7 @@ describe('default bucket resolution', () => {
   it('public access resolves the CDN-served default, not the private one', async () => {
     const [row] = await pg.any(
       `SELECT bucket_id, bucket_type
-       FROM function_resolution.resolve_default_bucket($1, 'database', $1, true)`,
+       FROM function_resolution.frame_default_bucket($1, 'database', $1, true)`,
       [TENANT_DB]
     );
     expect(row).toEqual({ bucket_id: ids.defaultPublic, bucket_type: 'public' });
@@ -117,7 +117,7 @@ describe('default bucket resolution', () => {
   it('an explicit logical key overrides the default and resolves by the same rule', async () => {
     const [row] = await pg.any(
       `SELECT bucket_id, resolved_key
-       FROM function_resolution.resolve_default_bucket($1, 'database', $1, false, 'avatars')`,
+       FROM function_resolution.frame_default_bucket($1, 'database', $1, false, 'avatars')`,
       [TENANT_DB]
     );
     expect(row).toEqual({ bucket_id: ids.avatars, resolved_key: 'avatars' });
@@ -126,7 +126,7 @@ describe('default bucket resolution', () => {
   it('an explicit key nothing carries raises rather than falling back to the default', async () => {
     await expect(
       pg.any(
-        `SELECT * FROM function_resolution.resolve_default_bucket($1, 'database', $1, false, 'nope')`,
+        `SELECT * FROM function_resolution.frame_default_bucket($1, 'database', $1, false, 'nope')`,
         [TENANT_DB]
       )
     ).rejects.toThrow(/STORAGE_DEFAULT_BUCKET_NOT_FOUND/);
@@ -135,7 +135,7 @@ describe('default bucket resolution', () => {
   it('a blank key is a caller bug, not a request for the default', async () => {
     await expect(
       pg.any(
-        `SELECT * FROM function_resolution.resolve_default_bucket($1, 'database', $1, false, '  ')`,
+        `SELECT * FROM function_resolution.frame_default_bucket($1, 'database', $1, false, '  ')`,
         [TENANT_DB]
       )
     ).rejects.toThrow(/STORAGE_BUCKET_KEY_BLANK/);
@@ -144,7 +144,7 @@ describe('default bucket resolution', () => {
   it('a database with no default bucket raises', async () => {
     await expect(
       pg.any(
-        `SELECT * FROM function_resolution.resolve_default_bucket($1, 'database', $1, false)`,
+        `SELECT * FROM function_resolution.frame_default_bucket($1, 'database', $1, false)`,
         [BARE_DB]
       )
     ).rejects.toThrow(/STORAGE_DEFAULT_BUCKET_NOT_FOUND/);
@@ -153,14 +153,14 @@ describe('default bucket resolution', () => {
   it('another tenant default is never borrowed', async () => {
     // OTHER_DB has a bucket tagged 'default'; BARE_DB still has none.
     const [foreign] = await pg.any(
-      `SELECT bucket_id FROM function_resolution.resolve_default_bucket($1, 'database', $1, false)`,
+      `SELECT bucket_id FROM function_resolution.frame_default_bucket($1, 'database', $1, false)`,
       [OTHER_DB]
     );
     expect(foreign.bucket_id).toBe(ids.otherDefault);
 
     await expect(
       pg.any(
-        `SELECT * FROM function_resolution.resolve_default_bucket($1, 'database', $1, false)`,
+        `SELECT * FROM function_resolution.frame_default_bucket($1, 'database', $1, false)`,
         [BARE_DB]
       )
     ).rejects.toThrow(/STORAGE_DEFAULT_BUCKET_NOT_FOUND/);
@@ -170,7 +170,7 @@ describe('default bucket resolution', () => {
     let failure: (Error & { detail?: string }) | null = null;
     try {
       await pg.any(
-        `SELECT * FROM function_resolution.resolve_default_bucket($1, 'database', $1, false)`,
+        `SELECT * FROM function_resolution.frame_default_bucket($1, 'database', $1, false)`,
         [AMBIGUOUS_DB]
       );
     } catch (error) {

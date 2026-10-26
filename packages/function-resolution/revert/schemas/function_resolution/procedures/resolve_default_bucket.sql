@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP FUNCTION function_resolution.resolve_default_bucket(uuid, text, uuid, boolean, text);
+DROP FUNCTION function_resolution.resolve_default_bucket(text, uuid, boolean, text);
 
 COMMIT;

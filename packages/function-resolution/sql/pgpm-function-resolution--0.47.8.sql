@@ -556,7 +556,7 @@ $EOFCODE$ LANGUAGE sql IMMUTABLE;
 
 GRANT EXECUTE ON FUNCTION function_resolution.default_bucket_tag(boolean) TO authenticated;
 
-CREATE FUNCTION function_resolution.resolve_default_bucket(
+CREATE FUNCTION function_resolution.frame_default_bucket(
   database_id uuid,
   scope text,
   entity_id uuid,
@@ -579,29 +579,29 @@ BEGIN
     -- A blank override is a caller bug, not a request for the default: falling
     -- through to tag resolution would turn a broken field binding into a
     -- silently different bucket.
-    IF resolve_default_bucket.bucket_key IS NOT NULL
-       AND btrim(resolve_default_bucket.bucket_key) = '' THEN
+    IF frame_default_bucket.bucket_key IS NOT NULL
+       AND btrim(frame_default_bucket.bucket_key) = '' THEN
         PERFORM errors.raise_error(
             'STORAGE_BUCKET_KEY_BLANK',
             jsonb_build_object(
-                'database_id', resolve_default_bucket.database_id,
-                'scope', resolve_default_bucket.scope
+                'database_id', frame_default_bucket.database_id,
+                'scope', frame_default_bucket.scope
             ),
             'internal'
         );
     END IF;
 
     v_tag := COALESCE(
-        resolve_default_bucket.bucket_key,
-        function_resolution.default_bucket_tag(resolve_default_bucket.public_access)
+        frame_default_bucket.bucket_key,
+        function_resolution.default_bucket_tag(frame_default_bucket.public_access)
     );
 
     SELECT COALESCE(jsonb_agg(to_jsonb(m) ORDER BY m.bucket_id), '[]'::jsonb)
     INTO v_matches
     FROM function_resolution.bucket_matches(
-        resolve_default_bucket.database_id,
-        resolve_default_bucket.scope,
-        resolve_default_bucket.entity_id,
+        frame_default_bucket.database_id,
+        frame_default_bucket.scope,
+        frame_default_bucket.entity_id,
         ARRAY[v_tag]
     ) m;
 
@@ -609,11 +609,11 @@ BEGIN
         PERFORM errors.raise_error(
             'STORAGE_DEFAULT_BUCKET_NOT_FOUND',
             jsonb_build_object(
-                'database_id', resolve_default_bucket.database_id,
-                'scope', resolve_default_bucket.scope,
-                'entity_id', resolve_default_bucket.entity_id,
+                'database_id', frame_default_bucket.database_id,
+                'scope', frame_default_bucket.scope,
+                'entity_id', frame_default_bucket.entity_id,
                 'tag', v_tag,
-                'explicit_key', resolve_default_bucket.bucket_key IS NOT NULL
+                'explicit_key', frame_default_bucket.bucket_key IS NOT NULL
             ),
             'internal'
         );
@@ -623,11 +623,11 @@ BEGIN
         PERFORM errors.raise_error(
             'STORAGE_DEFAULT_BUCKET_AMBIGUOUS',
             jsonb_build_object(
-                'database_id', resolve_default_bucket.database_id,
-                'scope', resolve_default_bucket.scope,
-                'entity_id', resolve_default_bucket.entity_id,
+                'database_id', frame_default_bucket.database_id,
+                'scope', frame_default_bucket.scope,
+                'entity_id', frame_default_bucket.entity_id,
                 'tag', v_tag,
-                'explicit_key', resolve_default_bucket.bucket_key IS NOT NULL,
+                'explicit_key', frame_default_bucket.bucket_key IS NOT NULL,
                 'candidates', (
                     SELECT jsonb_agg(jsonb_build_object(
                         'bucket_id', c->>'bucket_id',
@@ -643,17 +643,19 @@ BEGIN
 
     v_match := v_matches->0;
 
-    resolve_default_bucket.bucket_id := (v_match->>'bucket_id')::uuid;
-    resolve_default_bucket.resolved_key := v_match->>'bucket_key';
-    resolve_default_bucket.bucket_type := v_match->>'bucket_type';
-    resolve_default_bucket.physical_name := v_match->>'physical_name';
-    resolve_default_bucket.owner_database_id := (v_match->>'owner_database_id')::uuid;
-    resolve_default_bucket.owner_scope := v_match->>'owner_scope';
-    resolve_default_bucket.owner_key := (v_match->>'owner_key')::uuid;
+    frame_default_bucket.bucket_id := (v_match->>'bucket_id')::uuid;
+    frame_default_bucket.resolved_key := v_match->>'bucket_key';
+    frame_default_bucket.bucket_type := v_match->>'bucket_type';
+    frame_default_bucket.physical_name := v_match->>'physical_name';
+    frame_default_bucket.owner_database_id := (v_match->>'owner_database_id')::uuid;
+    frame_default_bucket.owner_scope := v_match->>'owner_scope';
+    frame_default_bucket.owner_key := (v_match->>'owner_key')::uuid;
 
     RETURN NEXT;
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.frame_default_bucket(uuid, text, uuid, boolean, text) FROM PUBLIC RESTRICT;
 
 CREATE FUNCTION function_resolution.staging_bucket_tag() RETURNS text AS $EOFCODE$
     SELECT 'default-temp';
@@ -4655,3 +4657,106 @@ END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
 REVOKE ALL ON FUNCTION function_resolution.ownership_challenge(text, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.resolve_default_bucket(
+  scope text,
+  entity_id uuid,
+  public_access boolean,
+  bucket_key text DEFAULT NULL
+) RETURNS TABLE (
+  bucket_id uuid,
+  resolved_key text,
+  bucket_type text,
+  physical_name text,
+  owner_database_id uuid,
+  owner_scope text,
+  owner_key uuid
+) AS $EOFCODE$
+DECLARE
+    v_database_id uuid := jwt_private.require_database_id();
+    v_actor_id uuid := COALESCE(jwt_public.current_principal_id(), jwt_public.current_user_id());
+    v_entity_scoped boolean;
+    v_membership_scope text;
+    v_sprt_schema text;
+    v_sprt_table text;
+    v_is_member boolean;
+BEGIN
+    SELECT bool_or(r.entity_table_id IS NOT NULL)
+    INTO v_entity_scoped
+    FROM function_resolution.storage_module_registrations(v_database_id) AS r
+    WHERE r.scope = resolve_default_bucket.scope;
+
+    IF v_entity_scoped IS NULL THEN
+        PERFORM errors.raise_error(
+            'STORAGE_MODULE_NOT_FOUND',
+            jsonb_build_object('scope', resolve_default_bucket.scope),
+            'internal'
+        );
+    END IF;
+
+    IF v_entity_scoped AND resolve_default_bucket.entity_id IS NULL THEN
+        PERFORM errors.raise_error(
+            'STORAGE_SCOPE_KEY_REQUIRED',
+            jsonb_build_object('scope', resolve_default_bucket.scope),
+            'internal'
+        );
+    END IF;
+
+    IF NOT v_entity_scoped AND resolve_default_bucket.entity_id IS NOT NULL THEN
+        PERFORM errors.raise_error(
+            'STORAGE_SCOPE_KEY_UNEXPECTED',
+            jsonb_build_object('scope', resolve_default_bucket.scope),
+            'internal'
+        );
+    END IF;
+
+    v_membership_scope := CASE WHEN v_entity_scoped THEN resolve_default_bucket.scope ELSE 'app' END;
+
+    SELECT m.private_schema, m.sprt_table_name
+    INTO v_sprt_schema, v_sprt_table
+    FROM function_resolution.memberships_module_registrations(v_database_id) AS m
+    WHERE m.scope = v_membership_scope;
+
+    IF v_actor_id IS NOT NULL AND v_sprt_table IS NOT NULL THEN
+        IF v_entity_scoped THEN
+            -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the SPRT lives under the database's generated schema; identifiers are catalog data, values are bound
+            EXECUTE format(
+                'SELECT EXISTS (SELECT 1 FROM %I.%I m WHERE m.actor_id = $1 AND m.entity_id = $2)',
+                v_sprt_schema, v_sprt_table
+            ) INTO v_is_member USING v_actor_id, resolve_default_bucket.entity_id;
+        ELSE
+            -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the SPRT lives under the database's generated schema; identifiers are catalog data, values are bound
+            EXECUTE format(
+                'SELECT EXISTS (SELECT 1 FROM %I.%I m WHERE m.actor_id = $1)',
+                v_sprt_schema, v_sprt_table
+            ) INTO v_is_member USING v_actor_id;
+        END IF;
+    END IF;
+
+    IF v_is_member IS NOT TRUE THEN
+        PERFORM errors.raise_error(
+            'STORAGE_SCOPE_MEMBERSHIP_REQUIRED',
+            jsonb_build_object(
+                'scope', resolve_default_bucket.scope,
+                'entity_id', resolve_default_bucket.entity_id
+            ),
+            'internal'
+        );
+    END IF;
+
+    RETURN QUERY
+    SELECT f.bucket_id, f.resolved_key, f.bucket_type, f.physical_name,
+           f.owner_database_id, f.owner_scope, f.owner_key
+    FROM function_resolution.frame_default_bucket(
+        v_database_id,
+        resolve_default_bucket.scope,
+        resolve_default_bucket.entity_id,
+        resolve_default_bucket.public_access,
+        resolve_default_bucket.bucket_key
+    ) AS f;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.resolve_default_bucket(text, uuid, boolean, text) FROM PUBLIC RESTRICT;
+
+GRANT EXECUTE ON FUNCTION function_resolution.resolve_default_bucket(text, uuid, boolean, text) TO authenticated;
