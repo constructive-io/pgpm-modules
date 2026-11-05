@@ -30,8 +30,7 @@ No dynamic SQL: this is a plain static function, not a generated one.
 
 ## Reserved codes: agent-auth session/principal chains
 
-The session-chain and principal-delegation design
-(constructive-planning #1971, schema foundation in #1972) reserves the following
+The session-chain and principal-delegation design reserves the following
 codes. `mint_child_session` raises the first group today; the rest are claimed
 here so the sibling features (token exchange, refresh rotation, child
 principals) and the `@constructive-io/errors` registry mapping can land without a
