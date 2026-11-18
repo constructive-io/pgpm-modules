@@ -187,8 +187,8 @@ BEGIN
     -- reused for the column checks below instead of being probed again.
     SELECT c.oid
     INTO v_module_relid
-    FROM pg_class c
-    JOIN pg_namespace n ON n.oid = c.relnamespace
+    FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
     WHERE n.nspname = 'metaschema_modules_public'
       AND c.relname = v_module_table
       AND c.relkind IN ('r', 'p', 'v', 'm', 'f');
@@ -204,7 +204,7 @@ BEGIN
     -- valid selector into an error.
     SELECT EXISTS (
         SELECT 1
-        FROM pg_attribute a
+        FROM pg_catalog.pg_attribute a
         WHERE a.attrelid = v_module_relid
           AND a.attname = 'scope'
           AND a.attnum > 0
@@ -220,7 +220,7 @@ BEGIN
 
     IF NOT EXISTS (
         SELECT 1
-        FROM pg_attribute a
+        FROM pg_catalog.pg_attribute a
         WHERE a.attrelid = v_module_relid
           AND a.attname = 'api_name'
           AND a.attnum > 0
@@ -244,7 +244,6 @@ BEGIN
         -- @scope pins the registration to one scope tier; without it, the
         -- frame being walked supplies the scope, so a department execution
         -- finds its org's registration when the org frame comes up.
-        -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the module registration table is named by the selector
         v_query := format(
             'SELECT m.schema_id, m.api_name
                FROM metaschema_modules_public.%I m
@@ -257,6 +256,7 @@ BEGIN
 
         CONTINUE WHEN v_scope_filter IS NOT NULL AND v_scope_filter <> v_frame.scope;
 
+        -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the module registration table is named by the selector
         EXECUTE v_query
         INTO v_module_schema_id, v_module_api_name
         USING v_frame.lookup_database_id, v_frame.scope;
@@ -269,7 +269,6 @@ BEGIN
 
         CONTINUE WHEN v_apis_schema IS NULL OR v_api_schemas_schema IS NULL;
 
-        -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the api surface tables are located per frame
         v_query := format(
             'SELECT s.api_id AS id, a.name
                FROM %I.%I s
@@ -281,6 +280,7 @@ BEGIN
 
         v_matches := '[]'::jsonb;
 
+        -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the api surface tables are located per frame
         FOR v_row IN EXECUTE v_query USING v_module_schema_id
         LOOP
             v_matches := v_matches || to_jsonb(v_row);

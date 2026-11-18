@@ -386,7 +386,6 @@ BEGIN
     END IF;
 
     -- 4. The site, pinned to that key value.
-    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the sites plane is named by the caller and proved by the registration join above
     query := format(
         'SELECT EXISTS (SELECT 1 FROM %I.%I AS s WHERE s.id = $1%s)',
         install_route_bindings.sites_schema,
@@ -397,6 +396,7 @@ BEGIN
         END
     );
 
+    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the sites plane is named by the caller and proved by the registration join above
     EXECUTE query INTO site_found USING install_route_bindings.site_id, key_value;
 
     IF NOT site_found THEN
@@ -414,7 +414,6 @@ BEGIN
     --    empty install. A route this install stamped as serving the site counts
     --    too: once a redirect has taken the root over, the pages (serving-site
     --    stamped, function-targeted) are what still tie the host to the site.
-    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the routes plane is named by app_scope.routing_tables
     query := format(
         'SELECT r.domain_id FROM %I.%I AS r WHERE (r.target_site_id = $1%s)%s ORDER BY r.path LIMIT 1',
         routes_schema,
@@ -429,6 +428,7 @@ BEGIN
         END
     );
 
+    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the routes plane is named by app_scope.routing_tables
     EXECUTE query INTO domain_id USING install_route_bindings.site_id, key_value;
 
     IF domain_id IS NULL THEN
@@ -437,13 +437,13 @@ BEGIN
             USING ERRCODE = 'FR054';
     END IF;
 
-    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the domains plane is named by app_scope.routing_tables
     query := format(
         'SELECT d.hostname FROM %I.%I AS d WHERE d.id = $1',
         domains_schema,
         domains_table
     );
 
+    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the domains plane is named by app_scope.routing_tables
     EXECUTE query INTO domain_hostname USING domain_id;
 
     -- 6. Per binding: resolve the declared target at THIS (scope, entity) and
@@ -486,7 +486,6 @@ BEGIN
             -- The redirect row, found by name or created: same insert-if-missing
             -- contract as the routes, so a re-run never rewrites a redirect a
             -- tenant has since retuned.
-            -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the redirects plane is named by the routes plane's own route_module registration
             query := format(
                 'SELECT rd.id FROM %I.%I AS rd WHERE rd.name = $1%s',
                 redirects_schema,
@@ -497,10 +496,10 @@ BEGIN
                 END
             );
 
+            -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the redirects plane is named by the routes plane's own route_module registration
             EXECUTE query INTO target_id USING entry_redirect_name, key_value;
 
             IF target_id IS NULL THEN
-                -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: insert into the redirects plane named by the route_module registration; every value is a bound parameter
                 query := format(
                     'INSERT INTO %I.%I (%sname, to_host, to_path, status_code, preserve_path, preserve_query)
                      VALUES (%s$1, $2, $3, $4, false, true)
@@ -511,6 +510,7 @@ BEGIN
                     CASE WHEN routes_key IS NULL THEN '' ELSE '$5, ' END
                 );
 
+                -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: insert into the redirects plane named by the route_module registration; every value is a bound parameter
                 EXECUTE query INTO target_id
                     USING entry_redirect_name, entry_to_host, entry_to_path, entry_status, key_value;
             END IF;
@@ -525,7 +525,6 @@ BEGIN
                     USING ERRCODE = 'FR055';
             END IF;
 
-            -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the resources plane is named by this scope's own resource_module registration
             query := format(
                 'SELECT EXISTS (SELECT 1 FROM %I.%I AS r WHERE r.id = $1%s)',
                 resources_schema,
@@ -536,6 +535,7 @@ BEGIN
                 END
             );
 
+            -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the resources plane is named by this scope's own resource_module registration
             EXECUTE query INTO service_found USING entry_service, key_value;
 
             IF NOT service_found THEN
@@ -549,7 +549,6 @@ BEGIN
             target_column := 'target_service_id';
         END IF;
 
-        -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: insert into the routes plane named by app_scope.routing_tables; every value is a bound parameter
         query := format(
             'INSERT INTO %I.%I (%s%sdomain_id, path, anonymous, %I)
              SELECT %s%s$1, $2, $6, $3
@@ -571,6 +570,7 @@ BEGIN
             END
         );
 
+        -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: insert into the routes plane named by app_scope.routing_tables; every value is a bound parameter
         EXECUTE query USING domain_id, entry_path, target_id, key_value,
             install_route_bindings.site_id, entry_anonymous;
         GET DIAGNOSTICS inserted = ROW_COUNT;
@@ -580,7 +580,6 @@ BEGIN
             -- The root guard's placeholder — the path exists and still targets
             -- the site this install is for — is the one row a redirect binding
             -- takes over. Anything a tenant has pointed elsewhere stays.
-            -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: update the routes plane named by app_scope.routing_tables; every value is a bound parameter
             query := format(
                 'UPDATE %I.%I AS r
                     SET target_site_id = NULL, target_redirect_id = $3, anonymous = $5
@@ -594,6 +593,7 @@ BEGIN
                 END
             );
 
+            -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: update the routes plane named by app_scope.routing_tables; every value is a bound parameter
             EXECUTE query USING domain_id, entry_path, target_id,
                 install_route_bindings.site_id, entry_anonymous, key_value;
             GET DIAGNOSTICS repointed_now = ROW_COUNT;
@@ -615,7 +615,6 @@ BEGIN
     -- ownership pin repeats here so a SECURITY DEFINER caller cannot stamp a row
     -- another owner holds even if a domain were ever shared across planes.
     IF routes_serving_site_key IS NOT NULL AND jsonb_array_length(skipped) > 0 THEN
-        -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: update the routes plane named by app_scope.routing_tables; every value is a bound parameter
         query := format(
             'UPDATE %I.%I AS r
                 SET %I = $1
@@ -632,6 +631,7 @@ BEGIN
             END
         );
 
+        -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: update the routes plane named by app_scope.routing_tables; every value is a bound parameter
         EXECUTE query USING install_route_bindings.site_id, domain_id, skipped, key_value;
         GET DIAGNOSTICS stamped = ROW_COUNT;
     END IF;

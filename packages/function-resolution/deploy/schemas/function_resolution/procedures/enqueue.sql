@@ -157,4 +157,9 @@ $$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 COMMENT ON FUNCTION function_resolution.enqueue(text, json, text, uuid, uuid, text, text, text, timestamptz, integer, integer, uuid, text, boolean, text, uuid, uuid, uuid, uuid) IS
 'Resolver-aware job enqueue: resolves (or trusts a supplied) function definition for the execution (database, scope, entity, task_identifier), stamps the (function_definition_id, definition_scope) pair and the definition''s queue routing, then delegates the insert to app_jobs.add_job. The single enqueue path for function jobs; definition-less tasks enqueue with a NULL pair. Portable: built only on app_scope + the metaschema catalog + app_jobs, no AST/deparser runtime.';
 
+-- It forwards a caller-chosen task and payload to app_jobs.add_job as its
+-- owner, so no role is granted it: its callers are SECURITY DEFINER triggers
+-- that run as the owner.
+REVOKE ALL ON FUNCTION function_resolution.enqueue(text, json, text, uuid, uuid, text, text, text, timestamptz, integer, integer, uuid, text, boolean, text, uuid, uuid, uuid, uuid) FROM PUBLIC;
+
 COMMIT;

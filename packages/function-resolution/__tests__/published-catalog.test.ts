@@ -41,7 +41,9 @@ describe('function-resolution against the published catalog plane', () => {
          task_identifier text NOT NULL,
          queue_name text,
          priority integer,
-         max_attempts integer
+         max_attempts integer,
+         inputs jsonb NOT NULL DEFAULT '[]'::jsonb,
+         outputs jsonb NOT NULL DEFAULT '[]'::jsonb
        )`
     );
     // The unique keys the published catalog carries: database-qualified, so
@@ -89,10 +91,13 @@ describe('function-resolution against the published catalog plane', () => {
     await pg.query(
       `INSERT INTO catalog_private.functions
          (id, owner_scope, owner_key, is_visible, database_id, task_identifier,
-          queue_name, priority, max_attempts)
-       VALUES ($1, 'app', NULL, true, $2, 'email:send', 'email', 5, 3),
-              ($3, 'app', NULL, true, $4, 'email:send', 'default', 0, 25),
-              ($5, 'database', $2, true, $2, 'report:run', NULL, NULL, NULL)`,
+          queue_name, priority, max_attempts, inputs, outputs)
+       VALUES ($1, 'app', NULL, true, $2, 'email:send', 'email', 5, 3,
+               '[{"name":"to","type":"string"}]'::jsonb,
+               '[{"name":"sent","type":"json"},{"name":"bounced","type":"json"}]'::jsonb),
+              ($3, 'app', NULL, true, $4, 'email:send', 'default', 0, 25,
+               '[]'::jsonb, '[{"name":"result","type":"json"}]'::jsonb),
+              ($5, 'database', $2, true, $2, 'report:run', NULL, NULL, NULL, '[]'::jsonb, '[]'::jsonb)`,
       [ids.appA, DB_A, ids.appB, DB_B, ids.dbScopedA]
     );
     await pg.query(
@@ -201,6 +206,40 @@ describe('function-resolution against the published catalog plane', () => {
       resolved_scope: 'app',
       owner_database_id: DB_A,
     });
+  });
+
+  // resolve_ports(): the graph engine's registry fallback for declared ports
+  // reads the winning catalog row's inputs/outputs — the same chain, the same
+  // tenant-exact row, no scoped source table.
+  it('resolve_ports(): the declared ports of the resolved definition, as a NodeDefinition', async () => {
+    const [row] = await pg.any<{ ports: Record<string, unknown> }>(
+      `SELECT function_resolution.resolve_ports($1, 'app', NULL, 'email:send') AS ports`,
+      [DB_A]
+    );
+    expect(row.ports).toEqual({
+      name: 'email:send',
+      inputs: [{ name: 'to', type: 'string' }],
+      outputs: [{ name: 'sent', type: 'json' }, { name: 'bounced', type: 'json' }],
+    });
+
+    // DB_B's own row, not DB_A's.
+    const [rowB] = await pg.any<{ ports: Record<string, unknown> }>(
+      `SELECT function_resolution.resolve_ports($1, 'app', NULL, 'email:send') AS ports`,
+      [DB_B]
+    );
+    expect(rowB.ports).toEqual({
+      name: 'email:send',
+      inputs: [],
+      outputs: [{ name: 'result', type: 'json' }],
+    });
+  });
+
+  it('resolve_ports(): NULL when the chain has no definition (the caller keeps its PORT_NOT_FOUND backstop)', async () => {
+    const [row] = await pg.any<{ ports: unknown }>(
+      `SELECT function_resolution.resolve_ports($1, 'app', NULL, 'nowhere:registered') AS ports`,
+      [DB_A]
+    );
+    expect(row.ports).toBeNull();
   });
 
   it('resolve(): a database never sees another database rows', async () => {

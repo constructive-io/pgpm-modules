@@ -422,6 +422,8 @@ $EOFCODE$ LANGUAGE plpgsql VOLATILE SECURITY DEFINER;
 
 COMMENT ON FUNCTION function_resolution.enqueue(text, pg_catalog.json, text, uuid, uuid, text, text, text, timestamptz, int, int, uuid, text, boolean, text, uuid, uuid, uuid, uuid) IS 'Resolver-aware job enqueue: resolves (or trusts a supplied) function definition for the execution (database, scope, entity, task_identifier), stamps the (function_definition_id, definition_scope) pair and the definition''s queue routing, then delegates the insert to app_jobs.add_job. The single enqueue path for function jobs; definition-less tasks enqueue with a NULL pair. Portable: built only on app_scope + the metaschema catalog + app_jobs, no AST/deparser runtime.';
 
+REVOKE ALL ON FUNCTION function_resolution.enqueue(text, pg_catalog.json, text, uuid, uuid, text, text, text, timestamptz, int, int, uuid, text, boolean, text, uuid, uuid, uuid, uuid) FROM PUBLIC RESTRICT;
+
 CREATE FUNCTION function_resolution.bucket_matches(
   database_id uuid,
   scope text,
@@ -959,8 +961,8 @@ BEGIN
     -- reused for the column checks below instead of being probed again.
     SELECT c.oid
     INTO v_module_relid
-    FROM pg_class c
-    JOIN pg_namespace n ON n.oid = c.relnamespace
+    FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
     WHERE n.nspname = 'metaschema_modules_public'
       AND c.relname = v_module_table
       AND c.relkind IN ('r', 'p', 'v', 'm', 'f');
@@ -976,7 +978,7 @@ BEGIN
     -- valid selector into an error.
     SELECT EXISTS (
         SELECT 1
-        FROM pg_attribute a
+        FROM pg_catalog.pg_attribute a
         WHERE a.attrelid = v_module_relid
           AND a.attname = 'scope'
           AND a.attnum > 0
@@ -992,7 +994,7 @@ BEGIN
 
     IF NOT EXISTS (
         SELECT 1
-        FROM pg_attribute a
+        FROM pg_catalog.pg_attribute a
         WHERE a.attrelid = v_module_relid
           AND a.attname = 'api_name'
           AND a.attnum > 0
@@ -1016,7 +1018,6 @@ BEGIN
         -- @scope pins the registration to one scope tier; without it, the
         -- frame being walked supplies the scope, so a department execution
         -- finds its org's registration when the org frame comes up.
-        -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the module registration table is named by the selector
         v_query := format(
             'SELECT m.schema_id, m.api_name
                FROM metaschema_modules_public.%I m
@@ -1029,6 +1030,7 @@ BEGIN
 
         CONTINUE WHEN v_scope_filter IS NOT NULL AND v_scope_filter <> v_frame.scope;
 
+        -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the module registration table is named by the selector
         EXECUTE v_query
         INTO v_module_schema_id, v_module_api_name
         USING v_frame.lookup_database_id, v_frame.scope;
@@ -1041,7 +1043,6 @@ BEGIN
 
         CONTINUE WHEN v_apis_schema IS NULL OR v_api_schemas_schema IS NULL;
 
-        -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the api surface tables are located per frame
         v_query := format(
             'SELECT s.api_id AS id, a.name
                FROM %I.%I s
@@ -1053,6 +1054,7 @@ BEGIN
 
         v_matches := '[]'::jsonb;
 
+        -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the api surface tables are located per frame
         FOR v_row IN EXECUTE v_query USING v_module_schema_id
         LOOP
             v_matches := v_matches || to_jsonb(v_row);
@@ -1391,7 +1393,6 @@ BEGIN
         -- function module predates the newest one. The row must carry the
         -- frame's key in the module's recorded scope-key column; a global frame
         -- has neither, and its key is asserted NULL.
-        -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the definitions table is located per frame
         definition_query := format(
             'SELECT to_jsonb(d) FROM %I.%I d WHERE d.id = $1 AND %s',
             frame.schema_name,
@@ -1402,6 +1403,7 @@ BEGIN
             END
         );
 
+        -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the definitions table is located per frame
         EXECUTE definition_query
         INTO definition
         USING resolve_capabilities.function_definition_id, frame.key_value;
@@ -1960,7 +1962,6 @@ BEGIN
     END IF;
 
     -- 4. The site, pinned to that key value.
-    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the sites plane is named by the caller and proved by the registration join above
     query := format(
         'SELECT EXISTS (SELECT 1 FROM %I.%I AS s WHERE s.id = $1%s)',
         install_route_bindings.sites_schema,
@@ -1971,6 +1972,7 @@ BEGIN
         END
     );
 
+    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the sites plane is named by the caller and proved by the registration join above
     EXECUTE query INTO site_found USING install_route_bindings.site_id, key_value;
 
     IF NOT site_found THEN
@@ -1988,7 +1990,6 @@ BEGIN
     --    empty install. A route this install stamped as serving the site counts
     --    too: once a redirect has taken the root over, the pages (serving-site
     --    stamped, function-targeted) are what still tie the host to the site.
-    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the routes plane is named by app_scope.routing_tables
     query := format(
         'SELECT r.domain_id FROM %I.%I AS r WHERE (r.target_site_id = $1%s)%s ORDER BY r.path LIMIT 1',
         routes_schema,
@@ -2003,6 +2004,7 @@ BEGIN
         END
     );
 
+    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the routes plane is named by app_scope.routing_tables
     EXECUTE query INTO domain_id USING install_route_bindings.site_id, key_value;
 
     IF domain_id IS NULL THEN
@@ -2011,13 +2013,13 @@ BEGIN
             USING ERRCODE = 'FR054';
     END IF;
 
-    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the domains plane is named by app_scope.routing_tables
     query := format(
         'SELECT d.hostname FROM %I.%I AS d WHERE d.id = $1',
         domains_schema,
         domains_table
     );
 
+    -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the domains plane is named by app_scope.routing_tables
     EXECUTE query INTO domain_hostname USING domain_id;
 
     -- 6. Per binding: resolve the declared target at THIS (scope, entity) and
@@ -2060,7 +2062,6 @@ BEGIN
             -- The redirect row, found by name or created: same insert-if-missing
             -- contract as the routes, so a re-run never rewrites a redirect a
             -- tenant has since retuned.
-            -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the redirects plane is named by the routes plane's own route_module registration
             query := format(
                 'SELECT rd.id FROM %I.%I AS rd WHERE rd.name = $1%s',
                 redirects_schema,
@@ -2071,10 +2072,10 @@ BEGIN
                 END
             );
 
+            -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the redirects plane is named by the routes plane's own route_module registration
             EXECUTE query INTO target_id USING entry_redirect_name, key_value;
 
             IF target_id IS NULL THEN
-                -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: insert into the redirects plane named by the route_module registration; every value is a bound parameter
                 query := format(
                     'INSERT INTO %I.%I (%sname, to_host, to_path, status_code, preserve_path, preserve_query)
                      VALUES (%s$1, $2, $3, $4, false, true)
@@ -2085,6 +2086,7 @@ BEGIN
                     CASE WHEN routes_key IS NULL THEN '' ELSE '$5, ' END
                 );
 
+                -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: insert into the redirects plane named by the route_module registration; every value is a bound parameter
                 EXECUTE query INTO target_id
                     USING entry_redirect_name, entry_to_host, entry_to_path, entry_status, key_value;
             END IF;
@@ -2099,7 +2101,6 @@ BEGIN
                     USING ERRCODE = 'FR055';
             END IF;
 
-            -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the resources plane is named by this scope's own resource_module registration
             query := format(
                 'SELECT EXISTS (SELECT 1 FROM %I.%I AS r WHERE r.id = $1%s)',
                 resources_schema,
@@ -2110,6 +2111,7 @@ BEGIN
                 END
             );
 
+            -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the resources plane is named by this scope's own resource_module registration
             EXECUTE query INTO service_found USING entry_service, key_value;
 
             IF NOT service_found THEN
@@ -2123,7 +2125,6 @@ BEGIN
             target_column := 'target_service_id';
         END IF;
 
-        -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: insert into the routes plane named by app_scope.routing_tables; every value is a bound parameter
         query := format(
             'INSERT INTO %I.%I (%s%sdomain_id, path, anonymous, %I)
              SELECT %s%s$1, $2, $6, $3
@@ -2145,6 +2146,7 @@ BEGIN
             END
         );
 
+        -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: insert into the routes plane named by app_scope.routing_tables; every value is a bound parameter
         EXECUTE query USING domain_id, entry_path, target_id, key_value,
             install_route_bindings.site_id, entry_anonymous;
         GET DIAGNOSTICS inserted = ROW_COUNT;
@@ -2154,7 +2156,6 @@ BEGIN
             -- The root guard's placeholder — the path exists and still targets
             -- the site this install is for — is the one row a redirect binding
             -- takes over. Anything a tenant has pointed elsewhere stays.
-            -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: update the routes plane named by app_scope.routing_tables; every value is a bound parameter
             query := format(
                 'UPDATE %I.%I AS r
                     SET target_site_id = NULL, target_redirect_id = $3, anonymous = $5
@@ -2168,6 +2169,7 @@ BEGIN
                 END
             );
 
+            -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: update the routes plane named by app_scope.routing_tables; every value is a bound parameter
             EXECUTE query USING domain_id, entry_path, target_id,
                 install_route_bindings.site_id, entry_anonymous, key_value;
             GET DIAGNOSTICS repointed_now = ROW_COUNT;
@@ -2189,7 +2191,6 @@ BEGIN
     -- ownership pin repeats here so a SECURITY DEFINER caller cannot stamp a row
     -- another owner holds even if a domain were ever shared across planes.
     IF routes_serving_site_key IS NOT NULL AND jsonb_array_length(skipped) > 0 THEN
-        -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: update the routes plane named by app_scope.routing_tables; every value is a bound parameter
         query := format(
             'UPDATE %I.%I AS r
                 SET %I = $1
@@ -2206,6 +2207,7 @@ BEGIN
             END
         );
 
+        -- pgsql-lint-disable-next-line no-dynamic-sql -- write-only: update the routes plane named by app_scope.routing_tables; every value is a bound parameter
         EXECUTE query USING install_route_bindings.site_id, domain_id, skipped, key_value;
         GET DIAGNOSTICS stamped = ROW_COUNT;
     END IF;
@@ -3352,7 +3354,8 @@ CREATE FUNCTION function_resolution.infra_secrets_module_registrations(
   config_table_name text,
   public_schema text,
   private_schema text,
-  config_schema text
+  config_schema text,
+  config_private_schema text
 ) AS $EOFCODE$
 SELECT
     ism.database_id,
@@ -3366,7 +3369,8 @@ SELECT
     cfg_t.name AS config_table_name,
     pub_s.schema_name AS public_schema,
     pvs.schema_name AS private_schema,
-    cfg_s.schema_name AS config_schema
+    cfg_s.schema_name AS config_schema,
+    cfg_ps.schema_name AS config_private_schema
 FROM metaschema_modules_public.infra_secrets_module AS ism
     LEFT JOIN metaschema_modules_public.infra_config_module icm
     ON icm.database_id = ism.database_id
@@ -3376,6 +3380,7 @@ FROM metaschema_modules_public.infra_secrets_module AS ism
     LEFT JOIN metaschema_public.schema pvs ON pvs.id = ism.private_schema_id
     LEFT JOIN metaschema_public.schema pub_s ON pub_s.id = ism.schema_id
     LEFT JOIN metaschema_public.schema cfg_s ON cfg_s.id = icm.schema_id
+    LEFT JOIN metaschema_public.schema cfg_ps ON cfg_ps.id = icm.private_schema_id
 WHERE ($1 IS NULL OR ism.database_id = $1)
   AND ($2 IS NULL OR ism.scope = $2)
 $EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
@@ -3783,7 +3788,7 @@ CREATE FUNCTION function_resolution.resource_module_registrations(
   public_schema text,
   private_schema text,
   registry_bindings_table_name text,
-  builder_bindings_table_name text,
+  service_bindings_table_name text,
   rollup_resource_usage_summary_function text,
   resource_billing_rollup_function text
 ) AS $EOFCODE$
@@ -3805,7 +3810,7 @@ SELECT
     ps.schema_name AS public_schema,
     pvs.schema_name AS private_schema,
     rm.registry_bindings_table_name,
-    rm.builder_bindings_table_name,
+    rm.service_bindings_table_name,
     rm.rollup_resource_usage_summary_function,
     rm.resource_billing_rollup_function
 FROM metaschema_modules_public.resource_module AS rm
@@ -4005,7 +4010,6 @@ CREATE FUNCTION function_resolution.storage_module_registrations(
   has_path_shares boolean,
   has_versioning boolean,
   has_content_hash boolean,
-  has_confirm_upload boolean,
   entity_schema text,
   entity_table text
 ) AS $EOFCODE$
@@ -4045,7 +4049,6 @@ SELECT
     sm.has_path_shares,
     sm.has_versioning,
     sm.has_content_hash,
-    sm.has_confirm_upload,
     es.schema_name AS entity_schema,
     et.name AS entity_table
 FROM metaschema_modules_public.storage_module AS sm
@@ -4177,7 +4180,6 @@ CREATE FUNCTION function_resolution.api_by_name(
 ) RETURNS TABLE (
   api_id uuid,
   api_database_id uuid,
-  dbname text,
   role_name text,
   anon_role text,
   is_public boolean,
@@ -4185,14 +4187,14 @@ CREATE FUNCTION function_resolution.api_by_name(
 ) AS $EOFCODE$
 BEGIN
     RETURN QUERY
-    SELECT a.id, a.database_id, a.dbname::text, a.role_name::text, a.anon_role::text, a.is_published,
+    SELECT a.id, a.database_id, a.role_name::text, a.anon_role::text, a.is_published,
            COALESCE(array_agg(s.schema_name::text ORDER BY s.schema_name) FILTER (WHERE s.schema_name IS NOT NULL), '{}')
     FROM routing_public.apis AS a
     LEFT JOIN routing_public.api_schemas AS aps ON aps.api_id = a.id
     LEFT JOIN metaschema_public.schema AS s ON s.id = aps.schema_id
     WHERE a.database_id = api_by_name.database_id
       AND a.name = api_by_name.api_name
-    GROUP BY a.id, a.database_id, a.dbname, a.role_name, a.anon_role, a.is_published;
+    GROUP BY a.id, a.database_id, a.role_name, a.anon_role, a.is_published;
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
@@ -4328,10 +4330,12 @@ CREATE FUNCTION function_resolution.storage_modules() RETURNS TABLE (
   has_path_shares boolean,
   has_versioning boolean,
   has_content_hash boolean,
-  has_confirm_upload boolean,
   entity_schema text,
   entity_table text
 ) AS $EOFCODE$
+DECLARE
+    v_database_id uuid;
+    v_database_plane_id uuid;
 BEGIN
     IF NOT EXISTS (
         SELECT 1
@@ -4344,8 +4348,26 @@ BEGIN
         PERFORM errors.raise_error('STORAGE_PLATFORM_ENDPOINT_MISSING', '{}'::jsonb, 'internal');
     END IF;
 
+    v_database_id := jwt_private.require_database_id();
+
+    -- The first frame holding a database-scope storage module: the database's
+    -- own, else the shared plane it resolves through.
+    SELECT f.lookup_database_id
+    INTO v_database_plane_id
+    FROM app_scope.frames(v_database_id, 'database') WITH ORDINALITY AS f(scope, lookup_database_id, key_value, ord)
+    WHERE f.scope = 'database'
+      AND EXISTS (
+        SELECT 1
+        FROM metaschema_modules_public.storage_module AS sm
+        WHERE sm.database_id = f.lookup_database_id
+          AND sm.scope = 'database'
+      )
+    ORDER BY f.ord
+    LIMIT 1;
+
     -- One projection of the storage configuration: the platform login's
-    -- registrations reader, narrowed to the request's own database.
+    -- registrations reader, narrowed to the request's own database and the
+    -- database-scope plane it resolves.
     RETURN QUERY
     SELECT
         r.id,
@@ -4375,12 +4397,15 @@ BEGIN
         r.has_path_shares,
         r.has_versioning,
         r.has_content_hash,
-        r.has_confirm_upload,
         r.entity_schema,
         r.entity_table
-    FROM function_resolution.storage_module_registrations(jwt_private.require_database_id()) AS r
+    FROM function_resolution.storage_module_registrations(NULL) AS r
     WHERE r.buckets_table IS NOT NULL
-      AND r.files_table IS NOT NULL;
+      AND r.files_table IS NOT NULL
+      AND (
+        r.database_id = v_database_id
+        OR (r.scope = 'database' AND r.database_id = v_database_plane_id)
+      );
 END;
 $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
@@ -4504,7 +4529,6 @@ CREATE FUNCTION function_resolution.database_features(
   enable_aggregates boolean,
   enable_postgis boolean,
   enable_search boolean,
-  enable_direct_uploads boolean,
   enable_presigned_uploads boolean,
   enable_many_to_many boolean,
   enable_connection_filter boolean,
@@ -4519,7 +4543,6 @@ BEGIN
     SELECT COALESCE(aps.enable_aggregates, ds.enable_aggregates),
            COALESCE(aps.enable_postgis, ds.enable_postgis),
            COALESCE(aps.enable_search, ds.enable_search),
-           COALESCE(aps.enable_direct_uploads, ds.enable_direct_uploads),
            COALESCE(aps.enable_presigned_uploads, ds.enable_presigned_uploads),
            COALESCE(aps.enable_many_to_many, ds.enable_many_to_many),
            COALESCE(aps.enable_connection_filter, ds.enable_connection_filter),
@@ -4760,3 +4783,231 @@ $EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 REVOKE ALL ON FUNCTION function_resolution.resolve_default_bucket(text, uuid, boolean, text) FROM PUBLIC RESTRICT;
 
 GRANT EXECUTE ON FUNCTION function_resolution.resolve_default_bucket(text, uuid, boolean, text) TO authenticated;
+
+CREATE FUNCTION function_resolution.own_bucket_location(
+  bucket_id uuid
+) RETURNS TABLE (
+  bucket_key text,
+  bucket_type text,
+  physical_name text,
+  endpoint text,
+  provider text,
+  region text
+) AS $EOFCODE$
+BEGIN
+    RETURN QUERY
+    SELECT b.key,
+           b.type,
+           b.physical_name,
+           psm.endpoint,
+           psm.provider,
+           psm.region
+    FROM catalog_private.buckets b
+    LEFT JOIN metaschema_modules_public.storage_module psm
+      ON psm.scope = 'platform'
+     AND psm.key = 'default'
+     AND psm.database_id = (SELECT d.id FROM metaschema_public.database d WHERE d.platform)
+    WHERE b.id = own_bucket_location.bucket_id
+      AND b.database_id = jwt_private.require_database_id();
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.own_bucket_location(uuid) FROM PUBLIC RESTRICT;
+
+GRANT EXECUTE ON FUNCTION function_resolution.own_bucket_location(uuid) TO authenticated;
+
+CREATE FUNCTION function_resolution.storage_default_origins(
+  database_id uuid
+) RETURNS SETOF text AS $EOFCODE$
+DECLARE
+    platform_id uuid := app_scope.platform_database_id();
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT o.origin
+    FROM (
+        SELECT CASE WHEN h.tls_status IN ('active', 'ready') THEN 'https://' ELSE 'http://' END
+               || h.hostname
+               || COALESCE(':' || h.public_port::text, '') AS origin
+        FROM (
+            SELECT d.hostname::text AS hostname,
+                   d.tls_status::text AS tls_status,
+                   (SELECT md.public_port
+                      FROM routing_public.managed_domains AS md
+                     WHERE md.domain = substr(d.hostname::text, strpos(d.hostname::text, '.') + 1)
+                       AND md.public_port IS NOT NULL
+                     LIMIT 1) AS public_port
+            FROM routing_public.domains AS d
+            WHERE d.database_id = storage_default_origins.database_id
+              AND storage_default_origins.database_id <> platform_id
+              AND d.hostname IS NOT NULL
+              AND d.is_wildcard IS NOT TRUE
+              AND d.verification_status = 'verified'
+            UNION ALL
+            SELECT pd.hostname::text,
+                   pd.tls_status::text,
+                   (SELECT pmd.public_port
+                      FROM routing_public.platform_managed_domains AS pmd
+                     WHERE pmd.domain = substr(pd.hostname::text, strpos(pd.hostname::text, '.') + 1)
+                       AND pmd.public_port IS NOT NULL
+                     LIMIT 1)
+            FROM routing_public.platform_domains AS pd
+            WHERE storage_default_origins.database_id = platform_id
+              AND pd.hostname IS NOT NULL
+              AND pd.is_wildcard IS NOT TRUE
+              AND pd.verification_status = 'verified'
+        ) AS h
+        UNION ALL
+        SELECT unnest(sm.allowed_origins)
+        FROM metaschema_modules_public.storage_module AS sm
+        WHERE sm.database_id = platform_id
+          AND sm.scope = 'platform'
+          AND sm.key = 'default'
+    ) AS o
+    WHERE o.origin IS NOT NULL
+      AND o.origin <> '*'
+    ORDER BY 1;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.storage_default_origins(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.storage_cors_resync_candidates(
+  filter_database_id uuid DEFAULT NULL
+) RETURNS TABLE (
+  bucket_id uuid,
+  owner_database_id uuid
+) AS $EOFCODE$
+BEGIN
+    RETURN QUERY
+    SELECT b.id, b.database_id
+      FROM catalog_private.buckets b
+     WHERE b.physical_name IS NOT NULL
+       AND (storage_cors_resync_candidates.filter_database_id IS NULL
+            OR b.database_id = storage_cors_resync_candidates.filter_database_id)
+     ORDER BY b.id;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.storage_cors_resync_candidates(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.is_platform_default_storage_module(
+  storage_module_id uuid
+) RETURNS boolean AS $EOFCODE$
+SELECT EXISTS (
+    SELECT 1
+      FROM metaschema_modules_public.storage_module sm
+     WHERE sm.id = is_platform_default_storage_module.storage_module_id
+       AND sm.database_id = app_scope.platform_database_id()
+       AND sm.scope = 'platform'
+       AND sm.key = 'default'
+)
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.is_platform_default_storage_module(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.resolve_ports(
+  database_id uuid,
+  scope text,
+  entity_id uuid,
+  task_identifier text
+) RETURNS jsonb AS $EOFCODE$
+DECLARE
+    v_definition jsonb;
+BEGIN
+    SELECT jsonb_build_object(
+        'name', c.task_identifier,
+        'inputs', c.inputs,
+        'outputs', c.outputs
+    )
+    INTO v_definition
+    FROM function_resolution.resolve(
+        resolve_ports.database_id,
+        resolve_ports.scope,
+        resolve_ports.entity_id,
+        resolve_ports.task_identifier,
+        false
+    ) r
+    JOIN catalog_private.functions c ON c.id = r.function_definition_id;
+
+    RETURN v_definition;
+END;
+$EOFCODE$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.resolve_ports(uuid, text, uuid, text) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.auth_surface_entry(
+  database_id uuid
+) RETURNS TABLE (
+  private_schema text,
+  public_schema text,
+  identifiers_public_schema text,
+  emails_table text,
+  connected_accounts_view text
+) AS $EOFCODE$
+SELECT
+    auth_private.schema_name::text,
+    auth_public.schema_name::text,
+    identifiers_public.schema_name::text,
+    emails.table_name,
+    'user_' || connected.table_name
+FROM metaschema_modules_public.identity_providers_module AS providers
+    JOIN metaschema_public.schema AS auth_private ON auth_private.id = providers.private_schema_id
+    JOIN metaschema_public.schema AS auth_public ON auth_public.id = providers.schema_id
+    JOIN metaschema_modules_public.connected_accounts_module AS connected
+    ON connected.database_id = providers.database_id
+    JOIN metaschema_public.schema AS identifiers_public ON identifiers_public.id = connected.schema_id
+    JOIN metaschema_modules_public.emails_module AS emails
+    ON emails.database_id = providers.database_id
+WHERE providers.database_id = $1
+LIMIT 1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.auth_surface_entry(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.compute_entry(
+  database_id uuid
+) RETURNS TABLE (
+  functions_schema_name text,
+  definitions_table_name text,
+  bindings_table_name text,
+  invocations_schema_name text,
+  invocations_table_name text,
+  invocations_entity_field text
+) AS $EOFCODE$
+SELECT
+    fs.schema_name::text,
+    fm.definitions_table_name,
+    fm.bindings_table_name,
+    ivs.schema_name::text,
+    ivm.invocations_table_name,
+    ivm.entity_field
+FROM metaschema_modules_public.function_module AS fm
+    JOIN metaschema_public.schema AS fs ON fs.id = fm.schema_id
+    JOIN metaschema_modules_public.function_invocation_module AS ivm
+    ON ivm.database_id = fm.database_id AND ivm.scope = fm.scope
+    JOIN metaschema_public.schema AS ivs ON ivs.id = ivm.schema_id
+WHERE fm.database_id = $1
+ORDER BY fs.schema_name
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.compute_entry(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.events_entry(
+  database_id uuid
+) RETURNS TABLE (
+  private_schema_name text,
+  record_event text,
+  record_error text
+) AS $EOFCODE$
+SELECT
+    s.schema_name::text,
+    em.record_event,
+    em.record_error
+FROM metaschema_modules_public.events_module AS em
+    JOIN metaschema_public.schema AS s ON s.id = em.private_schema_id
+WHERE em.database_id = $1
+  AND em.scope = 'app'
+LIMIT 1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.events_entry(uuid) FROM PUBLIC RESTRICT;

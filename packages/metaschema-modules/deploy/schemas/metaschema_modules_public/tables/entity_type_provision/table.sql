@@ -339,7 +339,6 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage IS
        - has_content_hash              (boolean) enable content hash for dedup
        - has_custom_keys               (boolean) allow client-provided S3 keys
        - has_audit_log                 (boolean) enable file events audit table
-       - has_confirm_upload            (boolean) enable HeadObject confirmation flow
        - confirm_upload_delay          (interval) delay before first confirmation attempt
        - buckets                       (jsonb[]) array of initial bucket definitions to seed.
          Each bucket: { name (required), description, is_public, allowed_mime_types, max_file_size, allowed_origins }
