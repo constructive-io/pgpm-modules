@@ -7,6 +7,7 @@ let teardown: () => Promise<void>;
 const PLATFORM_DB = '11111111-1111-1111-1111-111111111111';
 const TENANT_DB = '22222222-2222-2222-2222-222222222222';
 const OTHER_DB = '33333333-3333-3333-3333-333333333333';
+const HOSTED_DB = '44444444-4444-4444-4444-444444444444';
 
 // What the storage plugins may read on the request lane: configuration only.
 const STORAGE_MODULE_COLUMNS = [
@@ -17,7 +18,7 @@ const STORAGE_MODULE_COLUMNS = [
   'allowed_origins', 'upload_url_expiry_seconds', 'download_url_expiry_seconds',
   'default_max_file_size', 'max_filename_length', 'cache_ttl_seconds',
   'max_bulk_files', 'max_bulk_total_size', 'has_path_shares', 'has_versioning',
-  'has_content_hash', 'has_confirm_upload', 'entity_schema', 'entity_table'
+  'has_content_hash', 'entity_schema', 'entity_table'
 ];
 
 const ids: Record<string, string> = {};
@@ -122,6 +123,29 @@ describe('request-lane resolution reads', () => {
       );
       ids[name] = module.id;
     }
+
+    // A hosted database with no storage of its own, and the platform's shared
+    // database-scope plane it resolves through app_scope.frames.
+    await pg.query(
+      `INSERT INTO metaschema_public.database (id, name, platform) VALUES ($1, 'hosted_db', false)`,
+      [HOSTED_DB]
+    );
+    const schema = await pg.one(
+      `INSERT INTO metaschema_public.schema (database_id, name, schema_name)
+       VALUES ($1, 'shared_storage', 'shared_storage_public') RETURNING id`,
+      [PLATFORM_DB]
+    );
+    const table = async (name: string): Promise<string> =>
+      (await pg.one(
+        `INSERT INTO metaschema_public.table (database_id, schema_id, name) VALUES ($1, $2, $3) RETURNING id`,
+        [PLATFORM_DB, schema.id, name]
+      )).id;
+    ids.shared = (await pg.one(
+      `INSERT INTO metaschema_modules_public.storage_module
+         (database_id, scope, schema_id, private_schema_id, buckets_table_id, files_table_id)
+       VALUES ($1, 'database', $2, $2, $3, $4) RETURNING id`,
+      [PLATFORM_DB, schema.id, await table('buckets'), await table('files')]
+    )).id;
   });
 
   afterAll(async () => {
@@ -155,6 +179,23 @@ describe('request-lane resolution reads', () => {
         region: 'us-east-1',
         connection_overrides: []
       });
+    });
+
+    it('reads the platform\'s shared database-scope plane for a database with none of its own', async () => {
+      db.setContext({ role, 'jwt.claims.database_id': HOSTED_DB });
+      const hosted = await db.query(`SELECT * FROM function_resolution.storage_modules()`);
+      expect(hosted.rows.map((r) => r.id)).toEqual([ids.shared]);
+      expect(hosted.rows[0]).toMatchObject({
+        database_id: PLATFORM_DB,
+        scope: 'database',
+        files_schema: 'shared_storage_public',
+        files_table: 'files'
+      });
+
+      // A database with its own database-scope plane still reads only that one.
+      db.setContext({ role, 'jwt.claims.database_id': TENANT_DB });
+      const own = await db.query(`SELECT * FROM function_resolution.storage_modules()`);
+      expect(own.rows.map((r) => r.id)).toEqual([ids.tenant]);
     });
 
     it('reads its own database file-ref binding and no other database\'s', async () => {

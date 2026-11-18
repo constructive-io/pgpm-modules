@@ -33,7 +33,7 @@ RETURNS TABLE (
     public_schema text,
     private_schema text,
     registry_bindings_table_name text,
-    builder_bindings_table_name text,
+    service_bindings_table_name text,
     rollup_resource_usage_summary_function text,
     resource_billing_rollup_function text
 ) AS $$
@@ -55,7 +55,7 @@ SELECT
     ps.schema_name AS public_schema,
     pvs.schema_name AS private_schema,
     rm.registry_bindings_table_name,
-    rm.builder_bindings_table_name,
+    rm.service_bindings_table_name,
     rm.rollup_resource_usage_summary_function,
     rm.resource_billing_rollup_function
 FROM metaschema_modules_public.resource_module AS rm

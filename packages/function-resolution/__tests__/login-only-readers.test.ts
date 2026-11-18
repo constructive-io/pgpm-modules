@@ -3,6 +3,10 @@ import { getConnections, PgTestClient } from 'pgsql-test';
 let pg: PgTestClient;
 let db: PgTestClient;
 let teardown: () => Promise<void>;
+let platformLogin: PgTestClient;
+
+const PLATFORM_LOGIN = `cors_resync_${process.pid}`;
+const PLATFORM_PASSWORD = 'cors-resync-test-password';
 
 const PLATFORM_DB = '11111111-1111-1111-1111-111111111111';
 const TENANT_DB = '22222222-2222-2222-2222-222222222222';
@@ -32,18 +36,23 @@ const READERS: Array<[string, string]> = [
   ['service_principal', `SELECT * FROM function_resolution.service_principal('platform-service')`],
   ['tenant_auth_entry', `SELECT * FROM function_resolution.tenant_auth_entry('${TENANT_DB}')`],
   ['cors_origins', `SELECT * FROM function_resolution.cors_origins('${TENANT_DB}', NULL)`],
+  ['storage_default_origins', `SELECT * FROM function_resolution.storage_default_origins('${TENANT_DB}')`],
+  ['storage_cors_resync_candidates', `SELECT * FROM function_resolution.storage_cors_resync_candidates(NULL)`],
+  ['is_platform_default_storage_module', `SELECT function_resolution.is_platform_default_storage_module('${TENANT_DB}')`],
   ['pubkey_entry', `SELECT * FROM function_resolution.pubkey_entry('${TENANT_DB}')`],
   ['webauthn_entry', `SELECT * FROM function_resolution.webauthn_entry('${TENANT_DB}')`],
   ['database_features', `SELECT * FROM function_resolution.database_features('${TENANT_DB}', NULL)`],
   ['request_protection', `SELECT * FROM function_resolution.request_protection('${TENANT_DB}', NULL)`],
+  ['auth_surface_entry', `SELECT * FROM function_resolution.auth_surface_entry('${TENANT_DB}')`],
+  ['compute_entry', `SELECT * FROM function_resolution.compute_entry('${TENANT_DB}')`],
+  ['events_entry', `SELECT * FROM function_resolution.events_entry('${TENANT_DB}')`],
   ['database_export_catalog', `SELECT * FROM function_resolution.database_export_catalog('${TENANT_DB}')`]
 ];
 
 // The platform's own pre-request reads (X-Api-Name lookup, cache flush, the
 // refusal recorder's identity) cross member RLS, so each is a narrow SECURITY
-// DEFINER reader that only the platform login may execute, on its own
-// connection with no role switch. Here the connection's superuser stands in for
-// that login; every request role is refused.
+// DEFINER reader. The CORS resync reader additionally runs through an actual
+// NOBYPASSRLS login connection; every request role is refused.
 describe('login-only pre-request readers', () => {
   beforeAll(async () => {
     ({ pg, db, teardown } = await getConnections());
@@ -57,10 +66,13 @@ describe('login-only pre-request readers', () => {
     await pg.query(`
       CREATE SCHEMA routing_public;
       CREATE TABLE routing_public.apis (
-        id uuid PRIMARY KEY, database_id uuid NOT NULL, name text NOT NULL, dbname text,
+        id uuid PRIMARY KEY, database_id uuid NOT NULL, name text NOT NULL,
         role_name text, anon_role text, is_published boolean NOT NULL DEFAULT false);
       CREATE TABLE routing_public.api_schemas (api_id uuid NOT NULL, schema_id uuid NOT NULL);
       CREATE TABLE routing_public.domains (database_id uuid NOT NULL, hostname text);
+      CREATE SCHEMA catalog_private;
+      CREATE TABLE catalog_private.buckets (
+        id uuid PRIMARY KEY, database_id uuid NOT NULL, physical_name text);
       CREATE SCHEMA plat_auth_public;
       CREATE TABLE plat_auth_public.principals (
         name text PRIMARY KEY, user_id uuid NOT NULL, bypass_step_up boolean NOT NULL,
@@ -68,6 +80,36 @@ describe('login-only pre-request readers', () => {
       CREATE SCHEMA plat_users_public;
       CREATE TABLE plat_users_public.users (id uuid PRIMARY KEY, type integer NOT NULL);
     `);
+    await pg.query(
+      `INSERT INTO catalog_private.buckets (id, database_id, physical_name)
+       VALUES ('77777777-7777-7777-7777-777777777771', $1, 'tenant-physical'),
+              ('77777777-7777-7777-7777-777777777772', $2, 'other-physical'),
+              ('77777777-7777-7777-7777-777777777773', $1, NULL)`,
+      [TENANT_DB, OTHER_DB]
+    );
+    await pg.query(`
+      ALTER TABLE catalog_private.buckets ENABLE ROW LEVEL SECURITY;
+    `);
+    await pg.query(
+      `GRANT EXECUTE ON FUNCTION function_resolution.storage_cors_resync_candidates(uuid)
+         TO platform_service`
+    );
+    await pg.query(
+      `GRANT EXECUTE ON FUNCTION function_resolution.is_platform_default_storage_module(uuid)
+         TO platform_service`
+    );
+    await pg.query(
+      `CREATE ROLE ${PLATFORM_LOGIN}
+         LOGIN PASSWORD '${PLATFORM_PASSWORD}'
+         NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION
+         IN ROLE platform_service`
+    );
+    await pg.query(`GRANT CONNECT ON DATABASE "${pg.config.database}" TO ${PLATFORM_LOGIN}`);
+    platformLogin = new PgTestClient({
+      ...pg.config,
+      user: PLATFORM_LOGIN,
+      password: PLATFORM_PASSWORD,
+    });
 
     const auth = await pg.one(
       `INSERT INTO metaschema_public.schema (database_id, name, schema_name)
@@ -100,9 +142,9 @@ describe('login-only pre-request readers', () => {
       [TENANT_DB]
     );
     await pg.query(
-      `INSERT INTO routing_public.apis (id, database_id, name, dbname, role_name, anon_role, is_published)
-       VALUES ('55555555-5555-5555-5555-555555555555', $1, 'app', 'tenant', 'authenticated', 'anonymous', true),
-              ('66666666-6666-6666-6666-666666666666', $2, 'app', 'other', 'authenticated', 'anonymous', true)`,
+      `INSERT INTO routing_public.apis (id, database_id, name, role_name, anon_role, is_published)
+       VALUES ('55555555-5555-5555-5555-555555555555', $1, 'app', 'authenticated', 'anonymous', true),
+              ('66666666-6666-6666-6666-666666666666', $2, 'app', 'authenticated', 'anonymous', true)`,
       [TENANT_DB, OTHER_DB]
     );
     await pg.query(
@@ -141,7 +183,7 @@ describe('login-only pre-request readers', () => {
         challenge_expiry_seconds bigint);
       CREATE TABLE routing_public.database_settings (
         database_id uuid NOT NULL, enable_aggregates boolean, enable_postgis boolean, enable_search boolean,
-        enable_direct_uploads boolean, enable_presigned_uploads boolean, enable_many_to_many boolean,
+        enable_presigned_uploads boolean, enable_many_to_many boolean,
         enable_connection_filter boolean, enable_ltree boolean, enable_llm boolean, enable_realtime boolean,
         enable_bulk boolean, enable_i18n boolean, statement_timeout_ms bigint,
         idle_in_transaction_timeout_ms bigint, lock_timeout_ms bigint, max_concurrent_requests int,
@@ -195,6 +237,9 @@ describe('login-only pre-request readers', () => {
   });
 
   afterAll(async () => {
+    await platformLogin.close();
+    await pg.query(`REVOKE CONNECT ON DATABASE "${pg.config.database}" FROM ${PLATFORM_LOGIN}`);
+    await pg.query(`DROP ROLE ${PLATFORM_LOGIN}`);
     await teardown();
   });
 
@@ -213,7 +258,6 @@ describe('login-only pre-request readers', () => {
     expect(rows).toEqual([{
       api_id: '55555555-5555-5555-5555-555555555555',
       api_database_id: TENANT_DB,
-      dbname: 'tenant',
       role_name: 'authenticated',
       anon_role: 'anonymous',
       is_public: true,
@@ -296,6 +340,32 @@ describe('login-only pre-request readers', () => {
       db_rate_limit_rpm: 600, api_rate_limit_rpm: 60, db_statement_timeout_ms: '30000', api_statement_timeout_ms: null
     });
     expect(await pg.any(`SELECT * FROM function_resolution.request_protection($1, NULL)`, [OTHER_DB])).toEqual([]);
+  });
+
+  it('lets the platform login enumerate only physical buckets with their owning database', async () => {
+    const posture = await platformLogin.query(
+      `SELECT current_user, rolsuper, rolbypassrls
+         FROM pg_roles WHERE rolname = current_user`
+    );
+    expect(posture.rows).toEqual([
+      { current_user: PLATFORM_LOGIN, rolsuper: false, rolbypassrls: false },
+    ]);
+    await expect(platformLogin.query(`SELECT * FROM catalog_private.buckets`)).rejects.toThrow(
+      /permission denied/
+    );
+    expect(
+      (
+        await platformLogin.query(
+          `SELECT * FROM function_resolution.storage_cors_resync_candidates($1)`,
+          [TENANT_DB]
+        )
+      ).rows
+    ).toEqual([
+      {
+        bucket_id: '77777777-7777-7777-7777-777777777771',
+        owner_database_id: TENANT_DB,
+      },
+    ]);
   });
 
   describe.each(['anonymous', 'authenticated'])('as %s', (role) => {

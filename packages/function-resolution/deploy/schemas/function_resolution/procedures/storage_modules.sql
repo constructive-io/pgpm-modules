@@ -8,6 +8,7 @@
 -- requires: pgpm-jwt-claims:schemas/jwt_private/procedures/require_database_id
 -- requires: errors:schemas/errors/procedures/raise_error
 -- requires: schemas/function_resolution/procedures/storage_module_registrations
+-- requires: pgpm-app-scope:schemas/app_scope/procedures/frames
 
 BEGIN;
 
@@ -26,8 +27,12 @@ BEGIN;
 -- `connection_overrides` names any a row sets differently so signing can
 -- refuse it. A NULL public_url_prefix inherits the platform's. A missing
 -- platform plane or endpoint raises STORAGE_PLATFORM_ENDPOINT_MISSING rather
--- than handing back NULL connection columns. Nothing here is a credential, and
--- no other database's row is returned.
+-- than handing back NULL connection columns. Nothing here is a credential.
+--
+-- A database with no database-scope storage of its own resolves that scope
+-- through app_scope.frames, so a hosted tenant's database plane is the
+-- platform's shared one: that module is returned too (configuration only; the
+-- plane's rows stay under its own RLS). No other database's row is returned.
 CREATE FUNCTION function_resolution.storage_modules()
 RETURNS TABLE (
     id uuid,
@@ -57,10 +62,12 @@ RETURNS TABLE (
     has_path_shares boolean,
     has_versioning boolean,
     has_content_hash boolean,
-    has_confirm_upload boolean,
     entity_schema text,
     entity_table text
 ) AS $$
+DECLARE
+    v_database_id uuid;
+    v_database_plane_id uuid;
 BEGIN
     IF NOT EXISTS (
         SELECT 1
@@ -73,8 +80,26 @@ BEGIN
         PERFORM errors.raise_error('STORAGE_PLATFORM_ENDPOINT_MISSING', '{}'::jsonb, 'internal');
     END IF;
 
+    v_database_id := jwt_private.require_database_id();
+
+    -- The first frame holding a database-scope storage module: the database's
+    -- own, else the shared plane it resolves through.
+    SELECT f.lookup_database_id
+    INTO v_database_plane_id
+    FROM app_scope.frames(v_database_id, 'database') WITH ORDINALITY AS f(scope, lookup_database_id, key_value, ord)
+    WHERE f.scope = 'database'
+      AND EXISTS (
+        SELECT 1
+        FROM metaschema_modules_public.storage_module AS sm
+        WHERE sm.database_id = f.lookup_database_id
+          AND sm.scope = 'database'
+      )
+    ORDER BY f.ord
+    LIMIT 1;
+
     -- One projection of the storage configuration: the platform login's
-    -- registrations reader, narrowed to the request's own database.
+    -- registrations reader, narrowed to the request's own database and the
+    -- database-scope plane it resolves.
     RETURN QUERY
     SELECT
         r.id,
@@ -104,12 +129,15 @@ BEGIN
         r.has_path_shares,
         r.has_versioning,
         r.has_content_hash,
-        r.has_confirm_upload,
         r.entity_schema,
         r.entity_table
-    FROM function_resolution.storage_module_registrations(jwt_private.require_database_id()) AS r
+    FROM function_resolution.storage_module_registrations(NULL) AS r
     WHERE r.buckets_table IS NOT NULL
-      AND r.files_table IS NOT NULL;
+      AND r.files_table IS NOT NULL
+      AND (
+        r.database_id = v_database_id
+        OR (r.scope = 'database' AND r.database_id = v_database_plane_id)
+      );
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 

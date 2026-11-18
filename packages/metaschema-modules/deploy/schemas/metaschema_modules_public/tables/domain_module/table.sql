@@ -36,12 +36,16 @@ CREATE TABLE metaschema_modules_public.domain_module (
     domain_verifications_table_id uuid NOT NULL DEFAULT uuid_nil(),
     domain_events_table_id uuid NOT NULL DEFAULT uuid_nil(),
     managed_domains_table_id uuid NOT NULL DEFAULT uuid_nil(),
+    -- Platform tier only (NULL at every other scope): the reserved labels
+    -- every tenant claim function checks.
+    reserved_subdomains_table_id uuid NULL,
 
     -- Table names (input to the generator)
     domains_table_name text NOT NULL DEFAULT 'domains',
     domain_verifications_table_name text NOT NULL DEFAULT 'domain_verifications',
     domain_events_table_name text NOT NULL DEFAULT 'domain_events',
     managed_domains_table_name text NOT NULL DEFAULT 'managed_domains',
+    reserved_subdomains_table_name text NOT NULL DEFAULT 'reserved_subdomains',
 
     -- API routing (get-or-create: if set, schema is added to this API)
     api_name text,
@@ -69,6 +73,10 @@ CREATE TABLE metaschema_modules_public.domain_module (
 
     -- Default capabilities: capability names auto-granted to new members
     default_capabilities text[] DEFAULT NULL,
+
+    -- Platform tier only: reserved labels seeded into the generated
+    -- reserved_subdomains table ([{label, match, reason}, ...]).
+    default_reserved_subdomains jsonb DEFAULT NULL,
 
     CONSTRAINT domain_module_db_fkey
         FOREIGN KEY (database_id)
@@ -102,6 +110,10 @@ CREATE TABLE metaschema_modules_public.domain_module (
         FOREIGN KEY (managed_domains_table_id)
         REFERENCES metaschema_public.table (id)
         ON DELETE CASCADE,
+    CONSTRAINT domain_module_reserved_subdomains_table_fkey
+        FOREIGN KEY (reserved_subdomains_table_id)
+        REFERENCES metaschema_public.table (id)
+        ON DELETE CASCADE,
     CONSTRAINT domain_module_entity_table_fkey
         FOREIGN KEY (entity_table_id)
         REFERENCES metaschema_public.table (id)
@@ -115,6 +127,7 @@ CREATE INDEX domain_module_entity_table_id_idx ON metaschema_modules_public.doma
 CREATE INDEX domain_module_domain_events_table_id_idx ON metaschema_modules_public.domain_module ( domain_events_table_id );
 CREATE INDEX domain_module_managed_domains_table_id_idx ON metaschema_modules_public.domain_module ( managed_domains_table_id );
 CREATE INDEX domain_module_domain_verifications_table_id_idx ON metaschema_modules_public.domain_module ( domain_verifications_table_id );
+CREATE INDEX domain_module_reserved_subdomains_table_id_idx ON metaschema_modules_public.domain_module ( reserved_subdomains_table_id );
 CREATE INDEX domain_module_private_schema_id_idx ON metaschema_modules_public.domain_module ( private_schema_id );
 CREATE INDEX domain_module_schema_id_idx ON metaschema_modules_public.domain_module ( schema_id );
 CREATE INDEX domain_module_catalog_module_id_idx ON metaschema_modules_public.domain_module ( catalog_module_id );
@@ -127,5 +140,6 @@ COMMENT ON COLUMN metaschema_modules_public.domain_module.domain_events_table_id
 COMMENT ON COLUMN metaschema_modules_public.domain_module.domain_verifications_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.domain_module.domains_table_id IS '@module_table';
 COMMENT ON COLUMN metaschema_modules_public.domain_module.managed_domains_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.domain_module.reserved_subdomains_table_id IS '@module_table';
 
 COMMIT;

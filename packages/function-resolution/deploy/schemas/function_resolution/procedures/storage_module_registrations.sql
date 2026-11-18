@@ -49,7 +49,6 @@ RETURNS TABLE (
     has_path_shares boolean,
     has_versioning boolean,
     has_content_hash boolean,
-    has_confirm_upload boolean,
     entity_schema text,
     entity_table text
 ) AS $$
@@ -89,7 +88,6 @@ SELECT
     sm.has_path_shares,
     sm.has_versioning,
     sm.has_content_hash,
-    sm.has_confirm_upload,
     es.schema_name AS entity_schema,
     et.name AS entity_table
 FROM metaschema_modules_public.storage_module AS sm

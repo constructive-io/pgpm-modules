@@ -118,6 +118,9 @@ jobs:
           pgpm admin-users bootstrap --client --yes
           # optional, but added to avoid concurrent attempts to add user
           pgpm admin-users add --test --yes
+          # the platform components' one login (NOBYPASSRLS); the reader tests
+          # grant to it and connect as a member of it
+          pgpm admin-users add --username platform_service --password platform_service_pw --yes
 
       - name: Test ${{ matrix.package }}
         run: cd ./packages/${{ matrix.package }} && pnpm test

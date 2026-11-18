@@ -29,7 +29,8 @@ RETURNS TABLE (
     config_table_name text,
     public_schema text,
     private_schema text,
-    config_schema text
+    config_schema text,
+    config_private_schema text
 ) AS $$
 SELECT
     ism.database_id,
@@ -43,7 +44,8 @@ SELECT
     cfg_t.name AS config_table_name,
     pub_s.schema_name AS public_schema,
     pvs.schema_name AS private_schema,
-    cfg_s.schema_name AS config_schema
+    cfg_s.schema_name AS config_schema,
+    cfg_ps.schema_name AS config_private_schema
 FROM metaschema_modules_public.infra_secrets_module AS ism
     LEFT JOIN metaschema_modules_public.infra_config_module icm
     ON icm.database_id = ism.database_id
@@ -53,6 +55,7 @@ FROM metaschema_modules_public.infra_secrets_module AS ism
     LEFT JOIN metaschema_public.schema pvs ON pvs.id = ism.private_schema_id
     LEFT JOIN metaschema_public.schema pub_s ON pub_s.id = ism.schema_id
     LEFT JOIN metaschema_public.schema cfg_s ON cfg_s.id = icm.schema_id
+    LEFT JOIN metaschema_public.schema cfg_ps ON cfg_ps.id = icm.private_schema_id
 WHERE ($1 IS NULL OR ism.database_id = $1)
   AND ($2 IS NULL OR ism.scope = $2)
 $$ LANGUAGE sql STABLE SECURITY DEFINER;

@@ -107,10 +107,9 @@ CREATE TABLE metaschema_modules_public.storage_module (
     -- Feature flags: toggleable storage capabilities (all default false for minimal footprint)
     has_versioning boolean NOT NULL DEFAULT false,   -- Version chains: previous_version_id, is_latest, version_history()
     has_content_hash boolean NOT NULL DEFAULT false,  -- Content hash column for dedup + integrity verification
-    has_custom_keys boolean NOT NULL DEFAULT false,   -- allow_custom_keys on buckets (implies has_versioning + has_content_hash)
+    has_custom_keys boolean NOT NULL DEFAULT false,   -- allow_custom_keys on buckets: a custom key is one object, replaced in place; independent of has_versioning / has_content_hash
     has_audit_log boolean NOT NULL DEFAULT false,     -- File events audit table: upload, delete, move, rename, download, share events
-    has_confirm_upload boolean NOT NULL DEFAULT false,  -- Deferred HeadObject confirmation: enqueues storage:confirm_upload job on INSERT, creates status transition functions
-    confirm_upload_delay interval NOT NULL DEFAULT '30 seconds',  -- Delay before first confirmation attempt (only used when has_confirm_upload = true)
+    confirm_upload_delay interval NOT NULL DEFAULT '30 seconds',  -- Delay before the confirm loop's first HeadObject attempt. Every files table runs the loop: it moves requested -> uploaded once the object exists and retires a requested row whose PUT never ran (requested -> expired after upload_url_expiry_seconds)
 
     -- Generated table ID for file_events (populated by the generator when has_audit_log=true)
     file_events_table_id uuid NULL DEFAULT NULL,

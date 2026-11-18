@@ -1880,7 +1880,6 @@ CREATE TABLE metaschema_modules_public.storage_module (
   has_content_hash boolean NOT NULL DEFAULT false,
   has_custom_keys boolean NOT NULL DEFAULT false,
   has_audit_log boolean NOT NULL DEFAULT false,
-  has_confirm_upload boolean NOT NULL DEFAULT false,
   confirm_upload_delay interval NOT NULL DEFAULT '30 seconds',
   file_events_table_id uuid NULL DEFAULT NULL,
   default_capabilities text[] DEFAULT NULL,
@@ -2134,7 +2133,6 @@ COMMENT ON COLUMN metaschema_modules_public.entity_type_provision.storage IS 'Op
        - has_content_hash              (boolean) enable content hash for dedup
        - has_custom_keys               (boolean) allow client-provided S3 keys
        - has_audit_log                 (boolean) enable file events audit table
-       - has_confirm_upload            (boolean) enable HeadObject confirmation flow
        - confirm_upload_delay          (interval) delay before first confirmation attempt
        - buckets                       (jsonb[]) array of initial bucket definitions to seed.
          Each bucket: { name (required), description, is_public, allowed_mime_types, max_file_size, allowed_origins }
@@ -4667,7 +4665,7 @@ CREATE TABLE metaschema_modules_public.resource_module (
   resource_usage_summary_table_id uuid NOT NULL DEFAULT uuid_nil(),
   resource_installations_table_id uuid NOT NULL DEFAULT uuid_nil(),
   registry_bindings_table_id uuid NOT NULL DEFAULT uuid_nil(),
-  builder_bindings_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  service_bindings_table_id uuid NOT NULL DEFAULT uuid_nil(),
   resources_table_name text NOT NULL DEFAULT 'resources',
   resource_events_table_name text NOT NULL DEFAULT 'resource_events',
   resource_status_checks_table_name text NOT NULL DEFAULT 'resource_status_checks',
@@ -4676,7 +4674,7 @@ CREATE TABLE metaschema_modules_public.resource_module (
   resource_usage_summary_table_name text NOT NULL DEFAULT 'resource_usage_summary',
   resource_installations_table_name text NOT NULL DEFAULT 'resource_installations',
   registry_bindings_table_name text NOT NULL DEFAULT 'registry_bindings',
-  builder_bindings_table_name text NOT NULL DEFAULT 'builder_bindings',
+  service_bindings_table_name text NOT NULL DEFAULT 'service_bindings',
   rollup_resource_usage_summary_function text NOT NULL DEFAULT '',
   resource_billing_rollup_function text NOT NULL DEFAULT '',
   resolved_requirements_view_name text,
@@ -4736,8 +4734,8 @@ CREATE TABLE metaschema_modules_public.resource_module (
     FOREIGN KEY(registry_bindings_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
-  CONSTRAINT resource_module_builder_bindings_table_fkey
-    FOREIGN KEY(builder_bindings_table_id)
+  CONSTRAINT resource_module_service_bindings_table_fkey
+    FOREIGN KEY(service_bindings_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
   CONSTRAINT resource_module_merkle_store_module_fkey
@@ -4764,7 +4762,7 @@ CREATE INDEX resource_module_resource_events_table_id_idx ON metaschema_modules_
 
 CREATE INDEX resource_module_resource_installations_table_id_idx ON metaschema_modules_public.resource_module (resource_installations_table_id);
 
-CREATE INDEX resource_module_builder_bindings_table_id_idx ON metaschema_modules_public.resource_module (builder_bindings_table_id);
+CREATE INDEX resource_module_service_bindings_table_id_idx ON metaschema_modules_public.resource_module (service_bindings_table_id);
 
 CREATE INDEX resource_module_registry_bindings_table_id_idx ON metaschema_modules_public.resource_module (registry_bindings_table_id);
 
@@ -4792,7 +4790,7 @@ COMMENT ON COLUMN metaschema_modules_public.resource_module.resource_installatio
 
 COMMENT ON COLUMN metaschema_modules_public.resource_module.registry_bindings_table_id IS '@module_table';
 
-COMMENT ON COLUMN metaschema_modules_public.resource_module.builder_bindings_table_id IS '@module_table';
+COMMENT ON COLUMN metaschema_modules_public.resource_module.service_bindings_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.resource_module.resource_status_checks_table_id IS '@module_table';
 
@@ -5206,10 +5204,12 @@ CREATE TABLE metaschema_modules_public.domain_module (
   domain_verifications_table_id uuid NOT NULL DEFAULT uuid_nil(),
   domain_events_table_id uuid NOT NULL DEFAULT uuid_nil(),
   managed_domains_table_id uuid NOT NULL DEFAULT uuid_nil(),
+  reserved_subdomains_table_id uuid NULL,
   domains_table_name text NOT NULL DEFAULT 'domains',
   domain_verifications_table_name text NOT NULL DEFAULT 'domain_verifications',
   domain_events_table_name text NOT NULL DEFAULT 'domain_events',
   managed_domains_table_name text NOT NULL DEFAULT 'managed_domains',
+  reserved_subdomains_table_name text NOT NULL DEFAULT 'reserved_subdomains',
   api_name text,
   private_api_name text,
   scope text NOT NULL,
@@ -5219,6 +5219,7 @@ CREATE TABLE metaschema_modules_public.domain_module (
   policies jsonb NULL,
   provisions jsonb NULL,
   default_capabilities text[] DEFAULT NULL,
+  default_reserved_subdomains jsonb DEFAULT NULL,
   CONSTRAINT domain_module_db_fkey
     FOREIGN KEY(database_id)
     REFERENCES metaschema_public.database (id)
@@ -5251,6 +5252,10 @@ CREATE TABLE metaschema_modules_public.domain_module (
     FOREIGN KEY(managed_domains_table_id)
     REFERENCES metaschema_public.table (id)
     ON DELETE CASCADE,
+  CONSTRAINT domain_module_reserved_subdomains_table_fkey
+    FOREIGN KEY(reserved_subdomains_table_id)
+    REFERENCES metaschema_public.table (id)
+    ON DELETE CASCADE,
   CONSTRAINT domain_module_entity_table_fkey
     FOREIGN KEY(entity_table_id)
     REFERENCES metaschema_public.table (id)
@@ -5269,6 +5274,8 @@ CREATE INDEX domain_module_managed_domains_table_id_idx ON metaschema_modules_pu
 
 CREATE INDEX domain_module_domain_verifications_table_id_idx ON metaschema_modules_public.domain_module (domain_verifications_table_id);
 
+CREATE INDEX domain_module_reserved_subdomains_table_id_idx ON metaschema_modules_public.domain_module (reserved_subdomains_table_id);
+
 CREATE INDEX domain_module_private_schema_id_idx ON metaschema_modules_public.domain_module (private_schema_id);
 
 CREATE INDEX domain_module_schema_id_idx ON metaschema_modules_public.domain_module (schema_id);
@@ -5282,6 +5289,8 @@ COMMENT ON COLUMN metaschema_modules_public.domain_module.domain_verifications_t
 COMMENT ON COLUMN metaschema_modules_public.domain_module.domains_table_id IS '@module_table';
 
 COMMENT ON COLUMN metaschema_modules_public.domain_module.managed_domains_table_id IS '@module_table';
+
+COMMENT ON COLUMN metaschema_modules_public.domain_module.reserved_subdomains_table_id IS '@module_table';
 
 CREATE TABLE metaschema_modules_public.api_surface_module (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -6712,5 +6721,18 @@ ALTER TABLE metaschema_modules_public.billing_provider_module
 
 ALTER TABLE metaschema_modules_public.billing_provider_module 
   ADD COLUMN IF NOT EXISTS has_due_reconciliations_function text
+    NOT NULL
+    DEFAULT '';
+
+ALTER TABLE metaschema_modules_public.db_usage_module 
+  ADD COLUMN IF NOT EXISTS read_db_table_stats_usage_period_function text
+    NOT NULL
+    DEFAULT '',
+  ADD COLUMN IF NOT EXISTS read_db_query_stats_usage_period_function text
+    NOT NULL
+    DEFAULT '';
+
+ALTER TABLE metaschema_modules_public.storage_log_module 
+  ADD COLUMN IF NOT EXISTS read_storage_usage_period_function text
     NOT NULL
     DEFAULT '';

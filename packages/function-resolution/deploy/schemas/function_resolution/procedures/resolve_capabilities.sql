@@ -105,7 +105,6 @@ BEGIN
         -- function module predates the newest one. The row must carry the
         -- frame's key in the module's recorded scope-key column; a global frame
         -- has neither, and its key is asserted NULL.
-        -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the definitions table is located per frame
         definition_query := format(
             'SELECT to_jsonb(d) FROM %I.%I d WHERE d.id = $1 AND %s',
             frame.schema_name,
@@ -116,6 +115,7 @@ BEGIN
             END
         );
 
+        -- pgsql-lint-disable-next-line no-dynamic-sql -- lookup-only: the definitions table is located per frame
         EXECUTE definition_query
         INTO definition
         USING resolve_capabilities.function_definition_id, frame.key_value;

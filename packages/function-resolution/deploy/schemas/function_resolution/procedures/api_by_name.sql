@@ -18,7 +18,6 @@ CREATE FUNCTION function_resolution.api_by_name(database_id uuid, api_name text)
 RETURNS TABLE (
     api_id uuid,
     api_database_id uuid,
-    dbname text,
     role_name text,
     anon_role text,
     is_public boolean,
@@ -26,14 +25,14 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT a.id, a.database_id, a.dbname::text, a.role_name::text, a.anon_role::text, a.is_published,
+    SELECT a.id, a.database_id, a.role_name::text, a.anon_role::text, a.is_published,
            COALESCE(array_agg(s.schema_name::text ORDER BY s.schema_name) FILTER (WHERE s.schema_name IS NOT NULL), '{}')
     FROM routing_public.apis AS a
     LEFT JOIN routing_public.api_schemas AS aps ON aps.api_id = a.id
     LEFT JOIN metaschema_public.schema AS s ON s.id = aps.schema_id
     WHERE a.database_id = api_by_name.database_id
       AND a.name = api_by_name.api_name
-    GROUP BY a.id, a.database_id, a.dbname, a.role_name, a.anon_role, a.is_published;
+    GROUP BY a.id, a.database_id, a.role_name, a.anon_role, a.is_published;
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
