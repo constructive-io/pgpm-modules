@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en-US
+reviews:
+  profile: chill
+  high_level_summary: true
+  review_status: true
+  poem: false
+  auto_review:
+    enabled: true
+    drafts: false
+  path_filters:
+    - "!pnpm-lock.yaml"
+    - "!**/dist/**"
+    - "!**/__snapshots__/**"
+    - "!packages/*/sql/**"
+  path_instructions:
+    - path: "**/*.sql"
+      instructions: >-
+        Follow AGENTS.md: deploy changes need matching verify and revert scripts, with reverse-order rollback and explicit plan dependencies. Regenerate packaged SQL and bundles with pgpm package rather than editing artifacts.
+chat:
+  art: false
