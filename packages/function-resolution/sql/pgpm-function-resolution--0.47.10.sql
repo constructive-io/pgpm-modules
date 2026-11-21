@@ -5011,3 +5011,18 @@ LIMIT 1
 $EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 REVOKE ALL ON FUNCTION function_resolution.events_entry(uuid) FROM PUBLIC RESTRICT;
+
+CREATE FUNCTION function_resolution.realtime_module_registrations(
+  owner_database_id uuid
+) RETURNS TABLE (
+  database_id uuid,
+  runtime_schema text
+) AS $EOFCODE$
+SELECT rm.database_id, s.schema_name::text
+FROM metaschema_modules_public.realtime_module AS rm
+    LEFT JOIN metaschema_public.schema AS s
+    ON s.id = rm.private_schema_id AND s.database_id = rm.database_id
+WHERE rm.database_id = $1
+$EOFCODE$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+REVOKE ALL ON FUNCTION function_resolution.realtime_module_registrations(uuid) FROM PUBLIC RESTRICT;
