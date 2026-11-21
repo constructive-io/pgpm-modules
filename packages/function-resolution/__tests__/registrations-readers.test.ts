@@ -1,7 +1,9 @@
 import { getConnections, PgTestClient } from 'pgsql-test';
 
 let pg: PgTestClient;
+let db: PgTestClient;
 let teardown: () => Promise<void>;
+const READER_LOGIN = `realtime_reader_${process.pid}`;
 
 const PLATFORM_DB = '11111111-1111-1111-1111-111111111111';
 const TENANT_DB = '22222222-2222-2222-2222-222222222222';
@@ -9,7 +11,7 @@ const TENANT_DB = '22222222-2222-2222-2222-222222222222';
 // One reader per module table the platform login reads (module loader, worker,
 // reconciler). The login is NOBYPASSRLS, so these SECURITY DEFINER readers are
 // its only way to the rows; no request or lane role may call them.
-const READER_COUNT = 43;
+const READER_COUNT = 44;
 const REQUEST_ROLES = ['anonymous', 'authenticated', 'authenticated_client'];
 
 interface Reader {
@@ -37,7 +39,11 @@ const asRole = async (role: string, run: () => Promise<unknown>): Promise<void> 
 
 describe('function_resolution *_registrations readers', () => {
   beforeAll(async () => {
-    ({ pg, teardown } = await getConnections());
+    ({ pg, db, teardown } = await getConnections({
+      db: { connections: { app: { user: READER_LOGIN, password: 'realtime-reader-test-password' } } }
+    }));
+    await pg.query(`GRANT USAGE ON SCHEMA function_resolution TO ${READER_LOGIN}`);
+    await pg.query(`GRANT EXECUTE ON FUNCTION function_resolution.realtime_module_registrations(uuid) TO ${READER_LOGIN}`);
     readers = await pg.any(
       `SELECT p.oid::regprocedure::text AS signature, p.pronargs::int AS nargs
          FROM pg_proc p
@@ -59,6 +65,11 @@ describe('function_resolution *_registrations readers', () => {
         `INSERT INTO metaschema_public.schema (database_id, name, schema_name)
          VALUES ($1, 'storage', $2) RETURNING id`,
         [database, `${name}_storage_public`]
+      );
+      const realtimePrivate = await pg.one(
+        `INSERT INTO metaschema_public.schema (database_id, name, schema_name)
+         VALUES ($1, 'realtime_private', $2) RETURNING id`,
+        [database, `${name}_realtime_private`]
       );
       const buckets = await pg.one(
         `INSERT INTO metaschema_public.table (database_id, schema_id, name)
@@ -103,6 +114,13 @@ describe('function_resolution *_registrations readers', () => {
          VALUES ($1, $2, $3, $3, $4, $4)`,
         [database, scope, schema.id, definitions.id]
       );
+      await pg.query(
+        `INSERT INTO metaschema_modules_public.realtime_module
+           (database_id, schema_id, private_schema_id, subscriptions_schema_id,
+            change_log_table_id, listener_node_table_id, source_registry_table_id)
+         VALUES ($1, $2, $4, $2, $3, $3, $3)`,
+        [database, schema.id, definitions.id, realtimePrivate.id]
+      );
     }
   });
 
@@ -112,9 +130,11 @@ describe('function_resolution *_registrations readers', () => {
 
   beforeEach(async () => {
     await pg.beforeEach();
+    await db.beforeEach();
   });
 
   afterEach(async () => {
+    await db.afterEach();
     await pg.afterEach();
   });
 
@@ -179,6 +199,28 @@ describe('function_resolution *_registrations readers', () => {
       public_url_prefix: 'http://cdn.platform',
       connection_overrides: [],
     });
+  });
+
+  it('resolves only the requested database physical realtime schema, with no logical-name guess', async () => {
+    expect(await pg.any('SELECT * FROM function_resolution.realtime_module_registrations($1)', [TENANT_DB]))
+      .toEqual([{ database_id: TENANT_DB, runtime_schema: 'tenant_realtime_private' }]);
+    expect(await pg.any('SELECT * FROM function_resolution.realtime_module_registrations($1)', [PLATFORM_DB]))
+      .toEqual([{ database_id: PLATFORM_DB, runtime_schema: 'platform_realtime_private' }]);
+  });
+
+  it('returns no realtime registrations for an absent database or null key', async () => {
+    expect(await pg.any('SELECT * FROM function_resolution.realtime_module_registrations($1)', ['33333333-3333-3333-3333-333333333333']))
+      .toEqual([]);
+    expect(await pg.any('SELECT * FROM function_resolution.realtime_module_registrations(NULL)')).toEqual([]);
+  });
+
+  it('lets an explicitly granted NOBYPASSRLS login discover the requested physical schema', async () => {
+    db.setContext({ role: READER_LOGIN });
+    expect(await db.one('SELECT current_user AS username, rolsuper, rolbypassrls FROM pg_catalog.pg_roles WHERE rolname = current_user'))
+      .toEqual({ username: READER_LOGIN, rolsuper: false, rolbypassrls: false });
+    expect(await db.any('SELECT * FROM function_resolution.realtime_module_registrations($1)', [TENANT_DB]))
+      .toEqual([{ database_id: TENANT_DB, runtime_schema: 'tenant_realtime_private' }]);
+    expect(await db.any('SELECT * FROM function_resolution.realtime_module_registrations(NULL)')).toEqual([]);
   });
 
   it('names a file_ref_field by its physical schema, table and field', async () => {
