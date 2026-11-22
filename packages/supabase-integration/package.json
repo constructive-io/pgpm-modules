@@ -1,5 +1,5 @@
 {
-  "name": "@pgpm/supabase",
+  "name": "@pgpm/supabase-integration",
   "version": "0.1.0",
   "description": "Bridge Supabase PostgREST requests to Constructive RLS claims",
   "author": "Dan Lynch <pyramation@gmail.com>",

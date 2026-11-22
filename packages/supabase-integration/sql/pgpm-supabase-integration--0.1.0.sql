@@ -1,4 +1,4 @@
-\echo Use "CREATE EXTENSION pgpm-supabase" to load this file. \quit
+\echo Use "CREATE EXTENSION pgpm-supabase-integration" to load this file. \quit
 CREATE SCHEMA supabase_integration;
 
 GRANT USAGE ON SCHEMA supabase_integration TO PUBLIC;

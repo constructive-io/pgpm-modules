@@ -1,6 +1,6 @@
 %syntax-version=1.0.0
-%project=pgpm-supabase
-%uri=pgpm-supabase
+%project=pgpm-supabase-integration
+%uri=pgpm-supabase-integration
 
 schemas/supabase_integration/schema [pgpm-verify:procedures/assert_schema pgpm-verify:procedures/assert_function] 2026-08-27T00:00:00Z Constructive <developers@constructive.io> # add schemas/supabase_integration/schema
 roles/anon [schemas/supabase_integration/schema] 2026-08-27T00:00:00Z Constructive <developers@constructive.io> # add roles/anon

@@ -1,4 +1,4 @@
-# @pgpm/supabase
+# @pgpm/supabase-integration
 
 Bridge Supabase PostgREST requests to Constructive's transaction-local RLS claims.
 
@@ -8,7 +8,7 @@ Bridge Supabase PostgREST requests to Constructive's transaction-local RLS claim
    Constructive's `anonymous` role (and the other base roles).
 2. Ensure Supabase's `anon` and `authenticated` roles already exist. Outside
    Supabase, create `anon` with `CREATE ROLE anon NOINHERIT NOLOGIN;` before deployment.
-3. Install `@pgpm/supabase` and deploy `pgpm-supabase` with `pgpm deploy`.
+3. Install `@pgpm/supabase-integration` and deploy `pgpm-supabase-integration` with `pgpm deploy`.
 4. As the database administrator, configure PostgREST:
 
    ```sql
