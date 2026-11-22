@@ -20,7 +20,7 @@ jobs:
           - base32
           - totp
           - jwt-claims
-          - supabase-integration
+          - supabase
           - defaults
           - measurements
           - metaschema-schema
