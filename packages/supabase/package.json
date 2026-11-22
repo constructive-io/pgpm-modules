@@ -1,0 +1,38 @@
+{
+  "name": "@pgpm/supabase",
+  "version": "0.1.0",
+  "description": "Bridge Supabase PostgREST requests to Constructive RLS claims",
+  "author": "Dan Lynch <pyramation@gmail.com>",
+  "contributors": [
+    "Constructive <developers@constructive.io>"
+  ],
+  "keywords": [
+    "postgresql",
+    "pgpm",
+    "supabase",
+    "authentication"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "bundle": "pgpm package",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "devDependencies": {
+    "pgpm": "^5",
+    "pgsql-test": "^5.20.13"
+  },
+  "dependencies": {
+    "@pgpm/verify": "workspace:*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/constructive-io/pgpm-modules"
+  },
+  "homepage": "https://github.com/constructive-io/pgpm-modules",
+  "bugs": {
+    "url": "https://github.com/constructive-io/pgpm-modules/issues"
+  }
+}

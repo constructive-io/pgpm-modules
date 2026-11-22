@@ -404,6 +404,19 @@ importers:
         specifier: ^5
         version: 5.8.0(@dataplan/json@1.0.0(grafast@1.0.2(graphql@16.13.0)))(@dataplan/pg@1.0.3(@dataplan/json@1.0.0(grafast@1.0.2(graphql@16.13.0)))(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0)(pg-sql2@5.0.1)(pg@8.22.0))(@types/node@22.19.17)(grafserv@1.0.0(@types/node@22.19.17)(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(use-sync-external-store@1.6.0(react@19.2.5))(ws@8.20.0))(graphile-build@5.0.2(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0))(pg-sql2@5.0.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(tamedevil@0.1.1)(use-sync-external-store@1.6.0(react@19.2.5))(ws@8.20.0)
 
+  packages/supabase:
+    dependencies:
+      "@pgpm/verify":
+        specifier: workspace:*
+        version: link:../verify
+    devDependencies:
+      pgpm:
+        specifier: ^5
+        version: 5.8.0(@dataplan/json@1.0.0(grafast@1.0.2(graphql@16.13.0)))(@dataplan/pg@1.0.3(@dataplan/json@1.0.0(grafast@1.0.2(graphql@16.13.0)))(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0)(pg-sql2@5.0.1)(pg@8.22.0))(@types/node@22.19.17)(grafserv@1.0.0(@types/node@22.19.17)(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(use-sync-external-store@1.6.0(react@19.2.5))(ws@8.20.0))(graphile-build@5.0.2(grafast@1.0.2(graphql@16.13.0))(graphile-config@1.0.1)(graphql@16.13.0))(pg-sql2@5.0.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(tamedevil@0.1.1)(use-sync-external-store@1.6.0(react@19.2.5))(ws@8.20.0)
+      pgsql-test:
+        specifier: ^5.20.13
+        version: 5.20.13
+
 packages:
   12factor-env@1.27.1:
     resolution:
@@ -9294,6 +9307,110 @@ packages:
       use-sync-external-store:
         optional: true
 
+  12factor-env@1.34.0:
+    resolution:
+      integrity: sha512-jyeOuen3cbNn2EKmRkbayXsNKxqeeHGnL84to4RiLoOAOa7IG98z8kJXLKO70+0yE8wrsRGIlR2UVf7xKbr21g==
+  "@constructive-io/coerce@0.6.0":
+    resolution:
+      integrity: sha512-1R3colAQqLmEZ5AyMoX2nO3Lv8Sjp76JoJcmOcWphpKqmpHOraUDLOluBXTHCHY2+ERywICwkkm4oJozoybSMw==
+  "@constructive-io/errors@0.26.0":
+    resolution:
+      integrity: sha512-2Qo08JZQOVu/dn0A7pEUniIicTQdwM0Zbp1Z0d80jxO47J7evH6r59sb4p4+ZnXlbo5jdv/9RGiSt7xJ7khfDw==
+  "@pgpmjs/ast@0.16.3":
+    resolution:
+      integrity: sha512-x8Ov6iQJWzhc9vIqb3wpxSxZkI1ktesscgPD3zLMJY1OdG+BGGRSSMWn4ndT1HLaFiCGOMFbsO3RPyEu3tAA0g==
+  "@pgpmjs/bundle@0.19.3":
+    resolution:
+      integrity: sha512-bxsibsN9lALyiB5uIuchhjiM9sayQL4/ImezJ2K7fmeDB8BuWOogFp+l9mGaxHriVuUWD4m39S9xS+V9TsxkPw==
+  "@pgpmjs/core@7.35.13":
+    resolution:
+      integrity: sha512-RQuWcJG9rDGQXMtsX137l3CALDVgQ9inVxU7rT7dxdvJzkYabvKFL7Po4JgfJHyg/5ZR8yVH65va4gK59YsE4g==
+  "@pgpmjs/diff@0.10.12":
+    resolution:
+      integrity: sha512-GKzR7CDNUjRwwuz3Sgqov+26CT0xMbV8PZJaMkk6zz2KNDCSHCyGVEiTSzajgMdaNBlZkr5XcT2vW7Ar/QF+pA==
+  "@pgpmjs/env@2.48.3":
+    resolution:
+      integrity: sha512-4IEDMUiDtYBi5arOlCukW01D3Y51jfztZr+zXrtvCwKrHwfGmNic30z/Oai3VqqZsP2n30AohkIcUuJytu+syA==
+  "@pgpmjs/logger@2.27.0":
+    resolution:
+      integrity: sha512-Jx6arlQdICAtPFbKy9Zmo8U48gAJkwQEnzDqFRTN7Pgbd5ty5m9lGN1BbYm23UJMT8Ap6z3p80P16voffBOs6w==
+  "@pgpmjs/naming-spec@0.6.2":
+    resolution:
+      integrity: sha512-J5t4rpGESP92vjGiY/B97Pu4heOAZ+t+RbMq6mRRWa5pgoLYRtLNoGbFu1yhbeELtjCe9nXX1kU/1Ztg+5qDvw==
+  "@pgpmjs/server-utils@3.30.3":
+    resolution:
+      integrity: sha512-nMT0nA/tbhSi6yOjVIJfDl8KL91QkJ/GP98hgPOMWCLNG6c/TRDk+VmHA/et9Raw2iiL9pHotpc3uPzDozTP0Q==
+  "@pgpmjs/slice@0.21.12":
+    resolution:
+      integrity: sha512-8f2mpH1/0C2kPkGEHpo4CPazg/IjmWG7+vx2z0KF45cmlW8LEiFJINHzPZAjQCjPxaccwyeEPmonLtUR4ey5ZQ==
+  "@pgpmjs/transform@0.32.8":
+    resolution:
+      integrity: sha512-2NxWSGNZemLRBRUHvNRLuWsfCAHK2qQFvo4Abv4ZhnFFmr5Q+RaAkmsUGqDr9v/fWw0QHqV1qzVOzJEeWD+Q9A==
+  "@pgpmjs/traverse@0.16.3":
+    resolution:
+      integrity: sha512-e/Skd3xoGjHj7Z6ZFldLQpGANNBbOzlInzRuLC5NfIUY3O65W1UwtV/DxbTcDLyMqza2UC2TT+0QQygIKS/WaQ==
+  "@pgpmjs/types@2.58.3":
+    resolution:
+      integrity: sha512-LLvrloG2iv90y3CH2Q7G0HdUzCF/R3AawmUDXRHdXvZgsJrNFjMaoj8Lvin06gQSvSosb+elhyZKvhoO/vU06Q==
+  "@pgsql/scripts@18.5.9":
+    resolution:
+      integrity: sha512-GP+QSrgZWkB4lgkDCCoYTRwmBwJjwQw6NlXeAm80k+iymjwlGkMaRt8DzBaa69tYFzoq2LyHaYPs8j3StP8qOg==
+  "@pgsql/semantics@18.2.9":
+    resolution:
+      integrity: sha512-SvMjcYyv5HKVTYCcZT2u+SqBjIevaQd9Mh4PQkd4HVm3nm//SHgTbzFXhr+GxPxxbe/vHhUCmglYCnsSg4xfZQ==
+  "@pgsql/transform@18.18.9":
+    resolution:
+      integrity: sha512-uxc+4dptLDM+UcsApeGToqCk9wLiCJML2cVT7MfHw1EP0i3M/cUbRQWls88i9ukQVCiP7D53bdYoK3K7Ym8H0g==
+  "@pgsql/traverse@18.8.9":
+    resolution:
+      integrity: sha512-SxkP0sSrOTCRbyeV9c8qw3pOaimr9SBJi5eyBPXWaA4OlpxyA4cviGynOBQBUqlLm7bHoowjiEYLsN3cR2ALiQ==
+  "@pgsql/utils@18.3.9":
+    resolution:
+      integrity: sha512-+3B46FmyN76JPAFbMWdFC+arZq8MmcQuAvdPIjJX4xCLUdzHKEwe3ybVGa1bE72Vc6IVMOMk31JAY9OUuAqPgQ==
+  csv-to-pg@4.16.6:
+    resolution:
+      integrity: sha512-Dnlhn4H1/dEP4FOfvnxoUDED7d4ilWJ84Ek9eFC52czasbSRZar23v14poMXQUU0xDGDJeW92BUHnZLxOxHmIA==
+    hasBin: true
+  genomic@5.6.6:
+    resolution:
+      integrity: sha512-Rcw2Q8U4c9GfoAPS5lkpY4Dtm2rvRTtS8AK4awCejlWfe6m0P0dtp2gusixsoOuPWL9VAWm616/skbPkKFeBbw==
+  inquirerer@4.9.4:
+    resolution:
+      integrity: sha512-ALS4QpTbm9geTdRelvU1Cg4gaFEWBf2rc/5Qqd6cUZcaTqTXLGyfE4/g3Os2wm6f4H+4RNuZyZ94n+7OHr7D7A==
+  libpg-query@18.2.4:
+    resolution:
+      integrity: sha512-7nqWUm+39v/fYgWP0qR+sYC7tyhmW8lctqAzx7bdKG6V0ySr9G1lcY43BdZM5+lxVSzL0Y5Yy6eM9e+uL7T79w==
+  pg-cache@3.30.3:
+    resolution:
+      integrity: sha512-SDW3pYrK2udVElcdoIqgXf76bKFkG1I8R+MPmWrR40H6jeUe8sn6D36KGC6NqtLB9kH1RmtqXnhYBUuKaon9gQ==
+  pg-env@1.33.0:
+    resolution:
+      integrity: sha512-OslZMDKoqoIv0sy+omJ8Jy6Vlc5CnHpboPwUL4nUV7usydff7bSRMsZNLOwN4c89/ZT4nyaHG1/58ujQvErVnA==
+  pg-seed@0.30.0:
+    resolution:
+      integrity: sha512-/xDOFqgNl6yZV/osCAUW6dbucOq8X6g+VuN59M1N1AnU2r135nj9THI2dYoctB2fIQXlRptt9jwNdxjWMONgfA==
+  pgsql-client@4.18.13:
+    resolution:
+      integrity: sha512-LyOJOWamIl4B/8Pr++p+x/SFK6kt5nzTLoDPx/bUu22CkP9kNKiJm+rNZssNSjcoyaiTIceDJSNJ0i0SIWWjkw==
+  pgsql-deparser@18.5.2:
+    resolution:
+      integrity: sha512-vR+qGJf6eU8Qbs06AGjTklAAucE+oz1NEAH3RlGwGGSBTpFpD7q4GYsriDB+24Y7FZxi8C00kFnsAtvJPP90ug==
+  pgsql-parser@18.4.2:
+    resolution:
+      integrity: sha512-Gjm85k5ZTt8rlXDIzviF9I3C7oGvkZD/4KEb7v0EjjjRvXnOP0hAG217UbebstyTFjD13QWk9jtEan9siL2Icw==
+  pgsql-seed@3.17.13:
+    resolution:
+      integrity: sha512-XfReTj/2YEK40/CaXXRblvXNjWBo657+ja4XZKB1pedB3jwr4AgPqD1nGtRN7V0iyK5/Mg1LpNLxvuriXdQ7TA==
+  pgsql-test@5.20.13:
+    resolution:
+      integrity: sha512-u8UulmHfUziKW6eXusp4hzkvUoHn8pqv4sd04tNuKE+z8C34ri8PBo9uuK4DAK0RgGvrn33UFNvoTbnjPoMpeQ==
+  plpgsql-deparser@18.3.8:
+    resolution:
+      integrity: sha512-DBnv+lXcitiXrd9hZmL68biiey1zB7KGvHHyZVR00+gXuA4ZYc3ryOCKtFLqEo7wTek1S5nOxtYJJoQhIIJFfg==
+  plpgsql-parser@18.6.9:
+    resolution:
+      integrity: sha512-Q2I/bu8V9San2HA9rVCqFhG+/lykT5B4eSq11+QIa0gZNTEhuWrqLrYQMKp68q9h1ooUXWq/XAkQFvMnC9esxQ==
+
 snapshots:
   12factor-env@1.27.1:
     dependencies:
@@ -15750,3 +15867,209 @@ snapshots:
     optionalDependencies:
       react: 19.2.5
       use-sync-external-store: 1.6.0(react@19.2.5)
+
+  12factor-env@1.34.0:
+    dependencies:
+      "@constructive-io/coerce": 0.6.0
+      envalid: 8.2.0
+  "@constructive-io/coerce@0.6.0": {}
+  "@constructive-io/errors@0.26.0": {}
+  "@pgpmjs/ast@0.16.3":
+    dependencies:
+      "@pgpmjs/env": 2.48.3
+      "@pgpmjs/types": 2.58.3
+  "@pgpmjs/bundle@0.19.3":
+    dependencies:
+      "@pgpmjs/ast": 0.16.3
+      "@pgpmjs/traverse": 0.16.3
+  "@pgpmjs/core@7.35.13":
+    dependencies:
+      "@pgpmjs/ast": 0.16.3
+      "@pgpmjs/bundle": 0.19.3
+      "@pgpmjs/diff": 0.10.12
+      "@pgpmjs/env": 2.48.3
+      "@pgpmjs/logger": 2.27.0
+      "@pgpmjs/server-utils": 3.30.3
+      "@pgpmjs/slice": 0.21.12
+      "@pgpmjs/transform": 0.32.8
+      "@pgpmjs/types": 2.58.3
+      cross-spawn: 7.0.6
+      csv-to-pg: 4.16.6
+      genomic: 5.6.6
+      git-changed: 0.4.0
+      glob: 13.0.6
+      parse-package-name: 1.0.0
+      pg: 8.22.0
+      pg-cache: 3.30.3
+      pg-env: 1.33.0
+      pgsql-deparser: 18.5.2
+      pgsql-parser: 18.4.2
+      semver: 7.8.5
+      yaml: 2.9.0
+      yanse: 0.2.2
+    transitivePeerDependencies:
+      - pg-native
+      - supports-color
+  "@pgpmjs/diff@0.10.12":
+    dependencies:
+      "@pgpmjs/ast": 0.16.3
+      "@pgpmjs/naming-spec": 0.6.2
+      "@pgpmjs/transform": 0.32.8
+  "@pgpmjs/env@2.48.3":
+    dependencies:
+      12factor-env: 1.34.0
+      "@pgpmjs/types": 2.58.3
+      deepmerge: 4.3.1
+  "@pgpmjs/logger@2.27.0":
+    dependencies:
+      yanse: 0.2.2
+  "@pgpmjs/naming-spec@0.6.2": {}
+  "@pgpmjs/server-utils@3.30.3":
+    dependencies:
+      "@pgpmjs/logger": 2.27.0
+      "@pgpmjs/types": 2.58.3
+      cors: 2.8.6
+      express: 5.2.1
+      lru-cache: 11.3.5
+    transitivePeerDependencies:
+      - supports-color
+  "@pgpmjs/slice@0.21.12":
+    dependencies:
+      "@pgpmjs/ast": 0.16.3
+      "@pgpmjs/transform": 0.32.8
+      minimatch: 10.2.6
+      plpgsql-parser: 18.6.9
+  "@pgpmjs/transform@0.32.8":
+    dependencies:
+      "@pgpmjs/ast": 0.16.3
+      "@pgpmjs/naming-spec": 0.6.2
+      "@pgsql/scripts": 18.5.9
+      "@pgsql/semantics": 18.2.9
+      "@pgsql/transform": 18.18.9
+      plpgsql-parser: 18.6.9
+  "@pgpmjs/traverse@0.16.3":
+    dependencies:
+      "@pgpmjs/ast": 0.16.3
+  "@pgpmjs/types@2.58.3":
+    dependencies:
+      "@constructive-io/errors": 0.26.0
+      pg-env: 1.33.0
+  "@pgsql/scripts@18.5.9":
+    dependencies:
+      "@pgsql/quotes": 18.2.4
+      "@pgsql/transform": 18.18.9
+      plpgsql-parser: 18.6.9
+  "@pgsql/semantics@18.2.9":
+    dependencies:
+      "@pgsql/traverse": 18.8.9
+      plpgsql-parser: 18.6.9
+  "@pgsql/transform@18.18.9":
+    dependencies:
+      "@pgsql/quotes": 18.2.4
+      "@pgsql/semantics": 18.2.9
+      "@pgsql/traverse": 18.8.9
+      plpgsql-parser: 18.6.9
+  "@pgsql/traverse@18.8.9":
+    dependencies:
+      "@pgsql/types": 18.0.0
+      plpgsql-deparser: 18.3.8
+  "@pgsql/utils@18.3.9":
+    dependencies:
+      "@pgsql/types": 18.0.0
+      nested-obj: 0.2.3
+  csv-to-pg@4.16.6:
+    dependencies:
+      "@pgsql/types": 18.0.0
+      "@pgsql/utils": 18.3.9
+      csv-parser: 3.2.1
+      inquirerer: 4.9.4
+      js-yaml: 4.1.1
+      pgsql-deparser: 18.5.2
+  genomic@5.6.6:
+    dependencies:
+      appstash: 0.8.0
+      inquirerer: 4.9.4
+  inquirerer@4.9.4:
+    dependencies:
+      deepmerge: 4.3.1
+      find-and-require-package-json: 0.9.1
+      minimist: 1.2.8
+      yanse: 0.2.2
+  libpg-query@18.2.4:
+    dependencies:
+      "@pgsql/types": 18.0.0
+  pg-cache@3.30.3:
+    dependencies:
+      12factor-env: 1.34.0
+      "@pgpmjs/logger": 2.27.0
+      "@pgpmjs/types": 2.58.3
+      lru-cache: 11.3.5
+      pg: 8.22.0
+      pg-env: 1.33.0
+    transitivePeerDependencies:
+      - pg-native
+  pg-env@1.33.0:
+    dependencies:
+      12factor-env: 1.34.0
+  pg-seed@0.30.0:
+    dependencies:
+      csv-parse: 6.2.1
+      pg: 8.22.0
+      pg-copy-streams: 7.0.0
+    transitivePeerDependencies:
+      - pg-native
+  pgsql-client@4.18.13:
+    dependencies:
+      "@pgpmjs/core": 7.35.13
+      "@pgpmjs/logger": 2.27.0
+      "@pgpmjs/types": 2.58.3
+      pg: 8.22.0
+      pg-env: 1.33.0
+    transitivePeerDependencies:
+      - pg-native
+      - supports-color
+  pgsql-deparser@18.5.2:
+    dependencies:
+      "@pgsql/quotes": 18.2.4
+      "@pgsql/types": 18.0.0
+  pgsql-parser@18.4.2:
+    dependencies:
+      "@pgsql/types": 18.0.0
+      libpg-query: 18.2.4
+      pgsql-deparser: 18.5.2
+  pgsql-seed@3.17.13:
+    dependencies:
+      "@pgpmjs/core": 7.35.13
+      "@pgpmjs/env": 2.48.3
+      pg: 8.22.0
+      pg-env: 1.33.0
+      pg-seed: 0.30.0
+    transitivePeerDependencies:
+      - pg-native
+      - supports-color
+  pgsql-test@5.20.13:
+    dependencies:
+      "@pgpmjs/env": 2.48.3
+      "@pgpmjs/logger": 2.27.0
+      "@pgpmjs/server-utils": 3.30.3
+      "@pgpmjs/types": 2.58.3
+      pg: 8.22.0
+      pg-cache: 3.30.3
+      pg-env: 1.33.0
+      pgsql-client: 4.18.13
+      pgsql-seed: 3.17.13
+    transitivePeerDependencies:
+      - pg-native
+      - supports-color
+  plpgsql-deparser@18.3.8:
+    dependencies:
+      "@pgsql/types": 18.0.0
+      libpg-query: 18.2.4
+      pgsql-deparser: 18.5.2
+  plpgsql-parser@18.6.9:
+    dependencies:
+      "@pgsql/traverse": 18.8.9
+      "@pgsql/types": 18.0.0
+      libpg-query: 18.2.4
+      pgsql-deparser: 18.5.2
+      plpgsql-deparser: 18.3.8

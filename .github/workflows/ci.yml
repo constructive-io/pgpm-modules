@@ -20,6 +20,7 @@ jobs:
           - base32
           - totp
           - jwt-claims
+          - supabase
           - defaults
           - measurements
           - metaschema-schema
@@ -116,6 +117,7 @@ jobs:
       - name: Seed pg and app_user
         run: |
           pgpm admin-users bootstrap --client --yes
+          psql -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOINHERIT NOLOGIN;'
           # optional, but added to avoid concurrent attempts to add user
           pgpm admin-users add --test --yes
           # the platform components' one login (NOBYPASSRLS); the reader tests
