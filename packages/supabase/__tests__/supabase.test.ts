@@ -75,6 +75,15 @@ it('does nothing for other roles', async () => {
     .toEqual([{ unchanged: true, claim: null }]);
 });
 
+it('allows a role with no grants to call the hook as a no-op', async () => {
+  await pg.query('CREATE ROLE supabase_test_service NOINHERIT NOLOGIN');
+  pg.setContext({ role: 'supabase_test_service', 'request.jwt.claims': JSON.stringify({ sub: userId }) });
+  expect(await preRequestThen(`SELECT current_user,
+    nullif(current_setting('jwt.claims.user_id', true), '') AS claim,
+    nullif(current_setting('jwt.claims.principal_id', true), '') AS principal`))
+    .toEqual([{ current_user: 'supabase_test_service', claim: null, principal: null }]);
+});
+
 it('rejects malformed JWT JSON', async () => {
   pg.setContext({ role: 'authenticated', 'request.jwt.claims': 'invalid' });
   await pg.expectError(() => pg.query('SELECT supabase_integration.pre_request()'), /invalid input syntax for type json/);

@@ -4,6 +4,6 @@ BEGIN;
 
 CREATE SCHEMA supabase_integration;
 
-GRANT USAGE ON SCHEMA supabase_integration TO anon, authenticated;
+GRANT USAGE ON SCHEMA supabase_integration TO PUBLIC;
 
 COMMIT;

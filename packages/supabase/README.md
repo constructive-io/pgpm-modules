@@ -16,6 +16,10 @@ Bridge Supabase PostgREST requests to Constructive's transaction-local RLS claim
    NOTIFY pgrst, 'reload config';
    ```
 
+Schema USAGE and hook EXECUTE are available to PUBLIC so PostgREST can also
+invoke the hook as `service_role` without requiring that role at deploy time.
+The hook is a no-op for roles other than `anon` and `authenticated`.
+
 The security-invoker hook switches `anon` to `anonymous`. It does not grant
 automatic inheritance: `anon` cannot use `anonymous` grants without switching.
 On PostgreSQL 16+ the membership explicitly disables inheritance and allows SET;

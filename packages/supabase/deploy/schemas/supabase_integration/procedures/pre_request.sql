@@ -21,7 +21,4 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION supabase_integration.pre_request() FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION supabase_integration.pre_request() TO anon, authenticated;
-
 COMMIT;

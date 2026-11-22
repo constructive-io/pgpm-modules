@@ -6,8 +6,12 @@ SELECT assert_schema('supabase_integration'::regnamespace);
 
 DO $$
 BEGIN
-  ASSERT has_schema_privilege('anon', 'supabase_integration', 'USAGE');
-  ASSERT has_schema_privilege('authenticated', 'supabase_integration', 'USAGE');
+  ASSERT EXISTS (
+    SELECT FROM pg_namespace,
+      LATERAL aclexplode(nspacl) AS privilege
+    WHERE nspname = 'supabase_integration'
+      AND privilege.grantee = 0 AND privilege.privilege_type = 'USAGE'
+  );
 END;
 $$;
 

@@ -1,7 +1,7 @@
 \echo Use "CREATE EXTENSION pgpm-supabase" to load this file. \quit
 CREATE SCHEMA supabase_integration;
 
-GRANT USAGE ON SCHEMA supabase_integration TO anon, authenticated;
+GRANT USAGE ON SCHEMA supabase_integration TO PUBLIC;
 
 DO $EOFCODE$
 BEGIN
@@ -28,7 +28,3 @@ BEGIN
   END IF;
 END;
 $EOFCODE$;
-
-REVOKE ALL ON FUNCTION supabase_integration.pre_request() FROM PUBLIC RESTRICT;
-
-GRANT EXECUTE ON FUNCTION supabase_integration.pre_request() TO anon, authenticated;
