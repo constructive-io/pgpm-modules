@@ -21,4 +21,6 @@ BEGIN
 END;
 $$;
 
+GRANT EXECUTE ON FUNCTION supabase_integration.pre_request() TO PUBLIC;
+
 COMMIT;

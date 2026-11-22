@@ -28,3 +28,5 @@ BEGIN
   END IF;
 END;
 $EOFCODE$;
+
+GRANT EXECUTE ON FUNCTION supabase_integration.pre_request() TO PUBLIC;
