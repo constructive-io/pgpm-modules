@@ -1,0 +1,87 @@
+name: Supabase integration
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/supabase/**'
+      - '.github/workflows/supabase.yml'
+  pull_request:
+    paths:
+      - 'packages/supabase/**'
+      - '.github/workflows/supabase.yml'
+  workflow_dispatch:
+
+jobs:
+  supabase:
+    runs-on: ubuntu-latest
+
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: password
+      PGPM_VERSION: 5.18.0
+
+    services:
+      pg_db:
+        image: constructiveio/postgres-plus:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Configure Git (for tests)
+        run: |
+          git config --global user.name "CI Test User"
+          git config --global user.email "ci@example.com"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install
+        run: pnpm install
+
+      - name: Cache pgpm CLI
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: pgpm-${{ env.PGPM_VERSION }}
+
+      - name: Install pgpm CLI globally
+        run: npm install -g pgpm@${{ env.PGPM_VERSION }}
+
+      - name: Tune Postgres for CI (disable durability)
+        run: pgpm tune --yes
+
+      - name: Seed Supabase users
+        run: |
+          pgpm admin-users bootstrap --client --yes
+          pgpm admin-users add --test --yes
+          psql -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOINHERIT NOLOGIN;'
+
+      - name: Test Supabase
+        run: pnpm --dir packages/supabase test
+
+      - name: Full cycle for Supabase only
+        run: |
+          excludes=$(find packages -name '*.control' ! -path 'packages/supabase/*' -printf '%f\n' | sed 's/\.control$//' | paste -sd, -)
+          pgpm test-packages --full-cycle --exclude "$excludes"

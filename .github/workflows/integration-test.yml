@@ -86,7 +86,6 @@ jobs:
       - name: Seed pg users
         run: |
           pgpm admin-users bootstrap --client --yes
-          psql -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOINHERIT NOLOGIN;'
 
       - name: Run Integration Tests
-        run: pgpm test-packages --full-cycle
+        run: pgpm test-packages --full-cycle --exclude pgpm-supabase
