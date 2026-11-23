@@ -291,7 +291,7 @@ CREATE TRIGGER _100_update_jobs_modtime_tg
   BEFORE INSERT OR UPDATE
   ON app_jobs.jobs
   FOR EACH ROW
-  EXECUTE PROCEDURE app_jobs.tg_update_timestamps();
+  EXECUTE FUNCTION app_jobs.tg_update_timestamps();
 
 CREATE FUNCTION app_jobs.tg_increase_job_queue_count() RETURNS trigger AS $EOFCODE$
 BEGIN
@@ -309,7 +309,7 @@ CREATE TRIGGER _500_increase_job_queue_count_on_insert
   ON app_jobs.jobs
   FOR EACH ROW
   WHEN (new.queue_name IS NOT NULL)
-  EXECUTE PROCEDURE app_jobs.tg_increase_job_queue_count();
+  EXECUTE FUNCTION app_jobs.tg_increase_job_queue_count();
 
 CREATE TRIGGER _500_increase_job_queue_count_on_update
   AFTER UPDATE OF queue_name
@@ -317,7 +317,7 @@ CREATE TRIGGER _500_increase_job_queue_count_on_update
   FOR EACH ROW
   WHEN (new.queue_name IS DISTINCT FROM old.queue_name
     AND new.queue_name IS NOT NULL)
-  EXECUTE PROCEDURE app_jobs.tg_increase_job_queue_count();
+  EXECUTE FUNCTION app_jobs.tg_increase_job_queue_count();
 
 CREATE FUNCTION app_jobs.tg_jobs__after_insert() RETURNS trigger AS $EOFCODE$
 BEGIN
@@ -331,7 +331,7 @@ CREATE TRIGGER _900_after_insert
   AFTER INSERT
   ON app_jobs.jobs
   FOR EACH STATEMENT
-  EXECUTE PROCEDURE app_jobs.tg_jobs__after_insert();
+  EXECUTE FUNCTION app_jobs.tg_jobs__after_insert();
 
 CREATE FUNCTION app_jobs.tg_decrease_job_queue_count() RETURNS trigger AS $EOFCODE$
 DECLARE
@@ -359,7 +359,7 @@ CREATE TRIGGER decrease_job_queue_count_on_delete
   ON app_jobs.jobs
   FOR EACH ROW
   WHEN (old.queue_name IS NOT NULL)
-  EXECUTE PROCEDURE app_jobs.tg_decrease_job_queue_count();
+  EXECUTE FUNCTION app_jobs.tg_decrease_job_queue_count();
 
 CREATE TRIGGER decrease_job_queue_count_on_update
   AFTER UPDATE OF queue_name
@@ -367,7 +367,7 @@ CREATE TRIGGER decrease_job_queue_count_on_update
   FOR EACH ROW
   WHEN (new.queue_name IS DISTINCT FROM old.queue_name
     AND old.queue_name IS NOT NULL)
-  EXECUTE PROCEDURE app_jobs.tg_decrease_job_queue_count();
+  EXECUTE FUNCTION app_jobs.tg_decrease_job_queue_count();
 
 CREATE INDEX jobs_main_index ON app_jobs.jobs (priority, run_at, id) INCLUDE (queue_name) WHERE attempts < max_attempts;
 
@@ -1462,7 +1462,7 @@ CREATE TRIGGER _100_stamp_next_run
   BEFORE INSERT OR UPDATE OF schedule_info
   ON app_jobs.scheduled_jobs
   FOR EACH ROW
-  EXECUTE PROCEDURE app_jobs.tg_stamp_next_run();
+  EXECUTE FUNCTION app_jobs.tg_stamp_next_run();
 
 CREATE FUNCTION app_jobs.claim_due_scheduled_jobs(
   batch_size int DEFAULT 200
@@ -1645,7 +1645,7 @@ CREATE TRIGGER _110_hold_next_run
   BEFORE INSERT OR UPDATE OF schedule_info
   ON app_jobs.scheduled_jobs
   FOR EACH ROW
-  EXECUTE PROCEDURE app_jobs.tg_hold_next_run();
+  EXECUTE FUNCTION app_jobs.tg_hold_next_run();
 
 CREATE FUNCTION app_jobs.hold_scheduled_task(
   task_identifier text,

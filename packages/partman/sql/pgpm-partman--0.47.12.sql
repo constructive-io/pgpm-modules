@@ -210,7 +210,7 @@ CREATE TRIGGER partman_after_insert_partition
   AFTER INSERT
   ON metaschema_public.partition
   FOR EACH ROW
-  EXECUTE PROCEDURE partman.tg_after_insert_partition();
+  EXECUTE FUNCTION partman.tg_after_insert_partition();
 
 CREATE FUNCTION partman.tg_after_delete_partition() RETURNS trigger AS $EOFCODE$
 DECLARE
@@ -245,4 +245,4 @@ CREATE TRIGGER partman_after_delete_partition
   AFTER DELETE
   ON metaschema_public.partition
   FOR EACH ROW
-  EXECUTE PROCEDURE partman.tg_after_delete_partition();
+  EXECUTE FUNCTION partman.tg_after_delete_partition();

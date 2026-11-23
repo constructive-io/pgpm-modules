@@ -1,5 +1,5 @@
 EXTENSION = object-tree
-DATA = sql/object-tree--0.47.7.sql
+DATA = sql/object-tree--0.47.12.sql
 
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)

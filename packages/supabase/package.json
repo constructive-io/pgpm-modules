@@ -1,6 +1,6 @@
 {
   "name": "@pgpm/supabase",
-  "version": "1.0.0",
+  "version": "0.47.12",
   "description": "Bridge Supabase PostgREST requests to Constructive RLS claims",
   "author": "Dan Lynch <pyramation@gmail.com>",
   "contributors": [

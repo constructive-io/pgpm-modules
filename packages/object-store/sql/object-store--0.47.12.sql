@@ -542,7 +542,7 @@ CREATE TRIGGER generate_id_hash
   BEFORE INSERT
   ON object_store_public.object
   FOR EACH ROW
-  EXECUTE PROCEDURE object_store_private.tg_generate_id_hash();
+  EXECUTE FUNCTION object_store_private.tg_generate_id_hash();
 
 CREATE FUNCTION object_store_private.tg_immutable_objects() RETURNS trigger AS $EOFCODE$
 BEGIN
@@ -574,13 +574,13 @@ CREATE TRIGGER immutable_objects
     OR new.data <> old.data
     OR new.kids <> old.kids
     OR new.ktree <> old.ktree)
-  EXECUTE PROCEDURE object_store_private.tg_immutable_objects();
+  EXECUTE FUNCTION object_store_private.tg_immutable_objects();
 
 CREATE TRIGGER delete_immutable_objects
   BEFORE DELETE
   ON object_store_public.object
   FOR EACH ROW
-  EXECUTE PROCEDURE object_store_private.tg_immutable_objects();
+  EXECUTE FUNCTION object_store_private.tg_immutable_objects();
 
 CREATE FUNCTION object_store_private.node_hash_uuid(
   data jsonb,

@@ -1,5 +1,5 @@
 EXTENSION = pgpm-supabase
-DATA = sql/pgpm-supabase--1.0.0.sql
+DATA = sql/pgpm-supabase--0.47.12.sql
 
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)

@@ -1563,7 +1563,7 @@ CREATE TRIGGER _000003_enforce_api_exposure_ratchet
   ON metaschema_public.schema
   FOR EACH ROW
   WHEN (new.api_exposure IS DISTINCT FROM old.api_exposure)
-  EXECUTE PROCEDURE metaschema_public.tg_enforce_api_exposure_ratchet();
+  EXECUTE FUNCTION metaschema_public.tg_enforce_api_exposure_ratchet();
 
 CREATE TABLE metaschema_public.exclusion_constraint (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
