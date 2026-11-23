@@ -46,6 +46,7 @@
 ## Security & Authentication
 
 ### Core Security
+- [ ] `packages/supabase` - Supabase PostgREST role and identity claim bridge
 - [ ] `packages/security/defaults` - Security defaults
 - [ ] `packages/security/jwt-claims` - JWT claim handling
 - [ ] `packages/security/totp` - Time-based One-Time Password (TOTP)
