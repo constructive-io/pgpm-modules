@@ -21,8 +21,8 @@
     "test:watch": "jest --watch"
   },
   "devDependencies": {
-    "pgpm": "^5",
-    "pgsql-test": "^5.20.13"
+    "pgpm": "^5.41.30",
+    "pgsql-test": "^5.20.16"
   },
   "dependencies": {
     "@pgpm/verify": "workspace:*"
