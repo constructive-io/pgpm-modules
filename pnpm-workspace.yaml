@@ -1,7 +1,7 @@
 packages:
   - packages/*
 
-# Exempt from the wait: 6 scope glob(s), 52 first-party package(s).
+# Exempt from the wait: 6 scope glob(s), 46 first-party package(s).
 # First-party membership comes from what pyramation publishes on npm — waiting on your own release protects nothing.
 minimumReleaseAgeExclude:
   - "@constructive-db/*"
@@ -11,23 +11,21 @@ minimumReleaseAgeExclude:
   - "@pgpmjs/*"
   - "@pgsql/*"
   - 12factor-env
-  - "@agentic-kit/ollama"
-  - "@agentic-kit/protocol"
   - "@inquirerer/utils"
   - appstash
   - csv-to-pg
-  - etag-hash
   - find-and-require-package-json
   - genomic
   - git-changed
   - gql-ast
   - graphile-bucket-provisioner-plugin
   - graphile-bulk-mutations
-  - graphile-cache
   - graphile-connection-filter
+  - graphile-history
   - graphile-i18n
   - graphile-llm
   - graphile-ltree
+  - graphile-meta
   - graphile-pg-aggregates
   - graphile-plugin-utils
   - graphile-postgis
@@ -35,7 +33,6 @@ minimumReleaseAgeExclude:
   - graphile-realtime-subscriptions
   - graphile-search
   - graphile-settings
-  - graphile-upload-plugin
   - inflekt
   - inquirerer
   - komoji
@@ -45,7 +42,6 @@ minimumReleaseAgeExclude:
   - pg-ast
   - pg-cache
   - pg-env
-  - pg-proto-parser
   - pg-query-context
   - pg-seed
   - pgpm
@@ -58,8 +54,6 @@ minimumReleaseAgeExclude:
   - plpgsql-parser
   - pnpm-policy
   - query-spec
-  - strfy-js
-  - uuid-hash
   - yamlize
   - yanse
 
@@ -74,6 +68,5 @@ blockExoticSubdeps: true
 
 # The only dependencies permitted to run install scripts.
 allowBuilds:
-  "@launchql/protobufjs": true # compiles protobuf definitions via native bindings, pulled in through pg-proto-parser for the pgpm CLI toolchain
   nx: true # native task-runner binary
   unrs-resolver: true # native module resolver used by jest-resolve during test runs

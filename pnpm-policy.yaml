@@ -43,7 +43,6 @@ intersect: true
 # Dependencies allowed to run install scripts. The value is the reason.
 allowBuilds:
   nx: native task-runner binary
-  "@launchql/protobufjs": compiles protobuf definitions via native bindings, pulled in through pg-proto-parser for the pgpm CLI toolchain
   unrs-resolver: native module resolver used by jest-resolve during test runs
 
 # Third-party escape hatches. A reason is required; `until` expires the waiver so

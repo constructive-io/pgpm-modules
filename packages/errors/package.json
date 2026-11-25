@@ -20,7 +20,7 @@
     "test:watch": "jest --watch"
   },
   "devDependencies": {
-    "pgpm": "^5"
+    "pgpm": "^5.41.30"
   },
   "repository": {
     "type": "git",
