@@ -1,5 +1,5 @@
 EXTENSION = inflection-db
-DATA = sql/inflection-db--0.47.12.sql
+DATA = sql/inflection-db--0.47.13.sql
 
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)

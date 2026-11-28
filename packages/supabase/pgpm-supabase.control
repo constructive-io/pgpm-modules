@@ -1,6 +1,6 @@
 # pgpm-supabase extension
 comment = 'Supabase PostgREST integration for Constructive'
-default_version = '0.47.12'
+default_version = '0.47.13'
 module_pathname = '$libdir/pgpm-supabase'
 requires = 'plpgsql,pgpm-verify'
 relocatable = false

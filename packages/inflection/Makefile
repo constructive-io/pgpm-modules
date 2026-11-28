@@ -1,5 +1,5 @@
 EXTENSION = pgpm-inflection
-DATA = sql/pgpm-inflection--0.47.12.sql
+DATA = sql/pgpm-inflection--0.47.13.sql
 
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
