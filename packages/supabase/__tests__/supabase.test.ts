@@ -148,3 +148,17 @@ it('syncs new Supabase users by UUID and lets them read only their own membershi
   pg.setContext({ role: 'authenticated', 'jwt.claims.user_id': userId });
   expect((await pg.query('SELECT user_id FROM public.memberships')).rows).toEqual([{ user_id: userId }]);
 });
+
+it('keeps syncing when the users table is recreated with the same qualified name', async () => {
+  await pg.query(`
+    CREATE SCHEMA auth;
+    CREATE TABLE auth.users (id uuid PRIMARY KEY);
+    CREATE SCHEMA "example-users-public";
+    CREATE TABLE "example-users-public".users (id uuid PRIMARY KEY);
+    SELECT supabase_integration.sync_users('"example-users-public".users');
+    ALTER TABLE "example-users-public".users RENAME TO old_users;
+    CREATE TABLE "example-users-public".users (id uuid PRIMARY KEY);
+  `);
+  await pg.query('INSERT INTO auth.users (id) VALUES ($1)', [userId]);
+  expect((await pg.query('SELECT id FROM "example-users-public".users')).rows).toEqual([{ id: userId }]);
+});
