@@ -88,3 +88,77 @@ it('rejects malformed JWT JSON', async () => {
   pg.setContext({ role: 'authenticated', 'request.jwt.claims': 'invalid' });
   await pg.expectError(() => pg.query('SELECT supabase_integration.pre_request()'), /invalid input syntax for type json/);
 });
+
+it('requires the host auth.users table before installing sync', async () => {
+  await pg.expectError(
+    () => pg.query("SELECT supabase_integration.sync_users('public.owned_rows')"),
+    /auth\.users does not exist/
+  );
+});
+
+it('requires an existing users table and restricts installation to admins', async () => {
+  await pg.query('CREATE SCHEMA auth; CREATE TABLE auth.users (id uuid PRIMARY KEY)');
+  await pg.expectError(
+    () => pg.query("SELECT supabase_integration.sync_users('public.missing_users')"),
+    /relation "public\.missing_users" does not exist/
+  );
+  await pg.expectError(
+    () => pg.query('SELECT supabase_integration.sync_users(NULL)'),
+    /target users table .* does not exist/
+  );
+
+  pg.setContext({ role: 'authenticated' });
+  await pg.expectError(
+    () => pg.query("SELECT supabase_integration.sync_users('public.owned_rows')"),
+    /permission denied for function sync_users/
+  );
+});
+
+it('syncs new Supabase users by UUID and lets them read only their own membership', async () => {
+  await pg.query(`
+    CREATE SCHEMA auth;
+    CREATE TABLE auth.users (id uuid PRIMARY KEY);
+    CREATE ROLE supabase_test_auth_admin NOINHERIT NOLOGIN;
+    GRANT USAGE ON SCHEMA auth TO supabase_test_auth_admin;
+    GRANT INSERT ON auth.users TO supabase_test_auth_admin;
+
+    CREATE SCHEMA "example-users-public";
+    CREATE TABLE "example-users-public".users (id uuid PRIMARY KEY, display_name text);
+    CREATE TABLE public.memberships (
+      user_id uuid PRIMARY KEY REFERENCES "example-users-public".users (id)
+    );
+    ALTER TABLE public.memberships ENABLE ROW LEVEL SECURITY;
+    GRANT SELECT ON public.memberships TO authenticated;
+    CREATE POLICY own_membership ON public.memberships TO authenticated
+      USING (user_id = nullif(current_setting('jwt.claims.user_id', true), '')::uuid);
+
+    INSERT INTO "example-users-public".users VALUES ('${otherId}', 'Existing user');
+    SELECT supabase_integration.sync_users('public.owned_rows');
+    SELECT supabase_integration.sync_users('"example-users-public".users');
+  `);
+
+  pg.setContext({ role: 'supabase_test_auth_admin' });
+  await pg.query('INSERT INTO auth.users (id) VALUES ($1), ($2)', [userId, otherId]);
+
+  pg.setContext({ role: null });
+  expect((await pg.query('SELECT id, display_name FROM "example-users-public".users ORDER BY id')).rows)
+    .toEqual([{ id: userId, display_name: null }, { id: otherId, display_name: 'Existing user' }]);
+  await pg.query('INSERT INTO public.memberships (user_id) VALUES ($1), ($2)', [userId, otherId]);
+
+  pg.setContext({ role: 'authenticated', 'jwt.claims.user_id': userId });
+  expect((await pg.query('SELECT user_id FROM public.memberships')).rows).toEqual([{ user_id: userId }]);
+});
+
+it('keeps syncing when the users table is recreated with the same qualified name', async () => {
+  await pg.query(`
+    CREATE SCHEMA auth;
+    CREATE TABLE auth.users (id uuid PRIMARY KEY);
+    CREATE SCHEMA "example-users-public";
+    CREATE TABLE "example-users-public".users (id uuid PRIMARY KEY);
+    SELECT supabase_integration.sync_users('"example-users-public".users');
+    ALTER TABLE "example-users-public".users RENAME TO old_users;
+    CREATE TABLE "example-users-public".users (id uuid PRIMARY KEY);
+  `);
+  await pg.query('INSERT INTO auth.users (id) VALUES ($1)', [userId]);
+  expect((await pg.query('SELECT id FROM "example-users-public".users')).rows).toEqual([{ id: userId }]);
+});

@@ -5,3 +5,4 @@
 schemas/supabase_integration/schema [pgpm-verify:procedures/assert_schema pgpm-verify:procedures/assert_function] 2026-08-27T00:00:00Z Constructive <developers@constructive.io> # add schemas/supabase_integration/schema
 roles/anon [schemas/supabase_integration/schema] 2026-08-27T00:00:00Z Constructive <developers@constructive.io> # add roles/anon
 schemas/supabase_integration/procedures/pre_request [schemas/supabase_integration/schema roles/anon] 2026-08-27T00:00:00Z Constructive <developers@constructive.io> # add schemas/supabase_integration/procedures/pre_request
+schemas/supabase_integration/procedures/sync_users [schemas/supabase_integration/schema] 2026-11-28T06:20:00Z Constructive <developers@constructive.io> # add schemas/supabase_integration/procedures/sync_users

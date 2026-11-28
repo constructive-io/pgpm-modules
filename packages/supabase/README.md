@@ -30,7 +30,24 @@ to both `jwt.claims.user_id` and `jwt.claims.principal_id`, transaction-locally.
 The subject must correspond to Constructive's `users.id`. Missing/empty claims
 or subjects leave the claims unset; malformed JSON raises an error. Other roles
 are unchanged. Only use this hook behind PostgREST's verified JWT boundary;
-it does not verify JWTs or provision users. Each request must use a fresh transaction.
+it does not verify JWTs. Each request must use a fresh transaction.
+
+### Sync new Supabase users
+
+In an `auth:supabase` export, call the installer as the module owner in a
+migration **after** creating the Constructive users table. Pass the actual
+schema-qualified table name from the export:
+
+```sql
+SELECT supabase_integration.sync_users('my_app_users_public.users'::regclass);
+```
+
+The installer uses the `auth.users` table provided by Supabase; do not import
+or deploy a separate Supabase schema on a hosted project. After installation,
+each signup creates a Constructive user with the same UUID as `auth.users.id`
+(the JWT subject). An existing Constructive row with that UUID is left unchanged.
+Calling the installer again replaces the trigger. It does not backfill existing
+Supabase accounts, assign memberships, or delete Constructive users.
 
 RLS policies must treat empty claim strings as absent, for example
 `nullif(current_setting('jwt.claims.user_id', true), '')::uuid`. PostgreSQL can
@@ -45,6 +62,8 @@ pnpm test
 pgpm package
 ```
 
-The tests create a missing `anon` role before deploying the module. Reverting
-revokes the membership and drops the hook and schema, but does not drop roles
-or change PostgREST configuration. Remove the pre-request setting before reverting.
+The tests create a missing `anon` role before deploying the module and use a
+local `auth.users` fixture. Reverting revokes the membership and drops the
+hook, any installed user-sync trigger, and the schema, but does not drop
+roles, remove synced users, or change PostgREST configuration. Remove the
+pre-request setting before reverting.
